@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_history: {
+        Row: {
+          created_at: string
+          id: string
+          language: string | null
+          message: string
+          response: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string | null
+          message: string
+          response: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string | null
+          message?: string
+          response?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       family_members: {
         Row: {
           avatar_url: string | null
@@ -129,25 +156,43 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
+          education: string | null
+          experience: string | null
           id: string
+          interests: string[] | null
+          phone: string | null
+          skills: string[] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
+          education?: string | null
+          experience?: string | null
           id?: string
+          interests?: string[] | null
+          phone?: string | null
+          skills?: string[] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
+          education?: string | null
+          experience?: string | null
           id?: string
+          interests?: string[] | null
+          phone?: string | null
+          skills?: string[] | null
           updated_at?: string
           user_id?: string
         }

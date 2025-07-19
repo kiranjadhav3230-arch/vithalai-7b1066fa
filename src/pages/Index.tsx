@@ -5,16 +5,14 @@ import { HeroSection } from '@/components/hero-section';
 import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
 import { AuthModal } from '@/components/auth-modal';
-import { CareerAssessment } from '@/components/career-assessment';
-import { CareerDashboard } from '@/components/career-dashboard';
+import { ChatInterface } from '@/components/chat-interface';
 import type { User, Session } from '@supabase/supabase-js';
 
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
-  const [showAssessment, setShowAssessment] = useState(false);
-  const [assessmentData, setAssessmentData] = useState(null);
+  const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,7 +37,7 @@ const Index = () => {
 
   const handleGetStarted = () => {
     if (user) {
-      setShowAssessment(true);
+      setShowChat(true);
     } else {
       setShowAuth(true);
     }
@@ -47,18 +45,12 @@ const Index = () => {
 
   const handleAuthSuccess = () => {
     setShowAuth(false);
-    setShowAssessment(true);
-  };
-
-  const handleAssessmentComplete = (data: any) => {
-    setAssessmentData(data);
-    setShowAssessment(false);
+    setShowChat(true);
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setAssessmentData(null);
-    setShowAssessment(false);
+    setShowChat(false);
   };
 
   if (loading) {
@@ -76,20 +68,17 @@ const Index = () => {
     );
   }
 
-  // Show dashboard if user has completed assessment
-  if (user && assessmentData) {
+  // Show chat interface if user is logged in
+  if (user && showChat) {
     return (
-      <CareerDashboard 
-        assessmentData={assessmentData} 
-        onLogout={handleLogout}
-      />
+      <ChatInterface user={user} onLogout={handleLogout} />
     );
   }
 
-  // Show assessment if user is logged in but hasn't completed it
-  if (user && showAssessment) {
+  // Show chat interface by default for logged in users
+  if (user) {
     return (
-      <CareerAssessment onComplete={handleAssessmentComplete} />
+      <ChatInterface user={user} onLogout={handleLogout} />
     );
   }
 
