@@ -1,12 +1,136 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Header } from '@/components/header';
+import { HeroSection } from '@/components/hero-section';
+import { HowItWorksSection } from '@/components/how-it-works-section';
+import { FeaturesSection } from '@/components/features-section';
+import { AuthModal } from '@/components/auth-modal';
+import { CareerAssessment } from '@/components/career-assessment';
+import { CareerDashboard } from '@/components/career-dashboard';
+import type { User, Session } from '@supabase/supabase-js';
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showAssessment, setShowAssessment] = useState(false);
+  const [assessmentData, setAssessmentData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleGetStarted = () => {
+    if (user) {
+      setShowAssessment(true);
+    } else {
+      setShowAuth(true);
+    }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false);
+    setShowAssessment(true);
+  };
+
+  const handleAssessmentComplete = (data: any) => {
+    setAssessmentData(data);
+    setShowAssessment(false);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setAssessmentData(null);
+    setShowAssessment(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <img 
+            src="/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png" 
+            alt="Vithal AI Logo" 
+            className="h-16 w-16 mx-auto mb-4 animate-pulse"
+          />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
       </div>
+    );
+  }
+
+  // Show dashboard if user has completed assessment
+  if (user && assessmentData) {
+    return (
+      <CareerDashboard 
+        assessmentData={assessmentData} 
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show assessment if user is logged in but hasn't completed it
+  if (user && showAssessment) {
+    return (
+      <CareerAssessment onComplete={handleAssessmentComplete} />
+    );
+  }
+
+  // Show landing page
+  return (
+    <div className="min-h-screen bg-background">
+      <Header onAuthClick={() => setShowAuth(true)} />
+      
+      <main>
+        <HeroSection onGetStarted={handleGetStarted} />
+        <HowItWorksSection />
+        <FeaturesSection />
+        
+        {/* Contact Section */}
+        <section id="contact" className="py-16 px-4 bg-muted/30">
+          <div className="container mx-auto text-center">
+            <h2 className="text-3xl font-bold mb-4">Ready to Start Your Career Journey?</h2>
+            <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
+              Join thousands of Indian youth who have discovered their perfect career path with Vithal AI
+            </p>
+            <button 
+              onClick={handleGetStarted}
+              className="bg-gradient-to-r from-primary to-accent text-white px-8 py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-shadow"
+            >
+              Start Your Assessment Now
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-card border-t py-8">
+        <div className="container mx-auto px-4 text-center text-muted-foreground">
+          <p>&copy; 2024 Vithal AI Assistance. Empowering Indian Youth with AI-Powered Career Guidance.</p>
+        </div>
+      </footer>
+
+      <AuthModal 
+        isOpen={showAuth} 
+        onClose={() => setShowAuth(false)}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 };
