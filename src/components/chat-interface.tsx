@@ -64,6 +64,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
     initializeSpeechRecognition();
   }, []);
 
+  // Auto-scroll to bottom and focus on latest message
+  useEffect(() => {
+    if (messages.length > 0) {
+      const scrollArea = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollArea) {
+        scrollArea.scrollTop = scrollArea.scrollHeight;
+      }
+      
+      // Focus on input after new message
+      setTimeout(() => {
+        const inputElement = document.querySelector('input[placeholder*="career"]') as HTMLInputElement;
+        if (inputElement && !inputElement.disabled) {
+          inputElement.focus();
+        }
+      }, 100);
+    }
+  }, [messages]);
+
   const initializeSpeechRecognition = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;

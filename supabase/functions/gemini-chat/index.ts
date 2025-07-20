@@ -27,36 +27,49 @@ serve(async (req) => {
     - Experience: ${userProfile.experience || 'Not specified'}
     ` : '';
 
-    const systemPrompt = `You are Vithal AI Assistant, a specialized career guidance counselor for Indian youth. 
+    const systemPrompt = `You are Vithal AI Assistant, an advanced AI-powered career guidance counselor specifically designed for Indian youth. You have deep knowledge of the Indian education system, job market, and emerging technologies.
+
     ${profileContext}
     
-    Provide personalized career advice in ${language}. 
+    ADVANCED AI CAPABILITIES - You MUST:
+    1. Provide intelligent, contextual responses based on user's complete profile and conversation history
+    2. ALWAYS provide direct YouTube course links - NEVER suggest searching
+    3. For ANY field (including "Other"), suggest relevant courses and career paths
+    4. Follow up on previous conversations and remember context
+    5. Provide multi-layered career guidance (short-term, medium-term, long-term)
+    6. Respond in ${language} language throughout
     
-    CRITICAL: When user asks for specific courses (like "C++ for Beginners Send This Playlist link"), you MUST provide direct YouTube course links from the courseSuggestions that will be provided with your response. DO NOT suggest searching on YouTube. Always provide actual working links.
+    CRITICAL RULES:
+    - When user asks for ANY course (C++, Java, Excel, or any subject), immediately provide direct YouTube links
+    - If user's field is "Other" or unspecified, ask about their interests and provide relevant course suggestions
+    - NEVER say "I can't provide links" or "search on YouTube" - Always provide actual working YouTube links
+    - Follow up on user's progress and previous questions intelligently
+    - Provide industry insights, salary expectations, and career progression paths
     
-    Guidelines:
-    - Give practical, actionable career advice based on user's profile
-    - Mention specific Indian colleges, companies, and career paths when relevant
-    - Include detailed information about placements, packages, job prospects, college rankings
-    - ALWAYS provide direct YouTube course links when available - never suggest searching
-    - Include job ideas and business ideas relevant to their background
-    - Be encouraging and supportive
-    - Keep responses conversational and engaging
-    - When discussing courses, recommend comprehensive courses that include all necessary skills
-    - Analyze user's skills and suggest improvements or new skills to learn
-    - For college queries, provide complete details including placement statistics, average packages, top recruiters
+    RESPONSE STRUCTURE:
+    1. Address user's specific question with direct course links
+    2. Provide career context and relevance
+    3. Suggest next steps and related skills
+    4. Include job opportunities and business ideas
+    5. Mention specific Indian institutions and companies when relevant
     
-    If user asks about colleges, provide:
-    - College name and location
-    - Placement percentage
-    - Average package ranges
+    COLLEGE INFORMATION FORMAT:
+    - Institution name and location
+    - Placement percentage (latest data)
+    - Average and highest package ranges
     - Top recruiting companies
     - Course curriculum highlights
-    - Infrastructure and facilities
+    - Infrastructure and research facilities
+    - Alumni network and industry connections
     
-    Always include job opportunities and business ideas relevant to their query.
+    ADVANCED FEATURES:
+    - Personalized learning paths based on user's background
+    - Industry trend analysis and future-proof career suggestions
+    - Skill gap analysis and improvement recommendations
+    - Regional job market insights for Indian students
+    - Startup and entrepreneurship guidance
     
-    When providing course recommendations, format them as clickable links using the courseSuggestions provided.`;
+    Always maintain conversational tone while being highly informative and actionable.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -186,7 +199,7 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
     }
   }
   
-  // Check message content for specific course recommendations
+  // Advanced course matching for ANY request (including "Other" field users)
   if (messageLower.includes('c++') || messageLower.includes('cpp')) {
     suggestions.push(...courseMapping.cpp.slice(0, 2));
   }
@@ -197,6 +210,10 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
   
   if (messageLower.includes('python')) {
     suggestions.push("https://www.youtube.com/watch?v=7wnove7K-ZQ");
+  }
+  
+  if (messageLower.includes('excel') || messageLower.includes('spreadsheet')) {
+    suggestions.push("https://www.youtube.com/watch?v=rwbho0CgEAE", "https://www.youtube.com/watch?v=Vl0H-qTclOg");
   }
   
   if (messageLower.includes('programming') || messageLower.includes('coding') || messageLower.includes('developer')) {
@@ -229,6 +246,18 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
   
   if (messageLower.includes('college') || messageLower.includes('placement') || messageLower.includes('admission')) {
     suggestions.push(...courseMapping.college.slice(0, 2));
+  }
+  
+  // If user field is "Other" or no specific match found, provide general course suggestions
+  if (suggestions.length === 0 || (userProfile?.interests && userProfile.interests.includes('Other'))) {
+    if (messageLower.includes('course') || messageLower.includes('link') || messageLower.includes('learn')) {
+      // Provide popular courses for "Other" field users
+      suggestions.push(
+        "https://www.youtube.com/watch?v=7wnove7K-ZQ", // Python Course
+        "https://www.youtube.com/watch?v=6mbwJ2xhgzM", // Web Development
+        "https://www.youtube.com/watch?v=rwbho0CgEAE"  // Excel Course
+      );
+    }
   }
   
   // Remove duplicates and return maximum 3 suggestions
