@@ -148,6 +148,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
       const { error } = await supabase
         .from('profiles')
         .upsert({
+          id: user.id,
           user_id: user.id,
           display_name: profile.display_name,
           bio: profile.bio,
@@ -275,7 +276,14 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   };
 
   const openDirectCourse = (courseUrl: string) => {
-    window.open(courseUrl, '_blank');
+    // Check if it's a valid YouTube URL
+    if (courseUrl.includes('youtube.com') || courseUrl.includes('youtu.be')) {
+      window.open(courseUrl, '_blank');
+    } else {
+      // If it's not a URL, search for it on YouTube
+      const searchQuery = encodeURIComponent(courseUrl);
+      window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+    }
   };
 
   const toggleVoiceRecognition = () => {
@@ -335,7 +343,25 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
                 </DialogHeader>
                 <div className="space-y-4 max-h-[400px] overflow-y-auto">
                   <div>
-                    <Label htmlFor="name">Name</Label>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={user?.user_metadata?.username || user?.email?.split('@')[0] || ''}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
                       value={profile.display_name}
@@ -352,10 +378,29 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
                   </div>
                   <div>
                     <Label htmlFor="education">Education</Label>
-                    <Input
+                    <Textarea
                       id="education"
                       value={profile.education}
                       onChange={(e) => setProfile(prev => ({ ...prev, education: e.target.value }))}
+                      placeholder="Your educational background..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="skills">Skills</Label>
+                    <Textarea
+                      id="skills"
+                      value={profile.skills}
+                      onChange={(e) => setProfile(prev => ({ ...prev, skills: e.target.value }))}
+                      placeholder="Your skills (comma separated)..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="interests">Interests</Label>
+                    <Textarea
+                      id="interests"
+                      value={profile.interests}
+                      onChange={(e) => setProfile(prev => ({ ...prev, interests: e.target.value }))}
+                      placeholder="Your interests (comma separated)..."
                     />
                   </div>
                   <div>
