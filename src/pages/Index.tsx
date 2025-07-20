@@ -110,8 +110,9 @@ const Index = () => {
       </main>
 
       <footer className="bg-card border-t py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
+        <div className="container mx-auto px-4 text-center text-muted-foreground space-y-2">
           <p>&copy; 2024 Vithal AI Assistance. Empowering Indian Youth with AI-Powered Career Guidance.</p>
+          <p>Made by <span className="font-semibold text-primary">Shree Alankar</span> | Powered by <span className="font-semibold text-accent">Google Gemini AI</span></p>
         </div>
       </footer>
 

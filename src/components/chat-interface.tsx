@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, User, Bot, Settings, Youtube, BookOpen, Star } from 'lucide-react';
+import { Send, User, Bot, Settings, Youtube, BookOpen, Star, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -30,6 +30,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
   const [profile, setProfile] = useState({
     display_name: '',
     bio: '',
@@ -45,7 +47,40 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   useEffect(() => {
     loadChatHistory();
     loadProfile();
+    initializeSpeechRecognition();
   }, []);
+
+  const initializeSpeechRecognition = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputMessage(transcript);
+        setIsListening(false);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognition.onerror = () => {
+        setIsListening(false);
+        toast({
+          title: "Error",
+          description: "Voice recognition failed. Please try again.",
+          variant: "destructive"
+        });
+      };
+      
+      setRecognition(recognition);
+    }
+  };
 
   const loadProfile = async () => {
     const { data, error } = await supabase
@@ -136,7 +171,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: inputMessage,
-          language: language === 'hi' ? 'hindi' : language === 'mr' ? 'marathi' : 'english'
+          language: language === 'hi' ? 'hindi' : language === 'mr' ? 'marathi' : 'english',
+          userProfile: profile
         }
       });
 
@@ -175,8 +211,28 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   };
 
   const openYouTubeSearch = (course: string) => {
-    const searchQuery = encodeURIComponent(`${course} tutorial`);
+    const searchQuery = encodeURIComponent(course);
     window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+  };
+
+  const toggleVoiceRecognition = () => {
+    if (!recognition) {
+      toast({
+        title: "Voice Recognition Not Supported",
+        description: "Your browser doesn't support voice recognition.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
+      recognition.start();
+      setIsListening(true);
+    }
   };
 
   return (
@@ -300,7 +356,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
                     <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
                       message.isUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
                     }`}>
-                      {message.isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                      {message.isUser ? (
+                        <User className="h-4 w-4" />
+                      ) : (
+                        <img 
+                          src="/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png" 
+                          alt="Vithal AI" 
+                          className="h-6 w-6 rounded-full"
+                        />
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Card className={`p-3 ${
@@ -339,9 +403,13 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
               {isLoading && (
                 <div className="flex justify-start">
                   <div className="flex gap-3 max-w-[80%]">
-                    <div className="h-8 w-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
-                      <Bot className="h-4 w-4" />
-                    </div>
+                  <div className="h-8 w-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center">
+                    <img 
+                      src="/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png" 
+                      alt="Vithal AI" 
+                      className="h-6 w-6 rounded-full"
+                    />
+                  </div>
                     <Card className="p-3 bg-secondary text-secondary-foreground">
                       <div className="flex items-center gap-2">
                         <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
@@ -365,9 +433,23 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
             disabled={isLoading}
             className="flex-1"
           />
+          <Button 
+            onClick={toggleVoiceRecognition} 
+            disabled={isLoading}
+            variant={isListening ? "destructive" : "outline"}
+            size="icon"
+          >
+            {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          </Button>
           <Button onClick={sendMessage} disabled={isLoading || !inputMessage.trim()}>
             <Send className="h-4 w-4" />
           </Button>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-muted-foreground mt-2 space-y-1">
+          <p>Made by <span className="font-semibold text-primary">Shree Alankar</span></p>
+          <p>Powered by <span className="font-semibold text-accent">Google Gemini AI</span></p>
         </div>
       </div>
     </div>

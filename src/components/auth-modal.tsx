@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Lock, User } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Mail, Lock, User, GraduationCap, Brain, Heart } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    fullName: ''
+    fullName: '',
+    education: '',
+    skills: '',
+    interests: ''
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -38,7 +42,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: formData.fullName
+            full_name: formData.fullName,
+            education: formData.education,
+            skills: formData.skills,
+            interests: formData.interests
           }
         }
       });
@@ -204,6 +211,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                   className="pl-10"
                   value={formData.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="signup-education">Education Background</Label>
+              <div className="relative">
+                <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="signup-education"
+                  type="text"
+                  placeholder="e.g., 12th Science, B.Tech CSE, etc."
+                  className="pl-10"
+                  value={formData.education}
+                  onChange={(e) => handleInputChange('education', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="signup-skills">Skills (comma separated)</Label>
+              <div className="relative">
+                <Brain className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="signup-skills"
+                  type="text"
+                  placeholder="e.g., Programming, Design, Communication"
+                  className="pl-10"
+                  value={formData.skills}
+                  onChange={(e) => handleInputChange('skills', e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="signup-interests">Interests (comma separated)</Label>
+              <div className="relative">
+                <Heart className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="signup-interests"
+                  type="text"
+                  placeholder="e.g., Technology, Arts, Business"
+                  className="pl-10"
+                  value={formData.interests}
+                  onChange={(e) => handleInputChange('interests', e.target.value)}
                 />
               </div>
             </div>
