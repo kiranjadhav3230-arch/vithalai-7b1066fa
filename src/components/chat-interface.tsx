@@ -32,17 +32,31 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   const [showProfile, setShowProfile] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
   const [profile, setProfile] = useState({
     display_name: '',
     bio: '',
-    skills: [] as string[],
-    interests: [] as string[],
+    skills: '',
+    interests: '',
     education: '',
     experience: '',
     phone: ''
   });
   const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
+
+  // Strong auth check
+  useEffect(() => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access the chat interface.",
+        variant: "destructive"
+      });
+      onLogout();
+      return;
+    }
+  }, [user, onLogout, toast]);
 
   useEffect(() => {
     loadChatHistory();
@@ -83,46 +97,86 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   };
 
   const loadProfile = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-    if (data) {
-      setProfile({
-        display_name: data.display_name || '',
-        bio: data.bio || '',
-        skills: data.skills || [],
-        interests: data.interests || [],
-        education: data.education || '',
-        experience: data.experience || '',
-        phone: data.phone || ''
-      });
+      if (data) {
+        setProfile({
+          display_name: data.display_name || '',
+          bio: data.bio || '',
+          skills: Array.isArray(data.skills) ? data.skills.join(', ') : data.skills || '',
+          interests: Array.isArray(data.interests) ? data.interests.join(', ') : data.interests || '',
+          education: data.education || '',
+          experience: data.experience || '',
+          phone: data.phone || ''
+        });
+      } else {
+        // Load from user metadata if no profile exists
+        setProfile({
+          display_name: user.user_metadata?.full_name || '',
+          bio: '',
+          skills: user.user_metadata?.skills || '',
+          interests: user.user_metadata?.interests || '',
+          education: user.user_metadata?.education || '',
+          experience: '',
+          phone: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
     }
   };
 
   const updateProfile = async () => {
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        user_id: user.id,
-        ...profile,
-        updated_at: new Date().toISOString()
-      });
-
-    if (error) {
+    if (!user) {
       toast({
-        title: "Error",
-        description: "Failed to update profile",
+        title: "Authentication Error",
+        description: "Please log in to update your profile.",
         variant: "destructive"
       });
-    } else {
+      return;
+    }
+
+    setProfileSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert({
+          user_id: user.id,
+          display_name: profile.display_name,
+          bio: profile.bio,
+          skills: profile.skills.split(',').map(s => s.trim()).filter(s => s),
+          interests: profile.interests.split(',').map(s => s.trim()).filter(s => s),
+          education: profile.education,
+          experience: profile.experience,
+          phone: profile.phone,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Profile update error:', error);
+        throw error;
+      }
+
       toast({
         title: "Success",
-        description: "Profile updated successfully"
+        description: "Profile updated successfully and will be used for personalized recommendations"
       });
       setShowProfile(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive"
+      });
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -154,7 +208,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
   };
 
   const sendMessage = async () => {
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !user) {
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to chat with the AI assistant.",
+          variant: "destructive"
+        });
+        onLogout();
+      }
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -210,9 +274,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
     setIsLoading(false);
   };
 
-  const openYouTubeSearch = (course: string) => {
-    const searchQuery = encodeURIComponent(course);
-    window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+  const openDirectCourse = (courseUrl: string) => {
+    window.open(courseUrl, '_blank');
   };
 
   const toggleVoiceRecognition = () => {
@@ -312,10 +375,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={updateProfile} className="flex-1">
-                      Save Changes
+                    <Button onClick={updateProfile} disabled={profileSaving} className="flex-1">
+                      {profileSaving ? 'Saving...' : 'Save Changes'}
                     </Button>
-                    <Button variant="outline" onClick={() => setShowProfile(false)}>
+                    <Button variant="outline" onClick={() => setShowProfile(false)} disabled={profileSaving}>
                       Cancel
                     </Button>
                   </div>
@@ -382,15 +445,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
                             <Youtube className="h-4 w-4 text-red-500" />
                             <span className="text-sm font-medium">Recommended Free Courses:</span>
                           </div>
-                          <div className="space-y-1">
+                          <div className="space-y-2">
                             {message.courses.map((course, index) => (
                               <button
                                 key={index}
-                                onClick={() => openYouTubeSearch(course)}
-                                className="block w-full text-left text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                                onClick={() => openDirectCourse(course)}
+                                className="block w-full text-left p-2 rounded border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors"
                               >
-                                <BookOpen className="h-3 w-3 inline mr-1" />
-                                {course}
+                                <div className="flex items-center gap-2">
+                                  <Youtube className="h-4 w-4 text-red-500" />
+                                  <span className="text-sm font-medium text-foreground">
+                                    {course.includes('youtube.com') ? 'Watch Course' : course}
+                                  </span>
+                                </div>
                               </button>
                             ))}
                           </div>

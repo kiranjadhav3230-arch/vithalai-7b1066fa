@@ -6,6 +6,7 @@ import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
+import { useLanguage } from '@/hooks/useLanguage';
 import type { User, Session } from '@supabase/supabase-js';
 
 const Index = () => {
@@ -14,6 +15,7 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -84,43 +86,62 @@ const Index = () => {
 
   // Show landing page
   return (
-    <div className="min-h-screen bg-background">
-      <Header onAuthClick={() => setShowAuth(true)} />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Tech Background Effects */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+      </div>
       
-      <main>
-        <HeroSection onGetStarted={handleGetStarted} />
-        <HowItWorksSection />
-        <FeaturesSection />
+      <div className="relative z-10">
+        <Header onAuthClick={() => setShowAuth(true)} />
+        
+        <main>
+          <HeroSection onGetStarted={handleGetStarted} />
+          <HowItWorksSection />
+          <FeaturesSection />
         
         {/* Contact Section */}
-        <section id="contact" className="py-16 px-4 bg-muted/30">
+        <section id="contact" className="py-20 px-4 tech-card">
           <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Ready to Start Your Career Journey?</h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of Indian youth who have discovered their perfect career path with Vithal AI
+            <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              {t('readyToStart')}
+            </h2>
+            <p className="text-muted-foreground text-lg mb-8 max-w-3xl mx-auto leading-relaxed">
+              {t('joinThousands')}
             </p>
             <button 
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-primary to-accent text-white px-8 py-3 rounded-lg font-semibold text-lg hover:shadow-lg transition-shadow"
+              className="neon-border bg-gradient-to-r from-primary to-accent text-primary-foreground px-10 py-4 rounded-xl font-semibold text-lg hover:shadow-[0_0_30px_rgba(34,197,94,0.4)] transition-all duration-300 transform hover:scale-105"
             >
-              Start Your Assessment Now
+              {t('startNow')}
             </button>
           </div>
         </section>
-      </main>
+        </main>
 
-      <footer className="bg-card border-t py-8">
-        <div className="container mx-auto px-4 text-center text-muted-foreground space-y-2">
-          <p>&copy; 2024 Vithal AI Assistance. Empowering Indian Youth with AI-Powered Career Guidance.</p>
-          <p>Made by <span className="font-semibold text-primary">Shree Alankar</span> | Powered by <span className="font-semibold text-accent">Google Gemini AI</span></p>
-        </div>
-      </footer>
+        <footer className="glass-morphism border-t py-12">
+          <div className="container mx-auto px-4 text-center text-muted-foreground space-y-4">
+            <p className="text-lg">&copy; 2024 {t('appName')}. {t('professionalDescription')}</p>
+            <div className="flex justify-center items-center gap-4 text-sm">
+              <span className="neon-border px-4 py-2 rounded-full">
+                <span className="font-semibold text-primary">{t('madeBy')}</span>
+              </span>
+              <span className="text-muted-foreground">|</span>
+              <span className="neon-border px-4 py-2 rounded-full">
+                <span className="font-semibold text-accent">{t('poweredBy')}</span>
+              </span>
+            </div>
+          </div>
+        </footer>
 
-      <AuthModal 
-        isOpen={showAuth} 
-        onClose={() => setShowAuth(false)}
-        onSuccess={handleAuthSuccess}
-      />
+        <AuthModal 
+          isOpen={showAuth} 
+          onClose={() => setShowAuth(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      </div>
     </div>
   );
 };

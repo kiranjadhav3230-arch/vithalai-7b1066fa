@@ -28,19 +28,19 @@ export const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 px-4">
+    <section id="how-it-works" className="py-20 px-4 tech-card">
       <div className="container mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('howItWorks')}</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Simple steps to discover your ideal career path with AI assistance
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{t('howItWorks')}</h2>
+          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
+            Experience our advanced AI-powered career intelligence platform designed for strategic professional development
           </p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
           {steps.map((step, index) => (
             <div key={index} className="relative">
-              <Card className="hover:shadow-lg transition-shadow border-0 bg-card/50 backdrop-blur">
+              <Card className="glass-morphism hover:neon-border transition-all duration-300 transform hover:scale-105">
                 <CardContent className="p-8 text-center">
                   <div className="relative mb-6">
                     <div className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
