@@ -32,11 +32,13 @@ serve(async (req) => {
     
     Provide personalized career advice in ${language}. 
     
+    CRITICAL: When user asks for specific courses (like "C++ for Beginners Send This Playlist link"), you MUST provide direct YouTube course links from the courseSuggestions that will be provided with your response. DO NOT suggest searching on YouTube. Always provide actual working links.
+    
     Guidelines:
     - Give practical, actionable career advice based on user's profile
     - Mention specific Indian colleges, companies, and career paths when relevant
     - Include detailed information about placements, packages, job prospects, college rankings
-    - Provide specific YouTube video titles or playlist names (don't search, suggest exact names)
+    - ALWAYS provide direct YouTube course links when available - never suggest searching
     - Include job ideas and business ideas relevant to their background
     - Be encouraging and supportive
     - Keep responses conversational and engaging
@@ -52,7 +54,9 @@ serve(async (req) => {
     - Course curriculum highlights
     - Infrastructure and facilities
     
-    Always include job opportunities and business ideas relevant to their query.`;
+    Always include job opportunities and business ideas relevant to their query.
+    
+    When providing course recommendations, format them as clickable links using the courseSuggestions provided.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -113,6 +117,12 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
   
   // Direct working YouTube course links
   const courseMapping = {
+    cpp: [
+      "https://www.youtube.com/watch?v=vLnPwxZdW4Y", // C++ Full Course for Beginners
+      "https://www.youtube.com/playlist?list=PLu0W_9lII9agpFUAlPFe_VNSlXW5uE0YL", // C++ Playlist by CodeWithHarry
+      "https://www.youtube.com/watch?v=j8nAHeVKL08", // C++ Programming Course
+      "https://www.youtube.com/playlist?list=PLfqMhTWNBTe0b2nM6JHVCnAkhQRGiZMSJ" // C++ Tutorial Series
+    ],
     programming: [
       "https://www.youtube.com/watch?v=eIrMbAQSU34", // Complete Java Course
       "https://www.youtube.com/watch?v=7wnove7K-ZQ", // Complete Python Course
@@ -177,6 +187,10 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
   }
   
   // Check message content for specific course recommendations
+  if (messageLower.includes('c++') || messageLower.includes('cpp')) {
+    suggestions.push(...courseMapping.cpp.slice(0, 2));
+  }
+  
   if (messageLower.includes('java')) {
     suggestions.push("https://www.youtube.com/watch?v=eIrMbAQSU34");
   }

@@ -103,8 +103,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (data) {
         setProfile({
@@ -145,20 +145,46 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) 
 
     setProfileSaving(true);
     try {
-      const { error } = await supabase
+      // Check if profile exists first
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
-          user_id: user.id,
-          display_name: profile.display_name,
-          bio: profile.bio,
-          skills: profile.skills.split(',').map(s => s.trim()).filter(s => s),
-          interests: profile.interests.split(',').map(s => s.trim()).filter(s => s),
-          education: profile.education,
-          experience: profile.experience,
-          phone: profile.phone,
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      let error;
+      if (existingProfile) {
+        // Update existing profile
+        const updateResult = await supabase
+          .from('profiles')
+          .update({
+            display_name: profile.display_name,
+            bio: profile.bio,
+            skills: profile.skills.split(',').map(s => s.trim()).filter(s => s),
+            interests: profile.interests.split(',').map(s => s.trim()).filter(s => s),
+            education: profile.education,
+            experience: profile.experience,
+            phone: profile.phone,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+        error = updateResult.error;
+      } else {
+        // Insert new profile
+        const insertResult = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            display_name: profile.display_name,
+            bio: profile.bio,
+            skills: profile.skills.split(',').map(s => s.trim()).filter(s => s),
+            interests: profile.interests.split(',').map(s => s.trim()).filter(s => s),
+            education: profile.education,
+            experience: profile.experience,
+            phone: profile.phone
+          });
+        error = insertResult.error;
+      }
 
       if (error) {
         console.error('Profile update error:', error);
