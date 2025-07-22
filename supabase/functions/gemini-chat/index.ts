@@ -124,138 +124,221 @@ serve(async (req) => {
   }
 });
 
-// Generate direct YouTube course links with API integration
+// Advanced YouTube course analysis with comprehensive mapping
 async function generateYouTubeCourses(message: string, userProfile: any): Promise<string[]> {
   const messageLower = message.toLowerCase();
   
-  // Direct working YouTube course links
+  // Comprehensive course mapping for ALL subjects
   const courseMapping = {
+    // Programming & Technology
     cpp: [
-      "https://www.youtube.com/watch?v=vLnPwxZdW4Y", // C++ Full Course for Beginners
-      "https://www.youtube.com/playlist?list=PLu0W_9lII9agpFUAlPFe_VNSlXW5uE0YL", // C++ Playlist by CodeWithHarry
-      "https://www.youtube.com/watch?v=j8nAHeVKL08", // C++ Programming Course
-      "https://www.youtube.com/playlist?list=PLfqMhTWNBTe0b2nM6JHVCnAkhQRGiZMSJ" // C++ Tutorial Series
+      "https://www.youtube.com/watch?v=vLnPwxZdW4Y",
+      "https://www.youtube.com/playlist?list=PLu0W_9lII9agpFUAlPFe_VNSlXW5uE0YL"
     ],
-    programming: [
-      "https://www.youtube.com/watch?v=eIrMbAQSU34", // Complete Java Course
-      "https://www.youtube.com/watch?v=7wnove7K-ZQ", // Complete Python Course
-      "https://www.youtube.com/watch?v=tVzUXW6siu0", // DSA Complete Course
-      "https://www.youtube.com/playlist?list=PLu0W_9lII9agICnT8t4iYVSZ3eykIAOME" // Python Playlist
+    java: [
+      "https://www.youtube.com/watch?v=eIrMbAQSU34",
+      "https://www.youtube.com/playlist?list=PLsyeobzWxl7pe_IiTfNyr55kwJPWbgxB5"
+    ],
+    python: [
+      "https://www.youtube.com/watch?v=7wnove7K-ZQ",
+      "https://www.youtube.com/playlist?list=PLu0W_9lII9agICnT8t4iYVSZ3eykIAOME"
     ],
     webdev: [
-      "https://www.youtube.com/watch?v=6mbwJ2xhgzM", // Complete Web Development
-      "https://www.youtube.com/watch?v=l1EssrLxt7E", // MERN Stack Course
-      "https://www.youtube.com/playlist?list=PLu0W_9lII9agiCUZYRsvtGTXdxkzPyItg", // Web Development Bootcamp
-      "https://www.youtube.com/watch?v=Vi9bxu-M-ag" // Complete Web Development
+      "https://www.youtube.com/watch?v=6mbwJ2xhgzM",
+      "https://www.youtube.com/watch?v=l1EssrLxt7E"
     ],
-    mobile: [
-      "https://www.youtube.com/watch?v=fis26HvvDII", // Android Development Course
-      "https://www.youtube.com/watch?v=VgQiYGEwKkE", // Complete Android Course
-      "https://www.youtube.com/watch?v=1ukSR1GRtMU", // Flutter Course for Beginners
-      "https://www.youtube.com/playlist?list=PLRApWmh2yHsVOhB4EXRpEh9q3vMRJ8E4d" // Flutter Playlist
+    
+    // Academic Subjects
+    mathematics: [
+      "https://www.youtube.com/watch?v=WUvTyaaNkzM",
+      "https://www.youtube.com/playlist?list=PLDesaqWTN6ESsmwELdrzhcGiRhk5DjwLP"
     ],
-    data: [
-      "https://www.youtube.com/watch?v=7eh4d6sabA0", // Data Science Complete Course
-      "https://www.youtube.com/playlist?list=PLZoTAELRMXVPBTrWtJkn3wWQxZkmTXGwe", // Machine Learning Playlist
-      "https://www.youtube.com/watch?v=mkv5mxYu0Wk", // Data Science Basics
-      "https://www.youtube.com/watch?v=24FIWTmJpqk" // Python for Data Science
+    physics: [
+      "https://www.youtube.com/watch?v=ZM8ECpBuQYE",
+      "https://www.youtube.com/playlist?list=PLF_gJMchlZ2Q723kMMkgIzgdoyqVuEbmD"
     ],
-    design: [
-      "https://www.youtube.com/watch?v=c9Wg6Cb_YlU", // UX/UI Design Course
-      "https://www.youtube.com/watch?v=YqQx75OPRa0", // Graphic Design Tutorials
-      "https://www.youtube.com/watch?v=FTlczfBs-Vg", // Complete Figma Course
-      "https://www.youtube.com/watch?v=IyR_uYsRdPs" // Photoshop Tutorials
+    chemistry: [
+      "https://www.youtube.com/watch?v=bka20Q9TN6M",
+      "https://www.youtube.com/playlist?list=PLm8dMdh2i5rEsa25U3jkPMMnPcE1nLhNz"
+    ],
+    biology: [
+      "https://www.youtube.com/watch?v=QnQe0xW_JY4",
+      "https://www.youtube.com/playlist?list=PLWKjhJtqVAbmfuXpZa8AWXBe4biuwhpIm"
+    ],
+    
+    // Languages
+    english: [
+      "https://www.youtube.com/watch?v=sB_9hJ5LDQE",
+      "https://www.youtube.com/playlist?list=PLrAXtmRdnEQy__q57-iSOf_kyRe4jlNF6"
+    ],
+    hindi: [
+      "https://www.youtube.com/watch?v=JpQiOH6o1HI",
+      "https://www.youtube.com/playlist?list=PLDJvX5xpqR0zQ7v4vLwz9Y3xdN0tZs9q"
+    ],
+    marathi: [
+      "https://www.youtube.com/watch?v=KpQ2QNqEuEQ",
+      "https://www.youtube.com/playlist?list=PLF7J8T2dRhGKRTX3R1s3hTsZ2q-J6h3QE"
+    ],
+    
+    // Finance & Business
+    sharemarket: [
+      "https://www.youtube.com/watch?v=lXVKJvg1TkM",
+      "https://www.youtube.com/playlist?list=PLX2SHiKfualG7CMHX5q6z3cSbPKD1IXOe"
+    ],
+    trading: [
+      "https://www.youtube.com/watch?v=3HjOjvAetH4",
+      "https://www.youtube.com/playlist?list=PLX2SHiKfualH2vGDq2qEXOlHOKGKj3ILV"
     ],
     business: [
-      "https://www.youtube.com/watch?v=4V4h8C8lCQ8", // Business Analysis
-      "https://www.youtube.com/watch?v=2wDvzy6Hgxg", // Digital Marketing Course
-      "https://www.youtube.com/watch?v=7zllVDfyUEg", // Entrepreneurship Videos
-      "https://www.youtube.com/playlist?list=PLZoTAELRMXVPXLYHLkOGz0J8PWNL9Y7YE" // Digital Marketing Playlist
+      "https://www.youtube.com/watch?v=4V4h8C8lCQ8",
+      "https://www.youtube.com/watch?v=2wDvzy6Hgxg"
     ],
-    engineering: [
-      "https://www.youtube.com/watch?v=mMY-YLBhKw4", // Engineering Preparation
-      "https://www.youtube.com/watch?v=gGy3HCaV8D8", // GATE Subject Courses
-      "https://www.youtube.com/watch?v=1CYWl2vJcY0", // GATE Preparation Videos
-      "https://www.youtube.com/watch?v=4LbJmhdUJes" // Engineering Mathematics
+    
+    // Creative & Design
+    design: [
+      "https://www.youtube.com/watch?v=c9Wg6Cb_YlU",
+      "https://www.youtube.com/watch?v=YqQx75OPRa0"
     ],
-    college: [
-      "https://www.youtube.com/watch?v=YnHWNXv_PsQ", // Engineering Colleges Guide
-      "https://www.youtube.com/watch?v=yTZSPSnp0dw", // College Selection Guide
-      "https://www.youtube.com/watch?v=PWc8S4TEsp0", // Placement Preparation
-      "https://www.youtube.com/watch?v=e8F8DuKQlXo" // Interview Skills
+    photography: [
+      "https://www.youtube.com/watch?v=LxO-6rlihSg",
+      "https://www.youtube.com/playlist?list=PLjVsMVHNhqQWuHOo-6TCyF7vOW4S9XItX"
+    ],
+    
+    // Health & Fitness
+    fitness: [
+      "https://www.youtube.com/watch?v=ml6cT4AZdqI",
+      "https://www.youtube.com/playlist?list=PLhu1QCKrfgPVSP9I9W8uQz99w6krSd5Gq"
+    ],
+    yoga: [
+      "https://www.youtube.com/watch?v=hJbRpHZr_d0",
+      "https://www.youtube.com/playlist?list=PLui6Eyny-UzwxbWCWDbTzEwsZnnROBTIL"
+    ],
+    
+    // Skills & Professional
+    excel: [
+      "https://www.youtube.com/watch?v=rwbho0CgEAE",
+      "https://www.youtube.com/watch?v=Vl0H-qTclOg"
+    ],
+    communication: [
+      "https://www.youtube.com/watch?v=HAnw168huqA",
+      "https://www.youtube.com/playlist?list=PLWPirh4EWFpELUjm5m_M8kPM_xUwN5Qko"
+    ],
+    
+    // Music & Arts
+    music: [
+      "https://www.youtube.com/watch?v=F3QpgXBtDeo",
+      "https://www.youtube.com/playlist?list=PLTYuWi2LmaPG4A_CODsk_1qfKgscpPwN6"
+    ],
+    guitar: [
+      "https://www.youtube.com/watch?v=F5bFhNnXchY",
+      "https://www.youtube.com/playlist?list=PLJTWoPGfHxQH5zdZN6UlMPwZerVApkqmk"
     ]
   };
 
   const suggestions: string[] = [];
   
-  // Check user profile for personalized suggestions
-  if (userProfile?.interests) {
-    const interests = (Array.isArray(userProfile.interests) ? userProfile.interests.join(' ') : userProfile.interests).toLowerCase();
-    if (interests.includes('programming') || interests.includes('coding')) {
-      suggestions.push(...courseMapping.programming.slice(0, 1));
-    }
-    if (interests.includes('design') || interests.includes('creative')) {
-      suggestions.push(...courseMapping.design.slice(0, 1));
-    }
+  // INTELLIGENT COURSE ANALYSIS - Match exact subjects
+  
+  // Academic subjects first
+  if (messageLower.includes('math') || messageLower.includes('गणित')) {
+    suggestions.push(...courseMapping.mathematics.slice(0, 2));
   }
   
-  // Advanced course matching for ANY request (including "Other" field users)
-  if (messageLower.includes('c++') || messageLower.includes('cpp')) {
-    suggestions.push(...courseMapping.cpp.slice(0, 2));
+  if (messageLower.includes('physics') || messageLower.includes('भौतिक')) {
+    suggestions.push(...courseMapping.physics.slice(0, 2));
   }
   
-  if (messageLower.includes('java')) {
-    suggestions.push("https://www.youtube.com/watch?v=eIrMbAQSU34");
+  if (messageLower.includes('chemistry') || messageLower.includes('रसायन')) {
+    suggestions.push(...courseMapping.chemistry.slice(0, 2));
   }
   
-  if (messageLower.includes('python')) {
-    suggestions.push("https://www.youtube.com/watch?v=7wnove7K-ZQ");
+  if (messageLower.includes('biology') || messageLower.includes('जीव')) {
+    suggestions.push(...courseMapping.biology.slice(0, 2));
   }
   
-  if (messageLower.includes('excel') || messageLower.includes('spreadsheet')) {
-    suggestions.push("https://www.youtube.com/watch?v=rwbho0CgEAE", "https://www.youtube.com/watch?v=Vl0H-qTclOg");
+  // Languages
+  if (messageLower.includes('english') || messageLower.includes('इंग्रजी')) {
+    suggestions.push(...courseMapping.english.slice(0, 2));
   }
   
-  if (messageLower.includes('programming') || messageLower.includes('coding') || messageLower.includes('developer')) {
-    suggestions.push(...courseMapping.programming.slice(0, 2));
+  if (messageLower.includes('hindi') || messageLower.includes('हिंदी')) {
+    suggestions.push(...courseMapping.hindi.slice(0, 2));
   }
   
-  if (messageLower.includes('web') || messageLower.includes('website') || messageLower.includes('frontend') || messageLower.includes('backend')) {
-    suggestions.push(...courseMapping.webdev.slice(0, 2));
+  if (messageLower.includes('marathi') || messageLower.includes('मराठी')) {
+    suggestions.push(...courseMapping.marathi.slice(0, 2));
   }
   
-  if (messageLower.includes('mobile') || messageLower.includes('app') || messageLower.includes('android') || messageLower.includes('flutter')) {
-    suggestions.push(...courseMapping.mobile.slice(0, 2));
-  }
-  
-  if (messageLower.includes('data') || messageLower.includes('machine learning') || messageLower.includes('analytics')) {
-    suggestions.push(...courseMapping.data.slice(0, 2));
-  }
-  
-  if (messageLower.includes('design') || messageLower.includes('ui') || messageLower.includes('ux') || messageLower.includes('graphic')) {
-    suggestions.push(...courseMapping.design.slice(0, 2));
+  // Finance & Business
+  if (messageLower.includes('share') || messageLower.includes('stock') || messageLower.includes('market') || messageLower.includes('trading')) {
+    suggestions.push(...courseMapping.sharemarket.slice(0, 2));
   }
   
   if (messageLower.includes('business') || messageLower.includes('marketing') || messageLower.includes('entrepreneur')) {
     suggestions.push(...courseMapping.business.slice(0, 2));
   }
   
-  if (messageLower.includes('engineering') || messageLower.includes('gate') || messageLower.includes('jee')) {
-    suggestions.push(...courseMapping.engineering.slice(0, 2));
+  // Health & Fitness
+  if (messageLower.includes('fitness') || messageLower.includes('gym') || messageLower.includes('workout')) {
+    suggestions.push(...courseMapping.fitness.slice(0, 2));
   }
   
-  if (messageLower.includes('college') || messageLower.includes('placement') || messageLower.includes('admission')) {
-    suggestions.push(...courseMapping.college.slice(0, 2));
+  if (messageLower.includes('yoga') || messageLower.includes('योग')) {
+    suggestions.push(...courseMapping.yoga.slice(0, 2));
   }
   
-  // If user field is "Other" or no specific match found, provide general course suggestions
-  if (suggestions.length === 0 || (userProfile?.interests && userProfile.interests.includes('Other'))) {
-    if (messageLower.includes('course') || messageLower.includes('link') || messageLower.includes('learn')) {
-      // Provide popular courses for "Other" field users
+  // Creative & Design
+  if (messageLower.includes('design') || messageLower.includes('ui') || messageLower.includes('ux') || messageLower.includes('graphic')) {
+    suggestions.push(...courseMapping.design.slice(0, 2));
+  }
+  
+  if (messageLower.includes('photo') || messageLower.includes('camera')) {
+    suggestions.push(...courseMapping.photography.slice(0, 2));
+  }
+  
+  // Music & Arts
+  if (messageLower.includes('music') || messageLower.includes('संगीत')) {
+    suggestions.push(...courseMapping.music.slice(0, 2));
+  }
+  
+  if (messageLower.includes('guitar') || messageLower.includes('गिटार')) {
+    suggestions.push(...courseMapping.guitar.slice(0, 2));
+  }
+  
+  // Programming (after other subjects)
+  if (messageLower.includes('c++') || messageLower.includes('cpp')) {
+    suggestions.push(...courseMapping.cpp.slice(0, 2));
+  }
+  
+  if (messageLower.includes('java') && !messageLower.includes('javascript')) {
+    suggestions.push(...courseMapping.java.slice(0, 2));
+  }
+  
+  if (messageLower.includes('python')) {
+    suggestions.push(...courseMapping.python.slice(0, 2));
+  }
+  
+  if (messageLower.includes('web') || messageLower.includes('website') || messageLower.includes('html') || messageLower.includes('css')) {
+    suggestions.push(...courseMapping.webdev.slice(0, 2));
+  }
+  
+  // Professional skills
+  if (messageLower.includes('excel') || messageLower.includes('spreadsheet')) {
+    suggestions.push(...courseMapping.excel.slice(0, 2));
+  }
+  
+  if (messageLower.includes('communication') || messageLower.includes('speaking')) {
+    suggestions.push(...courseMapping.communication.slice(0, 2));
+  }
+  
+  // If no match found, provide subject-specific suggestions based on common terms
+  if (suggestions.length === 0) {
+    if (messageLower.includes('course') || messageLower.includes('link') || messageLower.includes('learn') || messageLower.includes('tutorial')) {
+      // Provide diverse courses instead of defaulting to programming
       suggestions.push(
-        "https://www.youtube.com/watch?v=7wnove7K-ZQ", // Python Course
-        "https://www.youtube.com/watch?v=6mbwJ2xhgzM", // Web Development
-        "https://www.youtube.com/watch?v=rwbho0CgEAE"  // Excel Course
+        courseMapping.mathematics[0], // Math course
+        courseMapping.english[0],     // English course  
+        courseMapping.excel[0]        // Excel course
       );
     }
   }
