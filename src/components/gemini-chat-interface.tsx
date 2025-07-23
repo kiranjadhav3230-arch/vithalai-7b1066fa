@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Send, 
   Mic, 
@@ -21,10 +22,12 @@ import {
   Search,
   Settings,
   ChevronRight,
-  Loader2
+  Loader2,
+  LogOut
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { ProfileModal } from './profile-modal';
 import type { User } from '@supabase/supabase-js';
 
 interface ChatSession {
@@ -56,6 +59,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -297,6 +302,81 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     reader.readAsDataURL(file);
   };
 
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const audioChunks: Blob[] = [];
+
+      recorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+        const reader = new FileReader();
+        
+        reader.onload = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          try {
+            setLoading(true);
+            const { data, error } = await supabase.functions.invoke('voice-to-text', {
+              body: { audio: base64Audio }
+            });
+
+            if (error) throw error;
+            
+            if (data.text) {
+              setMessage(data.text);
+            }
+          } catch (error) {
+            console.error('Error transcribing audio:', error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to transcribe audio"
+            });
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+        reader.readAsDataURL(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      
+      toast({
+        title: "Recording started",
+        description: "Speak now..."
+      });
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to start recording"
+      });
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+      
+      toast({
+        title: "Recording stopped",
+        description: "Processing audio..."
+      });
+    }
+  };
+
   const AppSidebar = () => {
     return (
       <Sidebar className="border-r">
@@ -360,14 +440,27 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 {user.user_metadata?.full_name || user.email}
               </span>
             </div>
-            <Button
-              onClick={onLogout}
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-            >
-              <Settings className="h-3 w-3" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                >
+                  <Settings className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </Sidebar>
@@ -404,6 +497,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   <p className="text-muted-foreground">
                     Ask me anything! I can help with studies, problems, courses, and more.
                   </p>
+                  <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
+                    <p>Made by <span className="font-medium">Shree Alankar</span></p>
+                    <p>Chat Credit on <span className="font-medium">Google Gemini AI</span></p>
+                  </div>
                 </div>
               )}
 
@@ -462,6 +559,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
                     <Button
+                      onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                      size="sm"
+                      variant="ghost"
+                      className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500' : ''}`}
+                      disabled={loading}
+                    >
+                      <Mic className="h-4 w-4" />
+                    </Button>
+                    <Button
                       onClick={() => fileInputRef.current?.click()}
                       size="sm"
                       variant="ghost"
@@ -491,6 +597,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             accept="image/*"
             onChange={handleImageUpload}
             className="hidden"
+          />
+
+          <ProfileModal 
+            isOpen={showProfile} 
+            onClose={() => setShowProfile(false)} 
+            user={user} 
           />
         </main>
       </div>
