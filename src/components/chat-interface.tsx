@@ -1,5 +1,5 @@
 import React from 'react';
-import { EnhancedChatInterface } from './enhanced-chat-interface';
+import { GeminiChatInterface } from './gemini-chat-interface';
 
 interface ChatInterfaceProps {
   onLogout: () => void;
@@ -7,6 +7,6 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user }) => {
-  // Redirect to enhanced version with all new features
-  return <EnhancedChatInterface onLogout={onLogout} user={user} />;
+  // Use Gemini AI style interface with sidebar and session management
+  return <GeminiChatInterface onLogout={onLogout} user={user} />;
 };

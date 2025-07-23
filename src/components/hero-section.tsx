@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, Brain, GraduationCap } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface HeroSectionProps {
@@ -25,6 +25,33 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
           {t('heroSubtitle')}
         </p>
+
+        {/* Enhanced Features Showcase */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <Brain className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Multi-Modal AI</h3>
+            <p className="text-sm text-muted-foreground text-center">Ask questions via text, voice, or upload images for instant AI-powered solutions</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
+            <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center mb-4">
+              <GraduationCap className="h-6 w-6 text-accent" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Study Helper</h3>
+            <p className="text-sm text-muted-foreground text-center">Get help with homework, solve math problems, and clear academic doubts instantly</p>
+          </div>
+          
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-semibold text-lg mb-2">Latest Courses</h3>
+            <p className="text-sm text-muted-foreground text-center">Get personalized course recommendations with verified 2024-2025 content</p>
+          </div>
+        </div>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button 
