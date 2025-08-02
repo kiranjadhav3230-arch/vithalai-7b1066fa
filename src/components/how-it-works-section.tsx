@@ -33,7 +33,7 @@ export const HowItWorksSection: React.FC = () => {
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">{t('howItWorks')}</h2>
           <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
-            Experience our advanced AI-powered career intelligence platform designed for strategic professional development
+            {t('howItWorksExp')}
           </p>
         </div>
         

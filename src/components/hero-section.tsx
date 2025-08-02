@@ -32,24 +32,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
               <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Multi-Modal AI</h3>
-            <p className="text-sm text-muted-foreground text-center">Ask questions via text, voice, or upload images for instant AI-powered solutions</p>
+            <h3 className="font-semibold text-lg mb-2">{t('multiModalAI')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('multiModalDesc')}</p>
           </div>
           
           <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
             <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center mb-4">
               <GraduationCap className="h-6 w-6 text-accent" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Study Helper</h3>
-            <p className="text-sm text-muted-foreground text-center">Get help with homework, solve math problems, and clear academic doubts instantly</p>
+            <h3 className="font-semibold text-lg mb-2">{t('studyHelper')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('studyHelperDesc')}</p>
           </div>
           
           <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
             <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Latest Courses</h3>
-            <p className="text-sm text-muted-foreground text-center">Get personalized course recommendations with verified 2024-2025 content</p>
+            <h3 className="font-semibold text-lg mb-2">{t('latestCourses')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('latestCoursesDesc')}</p>
           </div>
         </div>
         

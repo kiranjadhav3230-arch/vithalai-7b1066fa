@@ -35,7 +35,20 @@ const translations = {
     passwordPlaceholder: 'Enter your password',
     login: 'Login',
     signup: 'Sign Up',
-    or: 'or'
+    or: 'or',
+    // New translations for hero section
+    multiModalAI: 'Multi-Modal AI',
+    multiModalDesc: 'Ask questions via text, voice, or upload images for instant AI-powered solutions',
+    studyHelper: 'Study Helper',
+    studyHelperDesc: 'Get help with homework, solve math problems, and clear academic doubts instantly',
+    latestCourses: 'Latest Courses',
+    latestCoursesDesc: 'Get personalized course recommendations with verified 2024-2025 content',
+    howItWorksExp: 'Experience our advanced AI-powered career intelligence platform designed for strategic professional development',
+    // Settings
+    profile: 'Profile',
+    logout: 'Logout',
+    language: 'Language',
+    copyright: '© 2024 Vithal AI Assistant. Empowering Indian Professionals with Advanced AI-Driven Career Intelligence.'
   },
   hi: {
     appName: 'विठल AI असिस्टेंट',
@@ -71,7 +84,19 @@ const translations = {
     passwordPlaceholder: 'अपना पासवर्ड दर्ज करें',
     login: 'लॉगिन',
     signup: 'साइन अप',
-    or: 'या'
+    or: 'या',
+    // New translations
+    multiModalAI: 'मल्टी-मोडल AI',
+    multiModalDesc: 'तत्काल AI-संचालित समाधान के लिए टेक्स्ट, वॉयस या छवियों के माध्यम से प्रश्न पूछें',
+    studyHelper: 'अध्ययन सहायक',
+    studyHelperDesc: 'होमवर्क में मदद पाएं, गणित की समस्याओं को हल करें और तुरंत शैक्षणिक संदेह दूर करें',
+    latestCourses: 'नवीनतम कोर्स',
+    latestCoursesDesc: 'सत्यापित 2024-2025 सामग्री के साथ व्यक्तिगत कोर्स सिफारिशें प्राप्त करें',
+    howItWorksExp: 'रणनीतिक व्यावसायिक विकास के लिए डिज़ाइन किए गए हमारे उन्नत AI-संचालित करियर इंटेलिजेंस प्लेटफॉर्म का अनुभव करें',
+    profile: 'प्रोफ़ाइल',
+    logout: 'लॉगआउट',
+    language: 'भाषा',
+    copyright: '© 2024 विठल AI असिस्टेंट। उन्नत AI-संचालित करियर इंटेलिजेंस के साथ भारतीय पेशेवरों को सशक्त बनाना।'
   },
   mr: {
     appName: 'विठल AI असिस्टंट',
@@ -107,7 +132,19 @@ const translations = {
     passwordPlaceholder: 'तुमचा पासवर्ड प्रविष्ट करा',
     login: 'लॉगिन',
     signup: 'साइन अप',
-    or: 'किंवा'
+    or: 'किंवा',
+    // New translations
+    multiModalAI: 'मल्टी-मोडल AI',
+    multiModalDesc: 'तात्काळ AI-संचालित समाधानांसाठी मजकूर, आवाज किंवा प्रतिमांद्वारे प्रश्न विचारा',
+    studyHelper: 'अभ्यास सहाय्यक',
+    studyHelperDesc: 'गृहकार्यात मदत मिळवा, गणित समस्या सोडवा आणि तात्काळ शैक्षणिक शंका दूर करा',
+    latestCourses: 'नवीनतम अभ्यासक्रम',
+    latestCoursesDesc: 'सत्यापित 2024-2025 सामग्रीसह वैयक्तिक अभ्यासक्रम शिफारसी मिळवा',
+    howItWorksExp: 'धोरणात्मक व्यावसायिक विकासासाठी डिझाइन केलेल्या आमच्या प्रगत AI-संचालित करिअर इंटेलिजेंस प्लॅटफॉर्मचा अनुभव घ्या',
+    profile: 'प्रोफाइल',
+    logout: 'लॉगआउट',
+    language: 'भाषा',
+    copyright: '© 2024 विठल AI असिस्टंट। प्रगत AI-चालित करिअर इंटेलिजेंससह भारतीय व्यावसायिकांना सशक्त बनवणे।'
   }
 };
 

@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { LanguageSelector } from '@/components/ui/language-selector';
 import { 
   Send, 
   Mic, 
@@ -23,10 +24,12 @@ import {
   Settings,
   ChevronRight,
   Loader2,
-  LogOut
+  LogOut,
+  Globe
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import type { User } from '@supabase/supabase-js';
 
@@ -59,9 +62,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
   const { toast } = useToast();
+  const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -302,78 +306,61 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     reader.readAsDataURL(file);
   };
 
-  const startVoiceRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const audioChunks: Blob[] = [];
-
-      recorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-        const reader = new FileReader();
-        
-        reader.onload = async () => {
-          const base64Audio = (reader.result as string).split(',')[1];
-          
-          try {
-            setLoading(true);
-            const { data, error } = await supabase.functions.invoke('voice-to-text', {
-              body: { audio: base64Audio }
-            });
-
-            if (error) throw error;
-            
-            if (data.text) {
-              setMessage(data.text);
-            }
-          } catch (error) {
-            console.error('Error transcribing audio:', error);
-            toast({
-              variant: "destructive",
-              title: "Error",
-              description: "Failed to transcribe audio"
-            });
-          } finally {
-            setLoading(false);
-          }
-        };
-        
-        reader.readAsDataURL(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      
+  const startVoiceRecording = () => {
+    // Check if speech recognition is supported
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
       toast({
-        title: "Recording started",
-        description: "Speak now..."
+        variant: "destructive",
+        title: "Not Supported",
+        description: "Speech recognition is not supported in your browser"
       });
-    } catch (error) {
-      console.error('Error starting recording:', error);
+      return;
+    }
+
+    const recognitionInstance = new SpeechRecognition();
+    recognitionInstance.continuous = false;
+    recognitionInstance.interimResults = false;
+    recognitionInstance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
+
+    recognitionInstance.onstart = () => {
+      setIsRecording(true);
+      toast({
+        title: "Listening...",
+        description: "Speak now"
+      });
+    };
+
+    recognitionInstance.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setMessage(transcript);
+      setIsRecording(false);
+    };
+
+    recognitionInstance.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to start recording"
+        description: "Failed to recognize speech"
       });
-    }
+    };
+
+    recognitionInstance.onend = () => {
+      setIsRecording(false);
+    };
+
+    setRecognition(recognitionInstance);
+    recognitionInstance.start();
   };
 
   const stopVoiceRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
+    if (recognition && isRecording) {
+      recognition.stop();
       setIsRecording(false);
-      setMediaRecorder(null);
-      
-      toast({
-        title: "Recording stopped",
-        description: "Processing audio..."
-      });
+      setRecognition(null);
     }
   };
 
@@ -453,11 +440,23 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setShowProfile(true)}>
                   <UserIcon className="h-4 w-4 mr-2" />
-                  Profile
+                  {t('profile')}
                 </DropdownMenuItem>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="text-sm">{t('language')}</span>
+                  </div>
+                  <div className="mt-1">
+                    <LanguageSelector 
+                      language={language} 
+                      onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                    />
+                  </div>
+                </div>
                 <DropdownMenuItem onClick={onLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  {t('logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
