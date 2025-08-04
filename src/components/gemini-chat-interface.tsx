@@ -208,8 +208,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: userMessage,
+          language: language,
           userId: user.id,
-          sessionId: currentSession.id
+          sessionId: currentSession.id,
+          userProfile: {
+            email: user.email,
+            name: user.user_metadata?.full_name
+          }
         }
       });
 
