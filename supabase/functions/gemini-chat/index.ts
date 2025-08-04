@@ -6,8 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = "AIzaSyD8lfrlM6EEvNy8euGVaJ_Bg48Lm39R3Ig";
-const YOUTUBE_API_KEY = "AIzaSyDEZpw4JZj8HSam_T2mUb5vnNnBSfeCXjE";
+const GEMINI_API_KEY = "AIzaSyDEZpw4JZj8HSam_T2mUb5vnNnBSfeCXjE";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {

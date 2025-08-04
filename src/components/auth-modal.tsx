@@ -120,15 +120,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       if (error) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: error.message
+          title: "Google Sign-in Error",
+          description: error.message || "Google authentication is not configured. Please contact support."
         });
       }
     } catch (error) {
+      console.error('Google sign-in error:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again."
+        title: "Authentication Error",
+        description: "Google sign-in is currently unavailable. Please use email/password login."
       });
     } finally {
       setLoading(false);

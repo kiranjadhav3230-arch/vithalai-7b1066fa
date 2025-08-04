@@ -24,6 +24,12 @@ const translations = {
     feature2Desc: 'Live industry analysis, salary insights, placement data, and emerging opportunity identification',
     feature3Title: 'Personalized Learning Ecosystem',
     feature3Desc: 'Curated course recommendations, skill gap analysis, and professional development pathways',
+    feature4Title: 'Indian Youth Focus',
+    feature4Desc: 'Specially designed for Indian job market and cultural context',
+    feature5Title: 'Multi-language Support',
+    feature5Desc: 'Available in English, Hindi, and Marathi for better accessibility',
+    feature6Title: 'Career Success',
+    feature6Desc: 'Track your progress and celebrate your career milestones',
     startAssessment: 'Begin AI Career Analysis',
     readyToStart: 'Ready to Accelerate Your Career?',
     joinThousands: 'Join thousands of ambitious Indian professionals who have transformed their careers with Vithal AI',
@@ -48,6 +54,7 @@ const translations = {
     profile: 'Profile',
     logout: 'Logout',
     language: 'Language',
+    settings: 'Settings',
     copyright: '© 2024 Vithal AI Assistant. Empowering Indian Professionals with Advanced AI-Driven Career Intelligence.'
   },
   hi: {
@@ -96,6 +103,7 @@ const translations = {
     profile: 'प्रोफ़ाइल',
     logout: 'लॉगआउट',
     language: 'भाषा',
+    settings: 'सेटिंग्स',
     copyright: '© 2024 विठल AI असिस्टेंट। उन्नत AI-संचालित करियर इंटेलिजेंस के साथ भारतीय पेशेवरों को सशक्त बनाना।'
   },
   mr: {
@@ -144,6 +152,7 @@ const translations = {
     profile: 'प्रोफाइल',
     logout: 'लॉगआउट',
     language: 'भाषा',
+    settings: 'सेटिंग्ज',
     copyright: '© 2024 विठल AI असिस्टंट। प्रगत AI-चालित करिअर इंटेलिजेंससह भारतीय व्यावसायिकांना सशक्त बनवणे।'
   }
 };

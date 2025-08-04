@@ -260,17 +260,49 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     const file = event.target.files?.[0];
     if (!file || !currentSession) return;
 
+    // Validate file type and size
+    if (!file.type.startsWith('image/')) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please upload an image file"
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: "Image size must be less than 5MB"
+      });
+      return;
+    }
+
     // Create a data URL for the image
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imageDataUrl = e.target?.result as string;
+      const base64Data = imageDataUrl.split(',')[1]; // Remove data:image/jpeg;base64, prefix
       
       setLoading(true);
+      
+      // Add temp message to UI
+      const tempMessage: ChatMessage = {
+        id: `temp-${Date.now()}`,
+        session_id: currentSession.id,
+        message: "📷 Image uploaded for analysis",
+        response: null,
+        message_type: 'image',
+        created_at: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, tempMessage]);
+
       try {
         const { data, error } = await supabase.functions.invoke('gemini-chat', {
           body: { 
-            message: "Please analyze this image and provide insights.",
-            image: imageDataUrl,
+            message: "Please analyze this image and provide detailed insights.",
+            imageData: base64Data,
             userId: user.id,
             sessionId: currentSession.id
           }
@@ -279,18 +311,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         if (error) throw error;
 
         // Save message to database
-        await supabase
+        const { data: savedMessage, error: saveError } = await supabase
           .from('chat_messages')
           .insert({
             session_id: currentSession.id,
             user_id: user.id,
-            message: "Image uploaded for analysis",
+            message: "📷 Image uploaded for analysis",
             response: data.response,
             message_type: 'image'
-          });
+          })
+          .select()
+          .single();
 
-        // Reload messages
-        loadMessages(currentSession.id);
+        if (saveError) throw saveError;
+
+        // Update messages with real data
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
+        ));
 
       } catch (error) {
         console.error('Error analyzing image:', error);
@@ -299,11 +337,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           title: "Error",
           description: "Failed to analyze image"
         });
+        // Remove temp message on error
+        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
       } finally {
         setLoading(false);
       }
     };
     reader.readAsDataURL(file);
+    
+    // Clear the input so the same file can be uploaded again
+    event.target.value = '';
   };
 
   const startVoiceRecording = () => {
@@ -327,8 +370,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     recognitionInstance.onstart = () => {
       setIsRecording(true);
       toast({
-        title: "Listening...",
-        description: "Speak now"
+        title: "🎤 Listening...",
+        description: "Speak now, I'm listening!"
       });
     };
 
@@ -336,6 +379,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       const transcript = event.results[0][0].transcript;
       setMessage(transcript);
       setIsRecording(false);
+      toast({
+        title: "✅ Speech captured!",
+        description: "Click send to process your voice message"
+      });
     };
 
     recognitionInstance.onerror = (event: any) => {
@@ -343,8 +390,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       setIsRecording(false);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to recognize speech"
+        title: "❌ Speech Error",
+        description: "Failed to recognize speech. Please try again."
       });
     };
 
