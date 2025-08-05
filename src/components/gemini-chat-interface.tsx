@@ -210,7 +210,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   };
 
   const sendMessage = async () => {
-    if ((!message.trim() && !selectedImage) || !currentSession) return;
+    if ((!message.trim() && !selectedImage)) return;
+
+    // Create session if none exists
+    if (!currentSession) {
+      await createNewSession();
+      return; // Let the useEffect handle the retry after session creation
+    }
 
     setLoading(true);
     const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
