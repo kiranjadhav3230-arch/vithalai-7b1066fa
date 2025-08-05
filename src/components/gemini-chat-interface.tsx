@@ -263,9 +263,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         requestBody.imageData = base64Data;
       }
 
+      console.log('About to call OpenAI function with:', requestBody);
+      
       const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: requestBody
       });
+
+      console.log('OpenAI function response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);

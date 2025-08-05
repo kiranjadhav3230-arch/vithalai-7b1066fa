@@ -14,11 +14,17 @@ serve(async (req) => {
   }
 
   try {
+    console.log('OpenAI function called with method:', req.method);
+    
     if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY not configured');
       throw new Error('OPENAI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
+    const requestBody = await req.json();
+    console.log('Request body received:', requestBody);
+    
+    const { message, language = 'english', userProfile, imageData, isVoiceInput } = requestBody;
     console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
 
     // Enhanced system prompt with profile awareness
