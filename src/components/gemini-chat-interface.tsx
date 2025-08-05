@@ -208,17 +208,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: userMessage,
-          language: language,
-          userId: user.id,
-          sessionId: currentSession.id,
-          userProfile: {
-            email: user.email,
-            name: user.user_metadata?.full_name
-          }
+          language: language
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+
+      if (!data || !data.response) {
+        throw new Error('No response from AI');
+      }
 
       // Save message to database
       const { data: savedMessage, error: saveError } = await supabase
@@ -252,7 +253,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to send message"
+        description: "Failed to send message. Please try again."
       });
       // Remove the temporary message on error
       setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
@@ -303,13 +304,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       };
       setMessages(prev => [...prev, tempMessage]);
 
-      try {
+        try {
         const { data, error } = await supabase.functions.invoke('gemini-chat', {
           body: { 
             message: "Please analyze this image and provide detailed insights.",
             imageData: base64Data,
-            userId: user.id,
-            sessionId: currentSession.id
+            language: language
           }
         });
 
@@ -605,7 +605,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Message Vithal AI..."
                     className="pr-12 rounded-full border-2"
-                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                     disabled={loading}
                   />
                   <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
@@ -632,7 +632,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 
                 <Button
                   onClick={sendMessage}
-                  disabled={loading || !message.trim() || !currentSession}
+                  disabled={loading || !message.trim()}
                   size="sm"
                   className="rounded-full h-10 w-10 p-0"
                 >
