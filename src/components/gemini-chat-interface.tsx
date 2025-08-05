@@ -64,6 +64,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -186,11 +188,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   };
 
   const sendMessage = async () => {
-    if (!message.trim() || !currentSession) return;
+    if ((!message.trim() && !selectedImage) || !currentSession) return;
 
     setLoading(true);
-    const userMessage = message;
+    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
+    const hasImage = !!selectedImage;
     setMessage('');
+    
+    // Clear image preview after sending
+    const imageDataToSend = imageFile;
+    setSelectedImage(null);
+    setImageFile(null);
 
     // Add user message to UI immediately
     const tempMessage: ChatMessage = {
@@ -198,18 +206,37 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       session_id: currentSession.id,
       message: userMessage,
       response: null,
-      message_type: 'text',
+      message_type: hasImage ? 'image' : 'text',
       created_at: new Date().toISOString()
     };
     setMessages(prev => [...prev, tempMessage]);
 
     try {
+      // Prepare image data if available
+      let base64Data = null;
+      if (imageDataToSend) {
+        const reader = new FileReader();
+        base64Data = await new Promise<string>((resolve) => {
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            resolve(result.split(',')[1]); // Remove data:image/...;base64, prefix
+          };
+          reader.readAsDataURL(imageDataToSend);
+        });
+      }
+
       // Call the Gemini AI function
+      const requestBody: any = { 
+        message: userMessage,
+        language: language
+      };
+      
+      if (base64Data) {
+        requestBody.imageData = base64Data;
+      }
+
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: { 
-          message: userMessage,
-          language: language
-        }
+        body: requestBody
       });
 
       if (error) {
@@ -229,7 +256,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           user_id: user.id,
           message: userMessage,
           response: data.response,
-          message_type: 'text'
+          message_type: hasImage ? 'image' : 'text'
         })
         .select()
         .single();
@@ -264,7 +291,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !currentSession) return;
+    if (!file) return;
 
     // Validate file type and size
     if (!file.type.startsWith('image/')) {
@@ -285,73 +312,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       return;
     }
 
-    // Create a data URL for the image
+    // Create preview
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
       const imageDataUrl = e.target?.result as string;
-      const base64Data = imageDataUrl.split(',')[1]; // Remove data:image/jpeg;base64, prefix
-      
-      setLoading(true);
-      
-      // Add temp message to UI
-      const tempMessage: ChatMessage = {
-        id: `temp-${Date.now()}`,
-        session_id: currentSession.id,
-        message: "📷 Image uploaded for analysis",
-        response: null,
-        message_type: 'image',
-        created_at: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, tempMessage]);
-
-        try {
-        const { data, error } = await supabase.functions.invoke('gemini-chat', {
-          body: { 
-            message: "Please analyze this image and provide detailed insights.",
-            imageData: base64Data,
-            language: language
-          }
-        });
-
-        if (error) throw error;
-
-        // Save message to database
-        const { data: savedMessage, error: saveError } = await supabase
-          .from('chat_messages')
-          .insert({
-            session_id: currentSession.id,
-            user_id: user.id,
-            message: "📷 Image uploaded for analysis",
-            response: data.response,
-            message_type: 'image'
-          })
-          .select()
-          .single();
-
-        if (saveError) throw saveError;
-
-        // Update messages with real data
-        setMessages(prev => prev.map(msg => 
-          msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
-        ));
-
-      } catch (error) {
-        console.error('Error analyzing image:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to analyze image"
-        });
-        // Remove temp message on error
-        setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
-      } finally {
-        setLoading(false);
-      }
+      setSelectedImage(imageDataUrl);
+      setImageFile(file);
     };
     reader.readAsDataURL(file);
     
     // Clear the input so the same file can be uploaded again
     event.target.value = '';
+  };
+
+  const removeSelectedImage = () => {
+    setSelectedImage(null);
+    setImageFile(null);
   };
 
   const startVoiceRecording = () => {
@@ -598,6 +574,25 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           {/* Input Area */}
           <div className="border-t bg-background p-4">
             <div className="max-w-3xl mx-auto">
+              {/* Image Preview */}
+              {selectedImage && (
+                <div className="mb-4 relative inline-block">
+                  <img 
+                    src={selectedImage} 
+                    alt="Selected for upload" 
+                    className="max-w-xs max-h-32 rounded-lg object-cover border"
+                  />
+                  <Button
+                    onClick={removeSelectedImage}
+                    size="sm"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                  >
+                    ×
+                  </Button>
+                </div>
+              )}
+              
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
                   <Input
@@ -632,7 +627,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 
                 <Button
                   onClick={sendMessage}
-                  disabled={loading || !message.trim()}
+                  disabled={loading || (!message.trim() && !selectedImage)}
                   size="sm"
                   className="rounded-full h-10 w-10 p-0"
                 >
