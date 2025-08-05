@@ -214,8 +214,23 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
     // Create session if none exists
     if (!currentSession) {
-      await createNewSession();
-      return; // Let the useEffect handle the retry after session creation
+      try {
+        await createNewSession();
+        // After creating session, don't return - continue with sending the message
+      } catch (error) {
+        console.error('Failed to create session:', error);
+        return;
+      }
+    }
+
+    // Get the current session (either existing or newly created)
+    const sessionToUse = currentSession;
+    
+    // Check again if we have a session after potential creation
+    if (!sessionToUse) {
+      console.error('No session available for sending message');
+      setLoading(false);
+      return;
     }
 
     setLoading(true);
