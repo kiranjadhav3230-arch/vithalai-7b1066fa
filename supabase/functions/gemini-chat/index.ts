@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = "AIzaSyDEZpw4JZj8HSam_T2mUb5vnNnBSfeCXjE";
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,6 +14,10 @@ serve(async (req) => {
   }
 
   try {
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
+    }
+
     const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
     console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
 
