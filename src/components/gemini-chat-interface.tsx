@@ -187,6 +187,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const generateSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: { 
+          message: `Generate a concise 3-5 word title for this conversation topic. User asked: "${userMessage}" AI responded: "${aiResponse.substring(0, 200)}..." Just respond with the title only, no extra text.`,
+          language: language
+        }
+      });
+
+      if (!error && data?.response) {
+        const title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
+        updateSessionTitle(sessionId, title);
+      }
+    } catch (error) {
+      console.error('Error generating title:', error);
+      // Fallback to truncated user message
+      const fallbackTitle = userMessage.length > 30 ? 
+        userMessage.substring(0, 30) + '...' : userMessage;
+      updateSessionTitle(sessionId, fallbackTitle);
+    }
+  };
+
   const sendMessage = async () => {
     if ((!message.trim() && !selectedImage) || !currentSession) return;
 
@@ -268,11 +290,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
       ));
 
-      // Update session title if it's the first message
+      // Update session title if it's the first message using AI
       if (messages.length === 0) {
-        const sessionTitle = userMessage.length > 30 ? 
-          userMessage.substring(0, 30) + '...' : userMessage;
-        updateSessionTitle(currentSession.id, sessionTitle);
+        generateSessionTitle(currentSession.id, userMessage, data.response);
       }
 
     } catch (error) {
