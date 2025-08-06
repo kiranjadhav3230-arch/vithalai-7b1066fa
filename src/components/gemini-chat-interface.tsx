@@ -17,7 +17,6 @@ import {
   Trash2, 
   Edit3, 
   User as UserIcon, 
-  Bot,
   Menu,
   Star,
   Search,
@@ -27,6 +26,7 @@ import {
   LogOut,
   Globe
 } from 'lucide-react';
+import vithalLogo from '@/assets/vithal-ai-logo.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -268,10 +268,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         });
       }
 
-      // Call the Gemini AI function
+      // Call the OpenAI function with language support
       const requestBody: any = { 
         message: userMessage,
-        language: language
+        language: language,
+        userProfile: {
+          userId: user.id,
+          email: user.email,
+          name: user.user_metadata?.full_name
+        }
       };
       
       if (base64Data) {
@@ -280,7 +285,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
       console.log('About to call OpenAI function with:', requestBody);
       
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+      const { data, error } = await supabase.functions.invoke('openai-chat', {
         body: requestBody
       });
 
@@ -468,17 +473,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                         <MessageSquare className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">{session.title}</span>
                       </div>
-                      <Button
+                      <div
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteSession(session.id);
                         }}
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded"
                       >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -563,7 +566,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               {messages.length === 0 && !loading && (
                 <div className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <Bot className="w-8 h-8 text-primary" />
+                    <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
                   <p className="text-muted-foreground">
@@ -571,7 +574,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   </p>
                   <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
                     <p>Made by <span className="font-medium">Shree Alankar</span></p>
-                    <p>Chat Credit on <span className="font-medium">Google Gemini AI</span></p>
+                    <p>Chat Credit on <span className="font-medium">OpenAI GPT-4o-mini</span></p>
                   </div>
                 </div>
               )}

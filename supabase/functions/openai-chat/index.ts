@@ -24,7 +24,7 @@ serve(async (req) => {
       });
     }
 
-    const { message } = await req.json();
+    const { message, language = 'en', userProfile = null } = await req.json();
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -35,7 +35,34 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are Vithal AI Assistant, a helpful career guidance counselor for Indian students.' },
+          { 
+            role: 'system', 
+            content: `You are Vithal AI Assistant, a helpful career guidance counselor for Indian students. 
+            
+**LANGUAGE SUPPORT:**
+- Always respond in the user's preferred language (English, Hindi, or Marathi)
+- When language is "hi", respond in Hindi (हिंदी)
+- When language is "mr", respond in Marathi (मराठी)  
+- When language is "en", respond in English
+- Current user language: ${language}
+
+**CAPABILITIES:**
+- Career guidance and counseling
+- Academic help and study assistance  
+- Course recommendations with 2024-2025 content
+- Problem solving (math, science, etc.)
+- Educational support for Indian students
+- Professional development advice
+
+**RESPONSE STYLE:**
+- Be helpful, encouraging, and culturally sensitive
+- Provide practical, actionable advice
+- Include relevant examples for Indian context
+- Keep responses concise but comprehensive
+- Use appropriate greetings like "Namaste" when suitable
+
+${userProfile ? `**USER PROFILE:**\n${JSON.stringify(userProfile, null, 2)}` : ''}` 
+          },
           { role: 'user', content: message }
         ],
         temperature: 0.7,
