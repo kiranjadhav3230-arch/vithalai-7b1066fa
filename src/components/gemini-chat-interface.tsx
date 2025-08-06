@@ -25,8 +25,7 @@ import {
   Loader2,
   LogOut,
   Globe,
-  Camera,
-  FileText
+  Camera
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,14 +68,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [showProfile, setShowProfile] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -218,7 +214,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   };
 
     const sendMessage = async () => {
-    if ((!message.trim() && !selectedImage && !selectedPdf)) return;
+    if ((!message.trim() && !selectedImage)) return;
 
     // Create session if none exists
     if (!currentSession) {
@@ -242,18 +238,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
 
     setLoading(true);
-    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "") || (selectedPdf ? "📄 PDF shared for analysis" : "");
+    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
     const hasImage = !!selectedImage;
-    const hasPdf = !!selectedPdf;
     setMessage('');
     
-    // Clear image and PDF preview after sending
+    // Clear image preview after sending
     const imageDataToSend = imageFile;
-    const pdfDataToSend = pdfFile;
     setSelectedImage(null);
     setImageFile(null);
-    setSelectedPdf(null);
-    setPdfFile(null);
 
     // Add user message to UI immediately
     const tempMessage: ChatMessage = {
@@ -261,7 +253,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       session_id: currentSession.id,
       message: userMessage,
       response: null,
-      message_type: hasImage ? 'image' : hasPdf ? 'pdf' : 'text',
+      message_type: hasImage ? 'image' : 'text',
       created_at: new Date().toISOString()
     };
     setMessages(prev => [...prev, tempMessage]);
@@ -280,17 +272,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         });
       }
 
-      // Prepare PDF data if available
-      let pdfArrayBuffer = null;
-      if (pdfDataToSend) {
-        const reader = new FileReader();
-        pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve) => {
-          reader.onload = (e) => {
-            resolve(e.target?.result as ArrayBuffer);
-          };
-          reader.readAsArrayBuffer(pdfDataToSend);
-        });
-      }
 
       // Call the Gemini function with language support and personalization
       const requestBody: any = { 
@@ -305,11 +286,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       
       if (base64Data) {
         requestBody.imageData = base64Data;
-      }
-
-      if (pdfArrayBuffer) {
-        requestBody.pdfData = Array.from(new Uint8Array(pdfArrayBuffer));
-        requestBody.pdfName = pdfDataToSend?.name || 'document.pdf';
       }
 
       console.log('About to call Gemini function with:', requestBody);
@@ -337,7 +313,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           user_id: user.id,
           message: userMessage,
           response: data.response,
-          message_type: hasImage ? 'image' : hasPdf ? 'pdf' : 'text'
+          message_type: hasImage ? 'image' : 'text'
         })
         .select()
         .single();
@@ -421,45 +397,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     event.target.value = '';
   };
 
-  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type and size
-    if (file.type !== 'application/pdf') {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload a PDF file"
-      });
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit for PDFs
-      toast({
-        variant: "destructive",
-        title: "Error", 
-        description: "PDF size must be less than 10MB"
-      });
-      return;
-    }
-
-    // Set PDF file
-    setSelectedPdf(file.name);
-    setPdfFile(file);
-    
-    // Clear the input
-    event.target.value = '';
-  };
-
   const removeSelectedImage = () => {
     setSelectedImage(null);
     setImageFile(null);
-  };
-
-  const removeSelectedPdf = () => {
-    setSelectedPdf(null);
-    setPdfFile(null);
   };
 
   const startVoiceRecording = () => {
@@ -812,23 +752,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 </div>
               )}
 
-              {/* PDF Preview */}
-              {selectedPdf && (
-                <div className="mb-4 relative inline-block">
-                  <div className="bg-muted p-3 rounded-lg border flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-red-500" />
-                    <span className="text-sm">{selectedPdf}</span>
-                    <Button
-                      onClick={removeSelectedPdf}
-                      size="sm"
-                      variant="destructive"
-                      className="h-6 w-6 p-0 rounded-full ml-2"
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-              )}
               
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
@@ -870,10 +793,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                           <Camera className="h-4 w-4 mr-2" />
                           Take Photo
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => pdfInputRef.current?.click()}>
-                          <FileText className="h-4 w-4 mr-2" />
-                          Upload PDF
-                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -881,7 +800,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 
                 <Button
                   onClick={sendMessage}
-                  disabled={loading || (!message.trim() && !selectedImage && !selectedPdf)}
+                  disabled={loading || (!message.trim() && !selectedImage)}
                   size="sm"
                   className="rounded-full h-10 w-10 p-0"
                 >
@@ -905,13 +824,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             accept="image/*"
             capture="environment"
             onChange={handleCameraCapture}
-            className="hidden"
-          />
-          <input
-            ref={pdfInputRef}
-            type="file"
-            accept=".pdf"
-            onChange={handlePdfUpload}
             className="hidden"
           />
 

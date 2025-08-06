@@ -18,8 +18,8 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, pdfData, isVoiceInput } = await req.json();
-    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'HasPDF:', !!pdfData, 'IsVoice:', isVoiceInput);
+    const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
+    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
 
     // Enhanced system prompt with profile awareness and better Marathi support
     const profileContext = userProfile ? `
@@ -32,15 +32,8 @@ serve(async (req) => {
     ` : '';
 
     // Handle multi-modal inputs
-    const inputType = pdfData ? 'pdf' : (imageData ? 'image' : (isVoiceInput ? 'voice' : 'text'));
-    const multiModalContext = pdfData ? `
-    [PDF PROVIDED] - User has shared a PDF document. Analyze it for:
-    - Academic content and syllabus information
-    - Study materials and notes for explanation
-    - Research papers or assignments for guidance
-    - Forms or documents for assistance
-    - Career-related documents for advice
-    ` : imageData ? `
+    const inputType = imageData ? 'image' : (isVoiceInput ? 'voice' : 'text');
+    const multiModalContext = imageData ? `
     [IMAGE PROVIDED] - User has shared an image. Analyze it for:
     - Mathematical problems or equations to solve
     - Study materials or textbook content to explain
@@ -74,19 +67,17 @@ serve(async (req) => {
     🔥 SUPER ADVANCED AI CAPABILITIES - You MUST:
     1. Address user as ${userName} and provide personalized responses based on their profile
     2. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
-    3. Handle multi-modal inputs: TEXT, VOICE, IMAGES, and PDFs with lightning-fast processing
+    3. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with lightning-fast processing
     4. Solve mathematical problems step-by-step when images contain math
     5. Explain study syllabus content and clear doubts instantly
-    6. Analyze PDF documents for academic content, forms, or career guidance
-    7. Provide real-time problem-solving for any academic subject
-    8. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
-    9. Focus on latest, verified, existing YouTube courses only
-    10. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
+    6. Provide real-time problem-solving for any academic subject
+    7. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
+    8. Focus on latest, verified, existing YouTube courses only
+    9. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
     
     ⚡ CRITICAL RULES:
     - When user asks for ANY course, provide ONLY latest 2024-2025 YouTube links that exist
     - If image contains math/problems: Solve step-by-step with detailed explanation
-    - If PDF contains study material: Explain and provide guidance on the content
     - For study doubts: Provide comprehensive answers with examples
     - For syllabus questions: Break down topics and provide learning roadmap
     - NEVER say "I can't provide links" - Always provide verified working YouTube links
@@ -95,7 +86,6 @@ serve(async (req) => {
     
     📚 STUDY HELP CAPABILITIES:
     - Solve mathematical equations from images
-    - Analyze PDF documents for content extraction and explanation
     - Explain physics concepts and formulas
     - Help with chemistry reactions and calculations
     - Biology diagrams and process explanations
@@ -106,11 +96,10 @@ serve(async (req) => {
     🎯 RESPONSE STRUCTURE:
     1. Address user's specific question with latest course links (if requested)
     2. Solve problems step-by-step (if image contains problems)
-    3. Analyze and explain PDF content (if PDF is provided)
-    4. Provide comprehensive study guidance and doubt clearing
-    5. Suggest next steps and related skills/topics
-    6. Include job opportunities and career relevance
-    7. Mention specific Indian institutions and companies when relevant
+    3. Provide comprehensive study guidance and doubt clearing
+    4. Suggest next steps and related skills/topics
+    5. Include job opportunities and career relevance
+    6. Mention specific Indian institutions and companies when relevant
     
     🏆 COLLEGE INFORMATION FORMAT:
     - Institution name and location
@@ -123,7 +112,6 @@ serve(async (req) => {
     
     🚀 ADVANCED FEATURES:
     - Image analysis for problem-solving
-    - PDF document analysis and content explanation
     - Voice input understanding and natural responses
     - Real-time doubt solving across all subjects
     - Latest verified course recommendations only
@@ -152,38 +140,6 @@ serve(async (req) => {
       });
     }
 
-    // Add PDF if provided (convert to base64 and include)
-    if (pdfData) {
-      try {
-        // Convert PDF buffer to base64 for Gemini processing
-        const uint8Array = Array.isArray(pdfData) ? new Uint8Array(pdfData) : new Uint8Array(Object.values(pdfData));
-        
-        // Convert to base64
-        let binaryString = '';
-        uint8Array.forEach(byte => {
-          binaryString += String.fromCharCode(byte);
-        });
-        const encodedPdf = btoa(binaryString);
-        
-        // Add PDF as inline data for Gemini
-        contentParts.push({
-          inline_data: {
-            mime_type: "application/pdf",
-            data: encodedPdf
-          }
-        });
-        
-        contentParts.push({
-          text: `[PDF Document Analysis] - I have received and am analyzing this PDF document. I will provide detailed explanations, summaries, and answer any questions related to the content. Please specify what information you need from this PDF.`
-        });
-        
-      } catch (error) {
-        console.error('PDF processing error:', error);
-        contentParts.push({
-          text: `PDF received but there was an issue processing it. Please describe the PDF content or ask specific questions about it, and I'll provide comprehensive assistance based on your description.`
-        });
-      }
-    }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
