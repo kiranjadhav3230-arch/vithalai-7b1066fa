@@ -140,7 +140,7 @@ const Index = () => {
                       Email Support
                     </Button>
                     <Button 
-                      onClick={() => window.open('https://instagram.com/vithalai2112', '_blank')}
+                      onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')}
                       className="w-full"
                       variant="outline"
                     >

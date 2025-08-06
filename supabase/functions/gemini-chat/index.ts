@@ -156,23 +156,31 @@ serve(async (req) => {
     if (pdfData) {
       try {
         // Convert PDF buffer to base64 for Gemini processing
-        const pdfBase64 = Array.from(new Uint8Array(pdfData))
-          .map(byte => String.fromCharCode(byte))
-          .join('');
-        const encodedPdf = btoa(pdfBase64);
+        const uint8Array = Array.isArray(pdfData) ? new Uint8Array(pdfData) : new Uint8Array(Object.values(pdfData));
         
+        // Convert to base64
+        let binaryString = '';
+        uint8Array.forEach(byte => {
+          binaryString += String.fromCharCode(byte);
+        });
+        const encodedPdf = btoa(binaryString);
+        
+        // Add PDF as inline data for Gemini
         contentParts.push({
-          text: `[PDF Document Analysis] - Please analyze this PDF document and provide detailed explanations, summaries, and answer any questions related to the content. Focus on educational content, forms, or study materials as needed.`
+          inline_data: {
+            mime_type: "application/pdf",
+            data: encodedPdf
+          }
         });
         
-        // Note: Gemini currently has limited PDF support, so we inform the user
         contentParts.push({
-          text: `PDF file "${pdfData.name || 'document.pdf'}" has been received. Please describe what specific information you need from this PDF document, and I'll help you analyze it step by step.`
+          text: `[PDF Document Analysis] - I have received and am analyzing this PDF document. I will provide detailed explanations, summaries, and answer any questions related to the content. Please specify what information you need from this PDF.`
         });
+        
       } catch (error) {
         console.error('PDF processing error:', error);
         contentParts.push({
-          text: `PDF uploaded but couldn't be processed directly. Please describe the PDF content or ask specific questions about it, and I'll provide comprehensive assistance.`
+          text: `PDF received but there was an issue processing it. Please describe the PDF content or ask specific questions about it, and I'll provide comprehensive assistance based on your description.`
         });
       }
     }
