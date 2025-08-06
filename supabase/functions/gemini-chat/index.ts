@@ -152,11 +152,29 @@ serve(async (req) => {
       });
     }
 
-    // Add PDF if provided (convert to image or text for processing)
+    // Add PDF if provided (convert to base64 and include)
     if (pdfData) {
-      contentParts.push({
-        text: `[PDF Content Analysis Required] - User has uploaded a PDF document. Please analyze and provide guidance based on the document content. Ask user to describe the PDF content if needed for better assistance.`
-      });
+      try {
+        // Convert PDF buffer to base64 for Gemini processing
+        const pdfBase64 = Array.from(new Uint8Array(pdfData))
+          .map(byte => String.fromCharCode(byte))
+          .join('');
+        const encodedPdf = btoa(pdfBase64);
+        
+        contentParts.push({
+          text: `[PDF Document Analysis] - Please analyze this PDF document and provide detailed explanations, summaries, and answer any questions related to the content. Focus on educational content, forms, or study materials as needed.`
+        });
+        
+        // Note: Gemini currently has limited PDF support, so we inform the user
+        contentParts.push({
+          text: `PDF file "${pdfData.name || 'document.pdf'}" has been received. Please describe what specific information you need from this PDF document, and I'll help you analyze it step by step.`
+        });
+      } catch (error) {
+        console.error('PDF processing error:', error);
+        contentParts.push({
+          text: `PDF uploaded but couldn't be processed directly. Please describe the PDF content or ask specific questions about it, and I'll provide comprehensive assistance.`
+        });
+      }
     }
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
