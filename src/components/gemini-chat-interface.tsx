@@ -215,8 +215,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-  const sendMessage = async () => {
-    if ((!message.trim() && !selectedImage)) return;
+    const sendMessage = async () => {
+    if ((!message.trim() && !selectedImage && !selectedPdf)) return;
 
     // Create session if none exists
     if (!currentSession) {
@@ -240,14 +240,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
 
     setLoading(true);
-    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
+    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "") || (selectedPdf ? "📄 PDF shared for analysis" : "");
     const hasImage = !!selectedImage;
+    const hasPdf = !!selectedPdf;
     setMessage('');
     
-    // Clear image preview after sending
+    // Clear image and PDF preview after sending
     const imageDataToSend = imageFile;
+    const pdfDataToSend = pdfFile;
     setSelectedImage(null);
     setImageFile(null);
+    setSelectedPdf(null);
+    setPdfFile(null);
 
     // Add user message to UI immediately
     const tempMessage: ChatMessage = {
@@ -255,7 +259,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       session_id: currentSession.id,
       message: userMessage,
       response: null,
-      message_type: hasImage ? 'image' : 'text',
+      message_type: hasImage ? 'image' : hasPdf ? 'pdf' : 'text',
       created_at: new Date().toISOString()
     };
     setMessages(prev => [...prev, tempMessage]);
@@ -274,6 +278,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         });
       }
 
+      // Prepare PDF data if available
+      let pdfArrayBuffer = null;
+      if (pdfDataToSend) {
+        const reader = new FileReader();
+        pdfArrayBuffer = await new Promise<ArrayBuffer>((resolve) => {
+          reader.onload = (e) => {
+            resolve(e.target?.result as ArrayBuffer);
+          };
+          reader.readAsArrayBuffer(pdfDataToSend);
+        });
+      }
+
       // Call the Gemini function with language support and personalization
       const requestBody: any = { 
         message: userMessage,
@@ -287,6 +303,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       
       if (base64Data) {
         requestBody.imageData = base64Data;
+      }
+
+      if (pdfArrayBuffer) {
+        requestBody.pdfData = Array.from(new Uint8Array(pdfArrayBuffer));
+        requestBody.pdfName = pdfDataToSend?.name || 'document.pdf';
       }
 
       console.log('About to call Gemini function with:', requestBody);
@@ -314,7 +335,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           user_id: user.id,
           message: userMessage,
           response: data.response,
-          message_type: hasImage ? 'image' : 'text'
+          message_type: hasImage ? 'image' : hasPdf ? 'pdf' : 'text'
         })
         .select()
         .single();
@@ -651,18 +672,32 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 </h1>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                >
-                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                  </svg>
-                  Help
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      Help
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}>
+                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      Email Support
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open('https://instagram.com/vithalai2112', '_blank')}>
+                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                      Instagram
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm">
