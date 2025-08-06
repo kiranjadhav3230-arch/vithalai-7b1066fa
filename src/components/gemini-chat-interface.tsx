@@ -26,7 +26,7 @@ import {
   LogOut,
   Globe
 } from 'lucide-react';
-import vithalLogo from '@/assets/vithal-ai-logo.png';
+import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -268,14 +268,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         });
       }
 
-      // Call the OpenAI function with language support
+      // Call the Gemini function with language support and personalization
       const requestBody: any = { 
         message: userMessage,
         language: language,
         userProfile: {
           userId: user.id,
           email: user.email,
-          name: user.user_metadata?.full_name
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Friend'
         }
       };
       
@@ -283,13 +283,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         requestBody.imageData = base64Data;
       }
 
-      console.log('About to call OpenAI function with:', requestBody);
+      console.log('About to call Gemini function with:', requestBody);
       
-      const { data, error } = await supabase.functions.invoke('openai-chat', {
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
       });
 
-      console.log('OpenAI function response:', { data, error });
+      console.log('Gemini function response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
@@ -488,6 +488,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          
+          {/* Help Section */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Help & Support</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}
+                    className="w-full"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      <span>Contact Support</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
 
         <div className="p-4 border-t">
@@ -550,12 +573,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         <main className="flex-1 flex flex-col">
           {/* Header */}
           <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex h-14 items-center px-4">
-              <SidebarTrigger />
-              <div className="flex items-center gap-2 ml-4">
-                <h1 className="font-semibold">
+            <div className="flex h-14 items-center justify-between px-4">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <h1 className="font-semibold ml-4">
                   {currentSession?.title || 'Vithal AI Chat'}
                 </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                >
+                  <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                  </svg>
+                  Help
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                      <UserIcon className="h-4 w-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </header>
@@ -574,7 +628,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   </p>
                   <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
                     <p>Made by <span className="font-medium">Shree Alankar</span></p>
-                    <p>Chat Credit on <span className="font-medium">OpenAI GPT-4o-mini</span></p>
+                    <p>Powered by <span className="font-medium">Gemini AI</span></p>
                   </div>
                 </div>
               )}

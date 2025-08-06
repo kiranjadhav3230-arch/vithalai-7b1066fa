@@ -6,6 +6,8 @@ import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/useLanguage';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -101,6 +103,44 @@ const Index = () => {
           <HeroSection onGetStarted={handleGetStarted} />
           <HowItWorksSection />
           <FeaturesSection />
+          
+          {/* Help Section */}
+          <section id="help" className="py-20 px-4">
+            <div className="container mx-auto max-w-4xl">
+              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                {t('needHelp') || 'Need Help?'}
+              </h2>
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card className="p-6 glass-morphism border border-primary/20">
+                  <h3 className="text-xl font-semibold mb-4 text-primary">Get Support</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Have questions or need assistance? Our support team is here to help you.
+                  </p>
+                  <Button 
+                    onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                    </svg>
+                    vithalai2112@gmail.com
+                  </Button>
+                </Card>
+                
+                <Card className="p-6 glass-morphism border border-accent/20">
+                  <h3 className="text-xl font-semibold mb-4 text-accent">Quick Tips</h3>
+                  <ul className="space-y-2 text-muted-foreground">
+                    <li>• Use voice input for natural conversations</li>
+                    <li>• Upload images for problem solving</li>
+                    <li>• Ask in Marathi, Hindi, or English</li>
+                    <li>• Get personalized career guidance</li>
+                  </ul>
+                </Card>
+              </div>
+            </div>
+          </section>
         
         {/* Contact Section */}
         <section id="contact" className="py-20 px-4 tech-card">
