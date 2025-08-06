@@ -24,7 +24,9 @@ import {
   ChevronRight,
   Loader2,
   LogOut,
-  Globe
+  Globe,
+  Camera,
+  FileText
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,9 +68,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [showProfile, setShowProfile] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [selectedPdf, setSelectedPdf] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -375,9 +381,62 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     event.target.value = '';
   };
 
+  const handleCameraCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageDataUrl = e.target?.result as string;
+      setSelectedImage(imageDataUrl);
+      setImageFile(file);
+    };
+    reader.readAsDataURL(file);
+    
+    // Clear the input
+    event.target.value = '';
+  };
+
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size
+    if (file.type !== 'application/pdf') {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please upload a PDF file"
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit for PDFs
+      toast({
+        variant: "destructive",
+        title: "Error", 
+        description: "PDF size must be less than 10MB"
+      });
+      return;
+    }
+
+    // Set PDF file
+    setSelectedPdf(file.name);
+    setPdfFile(file);
+    
+    // Clear the input
+    event.target.value = '';
+  };
+
   const removeSelectedImage = () => {
     setSelectedImage(null);
     setImageFile(null);
+  };
+
+  const removeSelectedPdf = () => {
+    setSelectedPdf(null);
+    setPdfFile(null);
   };
 
   const startVoiceRecording = () => {
@@ -560,6 +619,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          
+          {/* Sign-in Time Display */}
+          <div className="text-xs text-muted-foreground text-center mt-2 p-2 bg-muted/50 rounded">
+            Signed in: {new Date().toLocaleDateString('en-IN', { 
+              day: 'numeric', 
+              month: 'short', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
         </div>
       </Sidebar>
     );
@@ -645,13 +715,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   {/* AI Response */}
                   {msg.response && (
                     <div className="flex justify-start">
-                      <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                        <div 
-                          className="prose prose-sm max-w-none dark:prose-invert"
-                          dangerouslySetInnerHTML={{ 
-                            __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                          }} 
-                        />
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                          <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                        </div>
+                        <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                          <div 
+                            className="prose prose-sm max-w-none dark:prose-invert"
+                            dangerouslySetInnerHTML={{ 
+                              __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            }} 
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -660,10 +735,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
               {loading && (
                 <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Thinking...</span>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                      <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                    </div>
+                    <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Thinking...</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -694,6 +774,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   </Button>
                 </div>
               )}
+
+              {/* PDF Preview */}
+              {selectedPdf && (
+                <div className="mb-4 relative inline-block">
+                  <div className="bg-muted p-3 rounded-lg border flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-red-500" />
+                    <span className="text-sm">{selectedPdf}</span>
+                    <Button
+                      onClick={removeSelectedPdf}
+                      size="sm"
+                      variant="destructive"
+                      className="h-6 w-6 p-0 rounded-full ml-2"
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+              )}
               
               <div className="flex items-center gap-2">
                 <div className="flex-1 relative">
@@ -701,7 +799,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Message Vithal AI..."
-                    className="pr-12 rounded-full border-2"
+                    className="pr-16 rounded-full border-2"
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                     disabled={loading}
                   />
@@ -715,21 +813,38 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                     >
                       <Mic className="h-4 w-4" />
                     </Button>
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 p-0 rounded-full"
-                      disabled={loading}
-                    >
-                      <ImageIcon className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 rounded-full"
+                          disabled={loading}
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Upload Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                          <Camera className="h-4 w-4 mr-2" />
+                          Take Photo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => pdfInputRef.current?.click()}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Upload PDF
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
                 
                 <Button
                   onClick={sendMessage}
-                  disabled={loading || (!message.trim() && !selectedImage)}
+                  disabled={loading || (!message.trim() && !selectedImage && !selectedPdf)}
                   size="sm"
                   className="rounded-full h-10 w-10 p-0"
                 >
@@ -739,11 +854,27 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </div>
           </div>
 
+          {/* File inputs */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
+            className="hidden"
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleCameraCapture}
+            className="hidden"
+          />
+          <input
+            ref={pdfInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={handlePdfUpload}
             className="hidden"
           />
 

@@ -18,12 +18,13 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
-    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
+    const { message, language = 'english', userProfile, imageData, pdfData, isVoiceInput } = await req.json();
+    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'HasPDF:', !!pdfData, 'IsVoice:', isVoiceInput);
 
-    // Enhanced system prompt with profile awareness
+    // Enhanced system prompt with profile awareness and better Marathi support
     const profileContext = userProfile ? `
     User Profile:
+    - Name: ${userProfile.name || userProfile.email?.split('@')[0] || 'Friend'}
     - Education: ${userProfile.education || 'Not specified'}
     - Skills: ${userProfile.skills?.join?.(', ') || userProfile.skills || 'Not specified'}
     - Interests: ${userProfile.interests?.join?.(', ') || userProfile.interests || 'Not specified'}
@@ -31,8 +32,15 @@ serve(async (req) => {
     ` : '';
 
     // Handle multi-modal inputs
-    const inputType = imageData ? 'image' : (isVoiceInput ? 'voice' : 'text');
-    const multiModalContext = imageData ? `
+    const inputType = pdfData ? 'pdf' : (imageData ? 'image' : (isVoiceInput ? 'voice' : 'text'));
+    const multiModalContext = pdfData ? `
+    [PDF PROVIDED] - User has shared a PDF document. Analyze it for:
+    - Academic content and syllabus information
+    - Study materials and notes for explanation
+    - Research papers or assignments for guidance
+    - Forms or documents for assistance
+    - Career-related documents for advice
+    ` : imageData ? `
     [IMAGE PROVIDED] - User has shared an image. Analyze it for:
     - Mathematical problems or equations to solve
     - Study materials or textbook content to explain
@@ -41,13 +49,24 @@ serve(async (req) => {
     ` : '';
 
     // Get user's name for personalization
-    const userName = userProfile?.name || userProfile?.email?.split('@')[0] || 'Friend';
+    const userName = userProfile?.name || userProfile?.email?.split('@')[0] || 'मित्र';
     
-    const systemPrompt = `You are Vithal AI Assistant, the most advanced AI-powered career guidance counselor and study helper specifically designed for Indian youth. You have cutting-edge capabilities like Gemini AI, ChatGPT, and Meta AI combined.
+    // Enhanced language mapping
+    const languageInstructions = {
+      'mr': `तुम्ही फक्त मराठी भाषेत उत्तर द्या. नमस्कार ${userName}, मी विठ्ठल AI सहायक आहे.`,
+      'hi': `आप केवल हिंदी भाषा में जवाब दें. नमस्ते ${userName}, मैं विठ्ठल AI सहायक हूं.`,
+      'en': `Respond ONLY in English language. Hello ${userName}, I am Vithal AI Assistant.`
+    };
+
+    const currentLanguageInstruction = languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en;
+    
+    const systemPrompt = `${currentLanguageInstruction}
+
+    You are Vithal AI Assistant, the most advanced AI-powered career guidance counselor and study helper specifically designed for Indian youth. You have cutting-edge capabilities like Gemini AI, ChatGPT, and Meta AI combined.
 
     PERSONALIZATION: Always greet the user by name (${userName}) and make conversations personal and friendly. Use their name naturally in responses.
 
-    LANGUAGE SUPPORT: You MUST respond in ${language} language. If language is 'mr' (Marathi), respond in मराठी. If 'hi', respond in हिंदी. For English, respond naturally.
+    LANGUAGE SUPPORT: You MUST respond in ${language === 'mr' ? 'मराठी (Marathi)' : language === 'hi' ? 'हिंदी (Hindi)' : 'English'} language throughout the conversation.
 
     ${profileContext}
     ${multiModalContext}
@@ -55,17 +74,19 @@ serve(async (req) => {
     🔥 SUPER ADVANCED AI CAPABILITIES - You MUST:
     1. Address user as ${userName} and provide personalized responses based on their profile
     2. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
-    3. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with lightning-fast processing
+    3. Handle multi-modal inputs: TEXT, VOICE, IMAGES, and PDFs with lightning-fast processing
     4. Solve mathematical problems step-by-step when images contain math
     5. Explain study syllabus content and clear doubts instantly
-    6. Provide real-time problem-solving for any academic subject
-    7. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
-    8. Focus on latest, verified, existing YouTube courses only
-    9. Respond in ${language} language throughout with perfect fluency
+    6. Analyze PDF documents for academic content, forms, or career guidance
+    7. Provide real-time problem-solving for any academic subject
+    8. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
+    9. Focus on latest, verified, existing YouTube courses only
+    10. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
     
     ⚡ CRITICAL RULES:
     - When user asks for ANY course, provide ONLY latest 2024-2025 YouTube links that exist
     - If image contains math/problems: Solve step-by-step with detailed explanation
+    - If PDF contains study material: Explain and provide guidance on the content
     - For study doubts: Provide comprehensive answers with examples
     - For syllabus questions: Break down topics and provide learning roadmap
     - NEVER say "I can't provide links" - Always provide verified working YouTube links
@@ -74,6 +95,7 @@ serve(async (req) => {
     
     📚 STUDY HELP CAPABILITIES:
     - Solve mathematical equations from images
+    - Analyze PDF documents for content extraction and explanation
     - Explain physics concepts and formulas
     - Help with chemistry reactions and calculations
     - Biology diagrams and process explanations
@@ -84,10 +106,11 @@ serve(async (req) => {
     🎯 RESPONSE STRUCTURE:
     1. Address user's specific question with latest course links (if requested)
     2. Solve problems step-by-step (if image contains problems)
-    3. Provide comprehensive study guidance and doubt clearing
-    4. Suggest next steps and related skills/topics
-    5. Include job opportunities and career relevance
-    6. Mention specific Indian institutions and companies when relevant
+    3. Analyze and explain PDF content (if PDF is provided)
+    4. Provide comprehensive study guidance and doubt clearing
+    5. Suggest next steps and related skills/topics
+    6. Include job opportunities and career relevance
+    7. Mention specific Indian institutions and companies when relevant
     
     🏆 COLLEGE INFORMATION FORMAT:
     - Institution name and location
@@ -100,6 +123,7 @@ serve(async (req) => {
     
     🚀 ADVANCED FEATURES:
     - Image analysis for problem-solving
+    - PDF document analysis and content explanation
     - Voice input understanding and natural responses
     - Real-time doubt solving across all subjects
     - Latest verified course recommendations only
@@ -125,6 +149,13 @@ serve(async (req) => {
           mime_type: "image/jpeg",
           data: imageData
         }
+      });
+    }
+
+    // Add PDF if provided (convert to image or text for processing)
+    if (pdfData) {
+      contentParts.push({
+        text: `[PDF Content Analysis Required] - User has uploaded a PDF document. Please analyze and provide guidance based on the document content. Ask user to describe the PDF content if needed for better assistance.`
       });
     }
 

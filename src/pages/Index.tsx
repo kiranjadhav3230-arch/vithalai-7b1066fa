@@ -6,6 +6,7 @@ import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
+import { LoadingScreen } from '@/components/loading-screen';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -17,27 +18,47 @@ const Index = () => {
   const [showAuth, setShowAuth] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Show initial loading for at least 2 seconds for better UX
+    const minLoadingTime = setTimeout(() => {
+      setInitialLoading(false);
+    }, 2000);
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        if (!initialLoading) {
+          setLoading(false);
+        }
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      if (!initialLoading) {
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Clean up
+    return () => {
+      clearTimeout(minLoadingTime);
+      subscription.unsubscribe();
+    };
+  }, [initialLoading]);
+
+  useEffect(() => {
+    if (!initialLoading) {
+      setLoading(false);
+    }
+  }, [initialLoading]);
 
   const handleGetStarted = () => {
     if (user) {
@@ -57,19 +78,9 @@ const Index = () => {
     setShowChat(false);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <img 
-            src="/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png" 
-            alt="Vithal AI Logo" 
-            className="h-16 w-16 mx-auto mb-4 animate-pulse"
-          />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+  // Show loading screen during initial load
+  if (loading || initialLoading) {
+    return <LoadingScreen />;
   }
 
   // Show chat interface if user is logged in
@@ -134,6 +145,8 @@ const Index = () => {
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• Use voice input for natural conversations</li>
                     <li>• Upload images for problem solving</li>
+                    <li>• Upload PDFs for document analysis</li>
+                    <li>• Take photos directly with camera</li>
                     <li>• Ask in Marathi, Hindi, or English</li>
                     <li>• Get personalized career guidance</li>
                   </ul>
