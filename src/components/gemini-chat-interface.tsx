@@ -77,6 +77,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   useEffect(() => {
     loadChatSessions();
+    // Always start with a new chat
+    createNewSession();
   }, []);
 
   useEffect(() => {
@@ -99,9 +101,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       if (error) throw error;
       setChatSessions(data || []);
       
-      if (data && data.length > 0 && !currentSession) {
-        setCurrentSession(data[0]);
-      }
+      // Don't auto-select any session, always start fresh
     } catch (error) {
       console.error('Error loading chat sessions:', error);
     }
@@ -603,9 +603,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
-        <main className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Header - Fixed */}
+          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-2">
                 <SidebarTrigger />
@@ -661,77 +661,81 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </div>
           </header>
 
-          {/* Chat Messages */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="max-w-3xl mx-auto space-y-4">
-              {messages.length === 0 && !loading && (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-                  <p className="text-muted-foreground">
-                    Ask me anything! I can help with studies, problems, courses, and more.
-                  </p>
-                  <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
-                    <p>Made by <span className="font-medium">Shree Alankar</span></p>
-                    <p>Powered by <span className="font-medium">Gemini AI</span></p>
-                  </div>
-                </div>
-              )}
-
-              {messages.map((msg) => (
-                <div key={msg.id} className="space-y-4">
-                  {/* User Message */}
-                  <div className="flex justify-end">
-                    <div className="max-w-[80%] rounded-2xl bg-primary text-primary-foreground px-4 py-2">
-                      <p>{msg.message}</p>
+          {/* Chat Messages - Scrollable */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {messages.length === 0 && !loading && (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+                      <p className="text-muted-foreground">
+                        Ask me anything! I can help with studies, problems, courses, and more.
+                      </p>
+                      <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
+                        <p>Made by <span className="font-medium">Shree Alankar</span></p>
+                        <p>Powered by <span className="font-medium">Gemini AI</span></p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* AI Response */}
-                  {msg.response && (
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="space-y-4">
+                      {/* User Message */}
+                      <div className="flex justify-end">
+                        <div className="max-w-[80%] rounded-2xl bg-primary text-primary-foreground px-4 py-2">
+                          <p>{msg.message}</p>
+                        </div>
+                      </div>
+
+                      {/* AI Response */}
+                      {msg.response && (
+                        <div className="flex justify-start">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                              <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                            </div>
+                            <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                              <div 
+                                className="prose prose-sm max-w-none dark:prose-invert"
+                                dangerouslySetInnerHTML={{ 
+                                  __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                }} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {loading && (
                     <div className="flex justify-start">
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
                           <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
                         </div>
                         <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                          <div 
-                            className="prose prose-sm max-w-none dark:prose-invert"
-                            dangerouslySetInnerHTML={{ 
-                              __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                            }} 
-                          />
+                          <div className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Thinking...</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
+                  
+                  <div ref={messagesEndRef} />
                 </div>
-              ))}
+              </div>
+            </ScrollArea>
+          </div>
 
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
-                      <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
-                    </div>
-                    <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                      <div className="flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Thinking...</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Input Area */}
-          <div className="border-t bg-background p-4">
+          {/* Input Area - Fixed */}
+          <div className="border-t bg-background p-4 flex-shrink-0">
             <div className="max-w-3xl mx-auto">
               {/* Image Preview */}
               {selectedImage && (
