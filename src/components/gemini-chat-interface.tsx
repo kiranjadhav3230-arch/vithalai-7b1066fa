@@ -214,28 +214,37 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-    const sendMessage = async () => {
+  const sendMessage = async () => {
     if ((!message.trim() && !selectedImage)) return;
 
     // Create session if none exists
-    if (!currentSession) {
+    let sessionToUse = currentSession;
+    if (!sessionToUse) {
       try {
-        await createNewSession();
-        // After creating session, don't return - continue with sending the message
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .insert({
+            user_id: user.id,
+            title: 'New Chat'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        const newSession = data as ChatSession;
+        setChatSessions(prev => [newSession, ...prev]);
+        setCurrentSession(newSession);
+        sessionToUse = newSession;
       } catch (error) {
         console.error('Failed to create session:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create new chat session"
+        });
         return;
       }
-    }
-
-    // Get the current session (either existing or newly created)
-    const sessionToUse = currentSession;
-    
-    // Check again if we have a session after potential creation
-    if (!sessionToUse) {
-      console.error('No session available for sending message');
-      setLoading(false);
-      return;
     }
 
     setLoading(true);
@@ -249,15 +258,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     setImageFile(null);
 
     // Add user message to UI immediately
-    const tempMessage: ChatMessage = {
-      id: `temp-${Date.now()}`,
-      session_id: currentSession.id,
+    const tempUserMessage: ChatMessage = {
+      id: `temp-user-${Date.now()}`,
+      session_id: sessionToUse.id,
       message: userMessage,
       response: null,
       message_type: hasImage ? 'image' : 'text',
       created_at: new Date().toISOString()
     };
-    setMessages(prev => [...prev, tempMessage]);
+    setMessages(prev => [...prev, tempUserMessage]);
 
     try {
       // Prepare image data if available
@@ -272,7 +281,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           reader.readAsDataURL(imageDataToSend);
         });
       }
-
 
       // Call the Gemini function with language support and personalization
       const requestBody: any = { 
@@ -289,7 +297,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         requestBody.imageData = base64Data;
       }
 
-      console.log('About to call Gemini function with:', requestBody);
+      console.log('Calling Gemini function with:', requestBody);
       
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
@@ -306,11 +314,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         throw new Error('No response from AI');
       }
 
-      // Save message to database
+      // Save message to database with AI response
       const { data: savedMessage, error: saveError } = await supabase
         .from('chat_messages')
         .insert({
-          session_id: currentSession.id,
+          session_id: sessionToUse.id,
           user_id: user.id,
           message: userMessage,
           response: data.response,
@@ -319,27 +327,36 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         .select()
         .single();
 
-      if (saveError) throw saveError;
+      if (saveError) {
+        console.error('Error saving message:', saveError);
+        throw saveError;
+      }
 
-      // Update messages with real data
+      // Update messages with real data from database
       setMessages(prev => prev.map(msg => 
-        msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
+        msg.id === tempUserMessage.id ? (savedMessage as ChatMessage) : msg
       ));
 
-      // Update session title if it's the first message using AI
+      // Update session title if it's the first message
       if (messages.length === 0) {
-        generateSessionTitle(currentSession.id, userMessage, data.response);
+        generateSessionTitle(sessionToUse.id, userMessage, data.response);
       }
+
+      // Update session's updated_at timestamp
+      await supabase
+        .from('chat_sessions')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', sessionToUse.id);
 
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         variant: "destructive",
-        title: "Error",
+        title: "Error", 
         description: "Failed to send message. Please try again."
       });
       // Remove the temporary message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
+      setMessages(prev => prev.filter(msg => msg.id !== tempUserMessage.id));
     } finally {
       setLoading(false);
     }
@@ -702,7 +719,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                             <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
                               <TypewriterText 
                                 text={msg.response}
-                                speed={20}
+                                speed={10}
                                 className="prose prose-sm max-w-none dark:prose-invert"
                               />
                             </div>
