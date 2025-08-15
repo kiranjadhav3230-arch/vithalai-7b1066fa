@@ -33,6 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
+import { TypewriterText } from './typewriter-text';
 import type { User } from '@supabase/supabase-js';
 
 interface ChatSession {
@@ -699,11 +700,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                               <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
                             </div>
                             <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                              <div 
+                              <TypewriterText 
+                                text={msg.response}
+                                speed={20}
                                 className="prose prose-sm max-w-none dark:prose-invert"
-                                dangerouslySetInnerHTML={{ 
-                                  __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                }} 
                               />
                             </div>
                           </div>
