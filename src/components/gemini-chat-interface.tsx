@@ -217,31 +217,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const sendMessage = async () => {
     if ((!message.trim() && !selectedImage)) return;
 
-    // Create session if none exists
+    // Ensure we have a session - create one if needed
     let sessionToUse = currentSession;
     if (!sessionToUse) {
-      try {
-        const { data, error } = await supabase
-          .from('chat_sessions')
-          .insert({
-            user_id: user.id,
-            title: 'New Chat'
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        
-        const newSession = data as ChatSession;
-        setChatSessions(prev => [newSession, ...prev]);
-        setCurrentSession(newSession);
-        sessionToUse = newSession;
-      } catch (error) {
-        console.error('Failed to create session:', error);
+      await createNewSession();
+      // Wait for the session to be created
+      sessionToUse = currentSession;
+      if (!sessionToUse) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to create new chat session"
+          description: "Failed to create chat session"
         });
         return;
       }
@@ -290,20 +276,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           userId: user.id,
           email: user.email,
           name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Friend'
-        }
+        },
+        sessionId: sessionToUse.id,
+        previousMessages: messages.slice(-5).map(msg => ({
+          message: msg.message,
+          response: msg.response
+        }))
       };
       
       if (base64Data) {
         requestBody.imageData = base64Data;
       }
 
-      console.log('Calling Gemini function with:', requestBody);
-      
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
       });
-
-      console.log('Gemini function response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
@@ -337,16 +324,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         msg.id === tempUserMessage.id ? (savedMessage as ChatMessage) : msg
       ));
 
-      // Update session title if it's the first message
-      if (messages.length === 0) {
-        generateSessionTitle(sessionToUse.id, userMessage, data.response);
+      // Auto-update session title after first message with meaningful content
+      if (messages.length === 0 && userMessage.length > 5) {
+        await generateSessionTitle(sessionToUse.id, userMessage, data.response);
       }
 
-      // Update session's updated_at timestamp
+      // Update session's updated_at timestamp to keep it active
       await supabase
         .from('chat_sessions')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', sessionToUse.id);
+
+      // Refresh sessions list to show updated timestamp
+      await loadChatSessions();
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -730,15 +720,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   ))}
 
                   {loading && (
-                    <div className="flex justify-start">
+                    <div className="flex justify-start animate-fade-in">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1 animate-pulse">
                           <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
                         </div>
                         <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
                           <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>Thinking...</span>
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite]"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite] animation-delay-200"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite] animation-delay-400"></div>
+                            </div>
+                            <span className="ml-2">Thinking...</span>
                           </div>
                         </div>
                       </div>
@@ -789,10 +783,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                       onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
                       size="sm"
                       variant="ghost"
-                      className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500' : ''}`}
+                      className={`h-8 w-8 p-0 rounded-full transition-all duration-300 ${
+                        isRecording ? 
+                        'text-red-500 bg-red-500/10 animate-[pulse-recording_1s_ease-in-out_infinite] scale-110' : 
+                        'hover:bg-primary/10 hover:text-primary'
+                      }`}
                       disabled={loading}
                     >
-                      <Mic className="h-4 w-4" />
+                      <Mic className={`h-4 w-4 ${isRecording ? 'animate-[mic-wave_0.8s_ease-in-out_infinite]' : ''}`} />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -823,9 +821,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   onClick={sendMessage}
                   disabled={loading || (!message.trim() && !selectedImage)}
                   size="sm"
-                  className="rounded-full h-10 w-10 p-0"
+                  className="rounded-full h-10 w-10 p-0 transition-all duration-200 hover:scale-105 active:scale-95"
                 >
-                  <Send className="h-4 w-4" />
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
