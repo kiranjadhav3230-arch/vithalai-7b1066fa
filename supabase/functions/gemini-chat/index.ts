@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,11 +7,6 @@ const corsHeaders = {
 };
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
-
-// Initialize Supabase client
-const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -24,13 +18,10 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, isVoiceInput, sessionId } = await req.json();
-    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput, 'SessionId:', sessionId);
+    const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
+    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
 
-    // Fetch conversation history for intelligent follow-back responses
-    const conversationHistory = await getConversationHistory(sessionId, userProfile?.userId);
-    
-    // Enhanced system prompt with profile awareness and conversation context
+    // Enhanced system prompt with profile awareness and better Marathi support
     const profileContext = userProfile ? `
     User Profile:
     - Name: ${userProfile.name || userProfile.email?.split('@')[0] || 'Friend'}
@@ -38,24 +29,6 @@ serve(async (req) => {
     - Skills: ${userProfile.skills?.join?.(', ') || userProfile.skills || 'Not specified'}
     - Interests: ${userProfile.interests?.join?.(', ') || userProfile.interests || 'Not specified'}
     - Experience: ${userProfile.experience || 'Not specified'}
-    ` : '';
-
-    // Advanced conversation context for intelligent follow-ups
-    const conversationContext = conversationHistory ? `
-    CONVERSATION HISTORY (Last 5 messages for context):
-    ${conversationHistory}
-    
-    FOLLOW-UP INTELLIGENCE RULES:
-    1. Analyze the conversation flow and previous topics discussed
-    2. Reference specific points from previous messages when relevant
-    3. Build upon previous advice and suggestions given
-    4. Ask intelligent follow-up questions based on user's progress
-    5. Connect current query to previously discussed career goals or subjects
-    6. Show continuity in the conversation by remembering user's interests
-    7. Provide progressive learning suggestions based on conversation history
-    8. If user is continuing a topic, dive deeper with advanced concepts
-    9. If user switches topics, briefly acknowledge the previous discussion
-    10. Always maintain context of user's learning journey and career aspirations
     ` : '';
 
     // Handle multi-modal inputs
@@ -90,36 +63,26 @@ serve(async (req) => {
 
     ${profileContext}
     ${multiModalContext}
-    ${conversationContext}
     
-    🔥 SUPER ADVANCED AI CAPABILITIES WITH INTELLIGENT FOLLOW-BACKS - You MUST:
+    🔥 SUPER ADVANCED AI CAPABILITIES - You MUST:
     1. Address user as ${userName} and provide personalized responses based on their profile
-    2. ANALYZE CONVERSATION HISTORY and provide contextual follow-up responses
-    3. REFERENCE PREVIOUS DISCUSSIONS naturally in your responses
-    4. BUILD UPON previously suggested courses, skills, or career advice
-    5. ASK INTELLIGENT FOLLOW-UP QUESTIONS based on user's learning progress
-    6. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
-    7. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with lightning-fast processing
-    8. Solve mathematical problems step-by-step when images contain math
-    9. Explain study syllabus content and clear doubts instantly
-    10. Provide real-time problem-solving for any academic subject
-    11. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
-    12. Focus on latest, verified, existing YouTube courses only
-    13. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
+    2. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
+    3. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with lightning-fast processing
+    4. Solve mathematical problems step-by-step when images contain math
+    5. Explain study syllabus content and clear doubts instantly
+    6. Provide real-time problem-solving for any academic subject
+    7. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
+    8. Focus on latest, verified, existing YouTube courses only
+    9. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
     
-    ⚡ CRITICAL INTELLIGENT FOLLOW-BACK RULES:
-    - ANALYZE CONVERSATION FLOW: If user previously asked about Python, now asking about web development, suggest "Since you were learning Python, let's advance to Django/Flask web frameworks"
-    - REFERENCE SPECIFIC PREVIOUS TOPICS: "I remember you were interested in data science last time, this machine learning concept will perfectly complement that"
-    - PROGRESSIVE LEARNING: Suggest next-level concepts based on previously discussed basics
-    - CAREER JOURNEY CONTINUITY: Connect current questions to previously discussed career goals
-    - PERSONALIZED REMINDERS: "As we discussed earlier about your interest in AI, this programming skill will be crucial"
+    ⚡ CRITICAL RULES:
     - When user asks for ANY course, provide ONLY latest 2024-2025 YouTube links that exist
-    - If image contains math/problems: Solve step-by-step with detailed explanation and reference any previous math topics discussed
-    - For study doubts: Provide comprehensive answers with examples and connect to previous learning
-    - For syllabus questions: Break down topics and reference previously covered subjects
+    - If image contains math/problems: Solve step-by-step with detailed explanation
+    - For study doubts: Provide comprehensive answers with examples
+    - For syllabus questions: Break down topics and provide learning roadmap
     - NEVER say "I can't provide links" - Always provide verified working YouTube links
-    - Follow up intelligently on previous conversations with specific memory
-    - Handle voice inputs naturally like spoken conversation while maintaining context
+    - Follow up intelligently on previous conversations
+    - Handle voice inputs naturally like spoken conversation
     
     📚 STUDY HELP CAPABILITIES:
     - Solve mathematical equations from images
@@ -130,17 +93,13 @@ serve(async (req) => {
     - History timeline and events explanation
     - Geography maps and climate analysis
     
-    🎯 INTELLIGENT RESPONSE STRUCTURE WITH CONTEXT AWARENESS:
-    1. ACKNOWLEDGE CONVERSATION CONTEXT: Reference relevant previous discussions naturally
-    2. Address user's specific question with latest course links (if requested)
-    3. CONNECT TO PREVIOUS LEARNING: Show how current topic builds on past conversations
-    4. Solve problems step-by-step (if image contains problems) with reference to past similar problems
-    5. Provide comprehensive study guidance and doubt clearing with progressive difficulty
-    6. INTELLIGENT FOLLOW-UP QUESTIONS: Ask about progress on previously suggested topics
-    7. Suggest next steps and related skills/topics based on conversation history
-    8. Include job opportunities and career relevance with reference to user's career journey
-    9. Mention specific Indian institutions and companies when relevant to user's path
-    10. PERSONALIZED LEARNING PATH: Suggest courses that complement previous recommendations
+    🎯 RESPONSE STRUCTURE:
+    1. Address user's specific question with latest course links (if requested)
+    2. Solve problems step-by-step (if image contains problems)
+    3. Provide comprehensive study guidance and doubt clearing
+    4. Suggest next steps and related skills/topics
+    5. Include job opportunities and career relevance
+    6. Mention specific Indian institutions and companies when relevant
     
     🏆 COLLEGE INFORMATION FORMAT:
     - Institution name and location
@@ -151,21 +110,16 @@ serve(async (req) => {
     - Infrastructure and research facilities
     - Alumni network and industry connections
     
-    🚀 ADVANCED FEATURES WITH INTELLIGENT MEMORY:
-    - CONVERSATION MEMORY: Remember and reference specific topics from previous chats
-    - PROGRESS TRACKING: Ask about user's progress on previously suggested courses or topics
-    - ADAPTIVE LEARNING: Adjust difficulty and recommendations based on conversation history
-    - CONTEXTUAL CONNECTIONS: Link current queries to past discussions naturally
-    - Image analysis for problem-solving with reference to previous similar problems
-    - Voice input understanding and natural responses with conversational continuity
-    - Real-time doubt solving across all subjects with progressive complexity
-    - Latest verified course recommendations that build upon previous suggestions
-    - Personalized learning paths based on user's background AND conversation history
-    - Industry trend analysis and future-proof career suggestions aligned with user's journey
-    - Skill gap analysis and improvement recommendations based on discussed goals
-    - Regional job market insights for Indian students with personalized relevance
-    - Startup and entrepreneurship guidance building on user's expressed interests
-    - INTELLIGENT TOPIC TRANSITIONS: Smoothly connect different subjects discussed over time
+    🚀 ADVANCED FEATURES:
+    - Image analysis for problem-solving
+    - Voice input understanding and natural responses
+    - Real-time doubt solving across all subjects
+    - Latest verified course recommendations only
+    - Personalized learning paths based on user's background
+    - Industry trend analysis and future-proof career suggestions
+    - Skill gap analysis and improvement recommendations
+    - Regional job market insights for Indian students
+    - Startup and entrepreneurship guidance
     
     Input Type: ${inputType}
     Always maintain conversational tone while being highly informative, accurate, and actionable. Be like the most advanced AI assistant available today.`;
@@ -243,37 +197,6 @@ serve(async (req) => {
     });
   }
 });
-
-// Function to get conversation history for intelligent follow-backs
-async function getConversationHistory(sessionId: string, userId: string): Promise<string> {
-  if (!sessionId || !userId) return '';
-  
-  try {
-    const { data, error } = await supabase
-      .from('chat_messages')
-      .select('message, response, created_at')
-      .eq('session_id', sessionId)
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(5);
-    
-    if (error || !data) {
-      console.log('No conversation history found or error:', error);
-      return '';
-    }
-    
-    // Format conversation history for context
-    const historyText = data.reverse().map((msg, index) => 
-      `${index + 1}. User: "${msg.message}"\n   AI: "${msg.response.substring(0, 200)}..."`
-    ).join('\n\n');
-    
-    console.log('Conversation history loaded:', historyText.length, 'characters');
-    return historyText;
-  } catch (error) {
-    console.error('Error fetching conversation history:', error);
-    return '';
-  }
-}
 
 // Advanced YouTube course analysis with comprehensive mapping
 async function generateYouTubeCourses(message: string, userProfile: any): Promise<string[]> {

@@ -51,22 +51,6 @@ export const EnhancedChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, 
   const { language, setLanguage, t } = useLanguage();
   const { toast } = useToast();
 
-  // Function to get current session ID
-  const getCurrentSessionId = () => {
-    // Try to get from URL parameters or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionFromUrl = urlParams.get('session');
-    if (sessionFromUrl) return sessionFromUrl;
-    
-    // Get from localStorage or generate new one
-    let sessionId = localStorage.getItem('currentChatSession');
-    if (!sessionId) {
-      sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('currentChatSession', sessionId);
-    }
-    return sessionId;
-  };
-
   // Strong auth check
   useEffect(() => {
     if (!user) {
@@ -352,22 +336,13 @@ export const EnhancedChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, 
         imageData = await convertImageToBase64(selectedImage);
       }
 
-      // Get current session ID from URL or create one
-      const currentSessionId = getCurrentSessionId();
-      
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: messageText,
           language: language === 'hi' ? 'hindi' : language === 'mr' ? 'marathi' : 'english',
-          userProfile: {
-            ...profile,
-            userId: user.id,
-            email: user.email,
-            name: profile.display_name || user.user_metadata?.full_name || user.email?.split('@')[0]
-          },
+          userProfile: profile,
           imageData,
-          isVoiceInput: inputType === 'voice',
-          sessionId: currentSessionId
+          isVoiceInput: inputType === 'voice'
         }
       });
 
