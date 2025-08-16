@@ -48,6 +48,17 @@ All colors MUST be HSL.
     --warning-foreground: 0 0% 0%;
     --info: 25 95% 53%;
     --info-foreground: 0 0% 0%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95.9%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95.9%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 25 95% 53%;
   }
   
   /* Professional Loading Animations */
@@ -142,18 +153,6 @@ All colors MUST be HSL.
     }
   }
 
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95.9%;
-    --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95.9%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 25 95% 53%;
-  }
-
   .light {
     /* Light theme as alternative */
     --background: 0 0% 100%;
@@ -176,9 +175,7 @@ All colors MUST be HSL.
     --input: 214.3 31.8% 91.4%;
     --ring: 25 95% 53%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
