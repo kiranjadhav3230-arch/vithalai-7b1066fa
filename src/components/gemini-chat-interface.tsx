@@ -226,25 +226,39 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-  const generateSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
+  const generateSessionTitle = async (sessionId: string, userMessage: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: { 
-          message: `Generate a concise 3-5 word title for this conversation topic. User asked: "${userMessage}" AI responded: "${aiResponse.substring(0, 200)}..." Just respond with the title only, no extra text.`,
-          language: language
-        }
-      });
-
-      if (!error && data?.response) {
-        const title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
-        updateSessionTitle(sessionId, title);
+      // Create a meaningful title from the user's first message
+      let title = userMessage.trim();
+      
+      // Extract key words and create a concise title
+      const words = title.split(/\s+/).filter(word => word.length > 2);
+      
+      if (words.length > 4) {
+        // Take first 3-4 meaningful words
+        title = words.slice(0, 4).join(' ');
       }
+      
+      // Capitalize first letter
+      title = title.charAt(0).toUpperCase() + title.slice(1);
+      
+      // Ensure it's not too long
+      if (title.length > 35) {
+        title = title.substring(0, 32) + '...';
+      }
+      
+      // If still too generic, add context
+      if (title.length < 5 || /^(hi|hello|hey|what|how)$/i.test(title)) {
+        title = 'Chat about ' + (words.slice(1, 3).join(' ') || 'questions');
+      }
+      
+      await updateSessionTitle(sessionId, title);
     } catch (error) {
       console.error('Error generating title:', error);
       // Fallback to truncated user message
       const fallbackTitle = userMessage.length > 30 ? 
         userMessage.substring(0, 30) + '...' : userMessage;
-      updateSessionTitle(sessionId, fallbackTitle);
+      await updateSessionTitle(sessionId, fallbackTitle);
     }
   };
 
@@ -360,7 +374,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
       // Auto-update session title after first message with meaningful content
       if (messages.length === 0 && userMessage.length > 5) {
-        await generateSessionTitle(sessionToUse.id, userMessage, data.response);
+        await generateSessionTitle(sessionToUse.id, userMessage);
       }
 
       // Update session's updated_at timestamp to keep it active
