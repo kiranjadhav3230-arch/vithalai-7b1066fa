@@ -74,7 +74,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [showContactModal, setShowContactModal] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState('onwK4e9ZLuTAKqWW03F9'); // Daniel (male) as default
-  const [hasSeenFirstMessage, setHasSeenFirstMessage] = useState(false);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -229,27 +228,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   const generateSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
     try {
-      // Simple title generation based on user message keywords
-      let title = userMessage;
-      
-      // Extract meaningful keywords
-      const words = userMessage.toLowerCase().split(' ').filter(word => 
-        word.length > 3 && 
-        !['what', 'how', 'when', 'where', 'why', 'can', 'could', 'would', 'should', 'the', 'and', 'but', 'for', 'with', 'from', 'this', 'that', 'they', 'have', 'been', 'will', 'your', 'help', 'please'].includes(word)
-      );
-      
-      if (words.length >= 2) {
-        title = words.slice(0, 3).map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-      } else if (userMessage.length > 30) {
-        title = userMessage.substring(0, 30) + '...';
-      } else {
-        title = userMessage;
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: { 
+          message: `Generate a concise 3-5 word title for this conversation topic. User asked: "${userMessage}" AI responded: "${aiResponse.substring(0, 200)}..." Just respond with the title only, no extra text.`,
+          language: language
+        }
+      });
+
+      if (!error && data?.response) {
+        const title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
+        updateSessionTitle(sessionId, title);
       }
-      
-      updateSessionTitle(sessionId, title);
-      
     } catch (error) {
       console.error('Error generating title:', error);
       // Fallback to truncated user message
@@ -371,14 +360,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
       // Auto-update session title after first message with meaningful content
       if (messages.length === 0 && userMessage.length > 5) {
-        setTimeout(() => {
-          generateSessionTitle(sessionToUse.id, userMessage, data.response);
-        }, 1000); // Delay to ensure message is saved first
-      }
-
-      // Set first message flag for typewriter animation
-      if (!hasSeenFirstMessage) {
-        setHasSeenFirstMessage(true);
+        await generateSessionTitle(sessionToUse.id, userMessage, data.response);
       }
 
       // Update session's updated_at timestamp to keep it active
@@ -862,21 +844,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                               <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
                             </div>
                             <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2 group">
-                              {/* Only show typewriter animation for the very first message */}
-                              {!hasSeenFirstMessage && messages.indexOf(msg) === 0 ? (
-                                <TypewriterText 
-                                  text={msg.response}
-                                  speed={10}
-                                  className="prose prose-sm max-w-none dark:prose-invert"
-                                />
-                              ) : (
-                                <div 
-                                  className="prose prose-sm max-w-none dark:prose-invert"
-                                  dangerouslySetInnerHTML={{ 
-                                    __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                  }} 
-                                />
-                              )}
+                              <TypewriterText 
+                                text={msg.response}
+                                speed={10}
+                                className="prose prose-sm max-w-none dark:prose-invert"
+                              />
                               <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button
                                   onClick={() => isPlayingAudio ? stopAudio() : playTextToSpeech(msg.response!)}
