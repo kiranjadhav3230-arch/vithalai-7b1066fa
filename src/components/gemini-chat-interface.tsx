@@ -228,12 +228,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   const generateSessionTitle = async (sessionId: string, userMessage: string) => {
     try {
+      console.log('Generating title for session:', sessionId, 'with message:', userMessage);
+      
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: { 
           message: `Create a short, descriptive title (3-5 words) for a chat conversation that starts with: "${userMessage}". Only respond with the title, no quotes or extra text.`,
           language: language
         }
       });
+
+      console.log('Title generation response:', data, 'error:', error);
 
       if (!error && data?.response) {
         let title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
@@ -243,11 +247,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           title = title.substring(0, 32) + '...';
         }
         
+        console.log('Generated title:', title);
         await updateSessionTitle(sessionId, title);
       } else {
+        console.log('AI title generation failed, using fallback');
         // Fallback to local generation if AI fails
         const fallbackTitle = userMessage.length > 30 ? 
           userMessage.substring(0, 30) + '...' : userMessage;
+        console.log('Using fallback title:', fallbackTitle);
         await updateSessionTitle(sessionId, fallbackTitle);
       }
     } catch (error) {
@@ -255,6 +262,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       // Fallback to truncated user message
       const fallbackTitle = userMessage.length > 30 ? 
         userMessage.substring(0, 30) + '...' : userMessage;
+      console.log('Error fallback title:', fallbackTitle);
       await updateSessionTitle(sessionId, fallbackTitle);
     }
   };
