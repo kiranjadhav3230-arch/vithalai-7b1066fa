@@ -228,31 +228,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   const generateSessionTitle = async (sessionId: string, userMessage: string) => {
     try {
-      // Create a meaningful title from the user's first message
-      let title = userMessage.trim();
-      
-      // Extract key words and create a concise title
-      const words = title.split(/\s+/).filter(word => word.length > 2);
-      
-      if (words.length > 4) {
-        // Take first 3-4 meaningful words
-        title = words.slice(0, 4).join(' ');
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: { 
+          message: `Create a short, descriptive title (3-5 words) for a chat conversation that starts with: "${userMessage}". Only respond with the title, no quotes or extra text.`,
+          language: language
+        }
+      });
+
+      if (!error && data?.response) {
+        let title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
+        
+        // Ensure title is not too long
+        if (title.length > 35) {
+          title = title.substring(0, 32) + '...';
+        }
+        
+        await updateSessionTitle(sessionId, title);
+      } else {
+        // Fallback to local generation if AI fails
+        const fallbackTitle = userMessage.length > 30 ? 
+          userMessage.substring(0, 30) + '...' : userMessage;
+        await updateSessionTitle(sessionId, fallbackTitle);
       }
-      
-      // Capitalize first letter
-      title = title.charAt(0).toUpperCase() + title.slice(1);
-      
-      // Ensure it's not too long
-      if (title.length > 35) {
-        title = title.substring(0, 32) + '...';
-      }
-      
-      // If still too generic, add context
-      if (title.length < 5 || /^(hi|hello|hey|what|how)$/i.test(title)) {
-        title = 'Chat about ' + (words.slice(1, 3).join(' ') || 'questions');
-      }
-      
-      await updateSessionTitle(sessionId, title);
     } catch (error) {
       console.error('Error generating title:', error);
       // Fallback to truncated user message
