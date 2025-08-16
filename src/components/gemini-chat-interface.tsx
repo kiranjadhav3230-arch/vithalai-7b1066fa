@@ -1,8 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { 
@@ -12,18 +15,19 @@ import {
   Plus, 
   MessageSquare, 
   Trash2, 
+  Edit3, 
   User as UserIcon, 
+  Menu,
+  Star,
+  Search,
   Settings,
+  ChevronRight,
   Loader2,
   LogOut,
   Globe,
   Camera,
   Volume2,
-  VolumeX,
-  Paperclip,
-  X,
-  User,
-  Sparkles
+  VolumeX
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,8 +36,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { TypewriterText } from './typewriter-text';
-import { format } from 'date-fns';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 interface ChatSession {
   id: string;
@@ -53,37 +56,49 @@ interface ChatMessage {
 }
 
 interface GeminiChatInterfaceProps {
-  user: SupabaseUser;
+  user: User;
   onLogout: () => void;
 }
 
 export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, onLogout }) => {
   const [message, setMessage] = useState('');
-  const [recentSessions, setRecentSessions] = useState<ChatSession[]>([]);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
-  const [audioPlayback, setAudioPlayback] = useState<{ isPlaying: boolean; messageId: string; text: string } | null>(null);
-  const [voiceTone, setVoiceTone] = useState<'male' | 'female'>('male');
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState('onwK4e9ZLuTAKqWW03F9'); // Daniel (male) as default
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    loadRecentSessions();
+    loadChatSessions();
+    // Always start with a new chat
     createNewSession();
+  }, []);
+
+  // Auto-refresh sessions to show recent activity
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadChatSessions();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (currentSession) {
-      loadChatHistory(currentSession.id);
+      loadMessages(currentSession.id);
     }
   }, [currentSession]);
 
@@ -91,42 +106,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const loadRecentSessions = async () => {
+  const loadChatSessions = async () => {
     try {
       const { data, error } = await supabase
         .from('chat_sessions')
         .select('*')
-        .order('updated_at', { ascending: false })
-        .limit(20);
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       
       // Filter out empty sessions and auto-delete them
       const sessionsWithMessages = [];
       for (const session of data || []) {
-        const { data: messageCount } = await supabase
+        const { data: messageCount, error: countError } = await supabase
           .from('chat_messages')
           .select('id', { count: 'exact' })
           .eq('session_id', session.id);
         
-        if (messageCount && messageCount.length > 0) {
+        if (!countError && messageCount && messageCount.length > 0) {
           sessionsWithMessages.push(session);
-        } else if (currentSession?.id !== session.id) {
+        } else {
           // Auto-delete empty sessions (except current one)
-          await supabase
-            .from('chat_sessions')
-            .delete()
-            .eq('id', session.id);
+          if (currentSession?.id !== session.id) {
+            await supabase
+              .from('chat_sessions')
+              .delete()
+              .eq('id', session.id);
+          }
         }
       }
       
-      setRecentSessions(sessionsWithMessages);
+      setChatSessions(sessionsWithMessages);
     } catch (error) {
-      console.error('Error loading recent sessions:', error);
+      console.error('Error loading chat sessions:', error);
     }
   };
 
-  const loadChatHistory = async (sessionId: string) => {
+  const loadMessages = async (sessionId: string) => {
     try {
       const { data, error } = await supabase
         .from('chat_messages')
@@ -137,7 +153,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
-      console.error('Error loading chat history:', error);
+      console.error('Error loading messages:', error);
     }
   };
 
@@ -155,7 +171,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       if (error) throw error;
       
       const newSession = data as ChatSession;
-      setRecentSessions(prev => [newSession, ...prev]);
+      setChatSessions(prev => [newSession, ...prev]);
       setCurrentSession(newSession);
       setMessages([]);
     } catch (error) {
@@ -168,6 +184,27 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const deleteSession = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('chat_sessions')
+        .delete()
+        .eq('id', sessionId);
+
+      if (error) throw error;
+      
+      setChatSessions(prev => prev.filter(s => s.id !== sessionId));
+      
+      if (currentSession?.id === sessionId) {
+        const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
+        setCurrentSession(remainingSessions.length > 0 ? remainingSessions[0] : null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Error deleting session:', error);
+    }
+  };
+
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
       const { error } = await supabase
@@ -177,7 +214,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
       if (error) throw error;
       
-      setRecentSessions(prev => prev.map(s => 
+      setChatSessions(prev => prev.map(s => 
         s.id === sessionId ? { ...s, title } : s
       ));
       
@@ -217,22 +254,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     // Ensure we have a session - create one if needed
     let sessionToUse = currentSession;
     if (!sessionToUse) {
-      try {
-        await createNewSession();
-        // Wait a bit for state to update
-        await new Promise(resolve => setTimeout(resolve, 100));
-        sessionToUse = currentSession;
-        
-        if (!sessionToUse) {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to create chat session"
-          });
-          return;
-        }
-      } catch (error) {
-        console.error('Error creating session:', error);
+      await createNewSession();
+      // Wait for the session to be created
+      sessionToUse = currentSession;
+      if (!sessionToUse) {
         toast({
           variant: "destructive",
           title: "Error",
@@ -310,55 +335,42 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         throw new Error('No response from AI');
       }
 
-      // Save user message to database with retry logic
-      try {
-        // Verify session exists before inserting message
-        const { data: sessionCheck, error: sessionError } = await supabase
-          .from('chat_sessions')
-          .select('id')
-          .eq('id', sessionToUse.id)
-          .single();
+      // Save message to database with AI response
+      const { data: savedMessage, error: saveError } = await supabase
+        .from('chat_messages')
+        .insert({
+          session_id: sessionToUse.id,
+          user_id: user.id,
+          message: userMessage,
+          response: data.response,
+          message_type: hasImage ? 'image' : 'text'
+        })
+        .select()
+        .single();
 
-        if (sessionError || !sessionCheck) {
-          console.error('Session not found, creating new one:', sessionError);
-          await createNewSession();
-          await new Promise(resolve => setTimeout(resolve, 200));
-          sessionToUse = currentSession;
-        }
-
-        if (sessionToUse?.id) {
-          const { error: saveError } = await supabase
-            .from('chat_messages')
-            .insert({
-              session_id: sessionToUse.id,
-              user_id: user.id,
-              message: userMessage,
-              response: data.response,
-              message_type: hasImage ? 'image' : 'text'
-            });
-          
-          if (saveError) {
-            console.error('Error saving message:', saveError);
-          }
-        }
-      } catch (dbError) {
-        console.error('Database error:', dbError);
+      if (saveError) {
+        console.error('Error saving message:', saveError);
+        throw saveError;
       }
 
-      // Update the temporary message with the real response
+      // Update messages with real data from database
       setMessages(prev => prev.map(msg => 
-        msg.id === tempUserMessage.id 
-          ? { ...msg, response: data.response, id: `msg-${Date.now()}` }
-          : msg
+        msg.id === tempUserMessage.id ? (savedMessage as ChatMessage) : msg
       ));
 
-      // Generate session title for first meaningful message
+      // Auto-update session title after first message with meaningful content
       if (messages.length === 0 && userMessage.length > 5) {
         await generateSessionTitle(sessionToUse.id, userMessage, data.response);
       }
 
-      // Refresh sessions list
-      await loadRecentSessions();
+      // Update session's updated_at timestamp to keep it active
+      await supabase
+        .from('chat_sessions')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', sessionToUse.id);
+
+      // Refresh sessions list to show updated timestamp
+      await loadChatSessions();
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -374,54 +386,66 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-  const handleImageUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type and size
     if (!file.type.startsWith('image/')) {
       toast({
         variant: "destructive",
-        title: "Invalid File",
-        description: "Please select an image file"
+        title: "Error",
+        description: "Please upload an image file"
       });
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
       toast({
         variant: "destructive",
-        title: "File Too Large",
-        description: "Image must be less than 5MB"
+        title: "Error", 
+        description: "Image size must be less than 5MB"
       });
       return;
     }
 
+    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
-      setSelectedImage(e.target?.result as string);
+      const imageDataUrl = e.target?.result as string;
+      setSelectedImage(imageDataUrl);
       setImageFile(file);
     };
     reader.readAsDataURL(file);
     
+    // Clear the input so the same file can be uploaded again
     event.target.value = '';
   };
 
-  const removeImage = () => {
+  const handleCameraCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageDataUrl = e.target?.result as string;
+      setSelectedImage(imageDataUrl);
+      setImageFile(file);
+    };
+    reader.readAsDataURL(file);
+    
+    // Clear the input
+    event.target.value = '';
+  };
+
+  const removeSelectedImage = () => {
     setSelectedImage(null);
     setImageFile(null);
   };
 
-  const toggleVoiceRecognition = () => {
-    if (isListening) {
-      recognition?.stop();
-      setIsListening(false);
-      return;
-    }
-
+  const startVoiceRecording = () => {
+    // Check if speech recognition is supported
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
@@ -439,406 +463,557 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     recognitionInstance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
 
     recognitionInstance.onstart = () => {
-      setIsListening(true);
+      setIsRecording(true);
+      toast({
+        title: "🎤 Listening...",
+        description: "Speak now, I'm listening!"
+      });
     };
 
     recognitionInstance.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setMessage(transcript);
-      setIsListening(false);
+      setIsRecording(false);
+      toast({
+        title: "✅ Speech captured!",
+        description: "Click send to process your voice message"
+      });
     };
 
-    recognitionInstance.onerror = () => {
-      setIsListening(false);
+    recognitionInstance.onerror = (event: any) => {
+      console.error('Speech recognition error:', event.error);
+      setIsRecording(false);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to recognize speech"
+        title: "❌ Speech Error",
+        description: "Failed to recognize speech. Please try again."
       });
     };
 
     recognitionInstance.onend = () => {
-      setIsListening(false);
+      setIsRecording(false);
     };
 
     setRecognition(recognitionInstance);
     recognitionInstance.start();
   };
 
-  const playTextToSpeech = async (text: string) => {
-    if (audioPlayback) {
-      setAudioPlayback(null);
-      return;
+  const stopVoiceRecording = () => {
+    if (recognition && isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+      setRecognition(null);
     }
+  };
 
+  const playTextToSpeech = async (text: string) => {
     try {
-      setAudioPlayback({ isPlaying: true, messageId: '', text });
+      setIsPlayingAudio(true);
       
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Call text-to-speech function
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { 
-          text: text.substring(0, 500), // Limit text length
-          voice: voiceTone === 'male' ? 'onwK4e9ZLuTAKqWW03F9' : '9BWtsMINqrJLrRacOk9x', // Daniel (male) or Aria (female)
+        body: {
+          text: text,
+          voice: selectedVoice,
           model: 'eleven_turbo_v2_5'
         }
       });
 
       if (error) {
         console.error('Text-to-speech error:', error);
-        setAudioPlayback(null);
-        
-        // Show user-friendly error message
-        if (error.message?.includes('Invalid API key') || error.message?.includes('401')) {
-          toast({
-            variant: "destructive",
-            title: "API Key Required",
-            description: "Please configure your ElevenLabs API key to use text-to-speech."
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Text-to-Speech Error",
-            description: "Failed to generate audio. Please try again."
-          });
-        }
-        return;
+        throw error;
       }
 
-      if (data?.audioContent) {
-        // Convert base64 to blob
-        const audioBlob = new Blob(
-          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
-          { type: 'audio/mpeg' }
-        );
-        
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        
-        audio.onended = () => {
-          setAudioPlayback(null);
-          URL.revokeObjectURL(audioUrl);
-        };
-        
-        audio.onerror = () => {
-          setAudioPlayback(null);
-          URL.revokeObjectURL(audioUrl);
-          toast({
-            variant: "destructive",
-            title: "Audio Error",
-            description: "Failed to play audio file."
-          });
-        };
-        
-        await audio.play();
+      if (!data?.audioContent) {
+        throw new Error('No audio content received');
       }
+
+      // Create and play audio
+      const audioBlob = new Blob([
+        Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))
+      ], { type: 'audio/mpeg' });
+      
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+        console.error('Audio playback error');
+      };
+
+      await audio.play();
+      
+      toast({
+        title: "🔊 Playing audio",
+        description: "AI response is being spoken"
+      });
+
     } catch (error) {
       console.error('Error playing text-to-speech:', error);
-      setAudioPlayback(null);
+      setIsPlayingAudio(false);
       toast({
         variant: "destructive",
-        title: "Text-to-Speech Error",
-        description: "An unexpected error occurred. Please try again."
+        title: "Audio Error",
+        description: "Failed to play audio. Please try again."
       });
     }
   };
 
-  return (
-    <div className="min-h-screen flex w-full bg-background">
-      {/* Sidebar */}
-      <aside className="w-80 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col animate-slide-in-right">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-lg animate-fade-in">Recent Chats</h2>
-            <Button
-              onClick={createNewSession}
-              size="sm"
-              className="h-8 w-8 p-0 hover-scale transition-all duration-200"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlayingAudio(false);
+    }
+  };
 
-          <div className="space-y-2">
-            {recentSessions.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground animate-fade-in">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No recent chats</p>
-              </div>
-            ) : (
-              recentSessions.map((session, index) => (
-                <button
-                  key={session.id}
-                  onClick={() => {
-                    setCurrentSession(session);
-                    loadChatHistory(session.id);
-                  }}
-                  className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-accent/50 hover-scale animate-fade-in ${
-                    currentSession?.id === session.id ? 'bg-accent scale-105' : ''
-                  }`}
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="font-medium text-sm truncate">
-                    {session.title || 'New Chat'}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {format(new Date(session.created_at), 'MMM d, h:mm a')}
-                  </div>
-                </button>
-              ))
-            )}
-          </div>
+  // Voice options for ElevenLabs
+  const voiceOptions = [
+    { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel (Male)', gender: 'male' },
+    { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily (Female)', gender: 'female' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (Female)', gender: 'female' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger (Male)', gender: 'male' },
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura (Female)', gender: 'female' },
+    { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie (Male)', gender: 'male' }
+  ];
+
+  const AppSidebar = () => {
+    return (
+      <Sidebar className="border-r">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h2 className="font-semibold text-lg">Vithal AI</h2>
+          <Button
+            onClick={createNewSession}
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
         </div>
+        
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {chatSessions.map((session) => (
+                  <SidebarMenuItem key={session.id}>
+                    <SidebarMenuButton
+                      onClick={() => setCurrentSession(session)}
+                      className={`w-full justify-between group ${
+                        currentSession?.id === session.id ? 'bg-accent' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{session.title}</span>
+                      </div>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteSession(session.id);
+                        }}
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded"
+                      >
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
+          {/* Help Section */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Help & Support</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => setShowContactModal(true)}
+                    className="w-full"
+                  >
+                    <div className="flex items-center gap-2">
+                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      <span>Contact Support</span>
+                    </div>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        {/* User Profile Section */}
-        <div className="mt-auto p-4 border-t border-border">
-          <div className="flex items-center justify-between">
+        <div className="p-4 border-t">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
+              <Avatar className="h-6 w-6">
                 <AvatarImage src={user.user_metadata?.avatar_url} />
                 <AvatarFallback>
                   {user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium truncate">
-                  {user.user_metadata?.full_name || user.email}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Voice: {voiceTone === 'male' ? '♂ Male' : '♀ Female'}
-                </div>
-              </div>
+              <span className="text-sm truncate">
+                {user.user_metadata?.full_name || user.email}
+              </span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <Settings className="h-4 w-4" />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                >
+                  <Settings className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setShowProfile(true)}>
                   <UserIcon className="h-4 w-4 mr-2" />
-                  Profile
+                  {t('profile')}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setVoiceTone(voiceTone === 'male' ? 'female' : 'male')}>
-                  <Volume2 className="h-4 w-4 mr-2" />
-                  Switch to {voiceTone === 'male' ? 'Female' : 'Male'} Voice
-                </DropdownMenuItem>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="text-sm">{t('language')}</span>
+                  </div>
+                  <div className="mt-1">
+                    <LanguageSelector 
+                      language={language} 
+                      onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                    />
+                  </div>
+                </div>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Volume2 className="h-4 w-4" />
+                    <span className="text-sm">Voice</span>
+                  </div>
+                  <select 
+                    value={selectedVoice}
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border rounded bg-background"
+                  >
+                    {voiceOptions.map(voice => (
+                      <option key={voice.id} value={voice.id}>
+                        {voice.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <DropdownMenuItem onClick={onLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  {t('logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          
+          {/* Sign-in Time Display */}
+          <div className="text-xs text-muted-foreground text-center mt-2 p-2 bg-muted/50 rounded">
+            Signed in: {new Date().toLocaleDateString('en-IN', { 
+              day: 'numeric', 
+              month: 'short', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
         </div>
-      </aside>
+      </Sidebar>
+    );
+  };
 
-      {/* Main Chat Area */}
-      <main className="flex-1 flex flex-col h-screen">
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
-            <div className="p-6 max-w-4xl mx-auto">
-              {messages.length === 0 && !loading && (
-                <div className="text-center py-16 animate-fade-in">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center animate-scale-in">
-                    <img src={vithalLogo} alt="Vithal AI" className="w-10 h-10" />
-                  </div>
-                  <h2 className="text-2xl font-semibold mb-4">Welcome to Vithal AI</h2>
-                  <p className="text-muted-foreground mb-8">
-                    Your intelligent assistant for academics, career guidance, and problem-solving.
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                    <div className="p-4 border rounded-lg hover:bg-accent/10 transition-colors duration-200 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                      <h3 className="font-medium mb-2">📚 Academic Help</h3>
-                      <p className="text-sm text-muted-foreground">Get assistance with subjects, assignments, and learning materials</p>
-                    </div>
-                    <div className="p-4 border rounded-lg hover:bg-accent/10 transition-colors duration-200 animate-fade-in" style={{ animationDelay: '200ms' }}>
-                      <h3 className="font-medium mb-2">🎯 Career Guidance</h3>
-                      <p className="text-sm text-muted-foreground">Discover career paths and get professional advice</p>
-                    </div>
-                    <div className="p-4 border rounded-lg hover:bg-accent/10 transition-colors duration-200 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                      <h3 className="font-medium mb-2">🔍 Problem Solving</h3>
-                      <p className="text-sm text-muted-foreground">Get step-by-step solutions and explanations</p>
-                    </div>
-                    <div className="p-4 border rounded-lg hover:bg-accent/10 transition-colors duration-200 animate-fade-in" style={{ animationDelay: '400ms' }}>
-                      <h3 className="font-medium mb-2">🎨 Creative Projects</h3>
-                      <p className="text-sm text-muted-foreground">Brainstorm ideas and get creative inspiration</p>
-                    </div>
-                  </div>
-                </div>
-              )}
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        
+        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Header - Fixed */}
+          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
+            <div className="flex h-14 items-center justify-between px-4">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <h1 className="font-semibold ml-4">
+                  {currentSession?.title || 'Vithal AI Chat'}
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      Help
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}>
+                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                      </svg>
+                      Email Support
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')}>
+                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                      </svg>
+                      Instagram
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                      <UserIcon className="h-4 w-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={onLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          </header>
 
-              {messages.map((msg) => (
-                <div 
-                  key={msg.id} 
-                  className={`flex gap-3 ${msg.message ? 'mb-6' : 'mb-4'} animate-fade-in`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 hover-scale transition-all duration-200">
-                    <User className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    {msg.message && (
-                      <div className="bg-accent/30 p-3 rounded-lg hover:bg-accent/40 transition-colors duration-200 animate-scale-in">
-                        <p className="text-sm leading-relaxed">{msg.message}</p>
+          {/* Chat Messages - Scrollable */}
+          <div className="flex-1 overflow-hidden">
+            <ScrollArea className="h-full">
+              <div className="p-4">
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {messages.length === 0 && !loading && (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8" />
                       </div>
-                    )}
-                    {msg.response && (
-                      <div className="space-y-2 animate-fade-in">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 hover-scale transition-all duration-300 animate-scale-in">
-                            <Sparkles className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-muted-foreground">Vithal AI</span>
-                            <div className="flex gap-1">
-                              <Button
-                                onClick={() => playTextToSpeech(msg.response!)}
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 hover-scale transition-all duration-200"
-                                title={`Play with ${voiceTone} voice`}
-                              >
-                                {audioPlayback?.isPlaying && audioPlayback.text === msg.response ? 
-                                  <VolumeX className="h-3 w-3 animate-pulse" /> : 
-                                  <Volume2 className="h-3 w-3" />
-                                }
-                              </Button>
-                              <Button
-                                onClick={() => setVoiceTone(voiceTone === 'male' ? 'female' : 'male')}
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 px-2 text-xs hover-scale transition-all duration-200"
-                                title="Switch voice tone"
-                              >
-                                {voiceTone === 'male' ? '♂' : '♀'}
-                              </Button>
+                      <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+                      <p className="text-muted-foreground">
+                        Ask me anything! I can help with studies, problems, courses, and more.
+                      </p>
+                      <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
+                        <p>Made by <span className="font-medium">Shree Alankar</span></p>
+                        <p>Powered by <span className="font-medium">Gemini AI</span></p>
+                      </div>
+                    </div>
+                  )}
+
+                  {messages.map((msg) => (
+                    <div key={msg.id} className="space-y-4">
+                      {/* User Message */}
+                      <div className="flex justify-end">
+                        <div className="max-w-[80%] rounded-2xl bg-primary text-primary-foreground px-4 py-2">
+                          <p>{msg.message}</p>
+                        </div>
+                      </div>
+
+                      {/* AI Response */}
+                      {msg.response && (
+                        <div className="flex justify-start">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
+                              <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                            </div>
+                            <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2 group">
+                              <TypewriterText 
+                                text={msg.response}
+                                speed={10}
+                                className="prose prose-sm max-w-none dark:prose-invert"
+                              />
+                              <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  onClick={() => isPlayingAudio ? stopAudio() : playTextToSpeech(msg.response!)}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
+                                  disabled={loading}
+                                >
+                                  {isPlayingAudio ? (
+                                    <VolumeX className="h-4 w-4 text-red-500" />
+                                  ) : (
+                                    <Volume2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                        <div className="bg-accent/20 p-4 rounded-lg ml-10">
-                          <TypewriterText 
-                            text={msg.response}
-                            speed={30}
-                            className="prose prose-sm max-w-none dark:prose-invert leading-relaxed"
-                          />
+                      )}
+                    </div>
+                  ))}
+
+                  {loading && (
+                    <div className="flex justify-start animate-fade-in">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1 animate-pulse">
+                          <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                        </div>
+                        <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite]"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite] animation-delay-200"></div>
+                              <div className="w-2 h-2 bg-primary rounded-full animate-[typing-dots_1.4s_ease-in-out_infinite] animation-delay-400"></div>
+                            </div>
+                            <span className="ml-2">Thinking...</span>
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {loading && (
-                <div className="flex gap-3 mb-6 animate-fade-in">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 animate-pulse">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="bg-accent/20 p-4 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 bg-primary rounded-full animate-[bounce_1s_infinite_0ms]"></div>
-                        <div className="w-2 h-2 bg-primary rounded-full animate-[bounce_1s_infinite_200ms]"></div>
-                        <div className="w-2 h-2 bg-primary rounded-full animate-[bounce_1s_infinite_400ms]"></div>
-                      </div>
-                      <span className="text-sm text-muted-foreground">Thinking...</span>
                     </div>
-                  </div>
+                  )}
+                  
+                  <div ref={messagesEndRef} />
+                </div>
+              </div>
+            </ScrollArea>
+          </div>
+
+          {/* Input Area - Fixed */}
+          <div className="border-t bg-background p-4 flex-shrink-0">
+            <div className="max-w-3xl mx-auto">
+              {/* Image Preview */}
+              {selectedImage && (
+                <div className="mb-4 relative inline-block">
+                  <img 
+                    src={selectedImage} 
+                    alt="Selected for upload" 
+                    className="max-w-xs max-h-32 rounded-lg object-cover border"
+                  />
+                  <Button
+                    onClick={removeSelectedImage}
+                    size="sm"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                  >
+                    ×
+                  </Button>
                 </div>
               )}
+
               
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* Input Area */}
-        <div className="p-4 border-t border-border bg-card/80 backdrop-blur-sm animate-fade-in">
-          {selectedImage && (
-            <div className="mb-4 relative animate-scale-in">
-              <img 
-                src={selectedImage} 
-                alt="Selected" 
-                className="max-w-32 max-h-32 rounded-lg border object-cover hover-scale transition-transform duration-200"
-              />
-              <Button
-                onClick={removeImage}
-                size="sm"
-                variant="destructive"
-                className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 hover-scale transition-all duration-200"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          )}
-
-          <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="flex gap-2">
-            <div className="flex-1 relative">
-              <Input
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Message Vithal AI..."
-                className="pr-24 bg-background/50 border-2 hover:border-primary/20 focus:border-primary transition-colors duration-200"
-                disabled={loading}
-              />
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
-                <Button
-                  onClick={handleImageUpload}
-                  size="sm"
-                  variant="ghost"
-                  className="h-10 w-10 p-0 hover-scale transition-all duration-200"
-                  type="button"
-                >
-                  <Paperclip className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 relative">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Message Vithal AI..."
+                    className="pr-16 rounded-full border-2"
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                    disabled={loading}
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                    <Button
+                      onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                      size="sm"
+                      variant="ghost"
+                      className={`h-8 w-8 p-0 rounded-full transition-all duration-300 ${
+                        isRecording ? 
+                        'text-red-500 bg-red-500/10 animate-[pulse-recording_1s_ease-in-out_infinite] scale-110' : 
+                        'hover:bg-primary/10 hover:text-primary'
+                      }`}
+                      disabled={loading}
+                    >
+                      <Mic className={`h-4 w-4 ${isRecording ? 'animate-[mic-wave_0.8s_ease-in-out_infinite]' : ''}`} />
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 rounded-full"
+                          disabled={loading}
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                          <ImageIcon className="h-4 w-4 mr-2" />
+                          Upload Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                          <Camera className="h-4 w-4 mr-2" />
+                          Take Photo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
                 
                 <Button
-                  onClick={toggleVoiceRecognition}
-                  size="sm"
-                  variant="ghost"
-                  className={`h-10 w-10 p-0 hover-scale transition-all duration-200 ${isListening ? 'bg-red-500 text-white animate-pulse' : ''}`}
-                  type="button"
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  type="submit"
-                  size="sm"
+                  onClick={sendMessage}
                   disabled={loading || (!message.trim() && !selectedImage)}
-                  className="h-10 w-10 p-0 hover-scale transition-all duration-200"
+                  size="sm"
+                  className="rounded-full h-10 w-10 p-0 transition-all duration-200 hover:scale-105 active:scale-95"
                 >
                   {loading ? (
-                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Send className="h-4 w-4" />
                   )}
                 </Button>
               </div>
             </div>
-          </form>
-        </div>
+          </div>
 
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageSelect}
-          className="hidden"
+          {/* File inputs */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleCameraCapture}
+            className="hidden"
+          />
+
+        <ProfileModal 
+          isOpen={showProfile}
+          onClose={() => setShowProfile(false)}
+          user={user}
         />
-      </main>
-
-      {/* Modals */}
-      <ProfileModal 
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-        user={user}
-      />
-      
-      <ContactSupportModal
-        isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
-      />
-    </div>
+        
+        <ContactSupportModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+        />
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
