@@ -25,7 +25,9 @@ import {
   Loader2,
   LogOut,
   Globe,
-  Camera
+  Camera,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,16 +72,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState('onwK4e9ZLuTAKqWW03F9'); // Daniel (male) as default
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     loadChatSessions();
     // Always start with a new chat
     createNewSession();
+  }, []);
+
+  // Auto-refresh sessions to show recent activity
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadChatSessions();
+    }, 30000); // Refresh every 30 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -100,9 +114,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setChatSessions(data || []);
       
-      // Don't auto-select any session, always start fresh
+      // Filter out empty sessions and auto-delete them
+      const sessionsWithMessages = [];
+      for (const session of data || []) {
+        const { data: messageCount, error: countError } = await supabase
+          .from('chat_messages')
+          .select('id', { count: 'exact' })
+          .eq('session_id', session.id);
+        
+        if (!countError && messageCount && messageCount.length > 0) {
+          sessionsWithMessages.push(session);
+        } else {
+          // Auto-delete empty sessions (except current one)
+          if (currentSession?.id !== session.id) {
+            await supabase
+              .from('chat_sessions')
+              .delete()
+              .eq('id', session.id);
+          }
+        }
+      }
+      
+      setChatSessions(sessionsWithMessages);
     } catch (error) {
       console.error('Error loading chat sessions:', error);
     }
@@ -472,6 +506,92 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const playTextToSpeech = async (text: string) => {
+    try {
+      setIsPlayingAudio(true);
+      
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      // Call text-to-speech function
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: {
+          text: text,
+          voice: selectedVoice,
+          model: 'eleven_turbo_v2_5'
+        }
+      });
+
+      if (error) {
+        console.error('Text-to-speech error:', error);
+        throw error;
+      }
+
+      if (!data?.audioContent) {
+        throw new Error('No audio content received');
+      }
+
+      // Create and play audio
+      const audioBlob = new Blob([
+        Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))
+      ], { type: 'audio/mpeg' });
+      
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        URL.revokeObjectURL(audioUrl);
+        audioRef.current = null;
+        console.error('Audio playback error');
+      };
+
+      await audio.play();
+      
+      toast({
+        title: "🔊 Playing audio",
+        description: "AI response is being spoken"
+      });
+
+    } catch (error) {
+      console.error('Error playing text-to-speech:', error);
+      setIsPlayingAudio(false);
+      toast({
+        variant: "destructive",
+        title: "Audio Error",
+        description: "Failed to play audio. Please try again."
+      });
+    }
+  };
+
+  const stopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+      setIsPlayingAudio(false);
+    }
+  };
+
+  // Voice options for ElevenLabs
+  const voiceOptions = [
+    { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel (Male)', gender: 'male' },
+    { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily (Female)', gender: 'female' },
+    { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah (Female)', gender: 'female' },
+    { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger (Male)', gender: 'male' },
+    { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura (Female)', gender: 'female' },
+    { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie (Male)', gender: 'male' }
+  ];
+
   const AppSidebar = () => {
     return (
       <Sidebar className="border-r">
@@ -582,6 +702,23 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                       onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
                     />
                   </div>
+                </div>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Volume2 className="h-4 w-4" />
+                    <span className="text-sm">Voice</span>
+                  </div>
+                  <select 
+                    value={selectedVoice}
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    className="w-full px-2 py-1 text-xs border rounded bg-background"
+                  >
+                    {voiceOptions.map(voice => (
+                      <option key={voice.id} value={voice.id}>
+                        {voice.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <DropdownMenuItem onClick={onLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
@@ -706,12 +843,27 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
                               <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
                             </div>
-                            <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                            <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2 group">
                               <TypewriterText 
                                 text={msg.response}
                                 speed={10}
                                 className="prose prose-sm max-w-none dark:prose-invert"
                               />
+                              <div className="flex justify-end mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  onClick={() => isPlayingAudio ? stopAudio() : playTextToSpeech(msg.response!)}
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 rounded-full hover:bg-primary/10"
+                                  disabled={loading}
+                                >
+                                  {isPlayingAudio ? (
+                                    <VolumeX className="h-4 w-4 text-red-500" />
+                                  ) : (
+                                    <Volume2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
