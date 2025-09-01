@@ -216,7 +216,7 @@ All colors MUST be HSL.
   }
 
   .sidebar-glass {
-    @apply bg-sidebar-background/95 backdrop-blur-md border-r border-sidebar-border/30;
+    @apply bg-sidebar/95 backdrop-blur-md border-r border-sidebar-border/30;
   }
 
   .message-container {
