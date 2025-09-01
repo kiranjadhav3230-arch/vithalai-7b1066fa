@@ -99,6 +99,36 @@ All colors MUST be HSL.
     100% { 
       transform: translateX(100%); 
     }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(255, 165, 0, 0.3); 
+    }
+    50% { 
+      box-shadow: 0 0 40px rgba(255, 165, 0, 0.6); 
+    }
+  }
+
+  @keyframes slide-in-right {
+    from { 
+      transform: translateX(100%); 
+      opacity: 0; 
+    }
+    to { 
+      transform: translateX(0); 
+      opacity: 1; 
+    }
+  }
+
+  @keyframes typing-indicator {
+    0%, 60%, 100% { 
+      transform: translateY(0); 
+    }
+    30% { 
+      transform: translateY(-10px); 
+    }
+  }
 
     --radius: 0.75rem;
 
@@ -145,7 +175,7 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Tech UI Enhancements */
+  /* Futuristic Chat UI Enhancements */
   .tech-card {
     @apply bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border/50;
   }
@@ -156,5 +186,45 @@ All colors MUST be HSL.
 
   .glass-morphism {
     @apply bg-background/20 backdrop-blur-md border border-border/20;
+  }
+
+  .chat-bubble-user {
+    @apply bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[80%] ml-auto shadow-lg animate-[slide-in-right_0.3s_ease-out];
+  }
+
+  .chat-bubble-ai {
+    @apply bg-card/80 backdrop-blur-sm text-card-foreground rounded-2xl rounded-bl-sm px-4 py-3 max-w-[80%] border border-border/30 animate-[fadeInUp_0.4s_ease-out];
+  }
+
+  .chat-input-container {
+    @apply bg-card/90 backdrop-blur-md border border-border/50 rounded-2xl p-2 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .chat-input {
+    @apply bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground resize-none;
+  }
+
+  .floating-action-btn {
+    @apply bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .typing-indicator {
+    @apply flex items-center space-x-1 p-3 bg-card/80 backdrop-blur-sm rounded-2xl rounded-bl-sm border border-border/30 max-w-[80%];
+  }
+
+  .typing-dot {
+    @apply w-2 h-2 bg-muted-foreground/60 rounded-full animate-[typing-indicator_1.4s_ease-in-out_infinite];
+  }
+
+  .sidebar-glass {
+    @apply bg-sidebar-background/95 backdrop-blur-md border-r border-sidebar-border/30;
+  }
+
+  .message-container {
+    @apply space-y-4 px-4 py-2;
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 }
