@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -13,14 +12,12 @@ import {
   Plus, 
   MessageSquare, 
   Trash2, 
-  User as UserIcon, 
   Bot,
   Settings,
   LogOut,
   Camera,
   Loader2,
-  X,
-  Globe
+  X
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -391,8 +388,8 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
   };
 
   const AppSidebar = () => (
-    <Sidebar className="sidebar-glass">
-      <div className="flex items-center justify-between p-6 border-b border-sidebar-border/30">
+    <Sidebar className="sidebar-glass hidden lg:flex">
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border/30">
         <div className="flex items-center gap-3">
           <img src={vithalLogo} alt="Vithal AI" className="h-8 w-8" />
           <h2 className="font-bold text-lg bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -414,31 +411,31 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
           <SidebarGroupContent>
             <SidebarMenu className="space-y-2">
               {chatSessions.map((session) => (
-                <SidebarMenuItem key={session.id}>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentSession(session)}
-                    className={`w-full justify-between group rounded-xl transition-all duration-300 ${
-                      currentSession?.id === session.id 
-                        ? 'bg-primary/20 text-primary border border-primary/30' 
-                        : 'hover:bg-card/50 hover:border border-border/30'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate text-sm">{session.title}</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                <SidebarMenuItem key={session.id} className="group">
+                  <div className="flex items-center w-full">
+                    <SidebarMenuButton
+                      onClick={() => setCurrentSession(session)}
+                      className={`flex-1 justify-start rounded-xl transition-all duration-300 ${
+                        currentSession?.id === session.id 
+                          ? 'bg-primary/20 text-primary border border-primary/30' 
+                          : 'hover:bg-card/50 hover:border border-border/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <MessageSquare className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate text-sm">{session.title}</span>
+                      </div>
+                    </SidebarMenuButton>
+                    <div
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteSession(session.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                      className="ml-2 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:bg-destructive/10"
                     >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </SidebarMenuButton>
+                      <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                    </div>
+                  </div>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -450,47 +447,47 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-background/95">
+      <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-background/95 overflow-hidden">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="bg-card/80 backdrop-blur-md border-b border-border/30 p-4">
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Mobile-optimized Header */}
+          <header className="bg-card/80 backdrop-blur-md border-b border-border/30 p-3 md:p-4 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger className="lg:hidden" />
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+              <div className="flex items-center gap-2 md:gap-4 min-w-0">
+                <SidebarTrigger className="lg:hidden flex-shrink-0" />
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <Avatar className="h-8 w-8 md:h-10 md:w-10 ring-2 ring-primary/20 flex-shrink-0">
                     <AvatarImage src={vithalLogo} />
                     <AvatarFallback className="bg-primary/20">
-                      <Bot className="h-5 w-5 text-primary" />
+                      <Bot className="h-4 w-4 md:h-5 md:w-5 text-primary" />
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h1 className="text-lg font-bold">Vithal AI Assistant</h1>
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                  <div className="min-w-0">
+                    <h1 className="text-sm md:text-lg font-bold truncate">Vithal AI Assistant</h1>
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30 hidden md:inline-flex">
                       Advanced AI • Professional
                     </Badge>
                   </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 md:gap-3 flex-shrink-0">
                 <select 
                   value={language} 
                   onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'mr')}
-                  className="px-3 py-2 rounded-xl bg-card/50 border border-border/30 text-sm"
+                  className="px-2 py-1 md:px-3 md:py-2 rounded-xl bg-card/50 border border-border/30 text-xs md:text-sm"
                 >
-                  <option value="en">🇺🇸 English</option>
-                  <option value="hi">🇮🇳 हिंदी</option>
-                  <option value="mr">🇮🇳 मराठी</option>
+                  <option value="en">🇺🇸</option>
+                  <option value="hi">🇮🇳</option>
+                  <option value="mr">🇮🇳</option>
                 </select>
                 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowProfile(true)}
-                  className="rounded-xl hover:bg-card/50"
+                  className="rounded-xl hover:bg-card/50 hidden md:flex"
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Profile
@@ -499,8 +496,17 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => setShowProfile(true)}
+                  className="rounded-xl hover:bg-card/50 md:hidden p-2"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={onLogout}
-                  className="rounded-xl hover:bg-destructive/10 hover:text-destructive"
+                  className="rounded-xl hover:bg-destructive/10 hover:text-destructive p-2"
                 >
                   <LogOut className="h-4 w-4" />
                 </Button>
@@ -508,24 +514,24 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
             </div>
           </header>
 
-          {/* Chat Area */}
-          <div className="flex-1 flex flex-col relative">
-            <ScrollArea className="flex-1 p-6">
-              <div className="message-container max-w-4xl mx-auto">
+          {/* Chat Area - Mobile optimized */}
+          <div className="flex-1 flex flex-col relative min-h-0">
+            <ScrollArea className="flex-1 p-2 md:p-6">
+              <div className="message-container max-w-4xl mx-auto px-2 md:px-0">
                 {messages.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                      <Bot className="h-8 w-8 text-primary" />
+                  <div className="text-center py-8 md:py-12 px-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-primary/10 mb-4">
+                      <Bot className="h-6 w-6 md:h-8 md:w-8 text-primary" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Welcome to Vithal AI</h3>
-                    <p className="text-muted-foreground max-w-md mx-auto">
+                    <h3 className="text-lg md:text-xl font-semibold mb-2">Welcome to Vithal AI</h3>
+                    <p className="text-muted-foreground max-w-md mx-auto text-sm md:text-base">
                       Start a conversation to get personalized career guidance, course recommendations, and expert advice.
                     </p>
                   </div>
                 )}
 
                 {messages.map((msg) => (
-                  <div key={msg.id} className="flex gap-4 mb-6">
+                  <div key={msg.id} className="flex gap-2 md:gap-4 mb-4 md:mb-6">
                     {msg.response ? (
                       <>
                         {/* User Message */}
@@ -536,11 +542,11 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
                         </div>
                         
                         {/* AI Response */}
-                        <div className="flex gap-3 w-full">
-                          <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                        <div className="flex gap-2 md:gap-3 w-full">
+                          <Avatar className="h-6 w-6 md:h-8 md:w-8 ring-2 ring-primary/20 flex-shrink-0">
                             <AvatarImage src={vithalLogo} />
                             <AvatarFallback className="bg-primary/20">
-                              <Bot className="h-4 w-4 text-primary" />
+                              <Bot className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                             </AvatarFallback>
                           </Avatar>
                           <div className="chat-bubble-ai">
@@ -560,11 +566,11 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
                 ))}
 
                 {loading && (
-                  <div className="flex gap-3 mb-6">
-                    <Avatar className="h-8 w-8 ring-2 ring-primary/20">
+                  <div className="flex gap-2 md:gap-3 mb-4 md:mb-6">
+                    <Avatar className="h-6 w-6 md:h-8 md:w-8 ring-2 ring-primary/20 flex-shrink-0">
                       <AvatarImage src={vithalLogo} />
                       <AvatarFallback className="bg-primary/20">
-                        <Bot className="h-4 w-4 text-primary" />
+                        <Bot className="h-3 w-3 md:h-4 md:w-4 text-primary" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="typing-indicator">
@@ -579,15 +585,15 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
               <div ref={messagesEndRef} />
             </ScrollArea>
 
-            {/* Image Preview */}
+            {/* Image Preview - Mobile optimized */}
             {selectedImage && (
-              <div className="px-6 pb-4">
+              <div className="px-3 md:px-6 pb-2 md:pb-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="relative inline-block">
                     <img 
                       src={selectedImage} 
                       alt="Selected" 
-                      className="h-20 w-20 object-cover rounded-xl border border-border/30"
+                      className="h-16 w-16 md:h-20 md:w-20 object-cover rounded-xl border border-border/30"
                     />
                     <Button
                       variant="destructive"
@@ -602,17 +608,17 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
               </div>
             )}
 
-            {/* Input Area */}
-            <div className="p-6 border-t border-border/30 bg-card/30 backdrop-blur-sm">
+            {/* Input Area - Mobile optimized */}
+            <div className="p-3 md:p-6 border-t border-border/30 bg-card/30 backdrop-blur-sm flex-shrink-0">
               <div className="max-w-4xl mx-auto">
                 <div className="chat-input-container">
-                  <div className="flex items-end gap-3">
+                  <div className="flex items-end gap-2 md:gap-3">
                     <Textarea
                       ref={textareaRef}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Ask anything about your career..."
-                      className="chat-input flex-1 min-h-[44px] max-h-[120px] resize-none"
+                      className="chat-input flex-1 min-h-[40px] md:min-h-[44px] max-h-[120px] resize-none text-sm md:text-base"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -622,7 +628,7 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
                       disabled={loading}
                     />
                     
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 md:gap-2">
                       <input
                         ref={fileInputRef}
                         type="file"
@@ -643,41 +649,41 @@ export const FuturisticChatInterface: React.FC<FuturisticChatInterfaceProps> = (
                         variant="ghost"
                         size="sm"
                         onClick={() => fileInputRef.current?.click()}
-                        className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10"
+                        className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-xl hover:bg-primary/10 flex-shrink-0"
                         disabled={loading}
                       >
-                        <ImageIcon className="h-5 w-5" />
+                        <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
                       </Button>
                       
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => cameraInputRef.current?.click()}
-                        className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10"
+                        className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-xl hover:bg-primary/10 flex-shrink-0"
                         disabled={loading}
                       >
-                        <Camera className="h-5 w-5" />
+                        <Camera className="h-4 w-4 md:h-5 md:w-5" />
                       </Button>
                       
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={startVoiceRecording}
-                        className={`h-10 w-10 p-0 rounded-xl ${isRecording ? 'bg-destructive/10 text-destructive pulse-glow' : 'hover:bg-primary/10'}`}
+                        className={`h-8 w-8 md:h-10 md:w-10 p-0 rounded-xl flex-shrink-0 ${isRecording ? 'bg-destructive/10 text-destructive pulse-glow' : 'hover:bg-primary/10'}`}
                         disabled={loading}
                       >
-                        <Mic className="h-5 w-5" />
+                        <Mic className="h-4 w-4 md:h-5 md:w-5" />
                       </Button>
                       
                       <Button
                         onClick={sendMessage}
                         disabled={(!message.trim() && !selectedImage) || loading}
-                        className="floating-action-btn h-10 w-10 p-0"
+                        className="floating-action-btn h-8 w-8 md:h-10 md:w-10 p-0 flex-shrink-0"
                       >
                         {loading ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" />
                         ) : (
-                          <Send className="h-5 w-5" />
+                          <Send className="h-4 w-4 md:h-5 md:w-5" />
                         )}
                       </Button>
                     </div>
