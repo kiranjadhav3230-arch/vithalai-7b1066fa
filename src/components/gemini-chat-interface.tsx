@@ -468,14 +468,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     return (
       <Sidebar className="border-r">
         <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <img 
-              src={vithalLogo} 
-              alt="Vithal AI" 
-              className="h-8 w-8"
-            />
-            <h2 className="font-semibold text-lg">Vithal AI</h2>
-          </div>
+          <h2 className="font-semibold text-lg">Vithal AI</h2>
           <Button
             onClick={createNewSession}
             size="sm"
@@ -486,51 +479,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         </div>
         
         <SidebarContent>
-          {/* User Profile Section */}
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setShowProfile(true)}
-                    className="w-full justify-start"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.user_metadata?.avatar_url} />
-                        <AvatarFallback>
-                          {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex flex-col text-left">
-                        <span className="text-sm font-medium">
-                          {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {t('profile')}
-                        </span>
-                      </div>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Language Selector */}
-          <SidebarGroup>
-            <SidebarGroupLabel>{t('language')}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <div className="p-2">
-                <LanguageSelector 
-                  language={language} 
-                  onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
-                />
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          {/* Chat Sessions */}
           <SidebarGroup>
             <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -585,32 +533,73 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-          
-          {/* Logout Section */}
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={onLogout}
-                    className="w-full justify-start text-destructive hover:text-destructive"
-                  >
-                    <div className="flex items-center gap-2">
-                      <LogOut className="h-4 w-4" />
-                      <span>{t('logout')}</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
         </SidebarContent>
+
+        <div className="p-4 border-t">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Avatar className="h-6 w-6">
+                <AvatarImage src={user.user_metadata?.avatar_url} />
+                <AvatarFallback>
+                  {user.email?.charAt(0).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm truncate">
+                {user.user_metadata?.full_name || user.email}
+              </span>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                >
+                  <Settings className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  {t('profile')}
+                </DropdownMenuItem>
+                <div className="px-2 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="text-sm">{t('language')}</span>
+                  </div>
+                  <div className="mt-1">
+                    <LanguageSelector 
+                      language={language} 
+                      onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                    />
+                  </div>
+                </div>
+                <DropdownMenuItem onClick={onLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {t('logout')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          {/* Sign-in Time Display */}
+          <div className="text-xs text-muted-foreground text-center mt-2 p-2 bg-muted/50 rounded">
+            Signed in: {new Date().toLocaleDateString('en-IN', { 
+              day: 'numeric', 
+              month: 'short', 
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
       </Sidebar>
     );
   };
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         

@@ -5,7 +5,7 @@ import { HeroSection } from '@/components/hero-section';
 import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
 import { AuthModal } from '@/components/auth-modal';
-import { FuturisticChatInterface } from '@/components/futuristic-chat-interface';
+import { ChatInterface } from '@/components/chat-interface';
 import { LoadingScreen } from '@/components/loading-screen';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -86,14 +86,14 @@ const Index = () => {
   // Show chat interface if user is logged in
   if (user && showChat) {
     return (
-      <FuturisticChatInterface user={user} onLogout={handleLogout} />
+      <ChatInterface user={user} onLogout={handleLogout} />
     );
   }
 
   // Show chat interface by default for logged in users
   if (user) {
     return (
-      <FuturisticChatInterface user={user} onLogout={handleLogout} />
+      <ChatInterface user={user} onLogout={handleLogout} />
     );
   }
 
