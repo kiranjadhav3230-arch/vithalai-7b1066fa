@@ -99,9 +99,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setChatSessions(data || []);
       
-      // Don't auto-select any session, always start fresh
+      // Automatically delete blank chats
+      await deleteBlankChats(true);
+      
+      // Reload sessions after cleanup
+      const { data: cleanData, error: cleanError } = await supabase
+        .from('chat_sessions')
+        .select('*')
+        .order('updated_at', { ascending: false });
+
+      if (cleanError) throw cleanError;
+      setChatSessions(cleanData || []);
+      
     } catch (error) {
       console.error('Error loading chat sessions:', error);
     }
@@ -170,7 +180,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-  const deleteBlankChats = async () => {
+  const deleteBlankChats = async (silent: boolean = false) => {
     try {
       // Get all sessions for the user
       const { data: sessions, error: sessionsError } = await supabase
@@ -217,11 +227,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           setMessages([]);
         }
 
-        toast({
-          title: "Success",
-          description: `Deleted ${blankSessionIds.length} blank chat${blankSessionIds.length === 1 ? '' : 's'}`
-        });
-      } else {
+        if (!silent) {
+          toast({
+            title: "Success",
+            description: `Deleted ${blankSessionIds.length} blank chat${blankSessionIds.length === 1 ? '' : 's'}`
+          });
+        }
+      } else if (!silent) {
         toast({
           title: "No blank chats",
           description: "All your chats have messages"
@@ -229,11 +241,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       }
     } catch (error) {
       console.error('Error deleting blank chats:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete blank chats"
-      });
+      if (!silent) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to delete blank chats"
+        });
+      }
     }
   };
 
@@ -550,7 +564,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             <div className="flex items-center justify-between px-3 py-2">
               <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
               <Button
-                onClick={deleteBlankChats}
+                onClick={() => deleteBlankChats()}
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
