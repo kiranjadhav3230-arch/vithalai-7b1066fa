@@ -170,6 +170,73 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const deleteBlankChats = async () => {
+    try {
+      // Get all sessions for the user
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('chat_sessions')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (sessionsError) throw sessionsError;
+
+      // Check which sessions have no messages
+      const blankSessionIds: string[] = [];
+      
+      for (const session of sessions || []) {
+        const { data: messages, error: messagesError } = await supabase
+          .from('chat_messages')
+          .select('id')
+          .eq('session_id', session.id)
+          .limit(1);
+
+        if (messagesError) throw messagesError;
+
+        // If no messages found, it's a blank chat
+        if (!messages || messages.length === 0) {
+          blankSessionIds.push(session.id);
+        }
+      }
+
+      // Delete all blank sessions
+      if (blankSessionIds.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('chat_sessions')
+          .delete()
+          .in('id', blankSessionIds);
+
+        if (deleteError) throw deleteError;
+
+        // Update local state
+        setChatSessions(prev => prev.filter(s => !blankSessionIds.includes(s.id)));
+        
+        // If current session was deleted, clear it
+        if (currentSession && blankSessionIds.includes(currentSession.id)) {
+          const remainingSessions = chatSessions.filter(s => !blankSessionIds.includes(s.id));
+          setCurrentSession(remainingSessions.length > 0 ? remainingSessions[0] : null);
+          setMessages([]);
+        }
+
+        toast({
+          title: "Success",
+          description: `Deleted ${blankSessionIds.length} blank chat${blankSessionIds.length === 1 ? '' : 's'}`
+        });
+      } else {
+        toast({
+          title: "No blank chats",
+          description: "All your chats have messages"
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting blank chats:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete blank chats"
+      });
+    }
+  };
+
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
       const { error } = await supabase
@@ -480,7 +547,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+            <div className="flex items-center justify-between px-3 py-2">
+              <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+              <Button
+                onClick={deleteBlankChats}
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                title="Delete blank chats"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </div>
             <SidebarGroupContent>
               <SidebarMenu>
                 {chatSessions.map((session) => (
