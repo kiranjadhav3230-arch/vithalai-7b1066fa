@@ -69,6 +69,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,6 +78,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
   useEffect(() => {
     loadChatSessions();
+    loadUserProfile();
     // Always start with a new chat
     createNewSession();
   }, []);
@@ -180,6 +182,25 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const loadUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+      
+      setUserProfile(data || {});
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      setUserProfile({});
+    }
+  };
+
   const deleteBlankChats = async (silent: boolean = false) => {
     try {
       // Get all sessions for the user
@@ -272,6 +293,57 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
+  const generateSmartSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
+    try {
+      // AI-powered title generation based on conversation context
+      let smartTitle = "New Chat";
+      
+      const message = userMessage.toLowerCase();
+      
+      // Smart title generation based on content analysis
+      if (message.includes('math') || message.includes('calculate') || message.includes('solve')) {
+        smartTitle = `📊 Math: ${userMessage.substring(0, 30)}...`;
+      } else if (message.includes('code') || message.includes('program') || message.includes('python') || message.includes('java')) {
+        smartTitle = `💻 Programming: ${userMessage.substring(0, 25)}...`;
+      } else if (message.includes('career') || message.includes('job') || message.includes('interview')) {
+        smartTitle = `🎯 Career: ${userMessage.substring(0, 30)}...`;
+      } else if (message.includes('course') || message.includes('learn') || message.includes('study')) {
+        smartTitle = `📚 Learning: ${userMessage.substring(0, 28)}...`;
+      } else if (message.includes('business') || message.includes('startup') || message.includes('entrepreneur')) {
+        smartTitle = `💼 Business: ${userMessage.substring(0, 28)}...`;
+      } else if (message.includes('physics') || message.includes('chemistry') || message.includes('biology')) {
+        smartTitle = `🔬 Science: ${userMessage.substring(0, 30)}...`;
+      } else if (message.includes('design') || message.includes('ui') || message.includes('ux')) {
+        smartTitle = `🎨 Design: ${userMessage.substring(0, 32)}...`;
+      } else if (message.includes('fitness') || message.includes('health') || message.includes('yoga')) {
+        smartTitle = `💪 Health: ${userMessage.substring(0, 32)}...`;
+      } else if (message.includes('language') || message.includes('english') || message.includes('communication')) {
+        smartTitle = `🗣️ Language: ${userMessage.substring(0, 28)}...`;
+      } else {
+        // Extract key topics from the message
+        const words = userMessage.split(' ').filter(word => word.length > 3);
+        const keyWord = words[0] || 'Question';
+        smartTitle = `💭 ${keyWord}: ${userMessage.substring(0, 35)}...`;
+      }
+      
+      // Update session title
+      await supabase
+        .from('chat_sessions')
+        .update({ title: smartTitle })
+        .eq('id', sessionId);
+        
+      // Update local state
+      setChatSessions(prev => prev.map(session => 
+        session.id === sessionId 
+          ? { ...session, title: smartTitle }
+          : session
+      ));
+      
+    } catch (error) {
+      console.error('Error generating smart session title:', error);
+    }
+  };
+
   const generateSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('gemini-chat', {
@@ -354,15 +426,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       }
 
 
-      // Call the Gemini function with language support and personalization
+      // Call the Gemini function with language support, personalization, and conversation history
       const requestBody: any = { 
         message: userMessage,
         language: language,
         userProfile: {
           userId: user.id,
           email: user.email,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Friend'
-        }
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Friend',
+          ...userProfile
+        },
+        chatHistory: messages.slice(-10) // Send last 10 messages for context
       };
       
       if (base64Data) {
@@ -406,9 +480,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
       ));
 
-      // Update session title if it's the first message using AI
+      // Update session title if it's the first message using AI-powered smart title generation
       if (messages.length === 0) {
-        generateSessionTitle(currentSession.id, userMessage, data.response);
+        generateSmartSessionTitle(currentSession.id, userMessage, data.response);
       }
 
     } catch (error) {
