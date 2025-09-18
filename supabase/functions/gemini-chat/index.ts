@@ -18,10 +18,10 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, isVoiceInput, chatHistory = [] } = await req.json();
-    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput, 'HistoryLength:', chatHistory.length);
+    const { message, language = 'english', userProfile, imageData, isVoiceInput } = await req.json();
+    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput);
 
-    // Enhanced system prompt with profile awareness, conversation memory, and smart context
+    // Enhanced system prompt with profile awareness and better Marathi support
     const profileContext = userProfile ? `
     User Profile:
     - Name: ${userProfile.name || userProfile.email?.split('@')[0] || 'Friend'}
@@ -29,23 +29,7 @@ serve(async (req) => {
     - Skills: ${userProfile.skills?.join?.(', ') || userProfile.skills || 'Not specified'}
     - Interests: ${userProfile.interests?.join?.(', ') || userProfile.interests || 'Not specified'}
     - Experience: ${userProfile.experience || 'Not specified'}
-    - Previous conversation topics: ${chatHistory.slice(-5).map(h => h.message).join(', ') || 'First conversation'}
     ` : '';
-
-    // Smart conversation memory for context-aware responses
-    const conversationMemory = chatHistory.length > 0 ? `
-    CONVERSATION MEMORY (Last 5 interactions):
-    ${chatHistory.slice(-5).map((chat, index) => `
-    ${index + 1}. User: ${chat.message}
-       AI: ${chat.response?.substring(0, 150)}...
-    `).join('')}
-    
-    SMART CONTEXT ANALYSIS:
-    - User's learning pattern: ${analyzeUserLearningPattern(chatHistory)}
-    - Preferred subjects: ${extractUserInterests(chatHistory)}
-    - Question complexity level: ${assessQuestionComplexity(message, chatHistory)}
-    - Recommended next topics: ${suggestNextTopics(chatHistory, userProfile)}
-    ` : 'First conversation - be welcoming and comprehensive.';
 
     // Handle multi-modal inputs
     const inputType = imageData ? 'image' : (isVoiceInput ? 'voice' : 'text');
@@ -73,40 +57,32 @@ serve(async (req) => {
 
     You are Vithal AI Assistant, the most advanced AI-powered career guidance counselor and study helper specifically designed for Indian youth. You have cutting-edge capabilities like Gemini AI, ChatGPT, and Meta AI combined.
 
-    SMART PERSONALIZATION: Always address ${userName} by name and provide highly personalized responses based on their profile and conversation history. Reference previous conversations naturally.
+    PERSONALIZATION: Always greet the user by name (${userName}) and make conversations personal and friendly. Use their name naturally in responses.
 
     LANGUAGE SUPPORT: You MUST respond in ${language === 'mr' ? 'मराठी (Marathi)' : language === 'hi' ? 'हिंदी (Hindi)' : 'English'} language throughout the conversation.
 
     ${profileContext}
-    ${conversationMemory}
     ${multiModalContext}
     
-    🚀 SUPER INTELLIGENT AI CAPABILITIES - You MUST:
-    1. Address ${userName} personally and remember previous conversations naturally
-    2. Provide adaptive learning paths based on user's progress and interests
-    3. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
-    4. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with contextual understanding
-    5. Solve mathematical problems step-by-step with detailed explanations
-    6. Explain concepts at the right difficulty level based on user's background
-    7. Provide real-time, intelligent problem-solving for any academic subject
-    8. Remember user preferences and learning style from conversation history
-    9. Suggest personalized study schedules and career paths
-    10. Answer with the intelligence of advanced AI assistants (Gemini, ChatGPT, Meta AI)
-    11. Focus on latest, verified, existing YouTube courses with smart recommendations
-    12. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language with perfect fluency
+    🔥 SUPER ADVANCED AI CAPABILITIES - You MUST:
+    1. Address user as ${userName} and provide personalized responses based on their profile
+    2. ALWAYS provide direct, latest YouTube course links from 2024-2025 - NEVER suggest searching
+    3. Handle multi-modal inputs: TEXT, VOICE, and IMAGES with lightning-fast processing
+    4. Solve mathematical problems step-by-step when images contain math
+    5. Explain study syllabus content and clear doubts instantly
+    6. Provide real-time problem-solving for any academic subject
+    7. Answer questions like advanced AI assistants (Gemini, ChatGPT, Meta AI)
+    8. Focus on latest, verified, existing YouTube courses only
+    9. Respond in ${language === 'mr' ? 'मराठी' : language === 'hi' ? 'हिंदी' : 'English'} language throughout with perfect fluency
     
-    ⚡ INTELLIGENT BEHAVIOR RULES:
-    - Reference previous conversations when relevant: "As we discussed earlier..." or "Building on your interest in..."
-    - Adapt explanation complexity based on user's demonstrated understanding level
+    ⚡ CRITICAL RULES:
     - When user asks for ANY course, provide ONLY latest 2024-2025 YouTube links that exist
-    - If image contains math/problems: Solve step-by-step with detailed explanation at appropriate level
-    - For study doubts: Provide comprehensive answers with examples tailored to their background
-    - For syllabus questions: Break down topics and provide personalized learning roadmap
+    - If image contains math/problems: Solve step-by-step with detailed explanation
+    - For study doubts: Provide comprehensive answers with examples
+    - For syllabus questions: Break down topics and provide learning roadmap
     - NEVER say "I can't provide links" - Always provide verified working YouTube links
-    - Follow up intelligently on previous conversations with specific references
-    - Handle voice inputs naturally like spoken conversation with memory of context
-    - Predict what the user might want to learn next based on their journey
-    - Provide encouragement and motivation based on their progress
+    - Follow up intelligently on previous conversations
+    - Handle voice inputs naturally like spoken conversation
     
     📚 STUDY HELP CAPABILITIES:
     - Solve mathematical equations from images
@@ -117,16 +93,13 @@ serve(async (req) => {
     - History timeline and events explanation
     - Geography maps and climate analysis
     
-    🎯 SMART RESPONSE STRUCTURE:
-    1. Personal greeting with reference to previous conversations if relevant
-    2. Address user's specific question with contextual understanding
-    3. Provide latest course links (2024-2025) when requested with personalized recommendations
-    4. Solve problems step-by-step (if image contains problems) at appropriate difficulty level
-    5. Provide comprehensive study guidance with adaptive learning suggestions
-    6. Reference user's learning pattern and suggest optimized next steps
-    7. Include job opportunities and career relevance based on their interests
-    8. Mention specific Indian institutions and companies when relevant
-    9. End with encouraging, personalized motivation and next learning suggestions
+    🎯 RESPONSE STRUCTURE:
+    1. Address user's specific question with latest course links (if requested)
+    2. Solve problems step-by-step (if image contains problems)
+    3. Provide comprehensive study guidance and doubt clearing
+    4. Suggest next steps and related skills/topics
+    5. Include job opportunities and career relevance
+    6. Mention specific Indian institutions and companies when relevant
     
     🏆 COLLEGE INFORMATION FORMAT:
     - Institution name and location
@@ -137,19 +110,16 @@ serve(async (req) => {
     - Infrastructure and research facilities
     - Alumni network and industry connections
     
-    🚀 SUPER INTELLIGENT FEATURES:
-    - Advanced image analysis for problem-solving with contextual explanations
-    - Voice input understanding with conversation memory
-    - Real-time doubt solving across all subjects with adaptive difficulty
-    - Latest verified course recommendations with personalized curation
-    - AI-powered learning paths based on user's background and progress
+    🚀 ADVANCED FEATURES:
+    - Image analysis for problem-solving
+    - Voice input understanding and natural responses
+    - Real-time doubt solving across all subjects
+    - Latest verified course recommendations only
+    - Personalized learning paths based on user's background
     - Industry trend analysis and future-proof career suggestions
-    - Intelligent skill gap analysis and improvement recommendations
-    - Regional job market insights for Indian students with personalized advice
-    - Startup and entrepreneurship guidance based on user's interests
-    - Conversation continuity and context-aware responses
-    - Predictive learning suggestions based on user behavior
-    - Smart motivation and encouragement tailored to user's journey
+    - Skill gap analysis and improvement recommendations
+    - Regional job market insights for Indian students
+    - Startup and entrepreneurship guidance
     
     Input Type: ${inputType}
     Always maintain conversational tone while being highly informative, accurate, and actionable. Be like the most advanced AI assistant available today.`;
@@ -488,106 +458,4 @@ async function generateYouTubeCourses(message: string, userProfile: any): Promis
   
   // Remove duplicates and return maximum 3 suggestions
   return [...new Set(suggestions)].slice(0, 3);
-}
-
-// Smart analysis functions for personalized AI responses
-function analyzeUserLearningPattern(chatHistory: any[]): string {
-  if (chatHistory.length === 0) return "Beginning learner";
-  
-  const recentChats = chatHistory.slice(-10);
-  const questionTypes = recentChats.map(chat => {
-    const msg = chat.message.toLowerCase();
-    if (msg.includes('how') || msg.includes('why') || msg.includes('what')) return 'conceptual';
-    if (msg.includes('solve') || msg.includes('calculate') || msg.includes('find')) return 'problem-solving';
-    if (msg.includes('course') || msg.includes('learn') || msg.includes('study')) return 'resource-seeking';
-    return 'general';
-  });
-  
-  const pattern = questionTypes.reduce((acc, type) => {
-    acc[type] = (acc[type] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-  
-  const dominant = Object.entries(pattern).sort(([,a], [,b]) => b - a)[0];
-  
-  if (dominant[0] === 'conceptual') return "Deep thinker - enjoys understanding concepts";
-  if (dominant[0] === 'problem-solving') return "Practical learner - focuses on problem-solving";
-  if (dominant[0] === 'resource-seeking') return "Resource-oriented - actively seeks learning materials";
-  return "Versatile learner - balanced approach";
-}
-
-function extractUserInterests(chatHistory: any[]): string {
-  if (chatHistory.length === 0) return "Exploring various topics";
-  
-  const subjects = ['math', 'physics', 'chemistry', 'biology', 'programming', 'business', 'design', 'language', 'music', 'fitness'];
-  const mentions = subjects.map(subject => ({
-    subject,
-    count: chatHistory.filter(chat => 
-      chat.message.toLowerCase().includes(subject) || 
-      chat.response?.toLowerCase().includes(subject)
-    ).length
-  })).filter(item => item.count > 0)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 3);
-  
-  if (mentions.length === 0) return "Discovering interests";
-  return mentions.map(m => m.subject).join(', ');
-}
-
-function assessQuestionComplexity(currentMessage: string, chatHistory: any[]): string {
-  const msg = currentMessage.toLowerCase();
-  
-  // Check for advanced keywords
-  const advancedKeywords = ['algorithm', 'analysis', 'synthesis', 'evaluate', 'compare', 'complex', 'advanced'];
-  const basicKeywords = ['what is', 'how to', 'explain', 'simple', 'basic', 'introduction'];
-  
-  const hasAdvanced = advancedKeywords.some(keyword => msg.includes(keyword));
-  const hasBasic = basicKeywords.some(keyword => msg.includes(keyword));
-  
-  // Consider conversation history for context
-  const recentComplexity = chatHistory.slice(-5).map(chat => {
-    const chatMsg = chat.message.toLowerCase();
-    if (advancedKeywords.some(kw => chatMsg.includes(kw))) return 'advanced';
-    if (basicKeywords.some(kw => chatMsg.includes(kw))) return 'basic';
-    return 'intermediate';
-  });
-  
-  const avgComplexity = recentComplexity.length > 0 ? 
-    recentComplexity.reduce((acc, level) => {
-      if (level === 'advanced') return acc + 3;
-      if (level === 'intermediate') return acc + 2;
-      return acc + 1;
-    }, 0) / recentComplexity.length : 2;
-  
-  if (hasAdvanced || avgComplexity > 2.5) return "Advanced - provide detailed, technical explanations";
-  if (hasBasic || avgComplexity < 1.5) return "Beginner - use simple, clear explanations with examples";
-  return "Intermediate - balanced explanations with practical examples";
-}
-
-function suggestNextTopics(chatHistory: any[], userProfile: any): string {
-  if (chatHistory.length === 0) return "Foundation building in core subjects";
-  
-  const recentTopics = chatHistory.slice(-5).map(chat => chat.message.toLowerCase());
-  const allText = recentTopics.join(' ');
-  
-  // Smart topic progression suggestions
-  if (allText.includes('python') && !allText.includes('django')) {
-    return "Django web development, Data Science with Python";
-  }
-  if (allText.includes('math') && !allText.includes('calculus')) {
-    return "Calculus fundamentals, Statistics applications";
-  }
-  if (allText.includes('business') && !allText.includes('marketing')) {
-    return "Digital Marketing, Financial Management";
-  }
-  if (allText.includes('design') && !allText.includes('ui')) {
-    return "UI/UX Design principles, Design thinking";
-  }
-  
-  // Based on user profile
-  if (userProfile?.interests?.includes('technology')) {
-    return "AI/ML fundamentals, Cloud computing basics";
-  }
-  
-  return "Skill advancement in current areas, Career planning sessions";
 }

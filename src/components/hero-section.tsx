@@ -28,43 +28,42 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
 
         {/* Enhanced Features Showcase */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-          <div className="floating-card flex flex-col items-center p-8 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 backdrop-blur-sm border border-primary/30 shadow-lg">
-            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mb-6 shadow-lg">
-              <Brain className="h-7 w-7 text-primary" />
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <Brain className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-3 gradient-text">{t('multiModalAI')}</h3>
-            <p className="text-sm text-muted-foreground text-center leading-relaxed">{t('multiModalDesc')}</p>
+            <h3 className="font-semibold text-lg mb-2">{t('multiModalAI')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('multiModalDesc')}</p>
           </div>
           
-          <div className="floating-card flex flex-col items-center p-8 rounded-2xl bg-gradient-to-br from-accent/15 to-accent/5 backdrop-blur-sm border border-accent/30 shadow-lg">
-            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center mb-6 shadow-lg">
-              <GraduationCap className="h-7 w-7 text-accent" />
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
+            <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center mb-4">
+              <GraduationCap className="h-6 w-6 text-accent" />
             </div>
-            <h3 className="font-semibold text-lg mb-3 gradient-text">{t('studyHelper')}</h3>
-            <p className="text-sm text-muted-foreground text-center leading-relaxed">{t('studyHelperDesc')}</p>
+            <h3 className="font-semibold text-lg mb-2">{t('studyHelper')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('studyHelperDesc')}</p>
           </div>
           
-          <div className="floating-card flex flex-col items-center p-8 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 backdrop-blur-sm border border-primary/30 shadow-lg">
-            <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mb-6 shadow-lg">
-              <Sparkles className="h-7 w-7 text-primary" />
+          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
+            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-3 gradient-text">{t('latestCourses')}</h3>
-            <p className="text-sm text-muted-foreground text-center leading-relaxed">{t('latestCoursesDesc')}</p>
+            <h3 className="font-semibold text-lg mb-2">{t('latestCourses')}</h3>
+            <p className="text-sm text-muted-foreground text-center">{t('latestCoursesDesc')}</p>
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button 
             onClick={onGetStarted}
-            variant="premium"
             size="lg" 
-            className="px-10 py-4 text-lg font-semibold"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white px-8 py-3 text-lg"
           >
             {t('getStarted')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
           
-          <Button variant="outline" size="lg" className="px-10 py-4 text-lg font-medium">
+          <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
             {t('learnMore')}
           </Button>
         </div>

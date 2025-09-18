@@ -122,8 +122,8 @@ const Index = () => {
                 {t('needHelp') || 'Need Help?'}
               </h2>
               <div className="grid md:grid-cols-2 gap-8">
-                <Card className="p-6 modern-card border border-primary/20">
-                  <h3 className="text-xl font-semibold mb-4 gradient-text">Get Support</h3>
+                <Card className="p-6 glass-morphism border border-primary/20">
+                  <h3 className="text-xl font-semibold mb-4 text-primary">Get Support</h3>
                   <p className="text-muted-foreground mb-4">
                     Have questions or need assistance? Our support team is here to help you.
                   </p>
@@ -152,8 +152,8 @@ const Index = () => {
                   </div>
                 </Card>
                 
-                <Card className="p-6 modern-card border border-accent/20">
-                  <h3 className="text-xl font-semibold mb-4 gradient-text">Quick Tips</h3>
+                <Card className="p-6 glass-morphism border border-accent/20">
+                  <h3 className="text-xl font-semibold mb-4 text-accent">Quick Tips</h3>
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• Use voice input for natural conversations</li>
                     <li>• Upload images for problem solving</li>
