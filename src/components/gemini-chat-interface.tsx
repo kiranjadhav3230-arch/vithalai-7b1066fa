@@ -101,18 +101,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Automatically delete blank chats
-      await deleteBlankChats(true);
-      
-      // Reload sessions after cleanup
-      const { data: cleanData, error: cleanError } = await supabase
-        .from('chat_sessions')
-        .select('*')
-        .order('updated_at', { ascending: false });
-
-      if (cleanError) throw cleanError;
-      setChatSessions(cleanData || []);
+      setChatSessions(data || []);
       
     } catch (error) {
       console.error('Error loading chat sessions:', error);
@@ -201,76 +190,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-  const deleteBlankChats = async (silent: boolean = false) => {
-    try {
-      // Get all sessions for the user
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('chat_sessions')
-        .select('id')
-        .eq('user_id', user.id);
-
-      if (sessionsError) throw sessionsError;
-
-      // Check which sessions have no messages
-      const blankSessionIds: string[] = [];
-      
-      for (const session of sessions || []) {
-        const { data: messages, error: messagesError } = await supabase
-          .from('chat_messages')
-          .select('id')
-          .eq('session_id', session.id)
-          .limit(1);
-
-        if (messagesError) throw messagesError;
-
-        // If no messages found, it's a blank chat
-        if (!messages || messages.length === 0) {
-          blankSessionIds.push(session.id);
-        }
-      }
-
-      // Delete all blank sessions
-      if (blankSessionIds.length > 0) {
-        const { error: deleteError } = await supabase
-          .from('chat_sessions')
-          .delete()
-          .in('id', blankSessionIds);
-
-        if (deleteError) throw deleteError;
-
-        // Update local state
-        setChatSessions(prev => prev.filter(s => !blankSessionIds.includes(s.id)));
-        
-        // If current session was deleted, clear it
-        if (currentSession && blankSessionIds.includes(currentSession.id)) {
-          const remainingSessions = chatSessions.filter(s => !blankSessionIds.includes(s.id));
-          setCurrentSession(remainingSessions.length > 0 ? remainingSessions[0] : null);
-          setMessages([]);
-        }
-
-        if (!silent) {
-          toast({
-            title: "Success",
-            description: `Deleted ${blankSessionIds.length} blank chat${blankSessionIds.length === 1 ? '' : 's'}`
-          });
-        }
-      } else if (!silent) {
-        toast({
-          title: "No blank chats",
-          description: "All your chats have messages"
-        });
-      }
-    } catch (error) {
-      console.error('Error deleting blank chats:', error);
-      if (!silent) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to delete blank chats"
-        });
-      }
-    }
-  };
 
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
@@ -647,18 +566,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         
         <SidebarContent>
           <SidebarGroup>
-            <div className="flex items-center justify-between px-3 py-2">
-              <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
-              <Button
-                onClick={() => deleteBlankChats()}
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-                title="Delete blank chats"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </div>
+            <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {chatSessions.map((session) => (
@@ -842,20 +750,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           {/* Chat Messages - Scrollable */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="p-4">
-                <div className="max-w-3xl mx-auto space-y-4">
+              <div className="p-6">
+                <div className="max-w-4xl mx-auto space-y-6">
                   {messages.length === 0 && !loading && (
-                    <div className="text-center py-12">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8" />
+                    <div className="text-center py-16">
+                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-border/50">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-10 h-10" />
                       </div>
-                      <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-                      <p className="text-muted-foreground">
-                        Ask me anything! I can help with studies, problems, courses, and more.
+                      <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                        Welcome to Vithal AI
+                      </h2>
+                      <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
+                        Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.
                       </p>
-                      <div className="mt-6 text-xs text-muted-foreground/70 space-y-1">
-                        <p>Made by <span className="font-medium">Shree Alankar</span></p>
-                        <p>Powered by <span className="font-medium">Gemini AI</span></p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
+                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
+                          <h3 className="font-semibold text-sm mb-2">📚 Study Help</h3>
+                          <p className="text-xs text-muted-foreground">Get explanations, solve problems, and understand concepts</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
+                          <h3 className="font-semibold text-sm mb-2">🎯 Career Guidance</h3>
+                          <p className="text-xs text-muted-foreground">Explore career paths and get professional advice</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
+                          <h3 className="font-semibold text-sm mb-2">💻 Tech Learning</h3>
+                          <p className="text-xs text-muted-foreground">Programming, coding, and technical skills</p>
+                        </div>
+                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
+                          <h3 className="font-semibold text-sm mb-2">🔬 Science & Math</h3>
+                          <p className="text-xs text-muted-foreground">Complex calculations and scientific concepts</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground/70 space-y-1">
+                        <p>Created with ❤️ by <span className="font-medium text-primary">Shree Alankar</span></p>
+                        <p>Powered by <span className="font-medium text-accent">Gemini AI</span></p>
                       </div>
                     </div>
                   )}
@@ -864,8 +792,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                     <div key={msg.id} className="space-y-4">
                       {/* User Message */}
                       <div className="flex justify-end">
-                        <div className="max-w-[80%] rounded-2xl bg-primary text-primary-foreground px-4 py-2">
-                          <p>{msg.message}</p>
+                        <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-3 shadow-lg">
+                          <p className="text-sm leading-relaxed">{msg.message}</p>
+                          <div className="text-xs opacity-70 mt-1">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
                       </div>
 
@@ -873,16 +804,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                       {msg.response && (
                         <div className="flex justify-start">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
-                              <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
+                              <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                             </div>
-                            <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
+                            <div className="max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
                               <div 
-                                className="prose prose-sm max-w-none dark:prose-invert"
+                                className="prose prose-sm max-w-none dark:prose-invert text-sm leading-relaxed"
                                 dangerouslySetInnerHTML={{ 
                                   __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                                 }} 
                               />
+                              <div className="text-xs text-muted-foreground mt-2">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -893,13 +827,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   {loading && (
                     <div className="flex justify-start">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 mt-1">
-                          <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
+                          <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                         </div>
-                        <div className="max-w-[80%] rounded-2xl bg-muted px-4 py-2">
-                          <div className="flex items-center gap-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>Thinking...</span>
+                        <div className="max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
+                          <div className="flex items-center gap-3">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            <span className="text-sm">AI is thinking...</span>
                           </div>
                         </div>
                       </div>
@@ -913,21 +847,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           </div>
 
           {/* Input Area - Fixed */}
-          <div className="border-t bg-background p-4 flex-shrink-0">
-            <div className="max-w-3xl mx-auto">
+          <div className="border-t bg-background/95 backdrop-blur-sm p-6 flex-shrink-0">
+            <div className="max-w-4xl mx-auto">
               {/* Image Preview */}
               {selectedImage && (
                 <div className="mb-4 relative inline-block">
                   <img 
                     src={selectedImage} 
                     alt="Selected for upload" 
-                    className="max-w-xs max-h-32 rounded-lg object-cover border"
+                    className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-border shadow-lg"
                   />
                   <Button
                     onClick={removeSelectedImage}
                     size="sm"
                     variant="destructive"
-                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                    className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg"
                   >
                     ×
                   </Button>
@@ -935,22 +869,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               )}
 
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
                   <Input
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Message Vithal AI..."
-                    className="pr-16 rounded-full border-2"
+                    placeholder="Type your message here..."
+                    className="pr-20 rounded-2xl border-2 h-12 text-sm bg-background/50 backdrop-blur-sm focus:bg-background transition-colors"
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                     disabled={loading}
                   />
-                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
                     <Button
                       onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
                       size="sm"
                       variant="ghost"
-                      className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500' : ''}`}
+                      className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-950' : 'hover:bg-muted'}`}
                       disabled={loading}
                     >
                       <Mic className="h-4 w-4" />
@@ -960,7 +894,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-8 w-8 p-0 rounded-full"
+                          className="h-8 w-8 p-0 rounded-full hover:bg-muted"
                           disabled={loading}
                         >
                           <ImageIcon className="h-4 w-4" />
@@ -984,9 +918,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   onClick={sendMessage}
                   disabled={loading || (!message.trim() && !selectedImage)}
                   size="sm"
-                  className="rounded-full h-10 w-10 p-0"
+                  className="rounded-2xl h-12 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
                 >
-                  <Send className="h-4 w-4" />
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
