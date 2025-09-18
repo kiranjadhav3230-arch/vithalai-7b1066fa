@@ -59,6 +59,17 @@ All colors MUST be HSL.
     --warning-foreground: 222 84% 4.9%;
     --info: 25 95% 53%;
     --info-foreground: 222 84% 4.9%;
+
+    /* Sidebar and radius tokens */
+    --radius: 0.75rem;
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95.9%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95.9%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 25 95% 53%;
   }
   
   /* Professional Loading Animations */
@@ -128,18 +139,6 @@ All colors MUST be HSL.
     50% {
       box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
     }
-  }
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95.9%;
-    --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95.9%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 25 95% 53%;
   }
 
   .light {
