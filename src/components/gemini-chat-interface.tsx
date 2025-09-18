@@ -366,31 +366,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     }
   };
 
-    const sendMessage = async () => {
+  const sendMessage = async () => {
     if ((!message.trim() && !selectedImage)) return;
 
-    // Create session if none exists
-    if (!currentSession) {
+    setLoading(true);
+    
+    // Ensure we have a session before proceeding
+    let sessionToUse = currentSession;
+    
+    if (!sessionToUse) {
       try {
-        await createNewSession();
-        // After creating session, don't return - continue with sending the message
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .insert({
+            user_id: user.id,
+            title: 'New Chat'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        sessionToUse = data as ChatSession;
+        setChatSessions(prev => [sessionToUse, ...prev]);
+        setCurrentSession(sessionToUse);
+        setMessages([]);
       } catch (error) {
         console.error('Failed to create session:', error);
+        setLoading(false);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to create new chat session"
+        });
         return;
       }
     }
 
-    // Get the current session (either existing or newly created)
-    const sessionToUse = currentSession;
-    
-    // Check again if we have a session after potential creation
-    if (!sessionToUse) {
-      console.error('No session available for sending message');
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
     const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
     const hasImage = !!selectedImage;
     setMessage('');
@@ -403,7 +415,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     // Add user message to UI immediately
     const tempMessage: ChatMessage = {
       id: `temp-${Date.now()}`,
-      session_id: currentSession.id,
+      session_id: sessionToUse.id,
       message: userMessage,
       response: null,
       message_type: hasImage ? 'image' : 'text',
@@ -464,7 +476,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       const { data: savedMessage, error: saveError } = await supabase
         .from('chat_messages')
         .insert({
-          session_id: currentSession.id,
+          session_id: sessionToUse.id,
           user_id: user.id,
           message: userMessage,
           response: data.response,
@@ -482,7 +494,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
       // Update session title if it's the first message using AI-powered smart title generation
       if (messages.length === 0) {
-        generateSmartSessionTitle(currentSession.id, userMessage, data.response);
+        generateSmartSessionTitle(sessionToUse.id, userMessage, data.response);
       }
 
     } catch (error) {
