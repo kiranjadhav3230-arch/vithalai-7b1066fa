@@ -7,13 +7,46 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_history: {
         Row: {
           created_at: string
@@ -105,6 +138,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      documents: {
+        Row: {
+          analysis_result: Json | null
+          analysis_status: string | null
+          created_at: string
+          file_size: number | null
+          file_url: string
+          id: string
+          title: string
+          updated_at: string
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          title: string
+          updated_at?: string
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          analysis_result?: Json | null
+          analysis_status?: string | null
+          created_at?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      enquiries: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          message: string | null
+          product_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          message?: string | null
+          product_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          message?: string | null
+          product_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enquiries_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       family_members: {
         Row: {
@@ -218,6 +334,84 @@ export type Database = {
           },
         ]
       }
+      metal_rates: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          metal_type: string
+          rate_per_gram: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          metal_type: string
+          rate_per_gram: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          metal_type?: string
+          rate_per_gram?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_urls: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          metal_type: string
+          name: string
+          price: number | null
+          purity: string | null
+          updated_at: string
+          weight: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          metal_type?: string
+          name: string
+          price?: number | null
+          purity?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_urls?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          metal_type?: string
+          name?: string
+          price?: number | null
+          purity?: string | null
+          updated_at?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -259,6 +453,179 @@ export type Database = {
           phone?: string | null
           skills?: string[] | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          difficulty_level: string | null
+          id: string
+          questions: Json
+          score: number | null
+          started_at: string
+          status: string | null
+          topic: string
+          total_questions: number
+          user_answers: Json | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          difficulty_level?: string | null
+          id?: string
+          questions: Json
+          score?: number | null
+          started_at?: string
+          status?: string | null
+          topic: string
+          total_questions: number
+          user_answers?: Json | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          difficulty_level?: string | null
+          id?: string
+          questions?: Json
+          score?: number | null
+          started_at?: string
+          status?: string | null
+          topic?: string
+          total_questions?: number
+          user_answers?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          completed_hours: number | null
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          schedule: Json
+          start_date: string
+          status: string | null
+          subjects: Json
+          title: string
+          total_hours: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_hours?: number | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          schedule: Json
+          start_date: string
+          status?: string | null
+          subjects: Json
+          title: string
+          total_hours?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_hours?: number | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          schedule?: Json
+          start_date?: string
+          status?: string | null
+          subjects?: Json
+          title?: string
+          total_hours?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          rating: number | null
+          session_date: string
+          study_plan_id: string | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          session_date: string
+          study_plan_id?: string | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          session_date?: string
+          study_plan_id?: string | null
+          topic?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_study_plan_id_fkey"
+            columns: ["study_plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          description: string | null
+          earned_at: string
+          icon_url: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          description?: string | null
+          earned_at?: string
+          icon_url?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          description?: string | null
+          earned_at?: string
+          icon_url?: string | null
+          id?: string
+          metadata?: Json | null
           user_id?: string
         }
         Relationships: []
