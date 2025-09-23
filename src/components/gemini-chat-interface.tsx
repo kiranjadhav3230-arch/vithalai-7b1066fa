@@ -25,7 +25,8 @@ import {
   Loader2,
   LogOut,
   Globe,
-  Camera
+  Camera,
+  Code
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
+import { CodeGenerator } from './code-generator';
 import type { User } from '@supabase/supabase-js';
 
 interface ChatSession {
@@ -70,6 +72,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -597,6 +600,33 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </SidebarGroupContent>
           </SidebarGroup>
           
+          {/* Navigation Section */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Features</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView('chat')}
+                    className={currentView === 'chat' ? 'bg-accent' : ''}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4" />
+                    Chat
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setCurrentView('code')}
+                    className={currentView === 'code' ? 'bg-accent' : ''}
+                  >
+                    <Code className="mr-2 h-4 w-4" />
+                    Code Generator
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
           {/* Help Section */}
           <SidebarGroup>
             <SidebarGroupLabel>Help & Support</SidebarGroupLabel>
@@ -747,6 +777,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </div>
           </header>
 
+          {/* Conditional Content Rendering */}
+          {currentView === 'code' ? (
+            <div className="flex-1 overflow-auto">
+              <CodeGenerator />
+            </div>
+          ) : (
+            <>
           {/* Chat Messages - Scrollable */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
@@ -929,6 +966,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
               </div>
             </div>
           </div>
+          </>
+          )}
 
           {/* File inputs */}
           <input
