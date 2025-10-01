@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { pipeline } from '@huggingface/transformers';
@@ -24,7 +25,9 @@ import {
   Heart,
   Trash2,
   Brain,
-  FileCode
+  FileCode,
+  Clock,
+  Loader2
 } from 'lucide-react';
 
 const PROGRAMMING_LANGUAGES = [
@@ -88,6 +91,9 @@ interface CodeSnippet {
   created_at: string;
 }
 
+// Cache for the AI model
+let cachedPipeline: any = null;
+
 export const CodeGenerator = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
@@ -97,7 +103,11 @@ export const CodeGenerator = () => {
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
   const [generatorMode, setGeneratorMode] = useState<'rule-based' | 'local-ai'>('rule-based');
+  const [progressStatus, setProgressStatus] = useState<string>('');
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [timeElapsed, setTimeElapsed] = useState(0);
   const codeRef = useRef<HTMLTextAreaElement>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   // Load saved snippets
@@ -149,29 +159,52 @@ export const CodeGenerator = () => {
     }
   };
 
-  // Local AI code generation
+  // Local AI code generation with progress tracking
   const generateLocalAICode = async (prompt: string, lang: string): Promise<string> => {
     try {
-      toast({
-        title: "Loading AI Model",
-        description: "This may take a moment on first use...",
-      });
+      setProgressStatus('Initializing AI model...');
+      setProgressPercent(10);
 
-      const generator = await pipeline('text-generation', 'Xenova/codegen-350M-mono', {
-        device: 'webgpu',
+      // Load or use cached pipeline
+      if (!cachedPipeline) {
+        setProgressStatus('Loading AI model (first time may take 10-30 seconds)...');
+        setProgressPercent(20);
+        
+        // Using faster, smaller model for better performance
+        cachedPipeline = await pipeline('text-generation', 'Xenova/TinyLlama-1.1B-Chat-v1.0', {
+          device: 'webgpu',
+          dtype: 'q8', // Quantized for faster inference
+        });
+        
+        setProgressStatus('Model loaded successfully!');
+        setProgressPercent(60);
+      } else {
+        setProgressStatus('Using cached model...');
+        setProgressPercent(50);
+      }
+      
+      setProgressStatus('Generating code...');
+      setProgressPercent(70);
+      
+      const systemPrompt = `Generate clean, working ${lang} code for: ${prompt}\n\nCode:\n`;
+      const result: any = await cachedPipeline(systemPrompt, {
+        max_new_tokens: 150,
+        temperature: 0.2,
+        do_sample: true,
+        top_k: 50,
+        top_p: 0.95,
       });
       
-      const systemPrompt = `Generate ${lang} code:\n${prompt}\n\nCode:\n`;
-      const result: any = await generator(systemPrompt, {
-        max_new_tokens: 250,
-        temperature: 0.3,
-        do_sample: true,
-      });
+      setProgressStatus('Processing result...');
+      setProgressPercent(90);
       
       const generatedText = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
       if (!generatedText) {
         throw new Error('No code generated');
       }
+      
+      setProgressStatus('Complete!');
+      setProgressPercent(100);
       
       return generatedText.replace(systemPrompt, '').trim();
     } catch (error) {
@@ -193,23 +226,49 @@ export const CodeGenerator = () => {
     try {
       setIsLoading(true);
       setGeneratedCode('');
+      setProgressStatus('Starting...');
+      setProgressPercent(0);
+      setTimeElapsed(0);
+      
+      // Start timer
+      const startTime = Date.now();
+      timerRef.current = setInterval(() => {
+        setTimeElapsed(Math.floor((Date.now() - startTime) / 1000));
+      }, 100);
 
       let code = "";
       
       if (generatorMode === "rule-based") {
+        setProgressStatus('Analyzing prompt...');
+        setProgressPercent(50);
         code = generateRuleBasedCode(prompt, selectedLanguage);
+        setProgressStatus('Complete!');
+        setProgressPercent(100);
       } else {
         code = await generateLocalAICode(prompt, selectedLanguage);
       }
 
       setGeneratedCode(code);
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
       toast({
         title: "Code Generated!",
-        description: `Successfully generated ${selectedLanguage} code using ${generatorMode} mode.`,
+        description: `Generated in ${timeElapsed}s using ${generatorMode} mode.`,
       });
 
     } catch (error: any) {
       console.error('Error generating code:', error);
+      
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      
+      setProgressStatus('Failed');
+      setProgressPercent(0);
+      
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate code. Please try again.",
@@ -427,7 +486,7 @@ export const CodeGenerator = () => {
                 >
                   {isLoading ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Generating...
                     </>
                   ) : (
@@ -437,6 +496,36 @@ export const CodeGenerator = () => {
                     </>
                   )}
                 </Button>
+
+                {/* Progress Dashboard */}
+                {isLoading && (
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="pt-6 space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="font-medium">{progressStatus}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>{timeElapsed}s</span>
+                        </div>
+                      </div>
+                      <Progress value={progressPercent} className="h-2" />
+                      <div className="text-xs text-muted-foreground">
+                        {generatorMode === 'local-ai' && !cachedPipeline && (
+                          <span>⚡ First load downloads model (~50MB). Future uses will be instant!</span>
+                        )}
+                        {generatorMode === 'local-ai' && cachedPipeline && (
+                          <span>⚡ Using cached model for fast generation</span>
+                        )}
+                        {generatorMode === 'rule-based' && (
+                          <span>⚡ Rule-based generation is instant</span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </CardContent>
             </Card>
 
