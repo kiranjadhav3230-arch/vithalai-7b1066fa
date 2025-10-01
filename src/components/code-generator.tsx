@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { pipeline } from '@huggingface/transformers';
 import { 
   Code, 
   Play, 
@@ -21,7 +22,9 @@ import {
   Languages,
   BookOpen,
   Heart,
-  Trash2
+  Trash2,
+  Brain,
+  FileCode
 } from 'lucide-react';
 
 const PROGRAMMING_LANGUAGES = [
@@ -45,6 +48,36 @@ const CODE_TASKS = [
   { value: 'translate', label: 'Translate Language', icon: Languages }
 ];
 
+const GENERATOR_MODES = [
+  { value: 'rule-based', label: 'Rule-Based (Fast)', icon: FileCode },
+  { value: 'local-ai', label: 'Local AI (Smarter)', icon: Brain }
+];
+
+// Rule-based code templates
+const codeTemplates: Record<string, Record<string, (name: string) => string>> = {
+  javascript: {
+    function: (name: string) => `function ${name}() {\n  // TODO: Implement function logic\n  return result;\n}`,
+    class: (name: string) => `class ${name} {\n  constructor() {\n    // Initialize properties\n  }\n\n  method() {\n    // Method implementation\n  }\n}`,
+    api: (name: string) => `async function fetch${name}() {\n  try {\n    const response = await fetch('/api/${name.toLowerCase()}');\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error('Error:', error);\n    throw error;\n  }\n}`,
+    sort: () => `function sortArray(arr) {\n  return arr.sort((a, b) => a - b);\n}`,
+    filter: () => `function filterArray(arr, condition) {\n  return arr.filter(item => condition(item));\n}`,
+  },
+  python: {
+    function: (name: string) => `def ${name}():\n    """Function description"""\n    # TODO: Implement function logic\n    return result`,
+    class: (name: string) => `class ${name}:\n    def __init__(self):\n        # Initialize attributes\n        pass\n\n    def method(self):\n        # Method implementation\n        pass`,
+    api: (name: string) => `import requests\n\ndef fetch_${name.toLowerCase()}():\n    try:\n        response = requests.get(f'/api/${name.toLowerCase()}')\n        response.raise_for_status()\n        return response.json()\n    except requests.exceptions.RequestException as e:\n        print(f'Error: {e}')\n        raise`,
+    sort: () => `def sort_array(arr):\n    return sorted(arr)`,
+    filter: () => `def filter_array(arr, condition):\n    return [item for item in arr if condition(item)]`,
+  },
+  typescript: {
+    function: (name: string) => `function ${name}(): ReturnType {\n  // TODO: Implement function logic\n  return result;\n}`,
+    class: (name: string) => `class ${name} {\n  constructor() {\n    // Initialize properties\n  }\n\n  method(): void {\n    // Method implementation\n  }\n}`,
+    api: (name: string) => `async function fetch${name}(): Promise<DataType> {\n  try {\n    const response = await fetch('/api/${name.toLowerCase()}');\n    const data: DataType = await response.json();\n    return data;\n  } catch (error) {\n    console.error('Error:', error);\n    throw error;\n  }\n}`,
+    sort: () => `function sortArray<T>(arr: T[]): T[] {\n  return arr.sort();\n}`,
+    filter: () => `function filterArray<T>(arr: T[], condition: (item: T) => boolean): T[] {\n  return arr.filter(condition);\n}`,
+  },
+};
+
 interface CodeSnippet {
   id: string;
   title: string;
@@ -63,6 +96,7 @@ export const CodeGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
+  const [generatorMode, setGeneratorMode] = useState<'rule-based' | 'local-ai'>('rule-based');
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
@@ -92,6 +126,60 @@ export const CodeGenerator = () => {
     loadSnippets();
   }, []);
 
+  // Rule-based code generation
+  const generateRuleBasedCode = (prompt: string, lang: string): string => {
+    const lowerPrompt = prompt.toLowerCase();
+    const templates = codeTemplates[lang] || codeTemplates.javascript;
+    
+    // Extract potential function/class name
+    const nameMatch = prompt.match(/(?:function|class|component|api|fetch)\s+(?:called\s+)?(\w+)/i);
+    const name = nameMatch ? nameMatch[1] : 'myFunction';
+    
+    // Pattern matching for different code types
+    if (lowerPrompt.includes('class') || lowerPrompt.includes('object')) {
+      return templates.class(name);
+    } else if (lowerPrompt.includes('api') || lowerPrompt.includes('fetch') || lowerPrompt.includes('request')) {
+      return templates.api(name);
+    } else if (lowerPrompt.includes('sort')) {
+      return templates.sort ? templates.sort('') : templates.function(name);
+    } else if (lowerPrompt.includes('filter')) {
+      return templates.filter ? templates.filter('') : templates.function(name);
+    } else {
+      return templates.function(name);
+    }
+  };
+
+  // Local AI code generation
+  const generateLocalAICode = async (prompt: string, lang: string): Promise<string> => {
+    try {
+      toast({
+        title: "Loading AI Model",
+        description: "This may take a moment on first use...",
+      });
+
+      const generator = await pipeline('text-generation', 'Xenova/codegen-350M-mono', {
+        device: 'webgpu',
+      });
+      
+      const systemPrompt = `Generate ${lang} code:\n${prompt}\n\nCode:\n`;
+      const result: any = await generator(systemPrompt, {
+        max_new_tokens: 250,
+        temperature: 0.3,
+        do_sample: true,
+      });
+      
+      const generatedText = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
+      if (!generatedText) {
+        throw new Error('No code generated');
+      }
+      
+      return generatedText.replace(systemPrompt, '').trim();
+    } catch (error) {
+      console.error('Local AI error:', error);
+      throw new Error('Failed to generate code with local AI. Try rule-based mode.');
+    }
+  };
+
   const generateCode = async () => {
     if (!prompt.trim()) {
       toast({
@@ -106,27 +194,21 @@ export const CodeGenerator = () => {
       setIsLoading(true);
       setGeneratedCode('');
 
-      const { data, error } = await supabase.functions.invoke('code-generator', {
-        body: {
-          prompt: prompt.trim(),
-          language: selectedLanguage,
-          task: selectedTask
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.error) {
-        throw new Error(data.error);
+      let code = "";
+      
+      if (generatorMode === "rule-based") {
+        code = generateRuleBasedCode(prompt, selectedLanguage);
+      } else {
+        code = await generateLocalAICode(prompt, selectedLanguage);
       }
 
-      setGeneratedCode(data.code || '');
+      setGeneratedCode(code);
       toast({
         title: "Code Generated!",
-        description: `Successfully generated ${selectedLanguage} code.`,
+        description: `Successfully generated ${selectedLanguage} code using ${generatorMode} mode.`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating code:', error);
       toast({
         title: "Generation Failed",
@@ -271,6 +353,25 @@ export const CodeGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Generator Mode</label>
+                  <Select value={generatorMode} onValueChange={(v) => setGeneratorMode(v as any)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GENERATOR_MODES.map((mode) => (
+                        <SelectItem key={mode.value} value={mode.value}>
+                          <div className="flex items-center gap-2">
+                            <mode.icon className="h-4 w-4" />
+                            {mode.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Programming Language</label>
