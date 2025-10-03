@@ -167,63 +167,90 @@ export const CodeGenerator = () => {
     try {
       setProgressStatus('Initializing AI model...');
       setProgressPercent(5);
-      setEstimatedTime(15); // Estimated total time in seconds
-      setRemainingTime(15);
+      setEstimatedTime(20);
+      setRemainingTime(20);
 
       // Load or use cached pipeline
       if (!cachedPipeline) {
-        setModelSize('~60 MB'); // Actual model size
-        setProgressStatus('Downloading model...');
+        setModelSize('~45 MB');
+        setProgressStatus('Downloading model files...');
         setProgressPercent(10);
-        setRemainingTime(12);
+        setRemainingTime(18);
+        
+        let lastProgress = 0;
         
         // Progress callback for download
         const progressCallback = (progress: any) => {
-          if (progress.status === 'progress') {
+          console.log('Download progress:', progress);
+          
+          if (progress.status === 'progress' && progress.total) {
             const percent = Math.round((progress.loaded / progress.total) * 100);
             const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
             const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
             
-            setDownloadedSize(`${loadedMB} MB / ${totalMB} MB`);
-            setProgressPercent(10 + (percent * 0.4)); // 10-50% for download
-            setRemainingTime(Math.max(1, Math.round(15 - (percent / 100) * 7)));
+            setDownloadedSize(`${loadedMB} / ${totalMB} MB`);
+            setProgressPercent(10 + (percent * 0.5)); // 10-60% for download
+            setRemainingTime(Math.max(1, Math.round(18 - (percent / 100) * 12)));
+            lastProgress = percent;
+          } else if (progress.status === 'initiate') {
+            setProgressStatus(`Loading ${progress.file}...`);
+          } else if (progress.status === 'done') {
+            setProgressStatus('Files downloaded!');
           }
         };
         
-        // Using smaller, faster quantized model
-        cachedPipeline = await pipeline(
-          'text-generation', 
-          'onnx-community/Qwen2.5-Coder-0.5B-Instruct', // Smaller 500MB model
-          {
-            device: 'webgpu',
-            dtype: 'q4', // Aggressive quantization for speed
-            progress_callback: progressCallback,
-          }
-        );
+        try {
+          // Try WebGPU first
+          setProgressStatus('Trying WebGPU acceleration...');
+          cachedPipeline = await pipeline(
+            'text-generation', 
+            'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+            {
+              device: 'webgpu',
+              dtype: 'q4',
+              progress_callback: progressCallback,
+            }
+          );
+          setProgressStatus('WebGPU enabled!');
+        } catch (gpuError) {
+          console.warn('WebGPU failed, falling back to WASM:', gpuError);
+          setProgressStatus('Falling back to CPU mode...');
+          setProgressPercent(10);
+          
+          // Fallback to WASM (CPU)
+          cachedPipeline = await pipeline(
+            'text-generation',
+            'Xenova/distilgpt2', // Smaller, more reliable model for CPU
+            {
+              progress_callback: progressCallback,
+            }
+          );
+          setProgressStatus('CPU mode loaded!');
+        }
         
-        setProgressStatus('Model loaded!');
-        setProgressPercent(60);
-        setRemainingTime(5);
+        setProgressStatus('Model ready!');
+        setProgressPercent(65);
+        setRemainingTime(4);
       } else {
-        setProgressStatus('Using cached model (instant)...');
-        setProgressPercent(50);
+        setProgressStatus('Using cached model...');
+        setProgressPercent(60);
         setRemainingTime(3);
         setModelSize('Cached');
       }
       
       setProgressStatus('Generating code...');
-      setProgressPercent(75);
+      setProgressPercent(80);
       setRemainingTime(2);
       
-      const systemPrompt = `You are a code generator. Generate only ${lang} code for: ${prompt}\n\n`;
+      const systemPrompt = `Generate ${lang} code:\n${prompt}\n\nCode:\n`;
       const result: any = await cachedPipeline(systemPrompt, {
-        max_new_tokens: 200,
-        temperature: 0.1,
-        do_sample: false,
-        top_k: 10,
+        max_new_tokens: 150,
+        temperature: 0.3,
+        do_sample: true,
+        top_k: 50,
       });
       
-      setProgressStatus('Finalizing...');
+      setProgressStatus('Processing...');
       setProgressPercent(95);
       setRemainingTime(1);
       
@@ -239,7 +266,8 @@ export const CodeGenerator = () => {
       return generatedText.replace(systemPrompt, '').trim();
     } catch (error) {
       console.error('Local AI error:', error);
-      throw new Error('Failed to generate code with local AI. Try rule-based mode.');
+      setProgressStatus('Failed - Try rule-based mode');
+      throw new Error(`Local AI failed: ${error instanceof Error ? error.message : 'Unknown error'}. Use rule-based mode instead.`);
     }
   };
 
