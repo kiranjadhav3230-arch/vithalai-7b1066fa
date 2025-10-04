@@ -51,10 +51,7 @@ const CODE_TASKS = [
   { value: 'translate', label: 'Translate Language', icon: Languages }
 ];
 
-const GENERATOR_MODES = [
-  { value: 'rule-based', label: 'Rule-Based (Fast)', icon: FileCode },
-  { value: 'local-ai', label: 'Local AI (Smarter)', icon: Brain }
-];
+// Removed: Generator modes - now only using Local AI
 
 // Rule-based code templates
 const codeTemplates: Record<string, Record<string, (name: string) => string>> = {
@@ -102,16 +99,28 @@ export const CodeGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
-  const [generatorMode, setGeneratorMode] = useState<'rule-based' | 'local-ai'>('rule-based');
   const [progressStatus, setProgressStatus] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState(0);
   const [modelSize, setModelSize] = useState<string>('');
   const [downloadedSize, setDownloadedSize] = useState<string>('');
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(0);
+  const [isModelDownloaded, setIsModelDownloaded] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const codeRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Check if model is already in cache on component mount
+  React.useEffect(() => {
+    const checkModelCache = () => {
+      const cached = localStorage.getItem('vithal_ai_model_cached');
+      if (cached === 'true' && cachedPipeline) {
+        setIsModelDownloaded(true);
+      }
+    };
+    checkModelCache();
+  }, []);
 
   // Load saved snippets
   const loadSnippets = async () => {
@@ -162,85 +171,103 @@ export const CodeGenerator = () => {
     }
   };
 
-  // Local AI code generation with progress tracking
-  const generateLocalAICode = async (prompt: string, lang: string): Promise<string> => {
+  // Download Vithal.AI model
+  const downloadModel = async () => {
     try {
-      setProgressStatus('Initializing AI model...');
+      setIsDownloading(true);
+      setProgressStatus('Initializing Vithal.AI Code Generator Model...');
       setProgressPercent(5);
       setEstimatedTime(20);
       setRemainingTime(20);
+      setModelSize('~45 MB');
 
-      // Load or use cached pipeline
-      if (!cachedPipeline) {
-        setModelSize('~45 MB');
-        setProgressStatus('Downloading model files...');
-        setProgressPercent(10);
-        setRemainingTime(18);
+      let lastProgress = 0;
+      
+      // Progress callback for download
+      const progressCallback = (progress: any) => {
+        console.log('Download progress:', progress);
         
-        let lastProgress = 0;
-        
-        // Progress callback for download
-        const progressCallback = (progress: any) => {
-          console.log('Download progress:', progress);
+        if (progress.status === 'progress' && progress.total) {
+          const percent = Math.round((progress.loaded / progress.total) * 100);
+          const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
+          const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
           
-          if (progress.status === 'progress' && progress.total) {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
-            const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
-            
-            setDownloadedSize(`${loadedMB} / ${totalMB} MB`);
-            setProgressPercent(10 + (percent * 0.5)); // 10-60% for download
-            setRemainingTime(Math.max(1, Math.round(18 - (percent / 100) * 12)));
-            lastProgress = percent;
-          } else if (progress.status === 'initiate') {
-            setProgressStatus(`Loading ${progress.file}...`);
-          } else if (progress.status === 'done') {
-            setProgressStatus('Files downloaded!');
-          }
-        };
-        
-        try {
-          // Try WebGPU first
-          setProgressStatus('Trying WebGPU acceleration...');
-          cachedPipeline = await pipeline(
-            'text-generation', 
-            'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-            {
-              device: 'webgpu',
-              dtype: 'q4',
-              progress_callback: progressCallback,
-            }
-          );
-          setProgressStatus('WebGPU enabled!');
-        } catch (gpuError) {
-          console.warn('WebGPU failed, falling back to WASM:', gpuError);
-          setProgressStatus('Falling back to CPU mode...');
-          setProgressPercent(10);
-          
-          // Fallback to WASM (CPU)
-          cachedPipeline = await pipeline(
-            'text-generation',
-            'Xenova/distilgpt2', // Smaller, more reliable model for CPU
-            {
-              progress_callback: progressCallback,
-            }
-          );
-          setProgressStatus('CPU mode loaded!');
+          setDownloadedSize(`${loadedMB} / ${totalMB} MB`);
+          setProgressPercent(10 + (percent * 0.5)); // 10-60% for download
+          setRemainingTime(Math.max(1, Math.round(18 - (percent / 100) * 12)));
+          lastProgress = percent;
+        } else if (progress.status === 'initiate') {
+          setProgressStatus(`Downloading ${progress.file}...`);
+        } else if (progress.status === 'done') {
+          setProgressStatus('Files downloaded!');
         }
+      };
+      
+      try {
+        // Try WebGPU first
+        setProgressStatus('Loading Vithal.AI with WebGPU acceleration...');
+        cachedPipeline = await pipeline(
+          'text-generation', 
+          'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+          {
+            device: 'webgpu',
+            dtype: 'q4',
+            progress_callback: progressCallback,
+          }
+        );
+        setProgressStatus('WebGPU enabled!');
+      } catch (gpuError) {
+        console.warn('WebGPU failed, falling back to WASM:', gpuError);
+        setProgressStatus('Loading Vithal.AI in CPU mode...');
+        setProgressPercent(10);
         
-        setProgressStatus('Model ready!');
-        setProgressPercent(65);
-        setRemainingTime(4);
-      } else {
-        setProgressStatus('Using cached model...');
-        setProgressPercent(60);
-        setRemainingTime(3);
-        setModelSize('Cached');
+        // Fallback to WASM (CPU)
+        cachedPipeline = await pipeline(
+          'text-generation',
+          'Xenova/distilgpt2',
+          {
+            progress_callback: progressCallback,
+          }
+        );
+        setProgressStatus('CPU mode loaded!');
       }
       
+      setProgressStatus('Vithal.AI Model Ready!');
+      setProgressPercent(100);
+      setRemainingTime(0);
+      
+      // Save to localStorage
+      localStorage.setItem('vithal_ai_model_cached', 'true');
+      setIsModelDownloaded(true);
+      
+      toast({
+        title: "Model Downloaded!",
+        description: "Vithal.AI Code Generator is ready to use.",
+      });
+    } catch (error) {
+      console.error('Model download error:', error);
+      setProgressStatus('Download Failed');
+      toast({
+        title: "Download Failed",
+        description: "Failed to download Vithal.AI model. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+      setProgressPercent(0);
+      setProgressStatus('');
+    }
+  };
+
+  // Local AI code generation
+  const generateLocalAICode = async (prompt: string, lang: string): Promise<string> => {
+    try {
+      if (!cachedPipeline) {
+        throw new Error('Model not loaded. Please download the model first.');
+      }
+
       setProgressStatus('Generating code...');
-      setProgressPercent(80);
-      setRemainingTime(2);
+      setProgressPercent(50);
       
       const systemPrompt = `Generate ${lang} code:\n${prompt}\n\nCode:\n`;
       const result: any = await cachedPipeline(systemPrompt, {
@@ -252,7 +279,6 @@ export const CodeGenerator = () => {
       
       setProgressStatus('Processing...');
       setProgressPercent(95);
-      setRemainingTime(1);
       
       const generatedText = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
       if (!generatedText) {
@@ -261,13 +287,12 @@ export const CodeGenerator = () => {
       
       setProgressStatus('Complete!');
       setProgressPercent(100);
-      setRemainingTime(0);
       
       return generatedText.replace(systemPrompt, '').trim();
     } catch (error) {
       console.error('Local AI error:', error);
-      setProgressStatus('Failed - Try rule-based mode');
-      throw new Error(`Local AI failed: ${error instanceof Error ? error.message : 'Unknown error'}. Use rule-based mode instead.`);
+      setProgressStatus('Failed');
+      throw new Error(`Code generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -286,31 +311,13 @@ export const CodeGenerator = () => {
       setGeneratedCode('');
       setProgressStatus('Starting...');
       setProgressPercent(0);
-      setModelSize('');
-      setDownloadedSize('');
-      setEstimatedTime(0);
-      setRemainingTime(0);
 
-      let code = "";
-      
-      if (generatorMode === "rule-based") {
-        setEstimatedTime(1);
-        setRemainingTime(1);
-        setProgressStatus('Analyzing prompt...');
-        setProgressPercent(50);
-        code = generateRuleBasedCode(prompt, selectedLanguage);
-        setProgressStatus('Complete!');
-        setProgressPercent(100);
-        setRemainingTime(0);
-      } else {
-        code = await generateLocalAICode(prompt, selectedLanguage);
-      }
-
+      const code = await generateLocalAICode(prompt, selectedLanguage);
       setGeneratedCode(code);
       
       toast({
         title: "Code Generated!",
-        description: `Code generated successfully using ${generatorMode} mode.`,
+        description: "Code generated successfully using Vithal.AI.",
       });
 
     } catch (error: any) {
@@ -318,7 +325,6 @@ export const CodeGenerator = () => {
       
       setProgressStatus('Failed');
       setProgressPercent(0);
-      setRemainingTime(0);
       
       toast({
         title: "Generation Failed",
@@ -327,6 +333,22 @@ export const CodeGenerator = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const copySnippetToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      toast({
+        title: "Copied!",
+        description: "Code snippet copied to clipboard.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy code.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -439,10 +461,119 @@ export const CodeGenerator = () => {
     }
   };
 
+  // Show download screen if model not downloaded
+  if (!isModelDownloaded) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
+              <Brain className="h-16 w-16 text-primary" />
+            </div>
+            <CardTitle className="text-3xl">Vithal.AI Code Generator Model</CardTitle>
+            <p className="text-muted-foreground">
+              Download the AI model to start generating code locally in your browser
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-4 text-center">
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Model Size</p>
+                <p className="text-2xl font-bold">~45 MB</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Processing</p>
+                <p className="text-2xl font-bold">Local</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <h3 className="font-semibold">Features:</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  Fast code generation in multiple languages
+                </li>
+                <li className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-primary" />
+                  AI-powered intelligent suggestions
+                </li>
+                <li className="flex items-center gap-2">
+                  <Code className="h-4 w-4 text-primary" />
+                  Supports JavaScript, Python, Java, C++, and more
+                </li>
+                <li className="flex items-center gap-2">
+                  <Save className="h-4 w-4 text-primary" />
+                  Works offline after initial download
+                </li>
+              </ul>
+            </div>
+
+            {isDownloading && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="pt-6 space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="font-medium">{progressStatus}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {modelSize && (
+                        <Badge variant="outline" className="text-xs">
+                          {modelSize}
+                        </Badge>
+                      )}
+                      {downloadedSize && (
+                        <span className="text-xs text-muted-foreground">{downloadedSize}</span>
+                      )}
+                    </div>
+                  </div>
+                  <Progress value={progressPercent} className="h-2" />
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      Please wait while the model is being downloaded...
+                    </span>
+                    {remainingTime > 0 && (
+                      <div className="flex items-center gap-1 font-medium">
+                        <Clock className="h-3 w-3" />
+                        <span>~{remainingTime}s remaining</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Button 
+              onClick={downloadModel} 
+              disabled={isDownloading}
+              className="w-full"
+              size="lg"
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                  Downloading Model...
+                </>
+              ) : (
+                <>
+                  <Download className="h-5 w-5 mr-2" />
+                  Download Vithal.AI Model
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">AI Code Generator</h1>
+        <h1 className="text-3xl font-bold">Vithal.AI Code Generator</h1>
         <p className="text-muted-foreground">Generate, explain, fix, and optimize code with AI assistance</p>
       </div>
 
@@ -463,25 +594,6 @@ export const CodeGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Generator Mode</label>
-                  <Select value={generatorMode} onValueChange={(v) => setGeneratorMode(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GENERATOR_MODES.map((mode) => (
-                        <SelectItem key={mode.value} value={mode.value}>
-                          <div className="flex items-center gap-2">
-                            <mode.icon className="h-4 w-4" />
-                            {mode.label}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium mb-2 block">Programming Language</label>
@@ -557,36 +669,12 @@ export const CodeGenerator = () => {
                           <Loader2 className="h-4 w-4 animate-spin" />
                           <span className="font-medium">{progressStatus}</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {modelSize && (
-                            <Badge variant="outline" className="text-xs">
-                              {modelSize}
-                            </Badge>
-                          )}
-                          {downloadedSize && (
-                            <span className="text-xs text-muted-foreground">{downloadedSize}</span>
-                          )}
-                        </div>
                       </div>
                       <Progress value={progressPercent} className="h-2" />
                       <div className="flex items-center justify-between text-xs">
-                        <div className="text-muted-foreground">
-                          {generatorMode === 'local-ai' && !cachedPipeline && (
-                            <span>⚡ First load downloads model. Future uses will be instant!</span>
-                          )}
-                          {generatorMode === 'local-ai' && cachedPipeline && (
-                            <span>⚡ Using cached model (instant)</span>
-                          )}
-                          {generatorMode === 'rule-based' && (
-                            <span>⚡ Rule-based generation is instant</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 font-medium">
-                          <Clock className="h-3 w-3" />
-                          {estimatedTime > 0 && (
-                            <span>Est: {estimatedTime}s | Remaining: {remainingTime}s</span>
-                          )}
-                        </div>
+                        <span className="text-muted-foreground">
+                          ⚡ Generating code with Vithal.AI...
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -664,7 +752,7 @@ export const CodeGenerator = () => {
               ) : (
                 <ScrollArea className="h-96">
                   <div className="space-y-4">
-                    {savedSnippets.map((snippet) => (
+                     {savedSnippets.map((snippet) => (
                       <div key={snippet.id} className="border rounded-lg p-4 space-y-2">
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
@@ -677,13 +765,22 @@ export const CodeGenerator = () => {
                               </span>
                             </div>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => deleteSnippet(snippet.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copySnippetToClipboard(snippet.generated_code)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => deleteSnippet(snippet.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         <Separator />
                         <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
