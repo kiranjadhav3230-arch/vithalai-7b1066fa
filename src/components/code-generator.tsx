@@ -24,11 +24,11 @@ import {
   BookOpen,
   Heart,
   Trash2,
-  Brain,
   FileCode,
   Clock,
   Loader2
 } from 'lucide-react';
+import vithalLogo from '@/assets/vithal-ai-logo.png';
 
 const PROGRAMMING_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -113,10 +113,38 @@ export const CodeGenerator = () => {
 
   // Check if model is already in cache on component mount
   React.useEffect(() => {
-    const checkModelCache = () => {
+    const checkModelCache = async () => {
       const cached = localStorage.getItem('vithal_ai_model_cached');
-      if (cached === 'true' && cachedPipeline) {
-        setIsModelDownloaded(true);
+      if (cached === 'true') {
+        // Try to load the cached model
+        try {
+          setIsDownloading(true);
+          setProgressStatus('Loading cached model...');
+          if (!cachedPipeline) {
+            try {
+              cachedPipeline = await pipeline(
+                'text-generation', 
+                'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+                {
+                  device: 'webgpu',
+                  dtype: 'q4',
+                }
+              );
+            } catch {
+              cachedPipeline = await pipeline(
+                'text-generation',
+                'Xenova/distilgpt2'
+              );
+            }
+          }
+          setIsModelDownloaded(true);
+          setProgressStatus('');
+        } catch (error) {
+          console.error('Failed to load cached model:', error);
+          localStorage.removeItem('vithal_ai_model_cached');
+        } finally {
+          setIsDownloading(false);
+        }
       }
     };
     checkModelCache();
@@ -464,81 +492,109 @@ export const CodeGenerator = () => {
   // Show download screen if model not downloaded
   if (!isModelDownloaded) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card>
-          <CardHeader className="text-center space-y-4">
-            <div className="flex justify-center">
-              <Brain className="h-16 w-16 text-primary" />
+      <div className="max-w-4xl mx-auto p-6 min-h-screen flex items-center justify-center">
+        <Card className="w-full overflow-hidden animate-fade-in tech-card">
+          <CardHeader className="text-center space-y-6 pb-8">
+            <div className="flex justify-center relative">
+              <div className="absolute inset-0 blur-3xl bg-primary/20 animate-pulse" />
+              <img 
+                src={vithalLogo} 
+                alt="Vithal.AI Logo" 
+                className="h-24 w-24 relative z-10 animate-float" 
+              />
             </div>
-            <CardTitle className="text-3xl">Vithal.AI Code Generator Model</CardTitle>
-            <p className="text-muted-foreground">
-              Download the AI model to start generating code locally in your browser
-            </p>
+            <div className="space-y-2 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <CardTitle className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                Vithal.AI Code Generator
+              </CardTitle>
+              <p className="text-muted-foreground text-lg">
+                Download the AI model to start generating code locally in your browser
+              </p>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Model Size</p>
-                <p className="text-2xl font-bold">~45 MB</p>
+            <div className="grid grid-cols-2 gap-6 text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="space-y-3 p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+                <div className="flex justify-center">
+                  <Download className="h-8 w-8 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground font-medium">Model Size</p>
+                <p className="text-3xl font-bold text-primary">~45 MB</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Processing</p>
-                <p className="text-2xl font-bold">Local</p>
+              <div className="space-y-3 p-4 rounded-lg bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
+                <div className="flex justify-center">
+                  <Zap className="h-8 w-8 text-accent" />
+                </div>
+                <p className="text-sm text-muted-foreground font-medium">Processing</p>
+                <p className="text-3xl font-bold text-accent">Local</p>
               </div>
             </div>
 
-            <Separator />
+            <Separator className="animate-fade-in" style={{ animationDelay: '0.6s' }} />
 
-            <div className="space-y-3">
-              <h3 className="font-semibold">Features:</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-primary" />
-                  Fast code generation in multiple languages
+            <div className="space-y-4 animate-fade-in" style={{ animationDelay: '0.8s' }}>
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Features:
+              </h3>
+              <ul className="space-y-3 text-sm">
+                <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  <Zap className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span>Fast code generation in multiple languages</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-primary" />
-                  AI-powered intelligent suggestions
+                <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span>AI-powered intelligent suggestions</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <Code className="h-4 w-4 text-primary" />
-                  Supports JavaScript, Python, Java, C++, and more
+                <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  <Code className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span>Supports JavaScript, Python, Java, C++, and more</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <Save className="h-4 w-4 text-primary" />
-                  Works offline after initial download
+                <li className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
+                  <Save className="h-5 w-5 text-primary flex-shrink-0" />
+                  <span>Works offline after initial download</span>
                 </li>
               </ul>
             </div>
 
             {isDownloading && (
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="pt-6 space-y-3">
+              <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 animate-scale-in">
+                <CardContent className="pt-6 space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="font-medium">{progressStatus}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                        <div className="absolute inset-0 blur-sm bg-primary animate-pulse" />
+                      </div>
+                      <span className="font-semibold text-foreground">{progressStatus}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {modelSize && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-primary/30 bg-primary/5">
                           {modelSize}
                         </Badge>
                       )}
                       {downloadedSize && (
-                        <span className="text-xs text-muted-foreground">{downloadedSize}</span>
+                        <span className="text-xs font-medium text-primary">{downloadedSize}</span>
                       )}
                     </div>
                   </div>
-                  <Progress value={progressPercent} className="h-2" />
+                  <div className="relative">
+                    <Progress value={progressPercent} className="h-3" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[loading_2s_ease-in-out_infinite]" />
+                  </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      Please wait while the model is being downloaded...
+                    <span className="text-muted-foreground flex items-center gap-2">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                      </span>
+                      Downloading model files...
                     </span>
                     {remainingTime > 0 && (
-                      <div className="flex items-center gap-1 font-medium">
-                        <Clock className="h-3 w-3" />
-                        <span>~{remainingTime}s remaining</span>
+                      <div className="flex items-center gap-1.5 font-semibold text-primary">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span>~{remainingTime}s</span>
                       </div>
                     )}
                   </div>
@@ -549,18 +605,20 @@ export const CodeGenerator = () => {
             <Button 
               onClick={downloadModel} 
               disabled={isDownloading}
-              className="w-full"
+              className="w-full h-14 text-lg font-semibold group relative overflow-hidden animate-fade-in"
+              style={{ animationDelay: '1s' }}
               size="lg"
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-[loading_3s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
               {isDownloading ? (
                 <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Downloading Model...
+                  <Loader2 className="h-6 w-6 mr-3 animate-spin relative z-10" />
+                  <span className="relative z-10">Downloading Model...</span>
                 </>
               ) : (
                 <>
-                  <Download className="h-5 w-5 mr-2" />
-                  Download Vithal.AI Model
+                  <Download className="h-6 w-6 mr-3 relative z-10 group-hover:animate-bounce" />
+                  <span className="relative z-10">Download Vithal.AI Model</span>
                 </>
               )}
             </Button>
@@ -571,10 +629,15 @@ export const CodeGenerator = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Vithal.AI Code Generator</h1>
-        <p className="text-muted-foreground">Generate, explain, fix, and optimize code with AI assistance</p>
+    <div className="max-w-7xl mx-auto p-6 space-y-6 animate-fade-in">
+      <div className="text-center space-y-3">
+        <div className="flex justify-center mb-4">
+          <img src={vithalLogo} alt="Vithal.AI" className="h-16 w-16 animate-float" />
+        </div>
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          Vithal.AI Code Generator
+        </h1>
+        <p className="text-muted-foreground text-lg">Generate, explain, fix, and optimize code with AI assistance</p>
       </div>
 
       <Tabs defaultValue="generate" className="w-full">
@@ -586,10 +649,10 @@ export const CodeGenerator = () => {
         <TabsContent value="generate" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Section */}
-            <Card>
+            <Card className="tech-card animate-fade-in hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
+                  <Sparkles className="h-5 w-5 text-primary animate-pulse" />
                   Code Generation
                 </CardTitle>
               </CardHeader>
@@ -645,35 +708,46 @@ export const CodeGenerator = () => {
                 <Button 
                   onClick={generateCode} 
                   disabled={isLoading || !prompt.trim()}
-                  className="w-full"
+                  className="w-full group relative overflow-hidden"
                 >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-[loading_3s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity" />
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin relative z-10" />
+                      <span className="relative z-10">Generating...</span>
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-2" />
-                      Generate Code
+                      <Play className="h-4 w-4 mr-2 relative z-10 group-hover:animate-pulse" />
+                      <span className="relative z-10">Generate Code</span>
                     </>
                   )}
                 </Button>
 
                 {/* Progress Dashboard */}
                 {isLoading && (
-                  <Card className="border-primary/20 bg-primary/5">
+                  <Card className="border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 animate-scale-in">
                     <CardContent className="pt-6 space-y-3">
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="font-medium">{progressStatus}</span>
+                          <div className="relative">
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            <div className="absolute inset-0 blur-sm bg-primary animate-pulse" />
+                          </div>
+                          <span className="font-semibold">{progressStatus}</span>
                         </div>
                       </div>
-                      <Progress value={progressPercent} className="h-2" />
+                      <div className="relative">
+                        <Progress value={progressPercent} className="h-2" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/20 to-transparent animate-[loading_2s_ease-in-out_infinite]" />
+                      </div>
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          ⚡ Generating code with Vithal.AI...
+                        <span className="text-muted-foreground flex items-center gap-2">
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                          </span>
+                          Generating code with Vithal.AI...
                         </span>
                       </div>
                     </CardContent>
@@ -683,11 +757,11 @@ export const CodeGenerator = () => {
             </Card>
 
             {/* Output Section */}
-            <Card>
+            <Card className="tech-card animate-fade-in hover:shadow-lg hover:shadow-primary/10 transition-all duration-300" style={{ animationDelay: '0.1s' }}>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Code className="h-5 w-5" />
+                    <Code className="h-5 w-5 text-primary" />
                     Generated Code
                   </div>
                   {generatedCode && (
