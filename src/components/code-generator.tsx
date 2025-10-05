@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { pipeline } from '@huggingface/transformers';
+import vithalLogo from '@/assets/vithal-ai-logo-new.png';
 import { 
   Code, 
   Play, 
@@ -314,12 +315,14 @@ export const CodeGenerator = () => {
       setProgressStatus('Generating code...');
       setProgressPercent(50);
       
-      const systemPrompt = `Generate ${lang} code:\n${prompt}\n\nCode:\n`;
+      const systemPrompt = `Generate complete and functional ${lang} code for the following task:\n${prompt}\n\nProvide a full, working implementation with all necessary code:\n\n`;
       const result: any = await cachedPipeline(systemPrompt, {
-        max_new_tokens: 150,
-        temperature: 0.3,
+        max_new_tokens: 512,
+        temperature: 0.7,
         do_sample: true,
         top_k: 50,
+        top_p: 0.95,
+        repetition_penalty: 1.2,
       });
       
       setProgressStatus('Processing...');
@@ -333,7 +336,13 @@ export const CodeGenerator = () => {
       setProgressStatus('Complete!');
       setProgressPercent(100);
       
-      return generatedText.replace(systemPrompt, '').trim();
+      // Extract code after the prompt
+      let code = generatedText.replace(systemPrompt, '').trim();
+      
+      // Clean up the output
+      code = code.split('\n\n\n')[0]; // Take first complete section
+      
+      return code;
     } catch (error) {
       console.error('Local AI error:', error);
       setProgressStatus('Failed');
@@ -514,9 +523,9 @@ export const CodeGenerator = () => {
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center">
               <img 
-                src="/src/assets/vithal-ai-logo.png" 
+                src={vithalLogo} 
                 alt="Vithal.AI Logo" 
-                className="h-20 w-20 object-contain"
+                className="h-24 w-24 object-contain"
               />
             </div>
             <CardTitle className="text-3xl">Vithal.AI Code Generator Model</CardTitle>
