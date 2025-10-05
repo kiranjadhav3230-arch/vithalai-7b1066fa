@@ -113,10 +113,55 @@ export const CodeGenerator = () => {
 
   // Check if model is already in cache on component mount
   React.useEffect(() => {
-    const checkModelCache = () => {
-      const cached = localStorage.getItem('vithal_ai_model_cached');
-      if (cached === 'true' && cachedPipeline) {
-        setIsModelDownloaded(true);
+    const checkModelCache = async () => {
+      try {
+        // Check localStorage first
+        const cached = localStorage.getItem('vithal_ai_model_cached');
+        
+        if (cached === 'true') {
+          // Try to load the cached model from browser cache
+          setIsDownloading(true);
+          setProgressStatus('Loading cached model...');
+          setProgressPercent(50);
+          
+          try {
+            // Attempt to load cached model
+            cachedPipeline = await pipeline(
+              'text-generation', 
+              'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
+              {
+                device: 'webgpu',
+                dtype: 'q4',
+              }
+            );
+            setIsModelDownloaded(true);
+            setProgressStatus('Model ready!');
+            setProgressPercent(100);
+          } catch (gpuError) {
+            // Fallback to WASM
+            try {
+              cachedPipeline = await pipeline(
+                'text-generation',
+                'Xenova/distilgpt2'
+              );
+              setIsModelDownloaded(true);
+              setProgressStatus('Model ready!');
+              setProgressPercent(100);
+            } catch (error) {
+              console.error('Failed to load cached model:', error);
+              localStorage.removeItem('vithal_ai_model_cached');
+              setIsModelDownloaded(false);
+            }
+          } finally {
+            setIsDownloading(false);
+            setProgressStatus('');
+            setProgressPercent(0);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking model cache:', error);
+        localStorage.removeItem('vithal_ai_model_cached');
+        setIsModelDownloaded(false);
       }
     };
     checkModelCache();
@@ -468,7 +513,11 @@ export const CodeGenerator = () => {
         <Card>
           <CardHeader className="text-center space-y-4">
             <div className="flex justify-center">
-              <Brain className="h-16 w-16 text-primary" />
+              <img 
+                src="/src/assets/vithal-ai-logo.png" 
+                alt="Vithal.AI Logo" 
+                className="h-20 w-20 object-contain"
+              />
             </div>
             <CardTitle className="text-3xl">Vithal.AI Code Generator Model</CardTitle>
             <p className="text-muted-foreground">
@@ -479,7 +528,7 @@ export const CodeGenerator = () => {
             <div className="grid grid-cols-2 gap-4 text-center">
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Model Size</p>
-                <p className="text-2xl font-bold">~45 MB</p>
+                <p className="text-2xl font-bold">45 MB</p>
               </div>
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Processing</p>
