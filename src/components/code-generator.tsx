@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,14 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { pipeline } from '@huggingface/transformers';
 import vithalLogo from '@/assets/vithal-ai-logo-new.png';
 import { 
   Code, 
-  Play, 
   Copy, 
   Download, 
   Save, 
@@ -23,11 +20,7 @@ import {
   Zap, 
   Languages,
   BookOpen,
-  Heart,
   Trash2,
-  Brain,
-  FileCode,
-  Clock,
   Loader2
 } from 'lucide-react';
 
@@ -52,33 +45,6 @@ const CODE_TASKS = [
   { value: 'translate', label: 'Translate Language', icon: Languages }
 ];
 
-// Removed: Generator modes - now only using Local AI
-
-// Rule-based code templates
-const codeTemplates: Record<string, Record<string, (name: string) => string>> = {
-  javascript: {
-    function: (name: string) => `function ${name}() {\n  // TODO: Implement function logic\n  return result;\n}`,
-    class: (name: string) => `class ${name} {\n  constructor() {\n    // Initialize properties\n  }\n\n  method() {\n    // Method implementation\n  }\n}`,
-    api: (name: string) => `async function fetch${name}() {\n  try {\n    const response = await fetch('/api/${name.toLowerCase()}');\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error('Error:', error);\n    throw error;\n  }\n}`,
-    sort: () => `function sortArray(arr) {\n  return arr.sort((a, b) => a - b);\n}`,
-    filter: () => `function filterArray(arr, condition) {\n  return arr.filter(item => condition(item));\n}`,
-  },
-  python: {
-    function: (name: string) => `def ${name}():\n    """Function description"""\n    # TODO: Implement function logic\n    return result`,
-    class: (name: string) => `class ${name}:\n    def __init__(self):\n        # Initialize attributes\n        pass\n\n    def method(self):\n        # Method implementation\n        pass`,
-    api: (name: string) => `import requests\n\ndef fetch_${name.toLowerCase()}():\n    try:\n        response = requests.get(f'/api/${name.toLowerCase()}')\n        response.raise_for_status()\n        return response.json()\n    except requests.exceptions.RequestException as e:\n        print(f'Error: {e}')\n        raise`,
-    sort: () => `def sort_array(arr):\n    return sorted(arr)`,
-    filter: () => `def filter_array(arr, condition):\n    return [item for item in arr if condition(item)]`,
-  },
-  typescript: {
-    function: (name: string) => `function ${name}(): ReturnType {\n  // TODO: Implement function logic\n  return result;\n}`,
-    class: (name: string) => `class ${name} {\n  constructor() {\n    // Initialize properties\n  }\n\n  method(): void {\n    // Method implementation\n  }\n}`,
-    api: (name: string) => `async function fetch${name}(): Promise<DataType> {\n  try {\n    const response = await fetch('/api/${name.toLowerCase()}');\n    const data: DataType = await response.json();\n    return data;\n  } catch (error) {\n    console.error('Error:', error);\n    throw error;\n  }\n}`,
-    sort: () => `function sortArray<T>(arr: T[]): T[] {\n  return arr.sort();\n}`,
-    filter: () => `function filterArray<T>(arr: T[], condition: (item: T) => boolean): T[] {\n  return arr.filter(condition);\n}`,
-  },
-};
-
 interface CodeSnippet {
   id: string;
   title: string;
@@ -89,84 +55,15 @@ interface CodeSnippet {
   created_at: string;
 }
 
-// Cache for the AI model
-let cachedPipeline: any = null;
-
 export const CodeGenerator = () => {
   const [prompt, setPrompt] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [selectedTask, setSelectedTask] = useState('generate');
   const [generatedCode, setGeneratedCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
-  const [progressStatus, setProgressStatus] = useState<string>('');
-  const [progressPercent, setProgressPercent] = useState(0);
-  const [modelSize, setModelSize] = useState<string>('');
-  const [downloadedSize, setDownloadedSize] = useState<string>('');
-  const [estimatedTime, setEstimatedTime] = useState(0);
-  const [remainingTime, setRemainingTime] = useState(0);
-  const [isModelDownloaded, setIsModelDownloaded] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const codeRef = useRef<HTMLTextAreaElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
-
-  // Check if model is already in cache on component mount
-  React.useEffect(() => {
-    const checkModelCache = async () => {
-      try {
-        // Check localStorage first
-        const cached = localStorage.getItem('vithal_ai_model_cached');
-        
-        if (cached === 'true') {
-          // Try to load the cached model from browser cache
-          setIsDownloading(true);
-          setProgressStatus('Loading cached model...');
-          setProgressPercent(50);
-          
-          try {
-            // Attempt to load cached model
-            cachedPipeline = await pipeline(
-              'text-generation', 
-              'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-              {
-                device: 'webgpu',
-                dtype: 'q4',
-              }
-            );
-            setIsModelDownloaded(true);
-            setProgressStatus('Model ready!');
-            setProgressPercent(100);
-          } catch (gpuError) {
-            // Fallback to WASM
-            try {
-              cachedPipeline = await pipeline(
-                'text-generation',
-                'Xenova/distilgpt2'
-              );
-              setIsModelDownloaded(true);
-              setProgressStatus('Model ready!');
-              setProgressPercent(100);
-            } catch (error) {
-              console.error('Failed to load cached model:', error);
-              localStorage.removeItem('vithal_ai_model_cached');
-              setIsModelDownloaded(false);
-            }
-          } finally {
-            setIsDownloading(false);
-            setProgressStatus('');
-            setProgressPercent(0);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking model cache:', error);
-        localStorage.removeItem('vithal_ai_model_cached');
-        setIsModelDownloaded(false);
-      }
-    };
-    checkModelCache();
-  }, []);
 
   // Load saved snippets
   const loadSnippets = async () => {
@@ -194,159 +91,33 @@ export const CodeGenerator = () => {
     loadSnippets();
   }, []);
 
-  // Rule-based code generation
-  const generateRuleBasedCode = (prompt: string, lang: string): string => {
-    const lowerPrompt = prompt.toLowerCase();
-    const templates = codeTemplates[lang] || codeTemplates.javascript;
-    
-    // Extract potential function/class name
-    const nameMatch = prompt.match(/(?:function|class|component|api|fetch)\s+(?:called\s+)?(\w+)/i);
-    const name = nameMatch ? nameMatch[1] : 'myFunction';
-    
-    // Pattern matching for different code types
-    if (lowerPrompt.includes('class') || lowerPrompt.includes('object')) {
-      return templates.class(name);
-    } else if (lowerPrompt.includes('api') || lowerPrompt.includes('fetch') || lowerPrompt.includes('request')) {
-      return templates.api(name);
-    } else if (lowerPrompt.includes('sort')) {
-      return templates.sort ? templates.sort('') : templates.function(name);
-    } else if (lowerPrompt.includes('filter')) {
-      return templates.filter ? templates.filter('') : templates.function(name);
-    } else {
-      return templates.function(name);
-    }
-  };
-
-  // Download Vithal.AI model
-  const downloadModel = async () => {
+  // Generate code using Gemini API
+  const generateCodeWithGemini = async (prompt: string, lang: string, task: string): Promise<string> => {
     try {
-      setIsDownloading(true);
-      setProgressStatus('Initializing Vithal.AI Code Generator Model...');
-      setProgressPercent(5);
-      setEstimatedTime(20);
-      setRemainingTime(20);
-      setModelSize('~45 MB');
-
-      let lastProgress = 0;
+      console.log('Calling Gemini API for code generation...');
       
-      // Progress callback for download
-      const progressCallback = (progress: any) => {
-        console.log('Download progress:', progress);
-        
-        if (progress.status === 'progress' && progress.total) {
-          const percent = Math.round((progress.loaded / progress.total) * 100);
-          const loadedMB = (progress.loaded / (1024 * 1024)).toFixed(1);
-          const totalMB = (progress.total / (1024 * 1024)).toFixed(1);
-          
-          setDownloadedSize(`${loadedMB} / ${totalMB} MB`);
-          setProgressPercent(10 + (percent * 0.5)); // 10-60% for download
-          setRemainingTime(Math.max(1, Math.round(18 - (percent / 100) * 12)));
-          lastProgress = percent;
-        } else if (progress.status === 'initiate') {
-          setProgressStatus(`Downloading ${progress.file}...`);
-        } else if (progress.status === 'done') {
-          setProgressStatus('Files downloaded!');
+      const { data, error } = await supabase.functions.invoke('code-generator-gemini', {
+        body: { 
+          prompt, 
+          language: lang,
+          task 
         }
-      };
-      
-      try {
-        // Try WebGPU first
-        setProgressStatus('Loading Vithal.AI with WebGPU acceleration...');
-        cachedPipeline = await pipeline(
-          'text-generation', 
-          'onnx-community/Qwen2.5-Coder-0.5B-Instruct',
-          {
-            device: 'webgpu',
-            dtype: 'q4',
-            progress_callback: progressCallback,
-          }
-        );
-        setProgressStatus('WebGPU enabled!');
-      } catch (gpuError) {
-        console.warn('WebGPU failed, falling back to WASM:', gpuError);
-        setProgressStatus('Loading Vithal.AI in CPU mode...');
-        setProgressPercent(10);
-        
-        // Fallback to WASM (CPU)
-        cachedPipeline = await pipeline(
-          'text-generation',
-          'Xenova/distilgpt2',
-          {
-            progress_callback: progressCallback,
-          }
-        );
-        setProgressStatus('CPU mode loaded!');
-      }
-      
-      setProgressStatus('Vithal.AI Model Ready!');
-      setProgressPercent(100);
-      setRemainingTime(0);
-      
-      // Save to localStorage
-      localStorage.setItem('vithal_ai_model_cached', 'true');
-      setIsModelDownloaded(true);
-      
-      toast({
-        title: "Model Downloaded!",
-        description: "Vithal.AI Code Generator is ready to use.",
       });
-    } catch (error) {
-      console.error('Model download error:', error);
-      setProgressStatus('Download Failed');
-      toast({
-        title: "Download Failed",
-        description: "Failed to download Vithal.AI model. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDownloading(false);
-      setProgressPercent(0);
-      setProgressStatus('');
-    }
-  };
 
-  // Local AI code generation
-  const generateLocalAICode = async (prompt: string, lang: string): Promise<string> => {
-    try {
-      if (!cachedPipeline) {
-        throw new Error('Model not loaded. Please download the model first.');
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to generate code');
       }
 
-      setProgressStatus('Generating code...');
-      setProgressPercent(50);
-      
-      const systemPrompt = `Generate complete and functional ${lang} code for the following task:\n${prompt}\n\nProvide a full, working implementation with all necessary code:\n\n`;
-      const result: any = await cachedPipeline(systemPrompt, {
-        max_new_tokens: 512,
-        temperature: 0.7,
-        do_sample: true,
-        top_k: 50,
-        top_p: 0.95,
-        repetition_penalty: 1.2,
-      });
-      
-      setProgressStatus('Processing...');
-      setProgressPercent(95);
-      
-      const generatedText = Array.isArray(result) ? result[0]?.generated_text : result?.generated_text;
-      if (!generatedText) {
-        throw new Error('No code generated');
+      if (!data || !data.code) {
+        throw new Error('No code returned from API');
       }
-      
-      setProgressStatus('Complete!');
-      setProgressPercent(100);
-      
-      // Extract code after the prompt
-      let code = generatedText.replace(systemPrompt, '').trim();
-      
-      // Clean up the output
-      code = code.split('\n\n\n')[0]; // Take first complete section
-      
-      return code;
+
+      console.log('Code generated successfully, length:', data.code.length);
+      return data.code;
     } catch (error) {
-      console.error('Local AI error:', error);
-      setProgressStatus('Failed');
-      throw new Error(`Code generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Gemini API error:', error);
+      throw error;
     }
   };
 
@@ -354,48 +125,43 @@ export const CodeGenerator = () => {
     if (!prompt.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a description for the code you want to generate.",
+        description: "Please enter a code generation prompt",
         variant: "destructive",
       });
       return;
     }
 
+    setIsGenerating(true);
+    setGeneratedCode('');
+
     try {
-      setIsLoading(true);
-      setGeneratedCode('');
-      setProgressStatus('Starting...');
-      setProgressPercent(0);
-
-      const code = await generateLocalAICode(prompt, selectedLanguage);
-      setGeneratedCode(code);
+      const code = await generateCodeWithGemini(prompt, selectedLanguage, selectedTask);
       
+      if (code) {
+        setGeneratedCode(code);
+        toast({
+          title: "Success",
+          description: "Code generated successfully with Gemini AI!",
+        });
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
       toast({
-        title: "Code Generated!",
-        description: "Code generated successfully using Vithal.AI.",
-      });
-
-    } catch (error: any) {
-      console.error('Error generating code:', error);
-      
-      setProgressStatus('Failed');
-      setProgressPercent(0);
-      
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate code. Please try again.",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to generate code",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
-  const copySnippetToClipboard = async (code: string) => {
+  const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(generatedCode);
       toast({
         title: "Copied!",
-        description: "Code snippet copied to clipboard.",
+        description: "Code copied to clipboard.",
       });
     } catch (error) {
       toast({
@@ -404,6 +170,22 @@ export const CodeGenerator = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const downloadCode = () => {
+    const extension = selectedLanguage === 'javascript' ? 'js' : 
+                     selectedLanguage === 'python' ? 'py' :
+                     selectedLanguage === 'java' ? 'java' :
+                     selectedLanguage === 'cpp' ? 'cpp' :
+                     selectedLanguage === 'typescript' ? 'ts' : 'txt';
+    
+    const blob = new Blob([generatedCode], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `generated-code.${extension}`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const saveCodeSnippet = async () => {
@@ -458,12 +240,12 @@ export const CodeGenerator = () => {
     }
   };
 
-  const copyToClipboard = async () => {
+  const copySnippetToClipboard = async (code: string) => {
     try {
-      await navigator.clipboard.writeText(generatedCode);
+      await navigator.clipboard.writeText(code);
       toast({
         title: "Copied!",
-        description: "Code copied to clipboard.",
+        description: "Code snippet copied to clipboard.",
       });
     } catch (error) {
       toast({
@@ -472,22 +254,6 @@ export const CodeGenerator = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const downloadCode = () => {
-    const extension = selectedLanguage === 'javascript' ? 'js' : 
-                     selectedLanguage === 'python' ? 'py' :
-                     selectedLanguage === 'java' ? 'java' :
-                     selectedLanguage === 'cpp' ? 'cpp' :
-                     selectedLanguage === 'typescript' ? 'ts' : 'txt';
-    
-    const blob = new Blob([generatedCode], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `generated-code.${extension}`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   const deleteSnippet = async (id: string) => {
@@ -515,146 +281,50 @@ export const CodeGenerator = () => {
     }
   };
 
-  // Show download screen if model not downloaded
-  if (!isModelDownloaded) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card>
-          <CardHeader className="text-center space-y-4">
-            <div className="flex justify-center">
-              <img 
-                src={vithalLogo} 
-                alt="Vithal.AI Logo" 
-                className="h-24 w-24 object-contain"
-              />
-            </div>
-            <CardTitle className="text-3xl">Vithal.AI Code Generator Model</CardTitle>
-            <p className="text-muted-foreground">
-              Download the AI model to start generating code locally in your browser
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Model Size</p>
-                <p className="text-2xl font-bold">45 MB</p>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Processing</p>
-                <p className="text-2xl font-bold">Local</p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <h3 className="font-semibold">Features:</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-primary" />
-                  Fast code generation in multiple languages
-                </li>
-                <li className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-primary" />
-                  AI-powered intelligent suggestions
-                </li>
-                <li className="flex items-center gap-2">
-                  <Code className="h-4 w-4 text-primary" />
-                  Supports JavaScript, Python, Java, C++, and more
-                </li>
-                <li className="flex items-center gap-2">
-                  <Save className="h-4 w-4 text-primary" />
-                  Works offline after initial download
-                </li>
-              </ul>
-            </div>
-
-            {isDownloading && (
-              <Card className="border-primary/20 bg-primary/5">
-                <CardContent className="pt-6 space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="font-medium">{progressStatus}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {modelSize && (
-                        <Badge variant="outline" className="text-xs">
-                          {modelSize}
-                        </Badge>
-                      )}
-                      {downloadedSize && (
-                        <span className="text-xs text-muted-foreground">{downloadedSize}</span>
-                      )}
-                    </div>
-                  </div>
-                  <Progress value={progressPercent} className="h-2" />
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      Please wait while the model is being downloaded...
-                    </span>
-                    {remainingTime > 0 && (
-                      <div className="flex items-center gap-1 font-medium">
-                        <Clock className="h-3 w-3" />
-                        <span>~{remainingTime}s remaining</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Button 
-              onClick={downloadModel} 
-              disabled={isDownloading}
-              className="w-full"
-              size="lg"
-            >
-              {isDownloading ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Downloading Model...
-                </>
-              ) : (
-                <>
-                  <Download className="h-5 w-5 mr-2" />
-                  Download Vithal.AI Model
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Vithal.AI Code Generator</h1>
-        <p className="text-muted-foreground">Generate, explain, fix, and optimize code with AI assistance</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+        <div className="mb-8 text-center space-y-4">
+          <div className="flex justify-center">
+            <img 
+              src={vithalLogo} 
+              alt="Vithal.AI Logo" 
+              className="h-20 w-20 object-contain"
+            />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Vithal.AI Code Generator
+          </h1>
+          <p className="text-muted-foreground flex items-center justify-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            Powered by Gemini AI - Generate complete, production-ready code instantly
+          </p>
+        </div>
 
-      <Tabs defaultValue="generate" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="generate">Code Generator</TabsTrigger>
-          <TabsTrigger value="snippets">Saved Snippets</TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="generator" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="generator" className="flex items-center gap-2">
+              <Code className="h-4 w-4" />
+              Code Generator
+            </TabsTrigger>
+            <TabsTrigger value="snippets" className="flex items-center gap-2">
+              <Save className="h-4 w-4" />
+              Saved Snippets
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="generate" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Input Section */}
+          <TabsContent value="generator" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  Code Generation
+                  <Code className="h-5 w-5" />
+                  Generate Code
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Programming Language</label>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Language</label>
                     <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                       <SelectTrigger>
                         <SelectValue />
@@ -668,8 +338,9 @@ export const CodeGenerator = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Task Type</label>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Task</label>
                     <Select value={selectedTask} onValueChange={setSelectedTask}>
                       <SelectTrigger>
                         <SelectValue />
@@ -688,171 +359,145 @@ export const CodeGenerator = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Describe what you want to {selectedTask === 'generate' ? 'create' : selectedTask}
-                  </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Prompt</label>
                   <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder={`Example: Create a function that sorts an array of numbers...`}
-                    className="min-h-32"
+                    placeholder="Describe the code you want to generate..."
+                    className="min-h-[120px]"
                   />
                 </div>
 
                 <Button 
-                  onClick={generateCode} 
-                  disabled={isLoading || !prompt.trim()}
+                  onClick={generateCode}
+                  disabled={isGenerating || !prompt.trim()}
                   className="w-full"
+                  size="lg"
                 >
-                  {isLoading ? (
+                  {isGenerating ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Generating...
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating with Gemini AI...
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-2" />
+                      <Sparkles className="mr-2 h-4 w-4" />
                       Generate Code
                     </>
                   )}
                 </Button>
 
-                {/* Progress Dashboard */}
-                {isLoading && (
-                  <Card className="border-primary/20 bg-primary/5">
-                    <CardContent className="pt-6 space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          <span className="font-medium">{progressStatus}</span>
-                        </div>
-                      </div>
-                      <Progress value={progressPercent} className="h-2" />
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">
-                          ⚡ Generating code with Vithal.AI...
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Output Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Code className="h-5 w-5" />
-                    Generated Code
+                {isGenerating && (
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Generating code with Gemini AI...</span>
                   </div>
-                  {generatedCode && (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{selectedLanguage}</Badge>
-                    </div>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {generatedCode ? (
+                )}
+
+                {generatedCode && (
                   <div className="space-y-4">
-                    <Textarea
-                      ref={codeRef}
-                      value={generatedCode}
-                      onChange={(e) => setGeneratedCode(e.target.value)}
-                      className="min-h-64 font-mono text-sm"
-                      placeholder="Generated code will appear here..."
-                    />
+                    <Separator />
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium">Generated Code</label>
+                        <Badge variant="secondary">{selectedLanguage}</Badge>
+                      </div>
+                      <Textarea
+                        value={generatedCode}
+                        readOnly
+                        className="min-h-[300px] font-mono text-sm"
+                      />
+                    </div>
+
                     <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="outline" onClick={copyToClipboard}>
-                        <Copy className="h-4 w-4 mr-2" />
+                      <Button onClick={copyToClipboard} variant="outline" size="sm">
+                        <Copy className="mr-2 h-4 w-4" />
                         Copy
                       </Button>
-                      <Button size="sm" variant="outline" onClick={downloadCode}>
-                        <Download className="h-4 w-4 mr-2" />
+                      <Button onClick={downloadCode} variant="outline" size="sm">
+                        <Download className="mr-2 h-4 w-4" />
                         Download
                       </Button>
-                      <Button size="sm" variant="outline" onClick={saveCodeSnippet}>
-                        <Save className="h-4 w-4 mr-2" />
+                      <Button onClick={saveCodeSnippet} variant="outline" size="sm">
+                        <Save className="mr-2 h-4 w-4" />
                         Save
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <div className="min-h-64 flex items-center justify-center text-muted-foreground">
-                    Generated code will appear here...
-                  </div>
                 )}
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="snippets">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Save className="h-5 w-5" />
-                Saved Code Snippets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoadingSnippets ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                </div>
-              ) : savedSnippets.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No saved snippets yet. Generate and save some code to see them here!
-                </div>
-              ) : (
-                <ScrollArea className="h-96">
-                  <div className="space-y-4">
-                     {savedSnippets.map((snippet) => (
-                      <div key={snippet.id} className="border rounded-lg p-4 space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div className="space-y-1">
-                            <h3 className="font-semibold">{snippet.title}</h3>
-                            <p className="text-sm text-muted-foreground">{snippet.description}</p>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary">{snippet.language}</Badge>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(snippet.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => copySnippetToClipboard(snippet.generated_code)}
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => deleteSnippet(snippet.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <Separator />
-                        <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                          <code>{snippet.generated_code}</code>
-                        </pre>
-                      </div>
-                    ))}
+          <TabsContent value="snippets">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Save className="h-5 w-5" />
+                  Saved Code Snippets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingSnippets ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
-                </ScrollArea>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                ) : savedSnippets.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Code className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No saved snippets yet</p>
+                    <p className="text-sm mt-2">Generate and save code to see it here</p>
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px] pr-4">
+                    <div className="space-y-4">
+                      {savedSnippets.map((snippet) => (
+                        <Card key={snippet.id} className="overflow-hidden">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="space-y-1 flex-1">
+                                <CardTitle className="text-base">{snippet.title}</CardTitle>
+                                <p className="text-sm text-muted-foreground">{snippet.description}</p>
+                              </div>
+                              <Badge variant="secondary">{snippet.language}</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <Textarea
+                              value={snippet.generated_code}
+                              readOnly
+                              className="min-h-[200px] font-mono text-sm"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => copySnippetToClipboard(snippet.generated_code)}
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Copy className="mr-2 h-3 w-3" />
+                                Copy
+                              </Button>
+                              <Button
+                                onClick={() => deleteSnippet(snippet.id)}
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Trash2 className="mr-2 h-3 w-3" />
+                                Delete
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
