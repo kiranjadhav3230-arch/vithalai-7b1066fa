@@ -9,6 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 import vithalLogo from '@/assets/vithal-ai-logo-new.png';
 import { 
   Code, 
@@ -21,7 +22,11 @@ import {
   Languages,
   BookOpen,
   Trash2,
-  Loader2
+  Loader2,
+  Wifi,
+  WifiOff,
+  Lock,
+  HardDrive
 } from 'lucide-react';
 
 const PROGRAMMING_LANGUAGES = [
@@ -56,6 +61,7 @@ interface CodeSnippet {
 }
 
 export const CodeGenerator = () => {
+  const [modelType, setModelType] = useState<'online' | 'offline' | null>(null);
   const [prompt, setPrompt] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [selectedTask, setSelectedTask] = useState('generate');
@@ -64,6 +70,7 @@ export const CodeGenerator = () => {
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Load saved snippets
   const loadSnippets = async () => {
@@ -281,6 +288,150 @@ export const CodeGenerator = () => {
     }
   };
 
+  // Model selection screen
+  if (!modelType) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto p-4 md:p-6 max-w-4xl">
+          <div className="mb-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <img 
+                src={vithalLogo} 
+                alt="Vithal.AI Logo" 
+                className="h-20 w-20 object-contain"
+              />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Vithal.AI Code Generator
+            </h1>
+            <p className="text-muted-foreground">
+              Choose your preferred AI model
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Online Model Card */}
+            <Card 
+              className="relative overflow-hidden cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
+              onClick={() => setModelType('online')}
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <Wifi className="h-8 w-8 text-primary" />
+                  <Badge variant="default">Recommended</Badge>
+                </div>
+                <CardTitle className="text-xl">
+                  Vithal AI Code Generator
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Powered By Gemini AI</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-primary">Fully Online</span>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Latest Gemini AI model</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Always up-to-date</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Works on all devices</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Requires internet connection</span>
+                  </li>
+                </ul>
+                <Button className="w-full" size="lg">
+                  <Wifi className="mr-2 h-4 w-4" />
+                  Use Online Model
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Offline Model Card */}
+            <Card 
+              className={`relative overflow-hidden transition-all duration-300 ${
+                isMobile ? 'opacity-60' : 'cursor-pointer hover:shadow-lg hover:scale-105'
+              }`}
+              onClick={() => !isMobile && setModelType('offline')}
+            >
+              {isMobile && (
+                <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center p-6">
+                  <div className="text-center space-y-3">
+                    <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <p className="font-semibold text-sm">Device Not Compatible</p>
+                    <p className="text-xs text-muted-foreground">
+                      This device is not capable to use this AI Model. Please use Online Model.
+                    </p>
+                  </div>
+                </div>
+              )}
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <WifiOff className="h-8 w-8 text-primary" />
+                  {!isMobile && <Badge variant="secondary">Desktop Only</Badge>}
+                </div>
+                <CardTitle className="text-xl">
+                  Vithal AI Code Generator
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Offline</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-2 text-sm">
+                  <HardDrive className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-primary">Offline</span>
+                </div>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Works without internet</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Privacy-focused</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span>Desktop/Laptop only</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    <span className="font-medium">Model size: 822.2 MB</span>
+                  </li>
+                </ul>
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  disabled={isMobile}
+                  variant={isMobile ? "outline" : "default"}
+                >
+                  {isMobile ? (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Not Available
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="mr-2 h-4 w-4" />
+                      Use Offline Model
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-4 md:p-6 max-w-7xl">
@@ -295,10 +446,28 @@ export const CodeGenerator = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Vithal.AI Code Generator
           </h1>
-          <p className="text-muted-foreground flex items-center justify-center gap-2">
-            <Sparkles className="h-4 w-4 text-primary" />
-            Powered by Gemini AI - Generate complete, production-ready code instantly
-          </p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-muted-foreground flex items-center gap-2">
+              {modelType === 'online' ? (
+                <>
+                  <Wifi className="h-4 w-4 text-primary" />
+                  Powered by Gemini AI - Generate complete, production-ready code instantly
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4 text-primary" />
+                  Offline Mode - Privacy-focused code generation
+                </>
+              )}
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setModelType(null)}
+            >
+              Change Model
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="generator" className="w-full">
