@@ -819,8 +819,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground/70 space-y-1">
-                        <p>Created with ❤️ by <span className="font-medium text-primary">Shree Alankar</span></p>
-                        <p>Sponsored by <span className="font-medium text-accent">Gemini AI</span></p>
+                        <p>Powered by <span className="font-medium text-accent">Gemini AI</span></p>
+                        <p>Sponsored by <span className="font-medium text-primary">Shree Alankar</span></p>
                         <p>Developed by <span className="font-medium text-primary">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>

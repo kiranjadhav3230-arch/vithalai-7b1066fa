@@ -297,7 +297,7 @@ export const CodeGenerator = () => {
           </h1>
           <p className="text-muted-foreground flex items-center justify-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            Sponsored by Gemini AI - Generate complete, production-ready code instantly
+            Powered by Gemini AI - Generate complete, production-ready code instantly
           </p>
         </div>
 

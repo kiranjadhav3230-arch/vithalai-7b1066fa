@@ -751,8 +751,8 @@ export const EnhancedChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, 
 
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground mt-2 space-y-1">
-          <p>Made by <span className="font-semibold text-primary">Shree Alankar</span></p>
-          <p>Sponsored by <span className="font-semibold text-accent">🔥 Advanced Gemini AI</span></p>
+          <p>Powered by <span className="font-semibold text-accent">🔥 Gemini AI</span></p>
+          <p>Sponsored by <span className="font-semibold text-primary">Shree Alankar</span></p>
           <p>Developed by <span className="font-semibold text-primary">Kapil Kiran Jadhav</span></p>
         </div>
       </div>

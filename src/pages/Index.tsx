@@ -189,13 +189,17 @@ const Index = () => {
         <footer className="glass-morphism border-t py-12">
           <div className="container mx-auto px-4 text-center text-muted-foreground space-y-4">
             <p className="text-lg">&copy; 2024 {t('appName')}. {t('professionalDescription')}</p>
-            <div className="flex justify-center items-center gap-4 text-sm">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-3 text-sm">
               <span className="neon-border px-4 py-2 rounded-full">
-                <span className="font-semibold text-primary">{t('madeBy')}</span>
+                <span className="font-semibold text-accent">Powered by Gemini AI</span>
               </span>
-              <span className="text-muted-foreground">|</span>
+              <span className="text-muted-foreground hidden md:inline">|</span>
               <span className="neon-border px-4 py-2 rounded-full">
-                <span className="font-semibold text-accent">{t('poweredBy')}</span>
+                <span className="font-semibold text-primary">Sponsored by Shree Alankar</span>
+              </span>
+              <span className="text-muted-foreground hidden md:inline">|</span>
+              <span className="neon-border px-4 py-2 rounded-full">
+                <span className="font-semibold text-primary">Developed by Kapil Kiran Jadhav</span>
               </span>
             </div>
           </div>
