@@ -122,20 +122,24 @@ export const CodeGenerator = () => {
         description: "Downloading 822.2 MB AI model to your device...",
       });
 
-      // Use a smaller code generation model that works in browser
+      // Use text2text-generation model that works well in browsers
       const model = await pipeline(
-        'text-generation',
-        'Xenova/LaMini-Flan-T5-783M',
+        'text2text-generation',
+        'Xenova/flan-t5-base',
         {
           progress_callback: (progress: any) => {
-            if (progress.status === 'downloading') {
+            console.log('Download progress:', progress);
+            if (progress.status === 'progress' && progress.total) {
               const percent = Math.round((progress.loaded / progress.total) * 100);
-              setDownloadProgress(percent);
+              setDownloadProgress(Math.min(percent, 100));
+            } else if (progress.status === 'done') {
+              setDownloadProgress(100);
             }
           }
         }
       );
 
+      console.log('Model loaded successfully:', model);
       setOfflineModel(model);
       setModelStatus('ready');
       setIsDownloadingModel(false);
@@ -146,11 +150,15 @@ export const CodeGenerator = () => {
       });
     } catch (error) {
       console.error('Error downloading model:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Detailed error:', errorMessage);
+      
       setIsDownloadingModel(false);
       setModelStatus('not-downloaded');
+      
       toast({
         title: "Download Failed",
-        description: "Failed to download offline model. Please try again.",
+        description: `Failed to download offline model: ${errorMessage}. Please try the online model instead.`,
         variant: "destructive",
       });
     }
@@ -163,17 +171,30 @@ export const CodeGenerator = () => {
     }
 
     try {
-      const systemPrompt = `You are a code generator. Generate ${lang} code for the following task: ${task}.\n\nUser request: ${prompt}\n\nProvide only the code without explanations.`;
+      let taskInstruction = '';
+      if (task === 'generate') taskInstruction = 'Generate';
+      else if (task === 'explain') taskInstruction = 'Explain this';
+      else if (task === 'fix') taskInstruction = 'Fix bugs in this';
+      else if (task === 'optimize') taskInstruction = 'Optimize this';
+      else if (task === 'translate') taskInstruction = 'Translate this';
+
+      const systemPrompt = `${taskInstruction} ${lang} code: ${prompt}`;
+      
+      console.log('Generating with offline model:', systemPrompt);
       
       const result = await offlineModel(systemPrompt, {
-        max_new_tokens: 500,
-        temperature: 0.7,
+        max_new_tokens: 512,
+        temperature: 0.3,
+        do_sample: false,
       });
 
-      return result[0].generated_text || 'Error generating code';
+      console.log('Offline model result:', result);
+      
+      const generatedText = result[0]?.generated_text || result?.generated_text || 'Error generating code';
+      return generatedText;
     } catch (error) {
       console.error('Offline generation error:', error);
-      throw error;
+      throw new Error(`Offline generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
