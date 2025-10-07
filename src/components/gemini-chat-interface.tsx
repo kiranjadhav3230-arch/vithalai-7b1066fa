@@ -604,50 +604,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </SidebarGroupContent>
           </SidebarGroup>
           
-          {/* Navigation Section */}
+          {/* Navigation Section - Only Code Generator */}
           <SidebarGroup>
-            <SidebarGroupLabel>Features</SidebarGroupLabel>
+            <SidebarGroupLabel>Tools</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView('chat')}
-                    className={currentView === 'chat' ? 'bg-accent' : ''}
-                  >
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Chat
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => setCurrentView('code')}
-                    className={currentView === 'code' ? 'bg-accent' : ''}
+                    className={`${currentView === 'code' ? 'bg-accent' : ''} w-full`}
                   >
                     <Code className="mr-2 h-4 w-4" />
-                    Code Generator
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
-          {/* Help Section */}
-          <SidebarGroup>
-            <SidebarGroupLabel>Help & Support</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={() => setShowContactModal(true)}
-                    className="w-full"
-                  >
-                    <div className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
-                      </svg>
-                      <span>Contact Support</span>
-                    </div>
+                    <span>Open Code Generator</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -729,22 +697,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-2">
                 <SidebarTrigger />
-                <h1 className="font-semibold ml-4">
-                  {currentSession?.title || 'Vithal AI Chat'}
+                <h1 className="font-semibold ml-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {currentView === 'code' ? '💻 Code Generator' : (currentSession?.title || 'Chat with Vithal AI')}
                 </h1>
               </div>
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline" className="text-xs">
-                      <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <Button size="sm" variant="outline" className="hover:border-primary/50 transition-colors">
+                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
                       </svg>
                       Help
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-sm">
                     <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}>
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
@@ -762,11 +730,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" className="hover:bg-primary/10 transition-colors">
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="bg-popover/95 backdrop-blur-sm">
                     <DropdownMenuItem onClick={() => setShowProfile(true)}>
                       <UserIcon className="h-4 w-4 mr-2" />
                       Profile

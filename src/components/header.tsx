@@ -29,6 +29,9 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
           <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('features')}
           </a>
+          <a href="#help" className="text-muted-foreground hover:text-foreground transition-colors">
+            Help
+          </a>
           <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
             {t('contact')}
           </a>
