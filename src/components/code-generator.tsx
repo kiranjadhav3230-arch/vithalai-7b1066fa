@@ -642,10 +642,8 @@ Only Supported To WebGPU Spported processor Device only . </p>
                     <HardDrive className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium mb-1">Local AI Model</p>
-                    <p className="text-sm text-muted-foreground">
-                      Download and install the AI model on your device for offline code generation
-                    </p>
+                    <p className="font-medium mb-1">Local AI Model ( Coming Soon ! )</p>
+                    <p className="text-sm text-muted-foreground">Download and install the AI model on your device for offline code generation </p>
                   </div>
                 </div>
 
@@ -697,15 +695,7 @@ Only Supported To WebGPU Spported processor Device only . </p>
               </div>
 
               <div className="flex gap-3">
-                <Button onClick={downloadOfflineModel} disabled={isDownloadingModel} className="flex-1" size="lg">
-                  {isDownloadingModel ? <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Downloading... {downloadProgress}%
-                    </> : <>
-                      <Download className="mr-2 h-4 w-4" />
-                      Download Model ({modelSize})
-                    </>}
-                </Button>
+                
                 <Button variant="outline" onClick={() => setModelType(null)} disabled={isDownloadingModel}>
                   Cancel
                 </Button>
