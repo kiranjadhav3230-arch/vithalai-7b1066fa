@@ -8,28 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { 
-  Send, 
-  Mic, 
-  Image as ImageIcon, 
-  Plus, 
-  MessageSquare, 
-  Trash2, 
-  Edit3, 
-  User as UserIcon, 
-  Menu,
-  Star,
-  Search,
-  Settings,
-  ChevronRight,
-  Loader2,
-  LogOut,
-  Globe,
-  Camera,
-  Code,
-  Copy,
-  Check
-} from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -39,7 +18,6 @@ import { ContactSupportModal } from './contact-support-modal';
 import { CodeGenerator } from './code-generator';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import type { User } from '@supabase/supabase-js';
-
 interface ChatSession {
   id: string;
   title: string;
@@ -47,7 +25,6 @@ interface ChatSession {
   updated_at: string;
   is_archived: boolean;
 }
-
 interface ChatMessage {
   id: string;
   session_id: string;
@@ -56,13 +33,14 @@ interface ChatMessage {
   message_type: string;
   created_at: string;
 }
-
 interface GeminiChatInterfaceProps {
   user: User;
   onLogout: () => void;
 }
-
-export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, onLogout }) => {
+export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
+  user,
+  onLogout
+}) => {
   const [message, setMessage] = useState('');
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
@@ -77,72 +55,71 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const { toast } = useToast();
-  const { language, setLanguage, t } = useLanguage();
+  const {
+    toast
+  } = useToast();
+  const {
+    language,
+    setLanguage,
+    t
+  } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     loadChatSessions();
     loadUserProfile();
     // Always start with a new chat
     createNewSession();
   }, []);
-
   useEffect(() => {
     if (currentSession) {
       loadMessages(currentSession.id);
     }
   }, [currentSession]);
-
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: 'smooth'
+    });
   }, [messages]);
-
   const loadChatSessions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('chat_sessions')
-        .select('*')
-        .order('updated_at', { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from('chat_sessions').select('*').order('updated_at', {
+        ascending: false
+      });
       if (error) throw error;
       setChatSessions(data || []);
-      
     } catch (error) {
       console.error('Error loading chat sessions:', error);
     }
   };
-
   const loadMessages = async (sessionId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('chat_messages').select('*').eq('session_id', sessionId).order('created_at', {
+        ascending: true
+      });
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
     }
   };
-
   const createNewSession = async () => {
     try {
-      const { data, error } = await supabase
-        .from('chat_sessions')
-        .insert({
-          user_id: user.id,
-          title: 'New Chat'
-        })
-        .select()
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('chat_sessions').insert({
+        user_id: user.id,
+        title: 'New Chat'
+      }).select().single();
       if (error) throw error;
-      
       const newSession = data as ChatSession;
       setChatSessions(prev => [newSession, ...prev]);
       setCurrentSession(newSession);
@@ -156,18 +133,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       });
     }
   };
-
   const deleteSession = async (sessionId: string) => {
     try {
-      const { error } = await supabase
-        .from('chat_sessions')
-        .delete()
-        .eq('id', sessionId);
-
+      const {
+        error
+      } = await supabase.from('chat_sessions').delete().eq('id', sessionId);
       if (error) throw error;
-      
       setChatSessions(prev => prev.filter(s => s.id !== sessionId));
-      
       if (currentSession?.id === sessionId) {
         const remainingSessions = chatSessions.filter(s => s.id !== sessionId);
         setCurrentSession(remainingSessions.length > 0 ? remainingSessions[0] : null);
@@ -177,55 +149,49 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       console.error('Error deleting session:', error);
     }
   };
-
   const loadUserProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-      
+      const {
+        data,
+        error
+      } = await supabase.from('profiles').select('*').eq('user_id', user.id).single();
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
-      
       setUserProfile(data || {});
     } catch (error) {
       console.error('Error loading user profile:', error);
       setUserProfile({});
     }
   };
-
-
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
-      const { error } = await supabase
-        .from('chat_sessions')
-        .update({ title })
-        .eq('id', sessionId);
-
+      const {
+        error
+      } = await supabase.from('chat_sessions').update({
+        title
+      }).eq('id', sessionId);
       if (error) throw error;
-      
-      setChatSessions(prev => prev.map(s => 
-        s.id === sessionId ? { ...s, title } : s
-      ));
-      
+      setChatSessions(prev => prev.map(s => s.id === sessionId ? {
+        ...s,
+        title
+      } : s));
       if (currentSession?.id === sessionId) {
-        setCurrentSession(prev => prev ? { ...prev, title } : null);
+        setCurrentSession(prev => prev ? {
+          ...prev,
+          title
+        } : null);
       }
     } catch (error) {
       console.error('Error updating session title:', error);
     }
   };
-
   const generateSmartSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
     try {
       // AI-powered title generation based on conversation context
       let smartTitle = "New Chat";
-      
       const message = userMessage.toLowerCase();
-      
+
       // Smart title generation based on content analysis
       if (message.includes('math') || message.includes('calculate') || message.includes('solve')) {
         smartTitle = `📊 Math: ${userMessage.substring(0, 30)}...`;
@@ -251,34 +217,32 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         const keyWord = words[0] || 'Question';
         smartTitle = `💭 ${keyWord}: ${userMessage.substring(0, 35)}...`;
       }
-      
+
       // Update session title
-      await supabase
-        .from('chat_sessions')
-        .update({ title: smartTitle })
-        .eq('id', sessionId);
-        
+      await supabase.from('chat_sessions').update({
+        title: smartTitle
+      }).eq('id', sessionId);
+
       // Update local state
-      setChatSessions(prev => prev.map(session => 
-        session.id === sessionId 
-          ? { ...session, title: smartTitle }
-          : session
-      ));
-      
+      setChatSessions(prev => prev.map(session => session.id === sessionId ? {
+        ...session,
+        title: smartTitle
+      } : session));
     } catch (error) {
       console.error('Error generating smart session title:', error);
     }
   };
-
   const generateSessionTitle = async (sessionId: string, userMessage: string, aiResponse: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: { 
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('gemini-chat', {
+        body: {
           message: `Generate a concise 3-5 word title for this conversation topic. User asked: "${userMessage}" AI responded: "${aiResponse.substring(0, 200)}..." Just respond with the title only, no extra text.`,
           language: language
         }
       });
-
       if (!error && data?.response) {
         const title = data.response.trim().replace(/['"]/g, ''); // Remove quotes
         updateSessionTitle(sessionId, title);
@@ -286,33 +250,26 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
     } catch (error) {
       console.error('Error generating title:', error);
       // Fallback to truncated user message
-      const fallbackTitle = userMessage.length > 30 ? 
-        userMessage.substring(0, 30) + '...' : userMessage;
+      const fallbackTitle = userMessage.length > 30 ? userMessage.substring(0, 30) + '...' : userMessage;
       updateSessionTitle(sessionId, fallbackTitle);
     }
   };
-
   const sendMessage = async () => {
-    if ((!message.trim() && !selectedImage)) return;
-
+    if (!message.trim() && !selectedImage) return;
     setLoading(true);
-    
+
     // Ensure we have a session before proceeding
     let sessionToUse = currentSession;
-    
     if (!sessionToUse) {
       try {
-        const { data, error } = await supabase
-          .from('chat_sessions')
-          .insert({
-            user_id: user.id,
-            title: 'New Chat'
-          })
-          .select()
-          .single();
-
+        const {
+          data,
+          error
+        } = await supabase.from('chat_sessions').insert({
+          user_id: user.id,
+          title: 'New Chat'
+        }).select().single();
         if (error) throw error;
-        
         sessionToUse = data as ChatSession;
         setChatSessions(prev => [sessionToUse, ...prev]);
         setCurrentSession(sessionToUse);
@@ -328,11 +285,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         return;
       }
     }
-
     const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
     const hasImage = !!selectedImage;
     setMessage('');
-    
+
     // Clear image preview after sending
     const imageDataToSend = imageFile;
     setSelectedImage(null);
@@ -348,14 +304,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       created_at: new Date().toISOString()
     };
     setMessages(prev => [...prev, tempMessage]);
-
     try {
       // Prepare image data if available
       let base64Data = null;
       if (imageDataToSend) {
         const reader = new FileReader();
-        base64Data = await new Promise<string>((resolve) => {
-          reader.onload = (e) => {
+        base64Data = await new Promise<string>(resolve => {
+          reader.onload = e => {
             const result = e.target?.result as string;
             resolve(result.split(',')[1]); // Remove data:image/...;base64, prefix
           };
@@ -363,9 +318,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         });
       }
 
-
       // Call the Gemini function with language support, personalization, and conversation history
-      const requestBody: any = { 
+      const requestBody: any = {
         message: userMessage,
         language: language,
         userProfile: {
@@ -376,53 +330,48 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         },
         chatHistory: messages.slice(-10) // Send last 10 messages for context
       };
-      
       if (base64Data) {
         requestBody.imageData = base64Data;
       }
-
       console.log('About to call Gemini function with:', requestBody);
-      
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
       });
-
-      console.log('Gemini function response:', { data, error });
-
+      console.log('Gemini function response:', {
+        data,
+        error
+      });
       if (error) {
         console.error('Supabase function error:', error);
         throw error;
       }
-
       if (!data || !data.response) {
         throw new Error('No response from AI');
       }
 
       // Save message to database
-      const { data: savedMessage, error: saveError } = await supabase
-        .from('chat_messages')
-        .insert({
-          session_id: sessionToUse.id,
-          user_id: user.id,
-          message: userMessage,
-          response: data.response,
-          message_type: hasImage ? 'image' : 'text'
-        })
-        .select()
-        .single();
-
+      const {
+        data: savedMessage,
+        error: saveError
+      } = await supabase.from('chat_messages').insert({
+        session_id: sessionToUse.id,
+        user_id: user.id,
+        message: userMessage,
+        response: data.response,
+        message_type: hasImage ? 'image' : 'text'
+      }).select().single();
       if (saveError) throw saveError;
 
       // Update messages with real data
-      setMessages(prev => prev.map(msg => 
-        msg.id === tempMessage.id ? (savedMessage as ChatMessage) : msg
-      ));
+      setMessages(prev => prev.map(msg => msg.id === tempMessage.id ? savedMessage as ChatMessage : msg));
 
       // Update session title if it's the first message using AI-powered smart title generation
       if (messages.length === 0) {
         generateSmartSessionTitle(sessionToUse.id, userMessage, data.response);
       }
-
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -436,7 +385,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       setLoading(false);
     }
   };
-
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -450,11 +398,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       });
       return;
     }
-
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
+      // 5MB limit
       toast({
         variant: "destructive",
-        title: "Error", 
+        title: "Error",
         description: "Image size must be less than 5MB"
       });
       return;
@@ -462,43 +410,39 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const imageDataUrl = e.target?.result as string;
       setSelectedImage(imageDataUrl);
       setImageFile(file);
     };
     reader.readAsDataURL(file);
-    
+
     // Clear the input so the same file can be uploaded again
     event.target.value = '';
   };
-
   const handleCameraCapture = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = e => {
       const imageDataUrl = e.target?.result as string;
       setSelectedImage(imageDataUrl);
       setImageFile(file);
     };
     reader.readAsDataURL(file);
-    
+
     // Clear the input
     event.target.value = '';
   };
-
   const removeSelectedImage = () => {
     setSelectedImage(null);
     setImageFile(null);
   };
-
   const startVoiceRecording = () => {
     // Check if speech recognition is supported
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
     if (!SpeechRecognition) {
       toast({
         variant: "destructive",
@@ -507,12 +451,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       });
       return;
     }
-
     const recognitionInstance = new SpeechRecognition();
     recognitionInstance.continuous = false;
     recognitionInstance.interimResults = false;
     recognitionInstance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
-
     recognitionInstance.onstart = () => {
       setIsRecording(true);
       toast({
@@ -520,7 +462,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         description: "Speak now, I'm listening!"
       });
     };
-
     recognitionInstance.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       setMessage(transcript);
@@ -530,7 +471,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         description: "Click send to process your voice message"
       });
     };
-
     recognitionInstance.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsRecording(false);
@@ -540,15 +480,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
         description: "Failed to recognize speech. Please try again."
       });
     };
-
     recognitionInstance.onend = () => {
       setIsRecording(false);
     };
-
     setRecognition(recognitionInstance);
     recognitionInstance.start();
   };
-
   const stopVoiceRecording = () => {
     if (recognition && isRecording) {
       recognition.stop();
@@ -556,17 +493,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
       setRecognition(null);
     }
   };
-
   const AppSidebar = () => {
-    return (
-      <Sidebar className="border-r">
+    return <Sidebar className="border-r">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-semibold text-lg">Vithal AI</h2>
-          <Button
-            onClick={createNewSession}
-            size="sm"
-            className="h-8 w-8 p-0"
-          >
+          <Button onClick={createNewSession} size="sm" className="h-8 w-8 p-0">
             <Plus className="h-4 w-4" />
           </Button>
         </div>
@@ -576,30 +507,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {chatSessions.map((session) => (
-                  <SidebarMenuItem key={session.id}>
-                    <SidebarMenuButton
-                      onClick={() => setCurrentSession(session)}
-                      className={`w-full justify-between group ${
-                        currentSession?.id === session.id ? 'bg-accent' : ''
-                      }`}
-                    >
+                {chatSessions.map(session => <SidebarMenuItem key={session.id}>
+                    <SidebarMenuButton onClick={() => setCurrentSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-accent' : ''}`}>
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <MessageSquare className="h-4 w-4 flex-shrink-0" />
                         <span className="truncate">{session.title}</span>
                       </div>
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteSession(session.id);
-                        }}
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded"
-                      >
+                      <div onClick={e => {
+                    e.stopPropagation();
+                    deleteSession(session.id);
+                  }} className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded">
                         <Trash2 className="h-3 w-3 text-destructive" />
                       </div>
                     </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                  </SidebarMenuItem>)}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -610,19 +531,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView('chat')}
-                    className={currentView === 'chat' ? 'bg-accent' : ''}
-                  >
+                  <SidebarMenuButton onClick={() => setCurrentView('chat')} className={currentView === 'chat' ? 'bg-accent' : ''}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     Chat
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setCurrentView('code')}
-                    className={currentView === 'code' ? 'bg-accent' : ''}
-                  >
+                  <SidebarMenuButton onClick={() => setCurrentView('code')} className={currentView === 'code' ? 'bg-accent' : ''}>
                     <Code className="mr-2 h-4 w-4" />
                     Code Generator
                   </SidebarMenuButton>
@@ -637,14 +552,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={() => setShowContactModal(true)}
-                    className="w-full"
-                  >
+                  <SidebarMenuButton onClick={() => setShowContactModal(true)} className="w-full">
                     <div className="flex items-center gap-2">
                       <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
                       <span>Contact Support</span>
                     </div>
@@ -670,11 +582,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0"
-                >
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                   <Settings className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
@@ -689,10 +597,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                     <span className="text-sm">{t('language')}</span>
                   </div>
                   <div className="mt-1">
-                    <LanguageSelector 
-                      language={language} 
-                      onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
-                    />
+                    <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
                   </div>
                 </div>
                 <DropdownMenuItem onClick={onLogout}>
@@ -705,21 +610,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           
           {/* Sign-in Time Display */}
           <div className="text-xs text-muted-foreground text-center mt-2 p-2 bg-muted/50 rounded">
-            Signed in: {new Date().toLocaleDateString('en-IN', { 
-              day: 'numeric', 
-              month: 'short', 
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
+            Signed in: {new Date().toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
           </div>
         </div>
-      </Sidebar>
-    );
+      </Sidebar>;
   };
-
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
@@ -738,8 +640,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   <DropdownMenuTrigger asChild>
                     <Button size="sm" variant="outline" className="text-xs">
                       <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
                       Help
                     </Button>
@@ -747,14 +649,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}>
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
                       Email Support
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')}>
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                       </svg>
                       Instagram
                     </DropdownMenuItem>
@@ -782,19 +684,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           </header>
 
           {/* Conditional Content Rendering */}
-          {currentView === 'code' ? (
-            <div className="flex-1 overflow-auto">
+          {currentView === 'code' ? <div className="flex-1 overflow-auto">
               <CodeGenerator />
-            </div>
-          ) : (
-            <>
+            </div> : <>
           {/* Chat Messages - Scrollable */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
               <div className="p-6">
                 <div className="max-w-4xl mx-auto space-y-6">
-                  {messages.length === 0 && !loading && (
-                    <div className="text-center py-16">
+                  {messages.length === 0 && !loading && <div className="text-center py-16">
                       <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-border/50">
                         <img src={vithalLogo} alt="Vithal AI" className="w-10 h-10" />
                       </div>
@@ -815,7 +713,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                         </div>
                         <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
                           <h3 className="font-semibold text-sm mb-2">💻 Tech Learning</h3>
-                          <p className="text-xs text-muted-foreground">Programming, coding, and technical skills</p>
+                          <p className="text-xs text-muted-foreground">Programming, coding, and technical skills   
+For Code Generetor Function Check Negivation Bar.</p>
                         </div>
                         <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
                           <h3 className="font-semibold text-sm mb-2">🔬 Science & Math</h3>
@@ -827,24 +726,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                         <p>Sponsored by <span className="font-medium text-primary">Shree Alankar</span></p>
                         <p>Developed by <span className="font-medium text-primary">Kapil Kiran Jadhav</span></p>
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
-                  {messages.map((msg) => (
-                    <div key={msg.id} className="space-y-4">
+                  {messages.map(msg => <div key={msg.id} className="space-y-4">
                       {/* User Message */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-3 shadow-lg">
                           <p className="text-sm leading-relaxed">{msg.message}</p>
                           <div className="text-xs opacity-70 mt-1">
-                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(msg.created_at).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                           </div>
                         </div>
                       </div>
 
                       {/* AI Response */}
-                      {msg.response && (
-                        <div className="flex justify-start">
+                      {msg.response && <div className="flex justify-start">
                           <div className="flex items-start gap-3 w-full">
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
                               <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
@@ -852,17 +751,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                             <div className="flex-1 max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
                               <ChatMessageRenderer content={msg.response} />
                               <div className="text-xs text-muted-foreground mt-3">
-                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                {new Date(msg.created_at).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
                               </div>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        </div>}
+                    </div>)}
 
-                  {loading && (
-                    <div className="flex justify-start">
+                  {loading && <div className="flex justify-start">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
                           <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
@@ -874,8 +773,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                   
                   <div ref={messagesEndRef} />
                 </div>
@@ -887,53 +785,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
           <div className="border-t bg-background/95 backdrop-blur-sm p-6 flex-shrink-0">
             <div className="max-w-4xl mx-auto">
               {/* Image Preview */}
-              {selectedImage && (
-                <div className="mb-4 relative inline-block">
-                  <img 
-                    src={selectedImage} 
-                    alt="Selected for upload" 
-                    className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-border shadow-lg"
-                  />
-                  <Button
-                    onClick={removeSelectedImage}
-                    size="sm"
-                    variant="destructive"
-                    className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg"
-                  >
+              {selectedImage && <div className="mb-4 relative inline-block">
+                  <img src={selectedImage} alt="Selected for upload" className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-border shadow-lg" />
+                  <Button onClick={removeSelectedImage} size="sm" variant="destructive" className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg">
                     ×
                   </Button>
-                </div>
-              )}
+                </div>}
 
               
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="pr-20 rounded-2xl border-2 h-12 text-sm bg-background/50 backdrop-blur-sm focus:bg-background transition-colors"
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    disabled={loading}
-                  />
+                  <Input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type your message here..." className="pr-20 rounded-2xl border-2 h-12 text-sm bg-background/50 backdrop-blur-sm focus:bg-background transition-colors" onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} disabled={loading} />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
-                    <Button
-                      onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-                      size="sm"
-                      variant="ghost"
-                      className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-950' : 'hover:bg-muted'}`}
-                      disabled={loading}
-                    >
+                    <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} size="sm" variant="ghost" className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-950' : 'hover:bg-muted'}`} disabled={loading}>
                       <Mic className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 rounded-full hover:bg-muted"
-                          disabled={loading}
-                        >
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-muted" disabled={loading}>
                           <ImageIcon className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -951,53 +820,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                   </div>
                 </div>
                 
-                <Button
-                  onClick={sendMessage}
-                  disabled={loading || (!message.trim() && !selectedImage)}
-                  size="sm"
-                  className="rounded-2xl h-12 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
+                <Button onClick={sendMessage} disabled={loading || !message.trim() && !selectedImage} size="sm" className="rounded-2xl h-12 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
           </div>
-          </>
-          )}
+          </>}
 
           {/* File inputs */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleCameraCapture}
-            className="hidden"
-          />
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+          <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
 
-        <ProfileModal 
-          isOpen={showProfile}
-          onClose={() => setShowProfile(false)}
-          user={user}
-        />
+        <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
         
-        <ContactSupportModal
-          isOpen={showContactModal}
-          onClose={() => setShowContactModal(false)}
-        />
+        <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
         </main>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
