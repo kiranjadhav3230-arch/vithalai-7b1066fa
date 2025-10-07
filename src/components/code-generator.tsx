@@ -563,60 +563,7 @@ export const CodeGenerator = () => {
             </Card>
 
             {/* Offline Model Card */}
-            <Card className={`relative overflow-hidden transition-all duration-300 ${isMobile ? 'opacity-60' : 'cursor-pointer hover:shadow-lg hover:scale-105'}`} onClick={() => !isMobile && setModelType('offline')}>
-              {isMobile && <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center p-6">
-                  <div className="text-center space-y-3">
-                    <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <p className="font-semibold text-sm">Device Not Compatible</p>
-                    <p className="text-xs text-muted-foreground">
-                      This device is not capable to use this AI Model. Please use Online Model.
-                    </p>
-                  </div>
-                </div>}
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between mb-2">
-                  <WifiOff className="h-8 w-8 text-primary" />
-                  {!isMobile && <Badge variant="secondary">Desktop Only</Badge>}
-                </div>
-                <CardTitle className="text-xl">
-                  Vithal AI Code Generator
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Offline</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <HardDrive className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-primary">Offline</span>
-                </div>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Works without internet</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span>Privacy-focused</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">Download Offline AI Model   ( Coming Soon )</span>
-                    <span>Desktop/Laptop only</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">•</span>
-                    <span className="font-medium">Model size: {modelSize}</span>
-                  </li>
-                </ul>
-                <Button className="w-full" size="lg" disabled={isMobile} variant={isMobile ? "outline" : "default"}>
-                  {isMobile ? <>
-                      <Lock className="mr-2 h-4 w-4" />
-                      Not Available
-                    </> : <>
-                      <WifiOff className="mr-2 h-4 w-4" />
-                      Use Offline Model
-                    </>}
-                </Button>
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
       </div>;
