@@ -178,23 +178,37 @@ export const CodeGenerator = () => {
       else if (task === 'optimize') taskInstruction = 'Optimize this';
       else if (task === 'translate') taskInstruction = 'Translate this';
 
-      const systemPrompt = `${taskInstruction} ${lang} code: ${prompt}`;
+      const fullPrompt = `${taskInstruction} ${lang} code: ${prompt}`;
       
-      console.log('Generating with offline model:', systemPrompt);
+      console.log('Generating with offline model. Prompt:', fullPrompt);
       
-      const result = await offlineModel(systemPrompt, {
-        max_new_tokens: 512,
-        temperature: 0.3,
-        do_sample: false,
+      // Call the model directly
+      const result = await offlineModel(fullPrompt, {
+        max_new_tokens: 256,
+        temperature: 0.7,
       });
 
-      console.log('Offline model result:', result);
+      console.log('Raw offline model result:', result);
       
-      const generatedText = result[0]?.generated_text || result?.generated_text || 'Error generating code';
+      // Handle different possible output formats
+      let generatedText = '';
+      if (Array.isArray(result)) {
+        generatedText = result[0]?.generated_text || result[0]?.text || '';
+      } else if (typeof result === 'object') {
+        generatedText = result.generated_text || result.text || '';
+      } else if (typeof result === 'string') {
+        generatedText = result;
+      }
+      
+      if (!generatedText) {
+        throw new Error('No text generated from model');
+      }
+      
       return generatedText;
     } catch (error) {
       console.error('Offline generation error:', error);
-      throw new Error(`Offline generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Offline generation failed: ${errorMsg}`);
     }
   };
 
