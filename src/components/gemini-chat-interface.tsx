@@ -26,7 +26,9 @@ import {
   LogOut,
   Globe,
   Camera,
-  Code
+  Code,
+  Copy,
+  Check
 } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,6 +37,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { CodeGenerator } from './code-generator';
+import { ChatMessageRenderer } from './chat-message-renderer';
 import type { User } from '@supabase/supabase-js';
 
 interface ChatSession {
@@ -73,6 +76,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const { toast } = useToast();
   const { language, setLanguage, t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -841,18 +845,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({ user, 
                       {/* AI Response */}
                       {msg.response && (
                         <div className="flex justify-start">
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-3 w-full">
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
                               <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                             </div>
-                            <div className="max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
-                              <div 
-                                className="prose prose-sm max-w-none dark:prose-invert text-sm leading-relaxed"
-                                dangerouslySetInnerHTML={{ 
-                                  __html: msg.response.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                }} 
-                              />
-                              <div className="text-xs text-muted-foreground mt-2">
+                            <div className="flex-1 max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
+                              <ChatMessageRenderer content={msg.response} />
+                              <div className="text-xs text-muted-foreground mt-3">
                                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </div>
                             </div>

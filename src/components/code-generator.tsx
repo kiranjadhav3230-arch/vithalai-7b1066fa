@@ -27,9 +27,14 @@ import {
   Wifi,
   WifiOff,
   Lock,
-  HardDrive
+  HardDrive,
+  Terminal,
+  Play
 } from 'lucide-react';
 import { pipeline, env } from '@huggingface/transformers';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeGeneratorResult } from './code-generator-result';
 
 const PROGRAMMING_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -858,11 +863,14 @@ export const CodeGenerator = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Language</label>
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Code className="h-4 w-4 text-primary" />
+                      Programming Language
+                    </label>
                     <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 border-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -876,9 +884,12 @@ export const CodeGenerator = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Task</label>
+                    <label className="text-sm font-semibold flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      Task Type
+                    </label>
                     <Select value={selectedTask} onValueChange={setSelectedTask}>
-                      <SelectTrigger>
+                      <SelectTrigger className="h-11 border-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -896,141 +907,155 @@ export const CodeGenerator = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Prompt</label>
+                  <label className="text-sm font-semibold flex items-center gap-2">
+                    <Terminal className="h-4 w-4 text-primary" />
+                    Describe Your Code
+                  </label>
                   <Textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the code you want to generate..."
-                    className="min-h-[120px]"
+                    placeholder="Example: Create a function that sorts an array using quicksort algorithm..."
+                    className="min-h-[140px] border-2 font-mono text-sm"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Be specific about functionality, edge cases, and any special requirements
+                  </p>
                 </div>
 
                 <Button 
                   onClick={generateCode}
                   disabled={isGenerating || !prompt.trim()}
-                  className="w-full"
+                  className="w-full h-12 text-base font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                   size="lg"
                 >
                   {isGenerating ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating with Gemini AI...
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Generating Code with AI...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="mr-2 h-4 w-4" />
+                      <Play className="mr-2 h-5 w-5" />
                       Generate Code
                     </>
                   )}
                 </Button>
 
                 {isGenerating && (
-                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Generating code with Gemini AI...</span>
-                  </div>
-                )}
-
-                {generatedCode && (
-                  <div className="space-y-4">
-                    <Separator />
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium">Generated Code</label>
-                        <Badge variant="secondary">{selectedLanguage}</Badge>
+                  <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+                    <CardContent className="flex items-center justify-center gap-3 py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold">Generating Your Code...</p>
+                        <p className="text-xs text-muted-foreground">AI is crafting the perfect solution</p>
                       </div>
-                      <Textarea
-                        value={generatedCode}
-                        readOnly
-                        className="min-h-[300px] font-mono text-sm"
-                      />
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button onClick={copyToClipboard} variant="outline" size="sm">
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy
-                      </Button>
-                      <Button onClick={downloadCode} variant="outline" size="sm">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </Button>
-                      <Button onClick={saveCodeSnippet} variant="outline" size="sm">
-                        <Save className="mr-2 h-4 w-4" />
-                        Save
-                      </Button>
-                    </div>
-                  </div>
+                    </CardContent>
+                  </Card>
                 )}
               </CardContent>
             </Card>
+
+            {generatedCode && (
+              <CodeGeneratorResult
+                generatedCode={generatedCode}
+                selectedLanguage={selectedLanguage}
+                onCopy={copyToClipboard}
+                onDownload={downloadCode}
+                onSave={saveCodeSnippet}
+              />
+            )}
           </TabsContent>
 
-          <TabsContent value="snippets">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Save className="h-5 w-5" />
-                  Saved Code Snippets
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoadingSnippets ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  </div>
-                ) : savedSnippets.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Code className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No saved snippets yet</p>
-                    <p className="text-sm mt-2">Generate and save code to see it here</p>
-                  </div>
-                ) : (
-                  <ScrollArea className="h-[600px] pr-4">
-                    <div className="space-y-4">
-                      {savedSnippets.map((snippet) => (
-                        <Card key={snippet.id} className="overflow-hidden">
-                          <CardHeader className="pb-3">
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="space-y-1 flex-1">
-                                <CardTitle className="text-base">{snippet.title}</CardTitle>
-                                <p className="text-sm text-muted-foreground">{snippet.description}</p>
-                              </div>
-                              <Badge variant="secondary">{snippet.language}</Badge>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-3">
-                            <Textarea
-                              value={snippet.generated_code}
-                              readOnly
-                              className="min-h-[200px] font-mono text-sm"
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => copySnippetToClipboard(snippet.generated_code)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Copy className="mr-2 h-3 w-3" />
-                                Copy
-                              </Button>
-                              <Button
-                                onClick={() => deleteSnippet(snippet.id)}
-                                variant="outline"
-                                size="sm"
-                              >
-                                <Trash2 className="mr-2 h-3 w-3" />
-                                Delete
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="snippets" className="space-y-6">
+            {isLoadingSnippets ? (
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                <p className="text-muted-foreground mt-4">Loading snippets...</p>
+              </div>
+            ) : savedSnippets.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <Save className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <p className="text-lg font-medium text-muted-foreground">No saved snippets yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">Generate code and save it to see it here</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {savedSnippets.map((snippet) => (
+                  <Card key={snippet.id} className="overflow-hidden border-2 hover:border-primary/30 transition-colors">
+                    <CardHeader className="bg-gradient-to-r from-card to-card/50 border-b">
+                      <div className="flex items-start justify-between flex-wrap gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <Code className="h-5 w-5 text-primary" />
+                            {snippet.title}
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground mt-2">{snippet.description}</p>
+                          <div className="flex items-center gap-2 mt-3">
+                            <Badge variant="secondary" className="border-primary/30">
+                              {PROGRAMMING_LANGUAGES.find(l => l.value === snippet.language)?.label}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <span>•</span>
+                              {new Date(snippet.created_at).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => copySnippetToClipboard(snippet.generated_code)}
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 hover:border-primary"
+                          >
+                            <Copy className="h-4 w-4" />
+                            Copy
+                          </Button>
+                          <Button
+                            onClick={() => deleteSnippet(snippet.id)}
+                            variant="outline"
+                            size="sm"
+                            className="gap-2 text-destructive hover:text-destructive hover:border-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <ScrollArea className="h-[350px] w-full">
+                        <SyntaxHighlighter
+                          language={snippet.language === 'cpp' ? 'cpp' : snippet.language}
+                          style={vscDarkPlus}
+                          showLineNumbers={true}
+                          wrapLines={true}
+                          customStyle={{
+                            margin: 0,
+                            borderRadius: 0,
+                            fontSize: '0.875rem',
+                            padding: '1.5rem',
+                            background: 'hsl(var(--card))',
+                          }}
+                          codeTagProps={{
+                            style: {
+                              fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
+                            }
+                          }}
+                        >
+                          {snippet.generated_code}
+                        </SyntaxHighlighter>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

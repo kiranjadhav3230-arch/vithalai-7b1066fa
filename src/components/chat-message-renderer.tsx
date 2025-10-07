@@ -1,0 +1,138 @@
+import React, { useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Button } from '@/components/ui/button';
+import { Copy, Check } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface MessageRendererProps {
+  content: string;
+}
+
+export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content }) => {
+  const [copiedBlocks, setCopiedBlocks] = useState<Set<number>>(new Set());
+  const { toast } = useToast();
+
+  const copyToClipboard = async (code: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedBlocks(prev => new Set(prev).add(index));
+      toast({
+        title: "Copied!",
+        description: "Code copied to clipboard",
+      });
+      setTimeout(() => {
+        setCopiedBlocks(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(index);
+          return newSet;
+        });
+      }, 2000);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy code",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const renderContent = () => {
+    const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const parts: JSX.Element[] = [];
+    let lastIndex = 0;
+    let match;
+    let blockIndex = 0;
+
+    while ((match = codeBlockRegex.exec(content)) !== null) {
+      // Add text before code block
+      if (match.index > lastIndex) {
+        const textContent = content.substring(lastIndex, match.index);
+        parts.push(
+          <div 
+            key={`text-${blockIndex}`}
+            className="prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ 
+              __html: textContent
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            }}
+          />
+        );
+      }
+
+      // Add code block with syntax highlighting
+      const language = match[1] || 'plaintext';
+      const code = match[2].trim();
+      const currentBlockIndex = blockIndex;
+
+      parts.push(
+        <div key={`code-${blockIndex}`} className="relative group my-4">
+          <div className="absolute right-2 top-2 z-10">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => copyToClipboard(code, currentBlockIndex)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {copiedBlocks.has(currentBlockIndex) ? (
+                <>
+                  <Check className="h-3 w-3 mr-1" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3 w-3 mr-1" />
+                  Copy
+                </>
+              )}
+            </Button>
+          </div>
+          <SyntaxHighlighter
+            language={language}
+            style={vscDarkPlus}
+            showLineNumbers={true}
+            customStyle={{
+              margin: 0,
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              padding: '1.5rem',
+            }}
+            codeTagProps={{
+              style: {
+                fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
+              }
+            }}
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
+      );
+
+      lastIndex = match.index + match[0].length;
+      blockIndex++;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+      const textContent = content.substring(lastIndex);
+      parts.push(
+        <div 
+          key={`text-final`}
+          className="prose prose-sm max-w-none dark:prose-invert"
+          dangerouslySetInnerHTML={{ 
+            __html: textContent
+              .replace(/\n/g, '<br>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+          }}
+        />
+      );
+    }
+
+    return parts;
+  };
+
+  return <div className="space-y-2">{renderContent()}</div>;
+};
