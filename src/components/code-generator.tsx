@@ -577,9 +577,7 @@ Only Supported To WebGPU Spported processor Device only . </p>
                   <WifiOff className="h-8 w-8 text-primary" />
                   {!isMobile && <Badge variant="secondary">Desktop Only</Badge>}
                 </div>
-                <CardTitle className="text-xl">
-                  Vithal AI Code Generator
-                </CardTitle>
+                <CardTitle className="text-xl">Vithal AI Code Generator ( Coming Soon )</CardTitle>
                 <p className="text-sm text-muted-foreground">Offline</p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -590,11 +588,11 @@ Only Supported To WebGPU Spported processor Device only . </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>Works without internet</span>
+                    <span>Works without internet    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>Privacy-focused</span>
+                    <span>Privacy-focused </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">•</span>
@@ -605,15 +603,7 @@ Only Supported To WebGPU Spported processor Device only . </p>
                     <span className="font-medium">Model size: {modelSize}</span>
                   </li>
                 </ul>
-                <Button className="w-full" size="lg" disabled={isMobile} variant={isMobile ? "outline" : "default"}>
-                  {isMobile ? <>
-                      <Lock className="mr-2 h-4 w-4" />
-                      Not Available
-                    </> : <>
-                      <WifiOff className="mr-2 h-4 w-4" />
-                      Use Offline Model
-                    </>}
-                </Button>
+                
               </CardContent>
             </Card>
           </div>
