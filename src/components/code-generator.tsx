@@ -568,9 +568,8 @@ export const CodeGenerator = () => {
                   <div className="text-center space-y-3">
                     <Lock className="h-12 w-12 mx-auto text-muted-foreground" />
                     <p className="font-semibold text-sm">Device Not Compatible</p>
-                    <p className="text-xs text-muted-foreground">
-                      This device is not capable to use this AI Model. Please use Online Model.
-                    </p>
+                    <p className="text-xs text-muted-foreground">This device is not capable to use this AI Model. Please use Online Model.
+Only Supported To WebGPU Spported processor Device only . </p>
                   </div>
                 </div>}
               <CardHeader className="pb-3">
@@ -598,7 +597,7 @@ export const CodeGenerator = () => {
                     <span>Privacy-focused</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-primary mt-0.5">Download Offline AI Model   ( Coming Soon )</span>
+                    <span className="text-primary mt-0.5">•</span>
                     <span>Desktop/Laptop only</span>
                   </li>
                   <li className="flex items-start gap-2">
@@ -650,7 +649,7 @@ export const CodeGenerator = () => {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="rounded-full bg-primary/10 p-2">
-                    
+                    <HardDrive className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium mb-1">Local AI Model</p>
