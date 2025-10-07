@@ -141,50 +141,54 @@ export const CodeGenerator = () => {
       setDownloadProgress(0);
       setModelStatus('downloading');
 
+      toast({
+        title: "Downloading Model",
+        description: "Downloading AI model to your device...",
+      });
+
       // Check for WebGPU support
       const hasWebGPU = await checkWebGPUSupport();
       setUsingWebGPU(hasWebGPU);
 
       let model;
       let modelName;
-      let deviceType;
+      let deviceConfig: any = {};
 
       if (hasWebGPU) {
-        // Primary: Qwen2.5-Coder with WebGPU (45 MB with q4 quantization)
+        // Try WebGPU optimized model
         modelName = 'onnx-community/Qwen2.5-Coder-0.5B-Instruct';
-        deviceType = 'webgpu';
+        deviceConfig = { 
+          device: 'webgpu',
+          dtype: {
+            embed_tokens: 'fp16',
+            vision_encoder: 'fp16',
+            decoder_model_merged: 'q4',
+          }
+        };
         setModelSize('45 MB');
-        
-        toast({
-          title: "Downloading Model",
-          description: "Downloading Qwen2.5-Coder (45 MB) with WebGPU acceleration...",
-        });
+        console.log('Attempting to load Qwen2.5-Coder with WebGPU');
       } else {
-        // Fallback: distilgpt2 for CPU (80 MB)
+        // CPU fallback
         modelName = 'Xenova/distilgpt2';
-        deviceType = 'wasm';
+        deviceConfig = { device: 'wasm' };
         setModelSize('80 MB');
-        
-        toast({
-          title: "Downloading Model",
-          description: "Downloading distilgpt2 (80 MB) for CPU...",
-        });
+        console.log('Loading distilgpt2 for CPU');
       }
-
-      console.log(`Loading model: ${modelName} on ${deviceType}`);
 
       model = await pipeline(
         'text-generation',
         modelName,
         {
-          device: deviceType,
-          dtype: hasWebGPU ? 'q4' : 'fp32',
+          ...deviceConfig,
           progress_callback: (progress: any) => {
             console.log('Download progress:', progress);
-            if (progress.status === 'progress' && progress.total) {
+            if (progress.status === 'progress' && progress.file) {
               const percent = Math.round((progress.loaded / progress.total) * 100);
               setDownloadProgress(Math.min(percent, 100));
+              console.log(`${progress.file}: ${percent}%`);
             } else if (progress.status === 'done') {
+              console.log('File download complete:', progress.file);
+            } else if (progress.status === 'ready') {
               setDownloadProgress(100);
             }
           }
@@ -198,18 +202,54 @@ export const CodeGenerator = () => {
 
       toast({
         title: "Model Ready",
-        description: `Offline AI model ready with ${hasWebGPU ? 'GPU acceleration' : 'CPU'}!`,
+        description: `AI model ready with ${hasWebGPU ? 'GPU acceleration' : 'CPU'}!`,
       });
     } catch (error) {
       console.error('Error downloading model:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // If WebGPU fails, try CPU fallback
+      if (usingWebGPU) {
+        console.log('WebGPU failed, trying CPU fallback...');
+        setUsingWebGPU(false);
+        
+        try {
+          setDownloadProgress(0);
+          const fallbackModel = await pipeline(
+            'text-generation',
+            'Xenova/distilgpt2',
+            {
+              device: 'wasm',
+              progress_callback: (progress: any) => {
+                if (progress.status === 'progress' && progress.file) {
+                  const percent = Math.round((progress.loaded / progress.total) * 100);
+                  setDownloadProgress(Math.min(percent, 100));
+                }
+              }
+            }
+          );
+          
+          setOfflineModel(fallbackModel);
+          setModelStatus('ready');
+          setIsDownloadingModel(false);
+          setModelSize('80 MB');
+          
+          toast({
+            title: "Model Ready",
+            description: "AI model ready with CPU (WebGPU unavailable)!",
+          });
+          return;
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
+      }
       
       setIsDownloadingModel(false);
       setModelStatus('not-downloaded');
       
       toast({
         title: "Download Failed",
-        description: `Failed to download model: ${errorMessage}. Please try the online model instead.`,
+        description: `Failed: ${errorMessage}. Please use the online model instead.`,
         variant: "destructive",
       });
     }
@@ -222,55 +262,60 @@ export const CodeGenerator = () => {
     }
 
     try {
+      // Build a clear instruction
       let instruction = '';
-      if (task === 'generate') instruction = `Write ${lang} code to: ${prompt}`;
-      else if (task === 'explain') instruction = `Explain this ${lang} code: ${prompt}`;
-      else if (task === 'fix') instruction = `Fix bugs in this ${lang} code: ${prompt}`;
-      else if (task === 'optimize') instruction = `Optimize this ${lang} code: ${prompt}`;
-      else if (task === 'translate') instruction = `Translate this code to ${lang}: ${prompt}`;
+      if (task === 'generate') {
+        instruction = `Write a ${lang} function that ${prompt}`;
+      } else if (task === 'explain') {
+        instruction = `Explain the following ${lang} code:\n${prompt}`;
+      } else if (task === 'fix') {
+        instruction = `Fix the bugs in this ${lang} code:\n${prompt}`;
+      } else if (task === 'optimize') {
+        instruction = `Optimize the following ${lang} code:\n${prompt}`;
+      } else if (task === 'translate') {
+        instruction = `Translate this code to ${lang}:\n${prompt}`;
+      }
 
-      console.log('Generating with offline model:', instruction);
+      console.log('Generating code with instruction:', instruction);
       
-      // For Qwen2.5-Coder, use chat format
-      const messages = [
-        { role: 'system', content: 'You are a helpful coding assistant. Generate clean, working code.' },
-        { role: 'user', content: instruction }
-      ];
-
+      // Generate with the model
       const result = await offlineModel(instruction, {
-        max_new_tokens: 512,
+        max_new_tokens: 300,
         temperature: 0.7,
         do_sample: true,
-        top_k: 50,
-        top_p: 0.95,
+        top_p: 0.9,
+        repetition_penalty: 1.2,
       });
 
-      console.log('Raw result:', result);
+      console.log('Generation result:', result);
       
-      // Handle different output formats
+      // Extract the generated text
       let generatedText = '';
-      if (Array.isArray(result)) {
-        generatedText = result[0]?.generated_text || '';
-      } else if (typeof result === 'object') {
-        generatedText = result.generated_text || '';
-      } else if (typeof result === 'string') {
-        generatedText = result;
-      }
-      
-      // Clean up the output - remove the input prompt if it's repeated
-      if (generatedText.startsWith(instruction)) {
-        generatedText = generatedText.slice(instruction.length).trim();
+      if (Array.isArray(result) && result.length > 0) {
+        generatedText = result[0].generated_text || '';
+      } else if (typeof result === 'object' && result !== null) {
+        generatedText = (result as any).generated_text || '';
       }
       
       if (!generatedText) {
         throw new Error('No text generated from model');
       }
       
+      // Clean up: remove the prompt if it's included in the output
+      if (generatedText.includes(instruction)) {
+        generatedText = generatedText.replace(instruction, '').trim();
+      }
+      
+      // If output is still empty or too short, return the original
+      if (generatedText.length < 10) {
+        return '// Code generation produced minimal output. Please try with a more specific prompt.';
+      }
+      
       return generatedText;
     } catch (error) {
       console.error('Offline generation error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Offline generation failed: ${errorMsg}`);
+      throw new Error(`Generation failed: ${errorMsg}`);
     }
   };
 
