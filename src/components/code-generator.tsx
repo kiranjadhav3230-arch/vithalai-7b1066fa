@@ -75,6 +75,8 @@ export const CodeGenerator = () => {
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [offlineModel, setOfflineModel] = useState<any>(null);
   const [modelStatus, setModelStatus] = useState<'not-downloaded' | 'downloading' | 'ready'>('not-downloaded');
+  const [usingWebGPU, setUsingWebGPU] = useState(false);
+  const [modelSize, setModelSize] = useState('125 MB'); // Combined size estimate
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -110,6 +112,28 @@ export const CodeGenerator = () => {
     loadSnippets();
   }, []);
 
+  // Check WebGPU availability
+  const checkWebGPUSupport = async (): Promise<boolean> => {
+    try {
+      // @ts-ignore - WebGPU is not yet in TypeScript Navigator type
+      if (!navigator.gpu) {
+        console.log('WebGPU not available');
+        return false;
+      }
+      // @ts-ignore - WebGPU is not yet in TypeScript Navigator type
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) {
+        console.log('WebGPU adapter not available');
+        return false;
+      }
+      console.log('WebGPU is available');
+      return true;
+    } catch (error) {
+      console.error('Error checking WebGPU:', error);
+      return false;
+    }
+  };
+
   // Download and initialize offline model
   const downloadOfflineModel = async () => {
     try {
@@ -117,16 +141,44 @@ export const CodeGenerator = () => {
       setDownloadProgress(0);
       setModelStatus('downloading');
 
-      toast({
-        title: "Downloading Model",
-        description: "Downloading 822.2 MB AI model to your device...",
-      });
+      // Check for WebGPU support
+      const hasWebGPU = await checkWebGPUSupport();
+      setUsingWebGPU(hasWebGPU);
 
-      // Use text2text-generation model that works well in browsers
-      const model = await pipeline(
-        'text2text-generation',
-        'Xenova/flan-t5-base',
+      let model;
+      let modelName;
+      let deviceType;
+
+      if (hasWebGPU) {
+        // Primary: Qwen2.5-Coder with WebGPU (45 MB with q4 quantization)
+        modelName = 'onnx-community/Qwen2.5-Coder-0.5B-Instruct';
+        deviceType = 'webgpu';
+        setModelSize('45 MB');
+        
+        toast({
+          title: "Downloading Model",
+          description: "Downloading Qwen2.5-Coder (45 MB) with WebGPU acceleration...",
+        });
+      } else {
+        // Fallback: distilgpt2 for CPU (80 MB)
+        modelName = 'Xenova/distilgpt2';
+        deviceType = 'wasm';
+        setModelSize('80 MB');
+        
+        toast({
+          title: "Downloading Model",
+          description: "Downloading distilgpt2 (80 MB) for CPU...",
+        });
+      }
+
+      console.log(`Loading model: ${modelName} on ${deviceType}`);
+
+      model = await pipeline(
+        'text-generation',
+        modelName,
         {
+          device: deviceType,
+          dtype: hasWebGPU ? 'q4' : 'fp32',
           progress_callback: (progress: any) => {
             console.log('Download progress:', progress);
             if (progress.status === 'progress' && progress.total) {
@@ -139,26 +191,25 @@ export const CodeGenerator = () => {
         }
       );
 
-      console.log('Model loaded successfully:', model);
+      console.log('Model loaded successfully');
       setOfflineModel(model);
       setModelStatus('ready');
       setIsDownloadingModel(false);
 
       toast({
         title: "Model Ready",
-        description: "Offline AI model downloaded and ready to use!",
+        description: `Offline AI model ready with ${hasWebGPU ? 'GPU acceleration' : 'CPU'}!`,
       });
     } catch (error) {
       console.error('Error downloading model:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Detailed error:', errorMessage);
       
       setIsDownloadingModel(false);
       setModelStatus('not-downloaded');
       
       toast({
         title: "Download Failed",
-        description: `Failed to download offline model: ${errorMessage}. Please try the online model instead.`,
+        description: `Failed to download model: ${errorMessage}. Please try the online model instead.`,
         variant: "destructive",
       });
     }
@@ -171,33 +222,44 @@ export const CodeGenerator = () => {
     }
 
     try {
-      let taskInstruction = '';
-      if (task === 'generate') taskInstruction = 'Generate';
-      else if (task === 'explain') taskInstruction = 'Explain this';
-      else if (task === 'fix') taskInstruction = 'Fix bugs in this';
-      else if (task === 'optimize') taskInstruction = 'Optimize this';
-      else if (task === 'translate') taskInstruction = 'Translate this';
+      let instruction = '';
+      if (task === 'generate') instruction = `Write ${lang} code to: ${prompt}`;
+      else if (task === 'explain') instruction = `Explain this ${lang} code: ${prompt}`;
+      else if (task === 'fix') instruction = `Fix bugs in this ${lang} code: ${prompt}`;
+      else if (task === 'optimize') instruction = `Optimize this ${lang} code: ${prompt}`;
+      else if (task === 'translate') instruction = `Translate this code to ${lang}: ${prompt}`;
 
-      const fullPrompt = `${taskInstruction} ${lang} code: ${prompt}`;
+      console.log('Generating with offline model:', instruction);
       
-      console.log('Generating with offline model. Prompt:', fullPrompt);
-      
-      // Call the model directly
-      const result = await offlineModel(fullPrompt, {
-        max_new_tokens: 256,
+      // For Qwen2.5-Coder, use chat format
+      const messages = [
+        { role: 'system', content: 'You are a helpful coding assistant. Generate clean, working code.' },
+        { role: 'user', content: instruction }
+      ];
+
+      const result = await offlineModel(instruction, {
+        max_new_tokens: 512,
         temperature: 0.7,
+        do_sample: true,
+        top_k: 50,
+        top_p: 0.95,
       });
 
-      console.log('Raw offline model result:', result);
+      console.log('Raw result:', result);
       
-      // Handle different possible output formats
+      // Handle different output formats
       let generatedText = '';
       if (Array.isArray(result)) {
-        generatedText = result[0]?.generated_text || result[0]?.text || '';
+        generatedText = result[0]?.generated_text || '';
       } else if (typeof result === 'object') {
-        generatedText = result.generated_text || result.text || '';
+        generatedText = result.generated_text || '';
       } else if (typeof result === 'string') {
         generatedText = result;
+      }
+      
+      // Clean up the output - remove the input prompt if it's repeated
+      if (generatedText.startsWith(instruction)) {
+        generatedText = generatedText.slice(instruction.length).trim();
       }
       
       if (!generatedText) {
@@ -533,7 +595,7 @@ export const CodeGenerator = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">•</span>
-                    <span className="font-medium">Model size: 822.2 MB</span>
+                    <span className="font-medium">Model size: {modelSize}</span>
                   </li>
                 </ul>
                 <Button 
@@ -607,8 +669,14 @@ export const CodeGenerator = () => {
 
                 <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Model:</span>
+                    <span className="font-semibold">
+                      {usingWebGPU ? 'Qwen2.5-Coder (WebGPU)' : 'distilgpt2 (CPU)'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Model Size:</span>
-                    <span className="font-semibold">822.2 MB</span>
+                    <span className="font-semibold">{modelSize}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Storage:</span>
@@ -663,7 +731,7 @@ export const CodeGenerator = () => {
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      Download Model (822.2 MB)
+                      Download Model ({modelSize})
                     </>
                   )}
                 </Button>
