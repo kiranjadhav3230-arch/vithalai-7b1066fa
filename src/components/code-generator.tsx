@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -28,6 +29,7 @@ import {
   Lock,
   HardDrive
 } from 'lucide-react';
+import { pipeline, env } from '@huggingface/transformers';
 
 const PROGRAMMING_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -69,8 +71,18 @@ export const CodeGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
+  const [isDownloadingModel, setIsDownloadingModel] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [offlineModel, setOfflineModel] = useState<any>(null);
+  const [modelStatus, setModelStatus] = useState<'not-downloaded' | 'downloading' | 'ready'>('not-downloaded');
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Configure transformers.js to use cache
+  useEffect(() => {
+    env.allowLocalModels = false;
+    env.useBrowserCache = true;
+  }, []);
 
   // Load saved snippets
   const loadSnippets = async () => {
@@ -97,6 +109,73 @@ export const CodeGenerator = () => {
   React.useEffect(() => {
     loadSnippets();
   }, []);
+
+  // Download and initialize offline model
+  const downloadOfflineModel = async () => {
+    try {
+      setIsDownloadingModel(true);
+      setDownloadProgress(0);
+      setModelStatus('downloading');
+
+      toast({
+        title: "Downloading Model",
+        description: "Downloading 822.2 MB AI model to your device...",
+      });
+
+      // Use a smaller code generation model that works in browser
+      const model = await pipeline(
+        'text-generation',
+        'Xenova/LaMini-Flan-T5-783M',
+        {
+          progress_callback: (progress: any) => {
+            if (progress.status === 'downloading') {
+              const percent = Math.round((progress.loaded / progress.total) * 100);
+              setDownloadProgress(percent);
+            }
+          }
+        }
+      );
+
+      setOfflineModel(model);
+      setModelStatus('ready');
+      setIsDownloadingModel(false);
+
+      toast({
+        title: "Model Ready",
+        description: "Offline AI model downloaded and ready to use!",
+      });
+    } catch (error) {
+      console.error('Error downloading model:', error);
+      setIsDownloadingModel(false);
+      setModelStatus('not-downloaded');
+      toast({
+        title: "Download Failed",
+        description: "Failed to download offline model. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Generate code using offline model
+  const generateCodeWithOfflineModel = async (prompt: string, lang: string, task: string): Promise<string> => {
+    if (!offlineModel) {
+      throw new Error('Offline model not loaded');
+    }
+
+    try {
+      const systemPrompt = `You are a code generator. Generate ${lang} code for the following task: ${task}.\n\nUser request: ${prompt}\n\nProvide only the code without explanations.`;
+      
+      const result = await offlineModel(systemPrompt, {
+        max_new_tokens: 500,
+        temperature: 0.7,
+      });
+
+      return result[0].generated_text || 'Error generating code';
+    } catch (error) {
+      console.error('Offline generation error:', error);
+      throw error;
+    }
+  };
 
   // Generate code using Gemini API
   const generateCodeWithGemini = async (prompt: string, lang: string, task: string): Promise<string> => {
@@ -138,17 +217,33 @@ export const CodeGenerator = () => {
       return;
     }
 
+    // Check if offline model is selected but not ready
+    if (modelType === 'offline' && modelStatus !== 'ready') {
+      toast({
+        title: "Error",
+        description: "Please download the offline model first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setGeneratedCode('');
 
     try {
-      const code = await generateCodeWithGemini(prompt, selectedLanguage, selectedTask);
+      let code: string;
+      
+      if (modelType === 'offline') {
+        code = await generateCodeWithOfflineModel(prompt, selectedLanguage, selectedTask);
+      } else {
+        code = await generateCodeWithGemini(prompt, selectedLanguage, selectedTask);
+      }
       
       if (code) {
         setGeneratedCode(code);
         toast({
           title: "Success",
-          description: "Code generated successfully with Gemini AI!",
+          description: `Code generated successfully with ${modelType === 'offline' ? 'Offline AI' : 'Gemini AI'}!`,
         });
       }
     } catch (error) {
@@ -432,6 +527,126 @@ export const CodeGenerator = () => {
     );
   }
 
+  // Show model download screen for offline mode
+  if (modelType === 'offline' && modelStatus !== 'ready') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto p-4 md:p-6 max-w-2xl">
+          <div className="mb-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <img 
+                src={vithalLogo} 
+                alt="Vithal.AI Logo" 
+                className="h-20 w-20 object-contain"
+              />
+            </div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              Vithal.AI Code Generator
+            </h1>
+            <p className="text-muted-foreground flex items-center justify-center gap-2">
+              <WifiOff className="h-4 w-4 text-primary" />
+              Offline Mode
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HardDrive className="h-5 w-5" />
+                Download Offline AI Model
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full bg-primary/10 p-2">
+                    <HardDrive className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium mb-1">Local AI Model</p>
+                    <p className="text-sm text-muted-foreground">
+                      Download and install the AI model on your device for offline code generation
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Model Size:</span>
+                    <span className="font-semibold">822.2 MB</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Storage:</span>
+                    <span className="font-medium">Browser Cache</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Status:</span>
+                    <Badge variant={modelStatus === 'downloading' ? 'default' : 'secondary'}>
+                      {modelStatus === 'downloading' ? 'Downloading...' : 'Not Downloaded'}
+                    </Badge>
+                  </div>
+                </div>
+
+                {isDownloadingModel && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Download Progress</span>
+                      <span className="font-medium">{downloadProgress}%</span>
+                    </div>
+                    <Progress value={downloadProgress} className="h-2" />
+                    <p className="text-xs text-muted-foreground text-center">
+                      Please wait... This may take a few minutes depending on your connection
+                    </p>
+                  </div>
+                )}
+
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 space-y-2">
+                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    ℹ️ Important Information
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1 ml-4">
+                    <li>• The model will be saved in your browser cache</li>
+                    <li>• Works completely offline after download</li>
+                    <li>• No data is sent to external servers</li>
+                    <li>• Download is required only once</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  onClick={downloadOfflineModel}
+                  disabled={isDownloadingModel}
+                  className="flex-1"
+                  size="lg"
+                >
+                  {isDownloadingModel ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Downloading... {downloadProgress}%
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Download Model (822.2 MB)
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setModelType(null)}
+                  disabled={isDownloadingModel}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto p-4 md:p-6 max-w-7xl">
@@ -456,6 +671,7 @@ export const CodeGenerator = () => {
               ) : (
                 <>
                   <WifiOff className="h-4 w-4 text-primary" />
+                  <Badge variant="default" className="mr-2">Model Ready</Badge>
                   Offline Mode - Privacy-focused code generation
                 </>
               )}
@@ -463,7 +679,10 @@ export const CodeGenerator = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setModelType(null)}
+              onClick={() => {
+                setModelType(null);
+                setModelStatus('not-downloaded');
+              }}
             >
               Change Model
             </Button>
