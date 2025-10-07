@@ -4,7 +4,6 @@ import { Header } from '@/components/header';
 import { HeroSection } from '@/components/hero-section';
 import { HowItWorksSection } from '@/components/how-it-works-section';
 import { FeaturesSection } from '@/components/features-section';
-import { CodeGeneratorInfoSection } from '@/components/code-generator-info-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
 import { LoadingScreen } from '@/components/loading-screen';
@@ -113,7 +112,6 @@ const Index = () => {
         
         <main>
           <HeroSection onGetStarted={handleGetStarted} />
-          <CodeGeneratorInfoSection onGetStarted={handleGetStarted} />
           <HowItWorksSection />
           <FeaturesSection />
           
