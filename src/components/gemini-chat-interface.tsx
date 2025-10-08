@@ -496,7 +496,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const AppSidebar = () => {
     return <Sidebar className="border-r">
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-semibold text-lg">Vithal AI</h2>
+          <h2 className="font-semibold text-lg">Vithal AI 2.0</h2>
           <Button onClick={createNewSession} size="sm" className="h-8 w-8 p-0">
             <Plus className="h-4 w-4" />
           </Button>
@@ -696,12 +696,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-border/50">
                         <img src={vithalLogo} alt="Vithal AI" className="w-10 h-10" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                        Welcome to Vithal AI
-                      </h2>
-                      <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">
-                        Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.
-                      </p>
+                      <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Welcome to Vithal AI 2.0</h2>
+                      <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
                         <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
                           <h3 className="font-semibold text-sm mb-2">📚 Study Help</h3>
