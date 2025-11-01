@@ -40,26 +40,35 @@ export const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-16 px-4 bg-muted/30">
+    <section id="features" className="relative py-24 px-4 overflow-hidden">
+      {/* Background Effect */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary/20 to-background -z-10"></div>
+      
       <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('features')}</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">{t('features')}</h2>
+          <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
             Discover the powerful features that make Vithal AI your perfect career companion
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow border-0 bg-card/50 backdrop-blur">
-              <CardContent className="p-6">
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit">
-                  <feature.icon className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2 text-lg">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
-              </CardContent>
-            </Card>
+            <div
+              key={index}
+              className="group premium-card p-8 rounded-2xl hover:scale-105 hover-glow transition-all duration-500 cursor-pointer animate-fade-in-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 w-fit group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <feature.icon className="h-7 w-7 text-primary" />
+              </div>
+              <h3 className="font-bold mb-3 text-xl text-foreground group-hover:text-primary transition-colors">
+                {feature.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>

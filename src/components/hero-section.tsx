@@ -11,59 +11,66 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
   const { t } = useLanguage();
 
   return (
-    <section className="pt-24 pb-16 px-4">
-      <div className="container mx-auto text-center max-w-4xl">
-        <div className="mb-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-          <Sparkles className="h-4 w-4" />
+    <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] animate-float"></div>
+        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-[128px] animate-float" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      <div className="container mx-auto text-center max-w-5xl">
+        <div className="mb-8 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 border border-primary/30 text-primary text-sm font-semibold backdrop-blur-sm animate-fade-in-up shimmer-effect">
+          <Sparkles className="h-4 w-4 animate-glow" />
           {t('tagline')}
         </div>
         
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+        <h1 className="text-5xl md:text-7xl font-bold mb-8 gradient-text animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
           {t('heroTitle')}
         </h1>
         
-        <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           {t('heroSubtitle')}
         </p>
 
-        {/* Enhanced Features Showcase */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 max-w-4xl mx-auto">
-          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-              <Brain className="h-6 w-6 text-primary" />
+        {/* Premium Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 max-w-5xl mx-auto">
+          <div className="group premium-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary/50">
+              <Brain className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('multiModalAI')}</h3>
-            <p className="text-sm text-muted-foreground text-center">{t('multiModalDesc')}</p>
+            <h3 className="font-bold text-xl mb-3 text-foreground">{t('multiModalAI')}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{t('multiModalDesc')}</p>
           </div>
           
-          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-accent/10 to-transparent border border-accent/20">
-            <div className="h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center mb-4">
-              <GraduationCap className="h-6 w-6 text-accent" />
+          <div className="group premium-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-accent to-accent/50 flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent/50">
+              <GraduationCap className="h-8 w-8 text-accent-foreground" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('studyHelper')}</h3>
-            <p className="text-sm text-muted-foreground text-center">{t('studyHelperDesc')}</p>
+            <h3 className="font-bold text-xl mb-3 text-foreground">{t('studyHelper')}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{t('studyHelperDesc')}</p>
           </div>
           
-          <div className="flex flex-col items-center p-6 rounded-xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/20">
-            <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-              <Sparkles className="h-6 w-6 text-primary" />
+          <div className="group premium-card p-8 rounded-2xl hover:scale-105 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-6 mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary/50">
+              <Sparkles className="h-8 w-8 text-primary-foreground animate-glow" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">{t('latestCourses')}</h3>
-            <p className="text-sm text-muted-foreground text-center">{t('latestCoursesDesc')}</p>
+            <h3 className="font-bold text-xl mb-3 text-foreground">{t('latestCourses')}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">{t('latestCoursesDesc')}</p>
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
           <Button 
             onClick={onGetStarted}
             size="lg" 
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white px-8 py-3 text-lg"
+            variant="premium"
+            className="group"
           >
             {t('getStarted')}
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           
-          <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+          <Button variant="glass" size="lg">
             {t('learnMore')}
           </Button>
         </div>
