@@ -40,10 +40,16 @@ export const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-16 px-4 bg-muted/30">
-      <div className="container mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('features')}</h2>
+    <section id="features" className="py-20 px-4 bg-muted/30 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden opacity-30">
+        <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div className="container mx-auto relative z-10">
+        <div className="text-center mb-16 animate-fadeInUp">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">{t('features')}</h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Discover the powerful features that make Vithal AI your perfect career companion
           </p>
@@ -51,13 +57,17 @@ export const FeaturesSection: React.FC = () => {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <Card key={index} className="hover:shadow-lg transition-shadow border-0 bg-card/50 backdrop-blur">
+            <Card 
+              key={index} 
+              className="premium-card group"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <CardContent className="p-6">
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit">
-                  <feature.icon className="h-6 w-6 text-primary" />
+                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 group-hover:animate-glow">
+                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <h3 className="font-semibold mb-2 text-lg">{feature.title}</h3>
-                <p className="text-muted-foreground">{feature.description}</p>
+                <h3 className="font-semibold mb-2 text-lg transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>
+                <p className="text-muted-foreground transition-colors duration-300 group-hover:text-foreground/90">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

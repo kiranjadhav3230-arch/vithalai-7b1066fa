@@ -48,9 +48,20 @@ All colors MUST be HSL.
     --warning-foreground: 0 0% 0%;
     --info: 25 95% 53%;
     --info-foreground: 0 0% 0%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 95.9%;
+    --sidebar-primary: 25 95% 53%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 15%;
+    --sidebar-accent-foreground: 0 0% 95.9%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 25 95% 53%;
   }
   
-  /* Professional Loading Animations */
+  /* Modern Animations */
   @keyframes float {
     0%, 100% { 
       transform: translateY(0px); 
@@ -68,6 +79,17 @@ All colors MUST be HSL.
     to { 
       opacity: 1; 
       transform: translateY(0); 
+    }
+  }
+  
+  @keyframes slideInRight {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
   
@@ -89,30 +111,34 @@ All colors MUST be HSL.
     }
   }
   
-  @keyframes loading {
-    0% { 
-      transform: translateX(-100%); 
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
     }
-    50% { 
-      transform: translateX(0%); 
+    100% {
+      background-position: 1000px 0;
     }
-    100% { 
-      transform: translateX(100%); 
+  }
+  
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255, 111, 0, 0.3);
     }
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 5%;
-    --sidebar-foreground: 0 0% 95.9%;
-    --sidebar-primary: 25 95% 53%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 0 0% 95.9%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 25 95% 53%;
+    50% {
+      box-shadow: 0 0 40px rgba(255, 111, 0, 0.6);
+    }
+  }
+  
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
-  .light {
+  :root.light {
     /* Light theme as alternative */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
@@ -145,16 +171,53 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Tech UI Enhancements */
+  /* Modern UI Enhancements */
   .tech-card {
-    @apply bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border/50;
+    @apply bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border/50 
+           transition-all duration-300 hover:border-primary/30 hover:shadow-lg;
   }
 
   .neon-border {
-    @apply border border-accent/50 shadow-[0_0_20px_rgba(255,165,0,0.3)];
+    @apply border border-primary/50 shadow-[0_0_20px_rgba(255,111,0,0.3)] 
+           transition-all duration-300 hover:shadow-[0_0_30px_rgba(255,111,0,0.5)];
   }
 
   .glass-morphism {
-    @apply bg-background/20 backdrop-blur-md border border-border/20;
+    @apply bg-background/20 backdrop-blur-md border border-border/20 
+           transition-all duration-300 hover:bg-background/30;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent;
+    background-size: 200% auto;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  .premium-card {
+    @apply relative overflow-hidden rounded-xl bg-card/50 backdrop-blur-sm 
+           border border-primary/20 transition-all duration-500 
+           hover:border-primary/50 hover:shadow-[0_0_30px_rgba(255,111,0,0.2)] 
+           hover:scale-[1.02] hover:-translate-y-1;
+  }
+
+  .premium-card::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 
+           opacity-0 transition-opacity duration-500;
+  }
+
+  .premium-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .shimmer-effect {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 111, 0, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 3s infinite;
   }
 }
