@@ -12,11 +12,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
 
   return (
     <section className="relative py-20 px-4 overflow-hidden min-h-[90vh] flex items-center">
-      {/* Enhanced Animated Background */}
+      {/* iOS 26 Liquid Glass Background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl animate-glow"></div>
+        <div className="liquid-orb top-20 left-10 w-72 h-72 bg-primary/30" style={{ animationDelay: '0s' }}></div>
+        <div className="liquid-orb bottom-20 right-10 w-96 h-96 bg-accent/30" style={{ animationDelay: '2s' }}></div>
+        <div className="liquid-orb top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20" style={{ animationDelay: '4s' }}></div>
       </div>
       
       <div className="container mx-auto text-center relative z-10">
@@ -49,8 +49,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
               { icon: GraduationCap, label: t('careerGuidance'), delay: '0.7s' },
               { icon: ArrowRight, label: t('instantHelp'), delay: '0.8s' }
             ].map((item, index) => (
-              <div key={index} className="premium-card p-4 hover:scale-105 transition-transform duration-300">
-                <item.icon className="h-8 w-8 mx-auto mb-2 text-primary animate-float-slow" style={{ animationDelay: `${index * 0.5}s` }} />
+              <div key={index} className="liquid-glass-intense glass-reflection p-4 hover:scale-105 transition-all duration-500 ripple-effect">
+                <item.icon className="h-8 w-8 mx-auto mb-2 text-primary float-3d liquid-glow" style={{ animationDelay: `${index * 0.5}s` }} />
                 <p className="text-sm font-medium font-display">{item.label}</p>
               </div>
             ))}

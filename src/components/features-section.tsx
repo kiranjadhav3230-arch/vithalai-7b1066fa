@@ -59,10 +59,11 @@ export const FeaturesSection: React.FC = () => {
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="premium-card group hover:scale-105 transition-all duration-500"
+              variant="glass"
+              className="group hover:scale-105 transition-all duration-500 morph-shape"
             >
               <CardContent className="p-6">
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 group-hover:animate-pulse-glow">
+                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 liquid-glow">
                   <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
                 </div>
                 <h3 className="font-display font-semibold mb-2 text-lg transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>

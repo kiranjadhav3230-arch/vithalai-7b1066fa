@@ -18,8 +18,9 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-lg",
         ghost: "hover:bg-accent hover:text-accent-foreground hover:shadow-md",
         link: "text-primary underline-offset-4 hover:underline",
-        premium: "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:shadow-[0_0_30px_rgba(255,111,0,0.4)] hover:scale-105 border border-primary/20",
-        glass: "bg-background/20 backdrop-blur-md border border-primary/30 text-foreground hover:bg-background/30 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20",
+        premium: "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:shadow-[0_0_30px_rgba(255,111,0,0.4)] hover:scale-105 border border-primary/20 transition-all duration-300",
+        glass: "bg-black/40 backdrop-blur-[20px] border border-primary/30 text-foreground hover:bg-black/50 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300",
+        "liquid-glass": "relative overflow-hidden bg-black/40 backdrop-blur-[20px] border border-primary/15 text-foreground hover:bg-black/50 hover:border-primary/30 hover:shadow-[0_12px_48px_0_rgba(255,111,0,0.2)] hover:scale-105 transition-all duration-500 ripple-effect",
       },
       size: {
         default: "h-10 px-4 py-2",

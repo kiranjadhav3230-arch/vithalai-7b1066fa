@@ -51,6 +51,12 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    /* Liquid Glass Effect Variables */
+    --glass-bg: 0 0% 0% / 0.4;
+    --glass-border: 25 95% 53% / 0.15;
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    --liquid-gradient: linear-gradient(135deg, rgba(255, 111, 0, 0.1) 0%, rgba(255, 111, 0, 0.05) 100%);
+
     --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 95.9%;
     --sidebar-primary: 25 95% 53%;
@@ -193,6 +199,56 @@ All colors MUST be HSL.
     }
   }
 
+  /* iOS 26 Liquid Glass Animations */
+  @keyframes liquid-flow {
+    0%, 100% {
+      background-position: 0% 50%;
+      transform: rotate(0deg);
+    }
+    50% {
+      background-position: 100% 50%;
+      transform: rotate(1deg);
+    }
+  }
+
+  @keyframes morph {
+    0%, 100% {
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+  }
+
+  @keyframes float-3d {
+    0%, 100% {
+      transform: translateY(0px) translateZ(0px) rotateX(0deg);
+    }
+    50% {
+      transform: translateY(-15px) translateZ(20px) rotateX(5deg);
+    }
+  }
+
+  @keyframes ripple {
+    0% {
+      transform: scale(0);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+
+  @keyframes blur-pulse {
+    0%, 100% {
+      backdrop-filter: blur(20px);
+    }
+    50% {
+      backdrop-filter: blur(30px);
+    }
+  }
+
   :root.light {
     /* Light theme as alternative */
     --background: 0 0% 100%;
@@ -294,4 +350,98 @@ All colors MUST be HSL.
   .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
   .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
   .stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }
+
+  /* iOS 26 Liquid Glass Styles */
+  .liquid-glass {
+    @apply relative overflow-hidden rounded-2xl bg-black/40 backdrop-blur-[20px] 
+           border border-primary/15 transition-all duration-500;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37),
+                inset 0 1px 0 0 rgba(255, 111, 0, 0.1);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .liquid-glass:hover {
+    @apply border-primary/30 scale-[1.02] -translate-y-1;
+    box-shadow: 0 12px 48px 0 rgba(255, 111, 0, 0.2),
+                inset 0 1px 0 0 rgba(255, 111, 0, 0.2);
+  }
+
+  .liquid-glass-intense {
+    @apply liquid-glass;
+    backdrop-filter: blur(30px) saturate(200%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%);
+  }
+
+  .liquid-glass-subtle {
+    @apply liquid-glass;
+    backdrop-filter: blur(12px) saturate(150%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.1) 100%);
+  }
+
+  .liquid-border {
+    @apply relative;
+    background: linear-gradient(135deg, rgba(255, 111, 0, 0.2), rgba(255, 111, 0, 0.05));
+    background-size: 200% 200%;
+    animation: liquid-flow 5s ease infinite;
+  }
+
+  .liquid-border::before {
+    content: '';
+    @apply absolute inset-[1px] rounded-2xl bg-black/80 backdrop-blur-md;
+  }
+
+  .liquid-glow {
+    @apply relative;
+    filter: drop-shadow(0 0 20px rgba(255, 111, 0, 0.3));
+    transition: filter 0.3s ease;
+  }
+
+  .liquid-glow:hover {
+    filter: drop-shadow(0 0 30px rgba(255, 111, 0, 0.5))
+            drop-shadow(0 0 40px rgba(255, 111, 0, 0.3));
+  }
+
+  .morph-shape {
+    animation: morph 8s ease-in-out infinite;
+    will-change: border-radius;
+  }
+
+  .float-3d {
+    animation: float-3d 6s ease-in-out infinite;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .glass-reflection {
+    @apply relative;
+  }
+
+  .glass-reflection::after {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1/2 rounded-t-2xl;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+  }
+
+  .ripple-effect {
+    @apply relative overflow-hidden;
+  }
+
+  .ripple-effect::after {
+    content: '';
+    @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary/30 rounded-full;
+    animation: ripple 1s ease-out;
+    opacity: 0;
+  }
+
+  .ripple-effect:active::after {
+    animation: ripple 0.6s ease-out;
+  }
+
+  /* Liquid Orb Background */
+  .liquid-orb {
+    @apply absolute rounded-full blur-3xl opacity-30;
+    animation: morph 10s ease-in-out infinite, float-3d 8s ease-in-out infinite;
+  }
 }

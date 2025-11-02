@@ -140,6 +140,26 @@ export default {
 				'float-slow': {
 					'0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
 					'50%': { transform: 'translateY(-20px) rotate(5deg)' }
+				},
+				'liquid-flow': {
+					'0%, 100%': { backgroundPosition: '0% 50%', transform: 'rotate(0deg)' },
+					'50%': { backgroundPosition: '100% 50%', transform: 'rotate(1deg)' }
+				},
+				'morph': {
+					'0%, 100%': { borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' },
+					'50%': { borderRadius: '30% 60% 70% 40% / 50% 60% 30% 60%' }
+				},
+				'float-3d': {
+					'0%, 100%': { transform: 'translateY(0px) translateZ(0px) rotateX(0deg)' },
+					'50%': { transform: 'translateY(-15px) translateZ(20px) rotateX(5deg)' }
+				},
+				'ripple': {
+					'0%': { transform: 'scale(0)', opacity: '1' },
+					'100%': { transform: 'scale(4)', opacity: '0' }
+				},
+				'blur-pulse': {
+					'0%, 100%': { backdropFilter: 'blur(20px)' },
+					'50%': { backdropFilter: 'blur(30px)' }
 				}
 			},
 			animation: {
@@ -154,7 +174,16 @@ export default {
 				'shimmer': 'shimmer 3s linear infinite',
 				'glow': 'glow 2s ease-in-out infinite',
 				'pulse-glow': 'pulse-glow 3s ease-in-out infinite',
-				'gradient-shift': 'gradient-shift 3s ease infinite'
+				'gradient-shift': 'gradient-shift 3s ease infinite',
+				'liquid-flow': 'liquid-flow 5s ease infinite',
+				'morph': 'morph 8s ease-in-out infinite',
+				'float-3d': 'float-3d 6s ease-in-out infinite',
+				'ripple': 'ripple 0.6s ease-out',
+				'blur-pulse': 'blur-pulse 4s ease-in-out infinite'
+			},
+			backdropBlur: {
+				xs: '2px',
+				ultra: '40px'
 			}
 		}
 	},
