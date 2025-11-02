@@ -21,37 +21,37 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
       
       <div className="container mx-auto text-center relative z-10">
         <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight animate-fadeInUp">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold leading-tight animate-scaleIn">
             <span className="gradient-text">
               {t('appName')}
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+          <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto animate-fadeInUp font-sans" style={{ animationDelay: '0.2s' }}>
             {t('heroDescription')}
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 pt-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
+          <div className="flex flex-wrap justify-center gap-4 pt-4 animate-scaleIn" style={{ animationDelay: '0.4s' }}>
             <Button
               onClick={onGetStarted}
               size="lg"
               variant="premium"
-              className="text-lg px-8 py-6"
+              className="text-lg px-8 py-6 animate-pulse-glow font-display"
             >
               {t('getStarted')}
             </Button>
           </div>
 
-          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 stagger-animation">
             {[
               { icon: Brain, label: t('aiPowered'), delay: '0.5s' },
               { icon: Sparkles, label: 'Multi-language', delay: '0.6s' },
               { icon: GraduationCap, label: t('careerGuidance'), delay: '0.7s' },
               { icon: ArrowRight, label: t('instantHelp'), delay: '0.8s' }
             ].map((item, index) => (
-              <div key={index} className="premium-card p-4 animate-slideInRight" style={{ animationDelay: item.delay }}>
-                <item.icon className="h-8 w-8 mx-auto mb-2 text-primary animate-float" style={{ animationDelay: `${index * 0.5}s` }} />
-                <p className="text-sm font-medium">{item.label}</p>
+              <div key={index} className="premium-card p-4 hover:scale-105 transition-transform duration-300">
+                <item.icon className="h-8 w-8 mx-auto mb-2 text-primary animate-float-slow" style={{ animationDelay: `${index * 0.5}s` }} />
+                <p className="text-sm font-medium font-display">{item.label}</p>
               </div>
             ))}
           </div>

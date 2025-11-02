@@ -48,26 +48,25 @@ export const FeaturesSection: React.FC = () => {
       </div>
       
       <div className="container mx-auto relative z-10">
-        <div className="text-center mb-16 animate-fadeInUp">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 gradient-text">{t('features')}</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+        <div className="text-center mb-16 animate-scaleIn">
+          <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 gradient-text">{t('features')}</h2>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto font-sans">
             Discover the powerful features that make Vithal AI your perfect career companion
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-animation">
           {features.map((feature, index) => (
             <Card 
               key={index} 
-              className="premium-card group"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="premium-card group hover:scale-105 transition-all duration-500"
             >
               <CardContent className="p-6">
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 group-hover:animate-glow">
-                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 group-hover:animate-pulse-glow">
+                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
                 </div>
-                <h3 className="font-semibold mb-2 text-lg transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>
-                <p className="text-muted-foreground transition-colors duration-300 group-hover:text-foreground/90">{feature.description}</p>
+                <h3 className="font-display font-semibold mb-2 text-lg transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>
+                <p className="text-muted-foreground font-sans transition-colors duration-300 group-hover:text-foreground/90">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

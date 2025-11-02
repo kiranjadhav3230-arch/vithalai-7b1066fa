@@ -138,6 +138,61 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes typing {
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
+  }
+
+  @keyframes blink {
+    50% {
+      border-color: transparent;
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(255, 111, 0, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(255, 111, 0, 0.4), 0 0 60px rgba(255, 111, 0, 0.2);
+    }
+  }
+
+  @keyframes float-slow {
+    0%, 100% { 
+      transform: translateY(0px) rotate(0deg); 
+    }
+    50% { 
+      transform: translateY(-20px) rotate(5deg); 
+    }
+  }
+
   :root.light {
     /* Light theme as alternative */
     --background: 0 0% 100%;
@@ -220,4 +275,23 @@ All colors MUST be HSL.
     background-size: 1000px 100%;
     animation: shimmer 3s infinite;
   }
+
+  .typing-effect {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid hsl(var(--primary));
+    animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+  }
+
+  .stagger-animation > * {
+    animation: fadeInUp 0.6s ease-out backwards;
+  }
+
+  .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+  .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+  .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+  .stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+  .stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+  .stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }
 }
