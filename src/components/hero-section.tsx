@@ -11,12 +11,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
   const { t } = useLanguage();
 
   return (
-    <section className="relative py-20 px-4 overflow-hidden min-h-[90vh] flex items-center">
-      {/* iOS 26 Liquid Glass Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="liquid-orb top-20 left-10 w-72 h-72 bg-primary/30" style={{ animationDelay: '0s' }}></div>
-        <div className="liquid-orb bottom-20 right-10 w-96 h-96 bg-accent/30" style={{ animationDelay: '2s' }}></div>
-        <div className="liquid-orb top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20" style={{ animationDelay: '4s' }}></div>
+    <section className="relative py-20 px-4 overflow-hidden min-h-[90vh] flex items-center" style={{ perspective: '2000px' }}>
+      {/* 3D Liquid Glass Background */}
+      <div className="absolute inset-0 overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
+        <div className="liquid-orb top-[15%] left-[8%] w-[600px] h-[600px] text-primary" style={{ animationDelay: '0s', transform: 'translateZ(-100px)' }}></div>
+        <div className="liquid-orb bottom-[10%] right-[12%] w-[700px] h-[700px] text-orange-500" style={{ animationDelay: '2s', transform: 'translateZ(-80px)' }}></div>
+        <div className="liquid-orb top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] text-primary" style={{ animationDelay: '4s', transform: 'translateZ(-120px)' }}></div>
       </div>
       
       <div className="container mx-auto text-center relative z-10">
@@ -42,16 +42,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted }) => {
             </Button>
           </div>
 
-          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 stagger-animation">
+          <div className="pt-12 grid grid-cols-2 md:grid-cols-4 gap-6 stagger-animation" style={{ transformStyle: 'preserve-3d' }}>
             {[
               { icon: Brain, label: t('aiPowered'), delay: '0.5s' },
               { icon: Sparkles, label: 'Multi-language', delay: '0.6s' },
               { icon: GraduationCap, label: t('careerGuidance'), delay: '0.7s' },
               { icon: ArrowRight, label: t('instantHelp'), delay: '0.8s' }
             ].map((item, index) => (
-              <div key={index} className="liquid-glass-intense glass-reflection p-4 hover:scale-105 transition-all duration-500 ripple-effect">
-                <item.icon className="h-8 w-8 mx-auto mb-2 text-primary float-3d liquid-glow" style={{ animationDelay: `${index * 0.5}s` }} />
-                <p className="text-sm font-medium font-display">{item.label}</p>
+              <div 
+                key={index} 
+                className="liquid-glass-intense glass-reflection p-6 morph-shape ripple-effect group cursor-pointer"
+                style={{ 
+                  animationDelay: item.delay,
+                  transformStyle: 'preserve-3d'
+                }}
+              >
+                <item.icon className="h-10 w-10 mx-auto mb-3 text-primary float-3d liquid-glow group-hover:scale-125 transition-transform duration-500" style={{ animationDelay: `${index * 0.5}s` }} />
+                <p className="text-sm font-medium font-display relative z-10">{item.label}</p>
               </div>
             ))}
           </div>

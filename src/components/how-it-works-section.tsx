@@ -28,35 +28,35 @@ export const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-20 px-4 relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden opacity-20">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+    <section id="how-it-works" className="py-24 px-4 relative overflow-hidden" style={{ perspective: '2000px' }}>
+      <div className="absolute inset-0 overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
+        <div className="liquid-orb top-[10%] left-[20%] w-[650px] h-[650px] text-primary" style={{ animationDelay: '0.5s', transform: 'translateZ(-95px)' }}></div>
+        <div className="liquid-orb bottom-[15%] right-[25%] w-[600px] h-[600px] text-orange-500" style={{ animationDelay: '2.5s', transform: 'translateZ(-85px)' }}></div>
       </div>
       
       <div className="container mx-auto relative z-10">
-        <div className="text-center mb-16 animate-fadeInUp">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 gradient-text">{t('howItWorks')}</h2>
-          <p className="text-muted-foreground text-lg max-w-3xl mx-auto leading-relaxed">
+        <div className="text-center mb-20 animate-scaleIn">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-6 gradient-text">{t('howItWorks')}</h2>
+          <p className="text-muted-foreground text-xl max-w-3xl mx-auto leading-relaxed font-sans">
             {t('howItWorksExp')}
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-10 stagger-animation" style={{ transformStyle: 'preserve-3d' }}>
           {steps.map((step, index) => (
-            <div key={index} className="relative">
-              <Card className="premium-card group animate-fadeInUp" style={{ animationDelay: `${index * 0.2}s` }}>
-                <CardContent className="p-8 text-center">
-                  <div className="relative mb-6">
-                    <div className="absolute -top-4 -right-4 w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent text-white flex items-center justify-center text-sm font-bold shadow-lg shadow-primary/30 group-hover:scale-110 transition-transform duration-300">
-                      {step.step}
+            <div key={index} className="relative" style={{ transformStyle: 'preserve-3d' }}>
+              <Card variant="glass" className="group morph-shape" style={{ animationDelay: `${index * 0.2}s`, transformStyle: 'preserve-3d' }}>
+                <CardContent className="p-10 text-center relative z-10">
+                  <div className="relative mb-8">
+                    <div className="absolute -top-6 -right-6 w-14 h-14 liquid-glass-intense flex items-center justify-center text-lg font-bold shadow-lg shadow-primary/40 group-hover:scale-125 transition-all duration-500 liquid-glow morph-shape">
+                      <span className="gradient-text font-display">{step.step}</span>
                     </div>
-                    <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 group-hover:shadow-primary/50 transition-all duration-300 group-hover:scale-110 animate-glow">
-                      <step.icon className="h-10 w-10 text-white" />
+                    <div className="mx-auto w-24 h-24 liquid-glass-intense flex items-center justify-center shadow-xl shadow-primary/40 group-hover:shadow-primary/60 transition-all duration-500 group-hover:scale-125 liquid-glow morph-shape float-3d">
+                      <step.icon className="h-12 w-12 text-primary" />
                     </div>
                   </div>
-                  <h3 className="font-semibold mb-3 text-xl group-hover:text-primary transition-colors duration-300">{step.title}</h3>
-                  <p className="text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300">{step.description}</p>
+                  <h3 className="font-display font-semibold mb-4 text-2xl group-hover:text-primary transition-colors duration-300">{step.title}</h3>
+                  <p className="text-muted-foreground font-sans group-hover:text-foreground/90 transition-colors duration-300 leading-relaxed text-base">{step.description}</p>
                 </CardContent>
               </Card>
               

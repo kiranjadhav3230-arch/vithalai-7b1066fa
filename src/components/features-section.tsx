@@ -40,11 +40,11 @@ export const FeaturesSection: React.FC = () => {
   ];
 
   return (
-    <section id="features" className="py-20 px-4 bg-muted/30 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden opacity-30">
-        <div className="absolute top-1/4 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/4 left-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl"></div>
+    <section id="features" className="py-24 px-4 relative overflow-hidden" style={{ perspective: '2000px' }}>
+      {/* 3D Glass Background */}
+      <div className="absolute inset-0 overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
+        <div className="liquid-orb top-[20%] right-[5%] w-[700px] h-[700px] text-primary" style={{ animationDelay: '1s', transform: 'translateZ(-90px)' }}></div>
+        <div className="liquid-orb bottom-[25%] left-[8%] w-[650px] h-[650px] text-orange-500" style={{ animationDelay: '3s', transform: 'translateZ(-100px)' }}></div>
       </div>
       
       <div className="container mx-auto relative z-10">
@@ -55,19 +55,20 @@ export const FeaturesSection: React.FC = () => {
           </p>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 stagger-animation">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-animation" style={{ transformStyle: 'preserve-3d' }}>
           {features.map((feature, index) => (
             <Card 
               key={index} 
               variant="glass"
-              className="group hover:scale-105 transition-all duration-500 morph-shape"
+              className="group morph-shape"
+              style={{ transformStyle: 'preserve-3d' }}
             >
-              <CardContent className="p-6">
-                <div className="mb-4 p-3 rounded-lg bg-primary/10 w-fit transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110 liquid-glow">
-                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" />
+              <CardContent className="p-8 relative z-10">
+                <div className="mb-6 p-4 rounded-xl liquid-glass-intense w-fit transition-all duration-500 group-hover:scale-125 liquid-glow morph-shape">
+                  <feature.icon className="h-8 w-8 text-primary transition-transform duration-500 group-hover:rotate-12 float-3d" />
                 </div>
-                <h3 className="font-display font-semibold mb-2 text-lg transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>
-                <p className="text-muted-foreground font-sans transition-colors duration-300 group-hover:text-foreground/90">{feature.description}</p>
+                <h3 className="font-display font-semibold mb-3 text-xl transition-colors duration-300 group-hover:text-primary">{feature.title}</h3>
+                <p className="text-muted-foreground font-sans transition-colors duration-300 group-hover:text-foreground/90 leading-relaxed">{feature.description}</p>
               </CardContent>
             </Card>
           ))}
