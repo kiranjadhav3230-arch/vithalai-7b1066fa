@@ -100,12 +100,13 @@ const Index = () => {
   // Show landing page
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* iOS 26 Liquid Glass Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-        <div className="liquid-orb top-1/4 left-1/4 w-96 h-96 bg-primary/20" style={{ animationDelay: '0s' }}></div>
-        <div className="liquid-orb bottom-1/4 right-1/4 w-96 h-96 bg-accent/20" style={{ animationDelay: '3s' }}></div>
-        <div className="liquid-orb top-1/2 right-1/3 w-[500px] h-[500px] bg-primary/10" style={{ animationDelay: '6s' }}></div>
+      {/* iOS 26 Liquid Glass Background - Enhanced */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+        <div className="liquid-orb top-[10%] left-[5%] w-[600px] h-[600px] bg-primary/30" style={{ animationDelay: '0s' }}></div>
+        <div className="liquid-orb bottom-[15%] right-[10%] w-[700px] h-[700px] bg-accent/25" style={{ animationDelay: '2s' }}></div>
+        <div className="liquid-orb top-[50%] right-[20%] w-[500px] h-[500px] bg-primary/20" style={{ animationDelay: '4s' }}></div>
+        <div className="liquid-orb bottom-[40%] left-[15%] w-[550px] h-[550px] bg-orange-500/15" style={{ animationDelay: '6s' }}></div>
       </div>
       
       <div className="relative z-10">
@@ -117,17 +118,17 @@ const Index = () => {
           <FeaturesSection />
           
           {/* Help Section */}
-          <section id="help" className="py-20 px-4 relative overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden opacity-20">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-glow"></div>
+          <section id="help" className="py-24 px-4 relative overflow-hidden">
+            <div className="absolute inset-0 overflow-hidden opacity-25">
+              <div className="liquid-orb top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/40" style={{ animationDelay: '1s' }}></div>
             </div>
             
             <div className="container mx-auto max-w-4xl relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 gradient-text animate-fadeInUp">
+              <h2 className="text-3xl md:text-4xl font-display font-bold text-center mb-16 gradient-text animate-fadeInUp">
                 {t('needHelp') || 'Need Help?'}
               </h2>
-              <div className="grid md:grid-cols-2 gap-8">
-                <Card variant="glass" className="p-6 animate-slideInRight morph-shape">
+              <div className="grid md:grid-cols-2 gap-8 stagger-animation">
+                <Card variant="glass" className="p-8 morph-shape glass-reflection hover:scale-105 transition-all duration-500">
                   <h3 className="text-xl font-semibold mb-4 text-primary">Get Support</h3>
                   <p className="text-muted-foreground mb-4">
                     Have questions or need assistance? Our support team is here to help you.
@@ -157,8 +158,8 @@ const Index = () => {
                   </div>
                 </Card>
                 
-                <Card variant="glass" className="p-6 animate-slideInRight morph-shape" style={{ animationDelay: '0.2s' }}>
-                  <h3 className="text-xl font-semibold mb-4 text-accent">Quick Tips</h3>
+                <Card variant="glass" className="p-8 morph-shape glass-reflection hover:scale-105 transition-all duration-500">
+                  <h3 className="text-xl font-display font-semibold mb-4 text-accent">Quick Tips</h3>
                   <ul className="space-y-2 text-muted-foreground">
                     <li>• Use voice input for natural conversations</li>
                     <li>• Upload images for problem solving</li>
@@ -173,26 +174,26 @@ const Index = () => {
           </section>
         
         {/* Contact Section */}
-        <section id="contact" className="py-20 px-4 relative overflow-hidden">
+        <section id="contact" className="py-24 px-4 relative overflow-hidden">
           <div className="absolute inset-0 liquid-glass-subtle"></div>
-          <div className="absolute inset-0 overflow-hidden opacity-30">
-            <div className="liquid-orb top-1/2 left-1/4 w-96 h-96 bg-primary/30" style={{ animationDelay: '0s' }}></div>
-            <div className="liquid-orb top-1/2 right-1/4 w-96 h-96 bg-accent/30" style={{ animationDelay: '1.5s' }}></div>
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="liquid-orb top-[20%] left-[10%] w-[600px] h-[600px] bg-primary/35" style={{ animationDelay: '0s' }}></div>
+            <div className="liquid-orb bottom-[20%] right-[10%] w-[600px] h-[600px] bg-accent/35" style={{ animationDelay: '1.5s' }}></div>
           </div>
           
           <div className="container mx-auto text-center relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 gradient-text animate-fadeInUp">
+            <h2 className="text-4xl md:text-5xl font-display font-bold mb-8 gradient-text animate-scaleIn">
               {t('readyToStart')}
             </h2>
-            <p className="text-muted-foreground text-lg mb-8 max-w-3xl mx-auto leading-relaxed animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+            <p className="text-muted-foreground text-xl mb-12 max-w-3xl mx-auto leading-relaxed animate-fadeInUp font-sans" style={{ animationDelay: '0.2s' }}>
               {t('joinThousands')}
             </p>
-            <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
+            <div className="animate-scaleIn" style={{ animationDelay: '0.4s' }}>
               <Button 
                 onClick={handleGetStarted}
                 variant="premium"
                 size="lg"
-                className="px-10 py-6 text-lg"
+                className="px-12 py-7 text-xl font-display morph-shape hover:scale-110 transition-all duration-500"
               >
                 {t('startNow')}
               </Button>
