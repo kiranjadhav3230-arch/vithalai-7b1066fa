@@ -22,10 +22,10 @@ const Index = () => {
   const { t } = useLanguage();
 
   useEffect(() => {
-    // Show initial loading for at least 2 seconds for better UX
+    // Show initial loading briefly
     const minLoadingTime = setTimeout(() => {
       setInitialLoading(false);
-    }, 2000);
+    }, 500);
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
