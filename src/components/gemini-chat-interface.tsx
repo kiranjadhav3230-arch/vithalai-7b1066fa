@@ -622,23 +622,36 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       </Sidebar>;
   };
   return <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-black">
         <AppSidebar />
         
-        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-black via-black to-orange-950/10">
           {/* Header - Fixed */}
-          <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
+          <header className="border-b border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
             <div className="flex h-14 items-center justify-between px-4">
               <div className="flex items-center gap-2">
-                <SidebarTrigger />
-                <h1 className="font-semibold ml-4">
-                  {currentSession?.title || 'Vithal AI Chat'}
-                </h1>
+                <SidebarTrigger className="text-orange-400 hover:text-orange-300" />
+                <div className="flex items-center gap-2 ml-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                    <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                  </div>
+                  <h1 className="font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                    {currentSession?.title || 'Vithal AI Chat'}
+                  </h1>
+                </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setCurrentView('chat')} size="sm" className={currentView === 'chat' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}>
+                  <MessageSquare className="h-3 w-3 mr-1" />
+                  Chat
+                </Button>
+                <Button variant="outline" onClick={() => setCurrentView('code')} size="sm" className={currentView === 'code' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}>
+                  <Code className="h-3 w-3 mr-1" />
+                  Code Gen
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline" className="text-xs">
+                    <Button size="sm" variant="outline" className="text-xs border-orange-500/30 hover:bg-orange-500/10">
                       <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -693,41 +706,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <div className="p-6">
                 <div className="max-w-4xl mx-auto space-y-6">
                   {messages.length === 0 && !loading && <div className="text-center py-16">
-                      <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-border/50">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-10 h-10" />
+                      <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-12 h-12" />
                       </div>
-                      <h2 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Welcome to Vithal AI 2.0</h2>
-                      <p className="text-muted-foreground text-lg mb-8 max-w-md mx-auto">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
+                      <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Welcome to Vithal AI 2.0</h2>
+                      <p className="text-orange-400/70 text-lg mb-8 max-w-md mx-auto">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
-                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
-                          <h3 className="font-semibold text-sm mb-2">📚 Study Help</h3>
-                          <p className="text-xs text-muted-foreground">Get explanations, solve problems, and understand concepts</p>
+                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-sm mb-2 text-orange-400">📚 Study Help</h3>
+                          <p className="text-xs text-foreground/70">Get explanations, solve problems, and understand concepts</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
-                          <h3 className="font-semibold text-sm mb-2">🎯 Career Guidance</h3>
-                          <p className="text-xs text-muted-foreground">Explore career paths and get professional advice</p>
+                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-sm mb-2 text-orange-400">🎯 Career Guidance</h3>
+                          <p className="text-xs text-foreground/70">Explore career paths and get professional advice</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
-                          <h3 className="font-semibold text-sm mb-2">💻 Tech Learning</h3>
-                          <p className="text-xs text-muted-foreground">Programming, coding, and technical skills   
-For Code Generetor Function Check Negivation Bar.</p>
+                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-sm mb-2 text-orange-400">💻 Tech Learning</h3>
+                          <p className="text-xs text-foreground/70">Programming, coding, and technical skills. For Code Generator, check Navigation Bar.</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-border/50 bg-card/50 hover:bg-card transition-colors">
-                          <h3 className="font-semibold text-sm mb-2">🔬 Science & Math</h3>
-                          <p className="text-xs text-muted-foreground">Complex calculations and scientific concepts</p>
+                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-sm mb-2 text-orange-400">🔬 Science & Math</h3>
+                          <p className="text-xs text-foreground/70">Complex calculations and scientific concepts</p>
                         </div>
                       </div>
-                      <div className="text-xs text-muted-foreground/70 space-y-1">
-                        <p>Powered by <span className="font-medium text-accent">Gemini AI</span></p>
-                        <p>Sponsored by <span className="font-medium text-primary">Shree Alankar</span></p>
-                        <p>Developed by <span className="font-medium text-primary">Kapil Kiran Jadhav</span></p>
+                      <div className="text-xs text-orange-400/50 space-y-1">
+                        <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span></p>
+                        <p>Sponsored by <span className="font-medium text-orange-400">Shree Alankar</span></p>
+                        <p>Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
 
                   {messages.map(msg => <div key={msg.id} className="space-y-4">
                       {/* User Message */}
                       <div className="flex justify-end">
-                        <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground px-6 py-3 shadow-lg">
+                        <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
                           <p className="text-sm leading-relaxed">{msg.message}</p>
                           <div className="text-xs opacity-70 mt-1">
                             {new Date(msg.created_at).toLocaleTimeString([], {
@@ -741,12 +753,12 @@ For Code Generetor Function Check Negivation Bar.</p>
                       {/* AI Response */}
                       {msg.response && <div className="flex justify-start">
                           <div className="flex items-start gap-3 w-full">
-                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-orange-500/30 shadow-lg shadow-orange-500/20">
                               <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                             </div>
-                            <div className="flex-1 max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
+                            <div className="flex-1 max-w-[85%] rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
                               <ChatMessageRenderer content={msg.response} />
-                              <div className="text-xs text-muted-foreground mt-3">
+                              <div className="text-xs text-orange-400/70 mt-3">
                                 {new Date(msg.created_at).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit'
@@ -759,13 +771,13 @@ For Code Generetor Function Check Negivation Bar.</p>
 
                   {loading && <div className="flex justify-start">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center flex-shrink-0 mt-1 border border-border/50">
+                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-orange-500/30 shadow-lg shadow-orange-500/20">
                           <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                         </div>
-                        <div className="max-w-[85%] rounded-2xl bg-card border border-border/50 px-6 py-4 shadow-sm">
+                        <div className="max-w-[85%] rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
                           <div className="flex items-center gap-3">
-                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                            <span className="text-sm">AI is thinking...</span>
+                            <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                            <span className="text-sm text-orange-400">AI is thinking...</span>
                           </div>
                         </div>
                       </div>
@@ -778,12 +790,12 @@ For Code Generetor Function Check Negivation Bar.</p>
           </div>
 
           {/* Input Area - Fixed */}
-          <div className="border-t bg-background/95 backdrop-blur-sm p-6 flex-shrink-0">
+          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-6 flex-shrink-0">
             <div className="max-w-4xl mx-auto">
               {/* Image Preview */}
               {selectedImage && <div className="mb-4 relative inline-block">
-                  <img src={selectedImage} alt="Selected for upload" className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-border shadow-lg" />
-                  <Button onClick={removeSelectedImage} size="sm" variant="destructive" className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg">
+                  <img src={selectedImage} alt="Selected for upload" className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-orange-500/30 shadow-xl shadow-orange-500/20" />
+                  <Button onClick={removeSelectedImage} size="sm" variant="destructive" className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg bg-red-500 hover:bg-red-600">
                     ×
                   </Button>
                 </div>}
@@ -791,23 +803,23 @@ For Code Generetor Function Check Negivation Bar.</p>
               
               <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                  <Input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type your message here..." className="pr-20 rounded-2xl border-2 h-12 text-sm bg-background/50 backdrop-blur-sm focus:bg-background transition-colors" onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} disabled={loading} />
+                  <Input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type your message here..." className="pr-20 rounded-2xl border-2 border-orange-500/30 h-12 text-sm bg-black/50 backdrop-blur-sm focus:bg-black/70 focus:border-orange-500/50 focus:ring-orange-500/20 text-foreground placeholder:text-orange-400/50 transition-all duration-300" onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} disabled={loading} />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
-                    <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} size="sm" variant="ghost" className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-50 dark:bg-red-950' : 'hover:bg-muted'}`} disabled={loading}>
+                    <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} size="sm" variant="ghost" className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-500/20' : 'hover:bg-orange-500/10 text-orange-400'}`} disabled={loading}>
                       <Mic className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-muted" disabled={loading}>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-orange-500/10 text-orange-400" disabled={loading}>
                           <ImageIcon className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                      <DropdownMenuContent align="end" className="bg-black/95 border-orange-500/30">
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="hover:bg-orange-500/10">
                           <ImageIcon className="h-4 w-4 mr-2" />
                           Upload Image
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()}>
+                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="hover:bg-orange-500/10">
                           <Camera className="h-4 w-4 mr-2" />
                           Take Photo
                         </DropdownMenuItem>
@@ -816,7 +828,7 @@ For Code Generetor Function Check Negivation Bar.</p>
                   </div>
                 </div>
                 
-                <Button onClick={sendMessage} disabled={loading || !message.trim() && !selectedImage} size="sm" className="rounded-2xl h-12 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg">
+                <Button onClick={sendMessage} disabled={loading || !message.trim() && !selectedImage} size="sm" className="rounded-2xl h-12 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 </Button>
               </div>
