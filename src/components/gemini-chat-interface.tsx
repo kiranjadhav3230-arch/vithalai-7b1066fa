@@ -494,30 +494,30 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const AppSidebar = () => {
-    return <Sidebar className="border-r">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-semibold text-lg">Vithal AI 2.0</h2>
-          <Button onClick={createNewSession} size="sm" className="h-8 w-8 p-0">
-            <Plus className="h-4 w-4" />
+    return <Sidebar className="border-r border-orange-500/20 bg-black/95 backdrop-blur-xl">
+        <div className="flex items-center justify-between p-3 md:p-4 border-b border-orange-500/20">
+          <h2 className="font-semibold text-sm md:text-lg bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Vithal AI 2.0</h2>
+          <Button onClick={createNewSession} size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
           </Button>
         </div>
         
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Recent Chats</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">Recent Chats</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {chatSessions.map(session => <SidebarMenuItem key={session.id}>
-                    <SidebarMenuButton onClick={() => setCurrentSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-accent' : ''}`}>
+                    <SidebarMenuButton onClick={() => setCurrentSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}>
                       <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <MessageSquare className="h-4 w-4 flex-shrink-0" />
-                        <span className="truncate">{session.title}</span>
+                        <MessageSquare className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
+                        <span className="truncate text-xs md:text-sm">{session.title}</span>
                       </div>
                       <div onClick={e => {
                     e.stopPropagation();
                     deleteSession(session.id);
-                  }} className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded">
-                        <Trash2 className="h-3 w-3 text-destructive" />
+                  }} className="h-5 w-5 md:h-6 md:w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded">
+                        <Trash2 className="h-2.5 w-2.5 md:h-3 md:w-3 text-destructive" />
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>)}
@@ -525,40 +525,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </SidebarGroupContent>
           </SidebarGroup>
           
-          {/* Navigation Section */}
-          <SidebarGroup>
-            <SidebarGroupLabel>Features</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setCurrentView('chat')} className={currentView === 'chat' ? 'bg-accent' : ''}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    Chat
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setCurrentView('code')} className={currentView === 'code' ? 'bg-accent' : ''}>
-                    <Code className="mr-2 h-4 w-4" />
-                    Code Generator
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          
           {/* Help Section */}
           <SidebarGroup>
-            <SidebarGroupLabel>Help & Support</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">Help & Support</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setShowContactModal(true)} className="w-full">
+                  <SidebarMenuButton onClick={() => setShowContactModal(true)} className="w-full hover:bg-orange-500/10 hover:text-orange-400">
                     <div className="flex items-center gap-2">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="h-3.5 w-3.5 md:h-4 md:w-4" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
-                      <span>Contact Support</span>
+                      <span className="text-xs md:text-sm">Contact Support</span>
                     </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -567,40 +546,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </SidebarGroup>
         </SidebarContent>
 
-        <div className="p-4 border-t">
+        <div className="p-3 md:p-4 border-t border-orange-500/20">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Avatar className="h-6 w-6 md:h-7 md:w-7 border-2 border-orange-500/50 flex-shrink-0">
                 <AvatarImage src={user.user_metadata?.avatar_url} />
-                <AvatarFallback>
+                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs">
                   {user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm truncate">
+              <span className="text-xs md:text-sm truncate text-orange-400">
                 {user.user_metadata?.full_name || user.email}
               </span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-orange-400 hover:bg-orange-500/10 flex-shrink-0">
                   <Settings className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setShowProfile(true)}>
+              <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
+                <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10">
                   <UserIcon className="h-4 w-4 mr-2" />
                   {t('profile')}
                 </DropdownMenuItem>
                 <div className="px-2 py-1.5">
                   <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    <span className="text-sm">{t('language')}</span>
+                    <Globe className="h-4 w-4 text-orange-400" />
+                    <span className="text-sm text-orange-400">{t('language')}</span>
                   </div>
                   <div className="mt-1">
                     <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
                   </div>
                 </div>
-                <DropdownMenuItem onClick={onLogout}>
+                <DropdownMenuItem onClick={onLogout} className="text-orange-400 hover:bg-orange-500/10">
                   <LogOut className="h-4 w-4 mr-2" />
                   {t('logout')}
                 </DropdownMenuItem>
@@ -609,7 +588,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </div>
           
           {/* Sign-in Time Display */}
-          <div className="text-xs text-muted-foreground text-center mt-2 p-2 bg-muted/50 rounded">
+          <div className="text-[10px] md:text-xs text-orange-400/70 text-center mt-2 p-1.5 md:p-2 bg-orange-500/5 rounded border border-orange-500/20">
             Signed in: {new Date().toLocaleDateString('en-IN', {
             day: 'numeric',
             month: 'short',
@@ -700,36 +679,36 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {currentView === 'code' ? <div className="flex-1 overflow-auto">
               <CodeGenerator />
             </div> : <>
-          {/* Chat Messages - Scrollable */}
+          {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="p-6">
-                <div className="max-w-4xl mx-auto space-y-6">
-                  {messages.length === 0 && !loading && <div className="text-center py-16">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-12 h-12" />
+              <div className="p-3 md:p-6">
+                <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+                  {messages.length === 0 && !loading && <div className="text-center py-8 md:py-16">
+                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8 md:w-12 md:h-12" />
                       </div>
-                      <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent">Welcome to Vithal AI 2.0</h2>
-                      <p className="text-orange-400/70 text-lg mb-8 max-w-md mx-auto">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto mb-8">
-                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-sm mb-2 text-orange-400">📚 Study Help</h3>
-                          <p className="text-xs text-foreground/70">Get explanations, solve problems, and understand concepts</p>
+                      <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4">Welcome to Vithal AI 2.0</h2>
+                      <p className="text-orange-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-w-2xl mx-auto mb-6 md:mb-8 px-4">
+                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">📚 Study Help</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/70">Get explanations, solve problems, and understand concepts</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-sm mb-2 text-orange-400">🎯 Career Guidance</h3>
-                          <p className="text-xs text-foreground/70">Explore career paths and get professional advice</p>
+                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">🎯 Career Guidance</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/70">Explore career paths and get professional advice</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-sm mb-2 text-orange-400">💻 Tech Learning</h3>
-                          <p className="text-xs text-foreground/70">Programming, coding, and technical skills. For Code Generator, check Navigation Bar.</p>
+                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">💻 Tech Learning</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/70">Programming, coding, and technical skills. For Code Generator, check tabs above.</p>
                         </div>
-                        <div className="p-4 rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-sm mb-2 text-orange-400">🔬 Science & Math</h3>
-                          <p className="text-xs text-foreground/70">Complex calculations and scientific concepts</p>
+                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">🔬 Science & Math</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/70">Complex calculations and scientific concepts</p>
                         </div>
                       </div>
-                      <div className="text-xs text-orange-400/50 space-y-1">
+                      <div className="text-[10px] md:text-xs text-orange-400/50 space-y-0.5 md:space-y-1 px-4">
                         <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span></p>
                         <p>Sponsored by <span className="font-medium text-orange-400">Shree Alankar</span></p>
                         <p>Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
@@ -789,8 +768,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </ScrollArea>
           </div>
 
-          {/* Input Area - Fixed */}
-          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-6 flex-shrink-0">
+          {/* Input Area - Fixed - Mobile Optimized */}
+          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-2 md:p-6 flex-shrink-0">
             <div className="max-w-4xl mx-auto">
               {/* Image Preview */}
               {selectedImage && <div className="mb-4 relative inline-block">
