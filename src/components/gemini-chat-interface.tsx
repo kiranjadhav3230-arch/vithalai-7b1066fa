@@ -878,38 +878,82 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </ScrollArea>
           </div>
 
-          {/* Input Area - Fixed - Mobile Optimized */}
-          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-3 md:p-4 flex-shrink-0">
-            <div className="max-w-4xl mx-auto space-y-3">
+          {/* Input Area - Professional Bottom Bar */}
+          <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
+            <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
               {/* Image Preview */}
-              {selectedImage && <div className="relative inline-block">
-                  <img src={selectedImage} alt="Selected" className="max-h-32 md:max-h-40 rounded-lg border border-orange-500/30 shadow-lg" />
-                  <button onClick={removeSelectedImage} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-all">
-                    <X className="h-3 w-3 md:h-4 md:w-4" />
-                  </button>
-                </div>}
-
-              <div className="flex items-end gap-2">
-                <div className="flex-1">
-                  <Input value={message} onChange={e => setMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder={t('typeYourMessage') || "Ask me anything..."} className="min-h-[44px] md:min-h-[48px] bg-black/50 border-orange-500/30 focus:border-orange-500/50 text-foreground placeholder:text-orange-400/40 pr-12" disabled={loading || isGeneratingImage} />
+              {selectedImage && (
+                <div className="mb-3">
+                  <div className="relative inline-block rounded-xl overflow-hidden border border-border/50 shadow-lg">
+                    <img 
+                      src={selectedImage} 
+                      alt="Selected" 
+                      className="max-h-32 md:max-h-40 object-contain bg-muted/50" 
+                    />
+                    <button 
+                      onClick={removeSelectedImage} 
+                      className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                <div className="flex items-center gap-1.5 md:gap-2">
+              {/* Input Container */}
+              <div className="relative flex items-center gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
+                {/* Action Buttons Left */}
+                <div className="flex items-center gap-1">
                   {/* Image Upload */}
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                  <Button onClick={() => fileInputRef.current?.click()} variant="ghost" size="sm" className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" disabled={loading || isGeneratingImage}>
-                    <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
+                  <input 
+                    ref={fileInputRef} 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageUpload} 
+                    className="hidden" 
+                  />
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
+                    disabled={loading || isGeneratingImage}
+                  >
+                    <ImageIcon className="h-5 w-5" />
                   </Button>
 
                   {/* Camera */}
-                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
-                  <Button onClick={() => cameraInputRef.current?.click()} variant="ghost" size="sm" className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" disabled={loading || isGeneratingImage}>
-                    <Camera className="h-4 w-4 md:h-5 md:w-5" />
+                  <input 
+                    ref={cameraInputRef} 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    onChange={handleCameraCapture} 
+                    className="hidden" 
+                  />
+                  <Button 
+                    onClick={() => cameraInputRef.current?.click()} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
+                    disabled={loading || isGeneratingImage}
+                  >
+                    <Camera className="h-5 w-5" />
                   </Button>
 
                   {/* Voice Input */}
-                  <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} variant="ghost" size="sm" className={`h-9 w-9 md:h-10 md:w-10 p-0 border border-orange-500/20 ${isRecording ? 'bg-red-500/20 text-red-400 animate-pulse' : 'text-orange-400 hover:bg-orange-500/10'}`} disabled={loading || isGeneratingImage}>
-                    <Mic className="h-4 w-4 md:h-5 md:w-5" />
+                  <Button 
+                    onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
+                    variant="ghost" 
+                    size="icon"
+                    className={`h-9 w-9 rounded-full transition-all ${
+                      isRecording 
+                        ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' 
+                        : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                    }`}
+                    disabled={loading || isGeneratingImage}
+                  >
+                    <Mic className="h-5 w-5" />
                   </Button>
 
                   {/* Generate Image Button */}
@@ -917,19 +961,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
-                        size="sm" 
-                        className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" 
+                        size="icon"
+                        className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
                         disabled={loading || isGeneratingImage}
                       >
-                        <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
+                        <Sparkles className="h-5 w-5" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-64">
-                      <div className="p-3 space-y-2">
-                        <div className="text-xs font-semibold text-orange-400 mb-2">Generate Image</div>
+                    <DropdownMenuContent align="start" className="w-72 p-3">
+                      <div className="space-y-2">
+                        <div className="text-sm font-semibold text-foreground">Generate Image</div>
                         <Input 
-                          placeholder="Describe the image..." 
-                          className="bg-black/50 border-orange-500/30 text-xs"
+                          placeholder="Describe the image you want to create..." 
+                          className="bg-background border-border text-sm"
                           onKeyPress={(e) => {
                             if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                               generateImage(e.currentTarget.value);
@@ -937,18 +981,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             }
                           }}
                         />
-                        <p className="text-[10px] text-orange-400/60">Press Enter to generate</p>
+                        <p className="text-xs text-muted-foreground">Press Enter to generate</p>
                       </div>
                     </DropdownMenuContent>
                   </DropdownMenu>
-
-                  {/* Send Button */}
-                  <Button onClick={sendMessage} size="sm" className="h-9 md:h-10 px-3 md:px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white" disabled={loading || isGeneratingImage || (!message.trim() && !selectedImage)}>
-                    {loading || isGeneratingImage ? <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" /> : <Send className="h-4 w-4 md:h-5 md:w-5" />}
-                  </Button>
                 </div>
+
+                {/* Input Field */}
+                <input
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  placeholder={t('typeYourMessage') || "Message Vithal AI..."}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground py-2 min-h-[40px]"
+                  disabled={loading || isGeneratingImage}
+                />
+
+                {/* Send Button */}
+                <Button 
+                  onClick={sendMessage}
+                  size="icon"
+                  className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105"
+                  disabled={loading || isGeneratingImage || (!message.trim() && !selectedImage)}
+                >
+                  {loading || isGeneratingImage ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </Button>
               </div>
-              
+
+              {/* Helper Text */}
+              <div className="mt-2 text-center">
+                <p className="text-xs text-muted-foreground">
+                  Vithal AI can make mistakes. Verify important information.
+                </p>
+              </div>
             </div>
           </div>
         </>}
