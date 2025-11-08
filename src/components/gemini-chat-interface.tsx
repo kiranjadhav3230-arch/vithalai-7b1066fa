@@ -605,48 +605,64 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         <AppSidebar />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-black via-black to-orange-950/10">
-          {/* Header - Fixed */}
+          {/* Header - Fixed - Mobile Optimized */}
           <header className="border-b border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
-            <div className="flex h-14 items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                <SidebarTrigger className="text-orange-400 hover:text-orange-300" />
-                <div className="flex items-center gap-2 ml-4">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+            <div className="flex flex-col md:flex-row h-auto md:h-14 items-start md:items-center justify-between px-3 md:px-4 py-2 md:py-0 gap-2 md:gap-0">
+              {/* Top Row: Logo & Title */}
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <SidebarTrigger className="text-orange-400 hover:text-orange-300 flex-shrink-0" />
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
+                    <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
                   </div>
-                  <h1 className="font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                  <h1 className="text-sm md:text-base font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
                     {currentSession?.title || 'Vithal AI Chat'}
                   </h1>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => setCurrentView('chat')} size="sm" className={currentView === 'chat' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}>
-                  <MessageSquare className="h-3 w-3 mr-1" />
-                  Chat
+
+              {/* Bottom Row: Action Buttons */}
+              <div className="flex items-center gap-1.5 md:gap-2 w-full md:w-auto justify-end">
+                {/* View Toggle Buttons */}
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('chat')} 
+                  size="sm" 
+                  className={`h-7 md:h-8 text-xs ${currentView === 'chat' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}`}
+                >
+                  <MessageSquare className="h-3 w-3 md:mr-1" />
+                  <span className="hidden sm:inline">Chat</span>
                 </Button>
-                <Button variant="outline" onClick={() => setCurrentView('code')} size="sm" className={currentView === 'code' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}>
-                  <Code className="h-3 w-3 mr-1" />
-                  Code Gen
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('code')} 
+                  size="sm" 
+                  className={`h-7 md:h-8 text-xs ${currentView === 'code' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}`}
+                >
+                  <Code className="h-3 w-3 md:mr-1" />
+                  <span className="hidden sm:inline">Code</span>
                 </Button>
+
+                {/* Help Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline" className="text-xs border-orange-500/30 hover:bg-orange-500/10">
-                      <svg className="h-3 w-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <Button size="sm" variant="outline" className="h-7 md:h-8 text-xs border-orange-500/30 hover:bg-orange-500/10 px-2 md:px-3">
+                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
-                      Help
+                      <span className="hidden sm:inline ml-1">Help</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')}>
+                  <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
+                    <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')} className="text-orange-400 hover:bg-orange-500/10">
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
                       Email Support
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')}>
+                    <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')} className="text-orange-400 hover:bg-orange-500/10">
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
                       </svg>
@@ -654,18 +670,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* Settings Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Settings className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" className="h-7 md:h-8 w-7 md:w-8 p-0 hover:bg-orange-500/10">
+                      <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-400" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowProfile(true)}>
+                  <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
+                    <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10">
                       <UserIcon className="h-4 w-4 mr-2" />
                       Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onLogout}>
+                    <DropdownMenuItem onClick={onLogout} className="text-orange-400 hover:bg-orange-500/10">
                       <LogOut className="h-4 w-4 mr-2" />
                       Logout
                     </DropdownMenuItem>

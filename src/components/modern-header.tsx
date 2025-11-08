@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Menu, X } from 'lucide-react';
+import { MobileNavDrawer } from '@/components/mobile-nav-drawer';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface ModernHeaderProps {
@@ -11,7 +11,6 @@ interface ModernHeaderProps {
 export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +24,6 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
-      setIsMobileMenuOpen(false);
     }
   };
 
@@ -93,60 +91,11 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
               {t('login')}
             </Button>
             
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg bg-gradient-to-r from-orange-500/20 to-orange-600/20 hover:from-orange-500/30 hover:to-orange-600/30 transition-all duration-300 border border-orange-500/30"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {/* Mobile Navigation Drawer */}
+            <MobileNavDrawer onAuthClick={onAuthClick} scrollToSection={scrollToSection} />
           </div>
         </div>
       </header>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/95 backdrop-blur-2xl" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className="absolute top-16 left-3 right-3 bg-black/95 backdrop-blur-xl border border-orange-500/30 rounded-2xl p-4 space-y-2 shadow-2xl shadow-orange-500/20 animate-scaleIn">
-            <div className="mb-3 pb-3 border-b border-orange-500/20">
-              <LanguageSelector 
-                language={language} 
-                onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
-              />
-            </div>
-            <button
-              onClick={() => scrollToSection('how-it-works')}
-              className="block w-full text-left px-4 py-2.5 rounded-lg hover:bg-orange-500/10 font-display font-medium transition-colors text-sm"
-            >
-              {t('howItWorks')}
-            </button>
-            <button
-              onClick={() => scrollToSection('features')}
-              className="block w-full text-left px-4 py-2.5 rounded-lg hover:bg-orange-500/10 font-display font-medium transition-colors text-sm"
-            >
-              {t('features')}
-            </button>
-            <button
-              onClick={() => scrollToSection('contact')}
-              className="block w-full text-left px-4 py-2.5 rounded-lg hover:bg-orange-500/10 font-display font-medium transition-colors text-sm"
-            >
-              {t('contact')}
-            </button>
-            <div className="pt-2 border-t border-orange-500/20">
-              <Button 
-                onClick={() => {
-                  onAuthClick();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-display font-semibold py-2.5 text-sm"
-              >
-                {t('login')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };
