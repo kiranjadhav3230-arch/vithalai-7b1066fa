@@ -15,11 +15,11 @@ export const ModernHero: React.FC<ModernHeroProps> = ({ onGetStarted }) => {
       {/* Animated Gradient Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-black via-black to-orange-950/30"></div>
       
-      {/* Large Glowing Orbs - Responsive sizes */}
+      {/* Large Glowing Orbs - Optimized for mobile performance */}
       <div className="absolute inset-0 overflow-hidden opacity-40" style={{ transformStyle: 'preserve-3d' }}>
-        <div className="absolute top-[10%] left-[5%] md:left-[10%] w-[400px] md:w-[800px] h-[400px] md:h-[800px] rounded-full bg-gradient-to-br from-orange-500/40 to-orange-600/20 blur-[80px] md:blur-[150px] animate-float-slow"></div>
-        <div className="absolute bottom-[10%] right-[5%] md:right-[10%] w-[450px] md:w-[900px] h-[450px] md:h-[900px] rounded-full bg-gradient-to-tl from-orange-400/30 to-orange-500/10 blur-[90px] md:blur-[180px] animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[700px] h-[350px] md:h-[700px] rounded-full bg-gradient-to-r from-orange-600/25 to-orange-400/15 blur-[80px] md:blur-[160px] animate-pulse-glow"></div>
+        <div className="hidden sm:block absolute top-[10%] left-[5%] md:left-[10%] w-[600px] md:w-[800px] h-[600px] md:h-[800px] rounded-full bg-gradient-to-br from-orange-500/40 to-orange-600/20 blur-[120px] md:blur-[150px] animate-float-slow"></div>
+        <div className="absolute bottom-[10%] right-[5%] md:right-[10%] w-[300px] sm:w-[450px] md:w-[900px] h-[300px] sm:h-[450px] md:h-[900px] rounded-full bg-gradient-to-tl from-orange-400/30 to-orange-500/10 blur-[80px] sm:blur-[90px] md:blur-[180px] animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="hidden md:block absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[350px] md:w-[700px] h-[350px] md:h-[700px] rounded-full bg-gradient-to-r from-orange-600/25 to-orange-400/15 blur-[80px] md:blur-[160px] animate-pulse-glow"></div>
       </div>
 
       <div className="container mx-auto relative z-10">

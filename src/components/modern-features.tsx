@@ -56,10 +56,10 @@ export const ModernFeatures: React.FC = () => {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-950/10 to-black"></div>
       
-      {/* Glowing Orbs - Responsive */}
+      {/* Glowing Orbs - Optimized for mobile */}
       <div className="absolute inset-0 overflow-hidden opacity-30" style={{ transformStyle: 'preserve-3d' }}>
-        <div className="absolute top-[20%] right-[5%] md:right-[10%] w-[400px] md:w-[600px] h-[400px] md:h-[600px] rounded-full bg-gradient-to-br from-orange-500/30 to-transparent blur-[80px] md:blur-[120px] animate-float-slow"></div>
-        <div className="absolute bottom-[20%] left-[5%] md:left-[10%] w-[450px] md:w-[700px] h-[450px] md:h-[700px] rounded-full bg-gradient-to-tl from-orange-600/25 to-transparent blur-[90px] md:blur-[140px] animate-float" style={{ animationDelay: '2s' }}></div>
+        <div className="hidden sm:block absolute top-[20%] right-[5%] md:right-[10%] w-[600px] md:w-[600px] h-[600px] md:h-[600px] rounded-full bg-gradient-to-br from-orange-500/30 to-transparent blur-[120px] md:blur-[120px] animate-float-slow"></div>
+        <div className="absolute bottom-[20%] left-[5%] md:left-[10%] w-[350px] sm:w-[450px] md:w-[700px] h-[350px] sm:h-[450px] md:h-[700px] rounded-full bg-gradient-to-tl from-orange-600/25 to-transparent blur-[90px] sm:blur-[100px] md:blur-[140px] animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="container mx-auto relative z-10">
