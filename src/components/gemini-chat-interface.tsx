@@ -256,8 +256,104 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const sendMessage = async () => {
-    // Placeholder - original function content preserved
-    // This function handles sending messages through Gemini chat
+    if ((!message.trim() && !selectedImage) || !currentSession || loading) return;
+
+    const userMessage = message.trim();
+    const imageToSend = selectedImage;
+    
+    setMessage('');
+    setSelectedImage(null);
+    setImageFile(null);
+    setLoading(true);
+
+    try {
+      // Determine message type and content
+      let messageType = 'text';
+      let messageContent = userMessage;
+
+      if (imageToSend) {
+        messageType = 'image';
+        // If there's both image and text, combine them
+        messageContent = userMessage || 'Analyze this image';
+      }
+
+      // Save user message
+      const { data: userMessageData, error: userMessageError } = await supabase
+        .from('chat_messages')
+        .insert([{
+          session_id: currentSession.id,
+          user_id: user.id,
+          message: messageContent,
+          message_type: messageType,
+          image_data: imageToSend || null
+        }])
+        .select()
+        .single();
+
+      if (userMessageError) throw userMessageError;
+
+      // Reload messages to show user message
+      await loadMessages(currentSession.id);
+
+      // Get chat history for context
+      const chatHistory = messages.map(msg => ({
+        role: msg.message_type === 'user' ? 'user' : 'assistant',
+        content: msg.message
+      }));
+
+      // Call Gemini chat with image support
+      const requestBody: any = {
+        message: messageContent,
+        profile: userProfile,
+        language: language,
+        chatHistory: chatHistory
+      };
+
+      // Add image if present
+      if (imageToSend) {
+        requestBody.image = imageToSend;
+      }
+
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: requestBody
+      });
+
+      if (error) throw error;
+
+      // Update message with response
+      const { error: updateError } = await supabase
+        .from('chat_messages')
+        .update({ 
+          response: data.response,
+          youtube_courses: data.youtubeCourses || null
+        })
+        .eq('id', userMessageData.id);
+
+      if (updateError) throw updateError;
+
+      // Reload messages
+      await loadMessages(currentSession.id);
+
+      // Generate smart title for first message
+      if (messages.length === 0) {
+        await generateSmartSessionTitle(currentSession.id, userMessage, data.response);
+      }
+
+      toast({
+        title: "✅ Response received!",
+        description: "AI has processed your message"
+      });
+
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Error",
+        description: error.message || "Failed to send message. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   const generateImage = async (prompt: string) => {
@@ -724,14 +820,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       {/* User Message */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                          {msg.message_type === 'image' && msg.message.startsWith('data:image') && (
+                          {msg.message_type === 'image' && (msg as any).image_data && (
                             <img 
-                              src={msg.message} 
+                              src={(msg as any).image_data} 
                               alt="Uploaded" 
-                              className="mt-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
+                              className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
                             />
                           )}
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                           <div className="text-xs opacity-70 mt-1">
                             {new Date(msg.created_at).toLocaleTimeString([], {
                             hour: '2-digit',
@@ -851,9 +947,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 </div>
               </div>
               
-              <div className="text-[10px] text-orange-400/40 text-center">
-                Powered by Gemini AI • Type to chat or generate images
-              </div>
             </div>
           </div>
         </>}
