@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -59,7 +59,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'imageGen'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageGenInputRef = useRef<HTMLInputElement>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState('');
   const {
@@ -362,6 +365,79 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   
+  const handleImageGenSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setReferenceImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setReferenceImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const downloadImageWithWatermark = async (imageUrl: string, prompt: string) => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = imageUrl;
+      });
+
+      const logoImg = new Image();
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+        logoImg.src = vithalLogo;
+      });
+
+      canvas.width = img.width;
+      canvas.height = img.height + 60;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.drawImage(img, 0, 0);
+
+      const logoHeight = 40;
+      const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
+      const logoX = (canvas.width - logoWidth) / 2;
+      const logoY = img.height + 10;
+
+      ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vithal-ai-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: "✅ Image Downloaded",
+          description: "Image saved with Vithal AI watermark",
+        });
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error downloading image:', error);
+      toast({
+        title: "❌ Download Failed",
+        description: "Could not download image",
+        variant: "destructive",
+      });
+    }
+  };
+
   const generateImage = async (prompt: string) => {
     if (!currentSession) return;
     
@@ -385,11 +461,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       // Reload messages to show user request
       await loadMessages(currentSession.id);
 
-      // Call image generation function with language support
+      // Call image generation function with language support and reference image
       const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
         body: { 
           prompt,
-          language 
+          language,
+          imageUrl: referenceImage || undefined
         }
       });
 
@@ -412,6 +489,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       if (responseError) throw responseError;
 
       await loadMessages(currentSession.id);
+      
+      // Clear reference image after generation
+      setReferenceImage(null);
+      setReferenceImageFile(null);
       
       toast({
         title: "✅ Image Generated!",
@@ -515,7 +596,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
           body: { 
             prompt,
-            language 
+            language,
+            imageUrl: referenceImage || undefined
           }
         });
 
@@ -956,7 +1038,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           </div>
                           <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">Vithal AI Chitrakar</h2>
                           <p className="text-purple-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">
-                            Describe any image in English, Hindi, or Marathi and watch AI create it for you.
+                            Upload an image to edit or generate new images from text. Supports English, Hindi, and Marathi.
                           </p>
                           <div className="flex items-center justify-center gap-2 text-xs text-purple-400/60">
                             <span>🌐 English</span>
@@ -987,10 +1069,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20">
                                   <Sparkles className="w-6 h-6 text-purple-400" />
                                 </div>
-                                <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
+                                <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
                                   <ChatMessageRenderer content={msg.response} />
-                                  <div className="text-xs text-purple-400/70 mt-3">
-                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  <div className="flex items-center justify-between mt-3">
+                                    <div className="text-xs text-purple-400/70">
+                                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                    {msg.response.includes('![Generated Image]') && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          const match = msg.response?.match(/!\[Generated Image\]\((.*?)\)/);
+                                          if (match && match[1]) {
+                                            downloadImageWithWatermark(match[1], msg.message);
+                                          }
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
+                                      >
+                                        <Download className="h-3 w-3 mr-1" />
+                                        Download
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1024,7 +1124,50 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Image Generation Input */}
               <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
+                  {/* Reference Image Preview */}
+                  {referenceImage && (
+                    <div className="mb-3">
+                      <div className="relative inline-block rounded-xl overflow-hidden border border-purple-500/30 shadow-lg">
+                        <img 
+                          src={referenceImage} 
+                          alt="Reference" 
+                          className="max-h-32 md:max-h-40 object-contain bg-muted/50" 
+                        />
+                        <button 
+                          onClick={() => {
+                            setReferenceImage(null);
+                            setReferenceImageFile(null);
+                          }} 
+                          className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-purple-400/70 mt-2">Reference image for editing</p>
+                    </div>
+                  )}
+
                   <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
+                    {/* Hidden File Input */}
+                    <input 
+                      ref={imageGenInputRef} 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageGenSelect} 
+                      className="hidden" 
+                    />
+
+                    {/* Upload Image Button */}
+                    <Button 
+                      onClick={() => imageGenInputRef.current?.click()}
+                      variant="ghost" 
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                      disabled={isGeneratingImage}
+                    >
+                      <ImageIcon className="h-5 w-5" />
+                    </Button>
+
                     {/* Textarea */}
                     <Textarea
                       ref={textareaRef}
@@ -1047,7 +1190,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           }
                         }
                       }}
-                      placeholder="Describe the image you want to create..."
+                      placeholder={referenceImage ? "Describe how to modify this image..." : "Describe the image you want to create..."}
                       className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0"
                       disabled={isGeneratingImage}
                       rows={1}
@@ -1077,7 +1220,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Helper Text */}
                   <div className="mt-2 text-center">
                     <p className="text-xs text-muted-foreground">
-                      Vithal AI Chitrakar - Supports English, Hindi (हिंदी), and Marathi (मराठी)
+                      {referenceImage 
+                        ? "Vithal AI Chitrakar - Edit or modify your uploaded image" 
+                        : "Vithal AI Chitrakar - Supports English, Hindi (हिंदी), and Marathi (मराठी)"
+                      }
                     </p>
                   </div>
                 </div>
