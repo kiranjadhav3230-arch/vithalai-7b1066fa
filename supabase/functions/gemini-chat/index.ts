@@ -504,13 +504,17 @@ function analyzeUserLearningPattern(chatHistory: any[]): string {
   if (chatHistory.length === 0) return "Beginning learner";
   
   const recentChats = chatHistory.slice(-10);
-  const questionTypes = recentChats.map(chat => {
-    const msg = chat.message.toLowerCase();
-    if (msg.includes('how') || msg.includes('why') || msg.includes('what')) return 'conceptual';
-    if (msg.includes('solve') || msg.includes('calculate') || msg.includes('find')) return 'problem-solving';
-    if (msg.includes('course') || msg.includes('learn') || msg.includes('study')) return 'resource-seeking';
-    return 'general';
-  });
+  const questionTypes = recentChats
+    .filter(chat => chat && chat.message) // Filter out undefined/null messages
+    .map(chat => {
+      const msg = chat.message.toLowerCase();
+      if (msg.includes('how') || msg.includes('why') || msg.includes('what')) return 'conceptual';
+      if (msg.includes('solve') || msg.includes('calculate') || msg.includes('find')) return 'problem-solving';
+      if (msg.includes('course') || msg.includes('learn') || msg.includes('study')) return 'resource-seeking';
+      return 'general';
+    });
+  
+  if (questionTypes.length === 0) return "Beginning learner";
   
   const pattern = questionTypes.reduce((acc, type) => {
     acc[type] = (acc[type] || 0) + 1;
@@ -532,8 +536,10 @@ function extractUserInterests(chatHistory: any[]): string {
   const mentions = subjects.map(subject => ({
     subject,
     count: chatHistory.filter(chat => 
-      chat.message.toLowerCase().includes(subject) || 
-      chat.response?.toLowerCase().includes(subject)
+      chat && (
+        (chat.message && chat.message.toLowerCase().includes(subject)) || 
+        (chat.response && chat.response.toLowerCase().includes(subject))
+      )
     ).length
   })).filter(item => item.count > 0)
     .sort((a, b) => b.count - a.count)
@@ -554,12 +560,15 @@ function assessQuestionComplexity(currentMessage: string, chatHistory: any[]): s
   const hasBasic = basicKeywords.some(keyword => msg.includes(keyword));
   
   // Consider conversation history for context
-  const recentComplexity = chatHistory.slice(-5).map(chat => {
-    const chatMsg = chat.message.toLowerCase();
-    if (advancedKeywords.some(kw => chatMsg.includes(kw))) return 'advanced';
-    if (basicKeywords.some(kw => chatMsg.includes(kw))) return 'basic';
-    return 'intermediate';
-  });
+  const recentComplexity = chatHistory
+    .slice(-5)
+    .filter(chat => chat && chat.message) // Filter out undefined/null messages
+    .map(chat => {
+      const chatMsg = chat.message.toLowerCase();
+      if (advancedKeywords.some(kw => chatMsg.includes(kw))) return 'advanced';
+      if (basicKeywords.some(kw => chatMsg.includes(kw))) return 'basic';
+      return 'intermediate';
+    });
   
   const avgComplexity = recentComplexity.length > 0 ? 
     recentComplexity.reduce((acc, level) => {
@@ -576,7 +585,10 @@ function assessQuestionComplexity(currentMessage: string, chatHistory: any[]): s
 function suggestNextTopics(chatHistory: any[], userProfile: any): string {
   if (chatHistory.length === 0) return "Foundation building in core subjects";
   
-  const recentTopics = chatHistory.slice(-5).map(chat => chat.message.toLowerCase());
+  const recentTopics = chatHistory
+    .slice(-5)
+    .filter(chat => chat && chat.message) // Filter out undefined/null messages
+    .map(chat => chat.message.toLowerCase());
   const allText = recentTopics.join(' ');
   
   // Smart topic progression suggestions
