@@ -60,6 +60,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editedContent, setEditedContent] = useState('');
   const {
     toast
   } = useToast();
@@ -383,9 +385,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       // Reload messages to show user request
       await loadMessages(currentSession.id);
 
-      // Call image generation function
+      // Call image generation function with language support
       const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
-        body: { prompt }
+        body: { 
+          prompt,
+          language 
+        }
       });
 
       if (functionError) throw functionError;
@@ -431,6 +436,137 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     } finally {
       setIsGeneratingImage(false);
+    }
+  };
+
+  const handleEditMessage = async (messageId: string, newContent: string) => {
+    if (!newContent.trim() || !currentSession) return;
+
+    try {
+      // Update the message in the database
+      const { error: updateError } = await supabase
+        .from('chat_messages')
+        .update({ message: newContent.trim() })
+        .eq('id', messageId);
+
+      if (updateError) throw updateError;
+
+      // Clear the AI response for this message
+      await supabase
+        .from('chat_messages')
+        .update({ response: null })
+        .eq('id', messageId);
+
+      // Reload messages
+      await loadMessages(currentSession.id);
+
+      // Auto-regenerate the response
+      await regenerateResponse(messageId, newContent.trim());
+
+      setEditingMessageId(null);
+      setEditedContent('');
+
+      toast({
+        title: "✅ Message Updated",
+        description: "Regenerating AI response..."
+      });
+
+    } catch (error: any) {
+      console.error('Error editing message:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Edit Failed",
+        description: "Failed to update message"
+      });
+    }
+  };
+
+  const regenerateResponse = async (messageId: string, messageContent?: string) => {
+    if (!currentSession) return;
+
+    setLoading(true);
+
+    try {
+      // Find the message
+      const messageToRegenerate = messages.find(m => m.id === messageId);
+      if (!messageToRegenerate) throw new Error('Message not found');
+
+      const contentToUse = messageContent || messageToRegenerate.message;
+
+      // Get chat history up to this message
+      const chatHistory = messages
+        .filter(m => m.created_at <= messageToRegenerate.created_at && m.id !== messageId)
+        .map(msg => ({
+          role: msg.message_type === 'user' ? 'user' : 'assistant',
+          content: msg.message
+        }));
+
+      // Call Gemini chat
+      const requestBody: any = {
+        message: contentToUse,
+        profile: userProfile,
+        language: language,
+        chatHistory: chatHistory
+      };
+
+      // Check if this is an image generation request
+      if (contentToUse.includes('🎨 Generate image:')) {
+        const prompt = contentToUse.replace('🎨 Generate image:', '').trim();
+        const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
+          body: { 
+            prompt,
+            language 
+          }
+        });
+
+        if (functionError) throw functionError;
+
+        if (!imageData?.imageUrl) {
+          throw new Error('No image URL received');
+        }
+
+        const responseContent = `![Generated Image](${imageData.imageUrl})\n\n${imageData.description || 'Image generated successfully'}`;
+        
+        await supabase
+          .from('chat_messages')
+          .update({ response: responseContent })
+          .eq('id', messageId);
+
+      } else {
+        // Regular chat regeneration
+        const { data, error } = await supabase.functions.invoke('gemini-chat', {
+          body: requestBody
+        });
+
+        if (error) throw error;
+
+        // Update message with new response
+        await supabase
+          .from('chat_messages')
+          .update({ 
+            response: data.response,
+            youtube_courses: data.youtubeCourses || null
+          })
+          .eq('id', messageId);
+      }
+
+      // Reload messages
+      await loadMessages(currentSession.id);
+
+      toast({
+        title: "✅ Response Regenerated!",
+        description: "New AI response generated"
+      });
+
+    } catch (error: any) {
+      console.error('Error regenerating response:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Regeneration Failed",
+        description: error.message || "Failed to regenerate response"
+      });
+    } finally {
+      setLoading(false);
     }
   };
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -818,8 +954,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow">
                             <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
                           </div>
-                          <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">AI Image Generator</h2>
-                          <p className="text-purple-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">Describe any image and watch AI create it for you.</p>
+                          <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">Vithal AI Chitrakar</h2>
+                          <p className="text-purple-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">
+                            Describe any image in English, Hindi, or Marathi and watch AI create it for you.
+                          </p>
+                          <div className="flex items-center justify-center gap-2 text-xs text-purple-400/60">
+                            <span>🌐 English</span>
+                            <span>•</span>
+                            <span>🇮🇳 हिंदी</span>
+                            <span>•</span>
+                            <span>🇮🇳 मराठी</span>
+                          </div>
                         </div>
                       )}
 
@@ -932,7 +1077,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Helper Text */}
                   <div className="mt-2 text-center">
                     <p className="text-xs text-muted-foreground">
-                      AI Image Generation powered by Gemini AI
+                      Vithal AI Chitrakar - Supports English, Hindi (हिंदी), and Marathi (मराठी)
                     </p>
                   </div>
                 </div>
@@ -978,38 +1123,100 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
                   {messages.map(msg => <div key={msg.id} className="space-y-4">
                       {/* User Message */}
-                      <div className="flex justify-end">
-                        <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                          {msg.message_type === 'image' && (msg as any).image_data && (
-                            <img 
-                              src={(msg as any).image_data} 
-                              alt="Uploaded" 
-                              className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
-                            />
+                      <div className="flex justify-end group">
+                        <div className="max-w-[85%]">
+                          {editingMessageId === msg.id ? (
+                            <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
+                              <Textarea
+                                value={editedContent}
+                                onChange={(e) => setEditedContent(e.target.value)}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/60 mb-2 min-h-[60px]"
+                                autoFocus
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditMessage(msg.id, editedContent)}
+                                  className="bg-white text-orange-600 hover:bg-white/90"
+                                >
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingMessageId(null);
+                                    setEditedContent('');
+                                  }}
+                                  className="text-white hover:bg-white/10"
+                                >
+                                  <X className="h-3 w-3 mr-1" />
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
+                                {msg.message_type === 'image' && (msg as any).image_data && (
+                                  <img 
+                                    src={(msg as any).image_data} 
+                                    alt="Uploaded" 
+                                    className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
+                                  />
+                                )}
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                <div className="text-xs opacity-70 mt-1">
+                                  {new Date(msg.created_at).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingMessageId(msg.id);
+                                  setEditedContent(msg.message);
+                                }}
+                                className="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-orange-500/10 text-orange-400"
+                              >
+                                <Edit3 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
                           )}
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                          <div className="text-xs opacity-70 mt-1">
-                            {new Date(msg.created_at).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                          </div>
                         </div>
                       </div>
 
                       {/* AI Response */}
-                      {msg.response && <div className="flex justify-start">
+                      {msg.response && <div className="flex justify-start group">
                           <div className="flex items-start gap-3 w-full">
                             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-orange-500/30 shadow-lg shadow-orange-500/20">
                               <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
                             </div>
-                            <div className="flex-1 max-w-[85%] rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
-                              <ChatMessageRenderer content={msg.response} />
-                              <div className="text-xs text-orange-400/70 mt-3">
-                                {new Date(msg.created_at).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            <div className="flex-1 max-w-[85%]">
+                              <div className="rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg relative">
+                                <ChatMessageRenderer content={msg.response} />
+                                <div className="flex items-center justify-between mt-3">
+                                  <div className="text-xs text-orange-400/70">
+                                    {new Date(msg.created_at).toLocaleTimeString([], {
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => regenerateResponse(msg.id)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
+                                    disabled={loading}
+                                  >
+                                    <Loader2 className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                                    Regenerate
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           </div>

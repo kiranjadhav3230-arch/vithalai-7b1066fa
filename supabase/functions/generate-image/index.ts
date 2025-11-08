@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, language = 'en' } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -21,11 +21,19 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating image with prompt:', prompt);
+    console.log('Generating image for prompt:', prompt, 'in language:', language);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
+    }
+
+    // Add language context to the prompt if not in English
+    let enhancedPrompt = prompt;
+    if (language === 'hi') {
+      enhancedPrompt = `Generate an image based on this Hindi description: ${prompt}. Understand the Hindi context and create an accurate visual representation.`;
+    } else if (language === 'mr') {
+      enhancedPrompt = `Generate an image based on this Marathi description: ${prompt}. Understand the Marathi context and create an accurate visual representation.`;
     }
 
     // Call Lovable AI Gateway for image generation
@@ -40,7 +48,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'user',
-            content: prompt
+            content: enhancedPrompt
           }
         ],
         modalities: ['image', 'text']
