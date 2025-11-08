@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
@@ -16,6 +16,40 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = React.useState(false);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
+
+  // Swipe gesture handling
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      touchEndX.current = e.touches[0].clientX;
+    };
+
+    const handleTouchEnd = () => {
+      // Swipe from right edge to left (close drawer)
+      if (isOpen && touchStartX.current - touchEndX.current > 75) {
+        setIsOpen(false);
+      }
+      // Swipe from right edge to open
+      if (!isOpen && touchStartX.current > window.innerWidth - 50 && touchEndX.current - touchStartX.current > 75) {
+        setIsOpen(true);
+      }
+    };
+
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isOpen]);
 
   const handleNavClick = (sectionId: string) => {
     scrollToSection(sectionId);

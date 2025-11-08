@@ -605,90 +605,150 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         <AppSidebar />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-black via-black to-orange-950/10">
-          {/* Header - Fixed - Mobile Optimized */}
-          <header className="border-b border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
-            <div className="flex flex-col md:flex-row h-auto md:h-14 items-start md:items-center justify-between px-3 md:px-4 py-2 md:py-0 gap-2 md:gap-0">
-              {/* Top Row: Logo & Title */}
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                <SidebarTrigger className="text-orange-400 hover:text-orange-300 flex-shrink-0" />
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/30 flex-shrink-0">
-                    <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
+          {/* Modern Header - Completely Redesigned */}
+          <header className="border-b border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0 shadow-lg shadow-orange-500/5">
+            <div className="px-3 md:px-6 py-3">
+              {/* Top Row: Logo, Title & Main Actions */}
+              <div className="flex items-center justify-between gap-3 mb-3">
+                {/* Left: Sidebar Toggle + Logo */}
+                <div className="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
+                  <SidebarTrigger className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded-lg p-1.5 transition-all" />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/40 flex-shrink-0">
+                      <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0 hidden sm:block">
+                      <h1 className="text-sm font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
+                        Vithal AI 2.0
+                      </h1>
+                      <p className="text-[10px] text-orange-400/60 truncate">{currentSession?.title || 'New Chat'}</p>
+                    </div>
                   </div>
-                  <h1 className="text-sm md:text-base font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
-                    {currentSession?.title || 'Vithal AI Chat'}
-                  </h1>
+                </div>
+
+                {/* Right: User Profile & Settings */}
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 px-2 md:px-3 hover:bg-orange-500/10 border border-orange-500/20 gap-2"
+                      >
+                        <Avatar className="h-6 w-6 border border-orange-500/50">
+                          <AvatarImage src={user.user_metadata?.avatar_url} />
+                          <AvatarFallback className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-xs">
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="hidden md:inline text-xs text-orange-400 max-w-[100px] truncate">
+                          {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-48">
+                      <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                        <UserIcon className="h-4 w-4 mr-2" />
+                        Profile Settings
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowContactModal(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                        <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        Contact Support
+                      </DropdownMenuItem>
+                      <div className="px-2 py-2 border-t border-orange-500/20">
+                        <div className="text-xs text-orange-400/70 mb-2">Language</div>
+                        <LanguageSelector 
+                          language={language} 
+                          onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                        />
+                      </div>
+                      <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:bg-red-500/10 cursor-pointer">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
-              {/* Bottom Row: Action Buttons */}
-              <div className="flex items-center gap-1.5 md:gap-2 w-full md:w-auto justify-end">
-                {/* View Toggle Buttons */}
-                <Button 
-                  variant="outline" 
-                  onClick={() => setCurrentView('chat')} 
-                  size="sm" 
-                  className={`h-7 md:h-8 text-xs ${currentView === 'chat' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}`}
-                >
-                  <MessageSquare className="h-3 w-3 md:mr-1" />
-                  <span className="hidden sm:inline">Chat</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setCurrentView('code')} 
-                  size="sm" 
-                  className={`h-7 md:h-8 text-xs ${currentView === 'code' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0' : 'border-orange-500/30 hover:bg-orange-500/10'}`}
-                >
-                  <Code className="h-3 w-3 md:mr-1" />
-                  <span className="hidden sm:inline">Code</span>
-                </Button>
+              {/* Bottom Row: Mode Toggle & Quick Actions */}
+              <div className="flex items-center justify-between gap-2">
+                {/* View Mode Toggle */}
+                <div className="flex items-center gap-1.5 bg-black/50 p-1 rounded-lg border border-orange-500/20">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setCurrentView('chat')} 
+                    size="sm" 
+                    className={`h-7 px-3 text-xs transition-all ${
+                      currentView === 'chat' 
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
+                        : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/5'
+                    }`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="hidden sm:inline">Chat</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setCurrentView('code')} 
+                    size="sm" 
+                    className={`h-7 px-3 text-xs transition-all ${
+                      currentView === 'code' 
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' 
+                        : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/5'
+                    }`}
+                  >
+                    <Code className="h-3.5 w-3.5 mr-1.5" />
+                    <span className="hidden sm:inline">Code</span>
+                  </Button>
+                </div>
 
-                {/* Help Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-7 md:h-8 text-xs border-orange-500/30 hover:bg-orange-500/10 px-2 md:px-3">
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                      <span className="hidden sm:inline ml-1">Help</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
-                    <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')} className="text-orange-400 hover:bg-orange-500/10">
-                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                      Email Support
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')} className="text-orange-400 hover:bg-orange-500/10">
-                      <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                      </svg>
-                      Instagram
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Settings Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 md:h-8 w-7 md:w-8 p-0 hover:bg-orange-500/10">
-                      <Settings className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-400" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
-                    <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10">
-                      <UserIcon className="h-4 w-4 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onLogout} className="text-orange-400 hover:bg-orange-500/10">
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                {/* Quick Actions */}
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    onClick={createNewSession}
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs text-orange-400 hover:bg-orange-500/10 border border-orange-500/20 gap-1.5"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">New</span>
+                  </Button>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-7 px-2.5 text-xs text-orange-400 hover:bg-orange-500/10 border border-orange-500/20"
+                      >
+                        <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        <span className="hidden sm:inline ml-1.5">Help</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
+                      <DropdownMenuItem onClick={() => window.open('mailto:vithalai2112@gmail.com', '_blank')} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                        <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        Email Support
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                        <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                        </svg>
+                        Instagram
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             </div>
           </header>
