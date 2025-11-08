@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -55,9 +56,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'imageGen'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
     toast
   } = useToast();
@@ -697,6 +699,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <Code className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Code</span>
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setCurrentView('imageGen')} 
+                    size="sm" 
+                    className={`h-6 px-2 text-[10px] md:text-xs transition-all ${
+                      currentView === 'imageGen' 
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
+                        : 'text-orange-400/70 hover:text-orange-400'
+                    }`}
+                  >
+                    <Sparkles className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">Image</span>
+                  </Button>
                 </div>
 
                 {/* Mobile View Toggle */}
@@ -716,6 +731,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     className={`h-7 w-7 p-0 ${currentView === 'code' ? 'bg-orange-500/20 text-orange-400' : 'text-orange-400/50'}`}
                   >
                     <Code className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setCurrentView('imageGen')} 
+                    size="sm" 
+                    className={`h-7 w-7 p-0 ${currentView === 'imageGen' ? 'bg-orange-500/20 text-orange-400' : 'text-orange-400/50'}`}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
@@ -779,9 +802,144 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </header>
 
           {/* Conditional Content Rendering */}
-          {currentView === 'code' ? <div className="flex-1 overflow-auto">
+          {currentView === 'code' ? (
+            <div className="flex-1 overflow-auto">
               <CodeGenerator />
-            </div> : <>
+            </div>
+          ) : currentView === 'imageGen' ? (
+            <>
+              {/* Image Generation Chat Interface */}
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
+                  <div className="p-3 md:p-6">
+                    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+                      {messages.filter(m => m.message.includes('🎨 Generate image')).length === 0 && !isGeneratingImage && (
+                        <div className="text-center py-8 md:py-16">
+                          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow">
+                            <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
+                          </div>
+                          <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">AI Image Generator</h2>
+                          <p className="text-purple-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">Describe any image and watch AI create it for you.</p>
+                        </div>
+                      )}
+
+                      {messages.filter(m => m.message.includes('🎨 Generate image')).map(msg => (
+                        <div key={msg.id} className="space-y-4">
+                          {/* User Request */}
+                          <div className="flex justify-end">
+                            <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 shadow-xl shadow-purple-500/30">
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                              <div className="text-xs opacity-70 mt-1">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* AI Generated Image */}
+                          {msg.response && (
+                            <div className="flex justify-start">
+                              <div className="flex items-start gap-3 w-full">
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20">
+                                  <Sparkles className="w-6 h-6 text-purple-400" />
+                                </div>
+                                <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
+                                  <ChatMessageRenderer content={msg.response} />
+                                  <div className="text-xs text-purple-400/70 mt-3">
+                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+
+                      {isGeneratingImage && (
+                        <div className="flex justify-start">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20">
+                              <Sparkles className="w-6 h-6 text-purple-400" />
+                            </div>
+                            <div className="max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
+                              <div className="flex items-center gap-3">
+                                <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
+                                <span className="text-sm text-purple-400">Creating your image...</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Image Generation Input */}
+              <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
+                <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
+                  <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
+                    {/* Textarea */}
+                    <Textarea
+                      ref={textareaRef}
+                      value={message}
+                      onChange={(e) => {
+                        setMessage(e.target.value);
+                        // Auto-resize textarea
+                        if (textareaRef.current) {
+                          textareaRef.current.style.height = 'auto';
+                          textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+                        }
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (message.trim()) {
+                            generateImage(message.trim());
+                            setMessage('');
+                            if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                          }
+                        }
+                      }}
+                      placeholder="Describe the image you want to create..."
+                      className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0"
+                      disabled={isGeneratingImage}
+                      rows={1}
+                    />
+
+                    {/* Send Button */}
+                    <Button 
+                      onClick={() => {
+                        if (message.trim()) {
+                          generateImage(message.trim());
+                          setMessage('');
+                          if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                        }
+                      }}
+                      size="icon"
+                      className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
+                      disabled={isGeneratingImage || !message.trim()}
+                    >
+                      {isGeneratingImage ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Helper Text */}
+                  <div className="mt-2 text-center">
+                    <p className="text-xs text-muted-foreground">
+                      AI Image Generation powered by Gemini AI
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
@@ -901,110 +1059,113 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               )}
 
               {/* Input Container */}
-              <div className="relative flex items-center gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
-                {/* Action Buttons Left */}
-                <div className="flex items-center gap-1">
-                  {/* Image Upload */}
-                  <input 
-                    ref={fileInputRef} 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageUpload} 
-                    className="hidden" 
-                  />
-                  <Button 
-                    onClick={() => fileInputRef.current?.click()} 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
-                    disabled={loading || isGeneratingImage}
-                  >
-                    <ImageIcon className="h-5 w-5" />
-                  </Button>
-
-                  {/* Camera */}
-                  <input 
-                    ref={cameraInputRef} 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment" 
-                    onChange={handleCameraCapture} 
-                    className="hidden" 
-                  />
-                  <Button 
-                    onClick={() => cameraInputRef.current?.click()} 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
-                    disabled={loading || isGeneratingImage}
-                  >
-                    <Camera className="h-5 w-5" />
-                  </Button>
-
-                  {/* Voice Input */}
-                  <Button 
-                    onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
-                    variant="ghost" 
-                    size="icon"
-                    className={`h-9 w-9 rounded-full transition-all ${
-                      isRecording 
-                        ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' 
-                        : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-                    }`}
-                    disabled={loading || isGeneratingImage}
-                  >
-                    <Mic className="h-5 w-5" />
-                  </Button>
-
-                  {/* Generate Image Button */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" 
-                        disabled={loading || isGeneratingImage}
-                      >
-                        <Sparkles className="h-5 w-5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-72 p-3">
-                      <div className="space-y-2">
-                        <div className="text-sm font-semibold text-foreground">Generate Image</div>
-                        <Input 
-                          placeholder="Describe the image you want to create..." 
-                          className="bg-background border-border text-sm"
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                              generateImage(e.currentTarget.value);
-                              e.currentTarget.value = '';
-                            }
-                          }}
-                        />
-                        <p className="text-xs text-muted-foreground">Press Enter to generate</p>
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Input Field */}
-                <input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                  placeholder={t('typeYourMessage') || "Message Vithal AI..."}
-                  className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground py-2 min-h-[40px]"
-                  disabled={loading || isGeneratingImage}
+              <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
+                {/* Hidden File Inputs */}
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className="hidden" 
                 />
+                <input 
+                  ref={cameraInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  onChange={handleCameraCapture} 
+                  className="hidden" 
+                />
+
+                {/* Textarea */}
+                <Textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    // Auto-resize textarea
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                    }
+                  }}
+                  placeholder={t('typeYourMessage') || "Message Vithal AI..."}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  disabled={loading}
+                  rows={1}
+                />
+
+                {/* Mic Button */}
+                <Button 
+                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
+                  variant="ghost" 
+                  size="icon"
+                  className={`h-9 w-9 rounded-full transition-all flex-shrink-0 ${
+                    isRecording 
+                      ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' 
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                  disabled={loading}
+                >
+                  <Mic className="h-5 w-5" />
+                </Button>
+
+                {/* Three Dot Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" 
+                      disabled={loading}
+                    >
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border/50">
+                    <DropdownMenuItem 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
+                      <ImageIcon className="h-4 w-4 mr-3 text-primary" />
+                      <span>Upload Image</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
+                      <Camera className="h-4 w-4 mr-3 text-primary" />
+                      <span>Take Photo</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={() => setCurrentView('imageGen')}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
+                      <Sparkles className="h-4 w-4 mr-3 text-purple-500" />
+                      <span>Generate Image</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Send Button */}
                 <Button 
-                  onClick={sendMessage}
+                  onClick={() => {
+                    sendMessage();
+                    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                  }}
                   size="icon"
-                  className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105"
-                  disabled={loading || isGeneratingImage || (!message.trim() && !selectedImage)}
+                  className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
+                  disabled={loading || (!message.trim() && !selectedImage)}
                 >
-                  {loading || isGeneratingImage ? (
+                  {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
                     <Send className="h-5 w-5" />
@@ -1020,7 +1181,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               </div>
             </div>
           </div>
-        </>}
+            </>
+          )}
         </main>
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
