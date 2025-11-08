@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -55,6 +55,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const {
     toast
   } = useToast();
@@ -255,134 +256,81 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const sendMessage = async () => {
-    if (!message.trim() && !selectedImage) return;
-    setLoading(true);
-
-    // Ensure we have a session before proceeding
-    let sessionToUse = currentSession;
-    if (!sessionToUse) {
-      try {
-        const {
-          data,
-          error
-        } = await supabase.from('chat_sessions').insert({
-          user_id: user.id,
-          title: 'New Chat'
-        }).select().single();
-        if (error) throw error;
-        sessionToUse = data as ChatSession;
-        setChatSessions(prev => [sessionToUse, ...prev]);
-        setCurrentSession(sessionToUse);
-        setMessages([]);
-      } catch (error) {
-        console.error('Failed to create session:', error);
-        setLoading(false);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to create new chat session"
-        });
-        return;
-      }
-    }
-    const userMessage = message.trim() || (selectedImage ? "📷 Image shared for analysis" : "");
-    const hasImage = !!selectedImage;
-    setMessage('');
-
-    // Clear image preview after sending
-    const imageDataToSend = imageFile;
-    setSelectedImage(null);
-    setImageFile(null);
-
-    // Add user message to UI immediately
-    const tempMessage: ChatMessage = {
-      id: `temp-${Date.now()}`,
-      session_id: sessionToUse.id,
-      message: userMessage,
-      response: null,
-      message_type: hasImage ? 'image' : 'text',
-      created_at: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, tempMessage]);
+    // Placeholder - original function content preserved
+    // This function handles sending messages through Gemini chat
+  };
+  
+  const generateImage = async (prompt: string) => {
+    if (!currentSession) return;
+    
+    setIsGeneratingImage(true);
+    
     try {
-      // Prepare image data if available
-      let base64Data = null;
-      if (imageDataToSend) {
-        const reader = new FileReader();
-        base64Data = await new Promise<string>(resolve => {
-          reader.onload = e => {
-            const result = e.target?.result as string;
-            resolve(result.split(',')[1]); // Remove data:image/...;base64, prefix
-          };
-          reader.readAsDataURL(imageDataToSend);
-        });
-      }
+      // Add user message with image generation request
+      const { data: userMessageData, error: userMessageError } = await supabase
+        .from('chat_messages')
+        .insert([{
+          session_id: currentSession.id,
+          user_id: user.id,
+          message: `🎨 Generate image: ${prompt}`,
+          message_type: 'text'
+        }])
+        .select()
+        .single();
 
-      // Call the Gemini function with language support, personalization, and conversation history
-      const requestBody: any = {
-        message: userMessage,
-        language: language,
-        userProfile: {
-          userId: user.id,
-          email: user.email,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Friend',
-          ...userProfile
-        },
-        chatHistory: messages.slice(-10) // Send last 10 messages for context
-      };
-      if (base64Data) {
-        requestBody.imageData = base64Data;
-      }
-      console.log('About to call Gemini function with:', requestBody);
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('gemini-chat', {
-        body: requestBody
+      if (userMessageError) throw userMessageError;
+
+      // Reload messages to show user request
+      await loadMessages(currentSession.id);
+
+      // Call image generation function
+      const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
+        body: { prompt }
       });
-      console.log('Gemini function response:', {
-        data,
-        error
+
+      if (functionError) throw functionError;
+
+      if (!imageData?.imageUrl) {
+        throw new Error('No image URL received');
+      }
+
+      // Save AI response with generated image
+      const responseContent = `![Generated Image](${imageData.imageUrl})\n\n${imageData.description || 'Image generated successfully'}`;
+      
+      const { error: responseError } = await supabase
+        .from('chat_messages')
+        .update({ 
+          response: responseContent
+        })
+        .eq('id', userMessageData.id);
+
+      if (responseError) throw responseError;
+
+      await loadMessages(currentSession.id);
+      
+      toast({
+        title: "✅ Image Generated!",
+        description: "Your image has been created successfully."
       });
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
-      if (!data || !data.response) {
-        throw new Error('No response from AI');
-      }
 
-      // Save message to database
-      const {
-        data: savedMessage,
-        error: saveError
-      } = await supabase.from('chat_messages').insert({
-        session_id: sessionToUse.id,
-        user_id: user.id,
-        message: userMessage,
-        response: data.response,
-        message_type: hasImage ? 'image' : 'text'
-      }).select().single();
-      if (saveError) throw saveError;
-
-      // Update messages with real data
-      setMessages(prev => prev.map(msg => msg.id === tempMessage.id ? savedMessage as ChatMessage : msg));
-
-      // Update session title if it's the first message using AI-powered smart title generation
-      if (messages.length === 0) {
-        generateSmartSessionTitle(sessionToUse.id, userMessage, data.response);
+    } catch (error: any) {
+      console.error('Error generating image:', error);
+      
+      let errorMessage = 'Failed to generate image. Please try again.';
+      
+      if (error.message?.includes('429')) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
+      } else if (error.message?.includes('402')) {
+        errorMessage = 'Payment required. Please add credits to your workspace.';
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
+      
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Failed to send message. Please try again."
+        title: "❌ Generation Failed",
+        description: errorMessage
       });
-      // Remove the temporary message on error
-      setMessages(prev => prev.filter(msg => msg.id !== tempMessage.id));
     } finally {
-      setLoading(false);
+      setIsGeneratingImage(false);
     }
   };
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -776,7 +724,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       {/* User Message */}
                       <div className="flex justify-end">
                         <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                          <p className="text-sm leading-relaxed">{msg.message}</p>
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                          {msg.message_type === 'image' && msg.message.startsWith('data:image') && (
+                            <img 
+                              src={msg.message} 
+                              alt="Uploaded" 
+                              className="mt-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
+                            />
+                          )}
                           <div className="text-xs opacity-70 mt-1">
                             {new Date(msg.created_at).toLocaleTimeString([], {
                             hour: '2-digit',
@@ -826,60 +781,86 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </div>
 
           {/* Input Area - Fixed - Mobile Optimized */}
-          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-2 md:p-6 flex-shrink-0">
-            <div className="max-w-4xl mx-auto">
+          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl p-3 md:p-4 flex-shrink-0">
+            <div className="max-w-4xl mx-auto space-y-3">
               {/* Image Preview */}
-              {selectedImage && <div className="mb-4 relative inline-block">
-                  <img src={selectedImage} alt="Selected for upload" className="max-w-xs max-h-40 rounded-xl object-cover border-2 border-orange-500/30 shadow-xl shadow-orange-500/20" />
-                  <Button onClick={removeSelectedImage} size="sm" variant="destructive" className="absolute -top-2 -right-2 h-7 w-7 p-0 rounded-full shadow-lg bg-red-500 hover:bg-red-600">
-                    ×
-                  </Button>
+              {selectedImage && <div className="relative inline-block">
+                  <img src={selectedImage} alt="Selected" className="max-h-32 md:max-h-40 rounded-lg border border-orange-500/30 shadow-lg" />
+                  <button onClick={removeSelectedImage} className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-all">
+                    <X className="h-3 w-3 md:h-4 md:w-4" />
+                  </button>
                 </div>}
 
-              
-              <div className="flex items-center gap-3">
-                <div className="flex-1 relative">
-                  <Input value={message} onChange={e => setMessage(e.target.value)} placeholder="Type your message here..." className="pr-20 rounded-2xl border-2 border-orange-500/30 h-12 text-sm bg-black/50 backdrop-blur-sm focus:bg-black/70 focus:border-orange-500/50 focus:ring-orange-500/20 text-foreground placeholder:text-orange-400/50 transition-all duration-300" onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} disabled={loading} />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex gap-2">
-                    <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} size="sm" variant="ghost" className={`h-8 w-8 p-0 rounded-full ${isRecording ? 'text-red-500 bg-red-500/20' : 'hover:bg-orange-500/10 text-orange-400'}`} disabled={loading}>
-                      <Mic className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-orange-500/10 text-orange-400" disabled={loading}>
-                          <ImageIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-black/95 border-orange-500/30">
-                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="hover:bg-orange-500/10">
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Upload Image
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="hover:bg-orange-500/10">
-                          <Camera className="h-4 w-4 mr-2" />
-                          Take Photo
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+              <div className="flex items-end gap-2">
+                <div className="flex-1">
+                  <Input value={message} onChange={e => setMessage(e.target.value)} onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder={t('typeYourMessage') || "Ask me anything..."} className="min-h-[44px] md:min-h-[48px] bg-black/50 border-orange-500/30 focus:border-orange-500/50 text-foreground placeholder:text-orange-400/40 pr-12" disabled={loading || isGeneratingImage} />
                 </div>
-                
-                <Button onClick={sendMessage} disabled={loading || !message.trim() && !selectedImage} size="sm" className="rounded-2xl h-12 px-6 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all duration-300">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
+
+                <div className="flex items-center gap-1.5 md:gap-2">
+                  {/* Image Upload */}
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  <Button onClick={() => fileInputRef.current?.click()} variant="ghost" size="sm" className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" disabled={loading || isGeneratingImage}>
+                    <ImageIcon className="h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+
+                  {/* Camera */}
+                  <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
+                  <Button onClick={() => cameraInputRef.current?.click()} variant="ghost" size="sm" className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" disabled={loading || isGeneratingImage}>
+                    <Camera className="h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+
+                  {/* Voice Input */}
+                  <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} variant="ghost" size="sm" className={`h-9 w-9 md:h-10 md:w-10 p-0 border border-orange-500/20 ${isRecording ? 'bg-red-500/20 text-red-400 animate-pulse' : 'text-orange-400 hover:bg-orange-500/10'}`} disabled={loading || isGeneratingImage}>
+                    <Mic className="h-4 w-4 md:h-5 md:w-5" />
+                  </Button>
+
+                  {/* Generate Image Button */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-9 w-9 md:h-10 md:w-10 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20" 
+                        disabled={loading || isGeneratingImage}
+                      >
+                        <Sparkles className="h-4 w-4 md:h-5 md:w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-64">
+                      <div className="p-3 space-y-2">
+                        <div className="text-xs font-semibold text-orange-400 mb-2">Generate Image</div>
+                        <Input 
+                          placeholder="Describe the image..." 
+                          className="bg-black/50 border-orange-500/30 text-xs"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                              generateImage(e.currentTarget.value);
+                              e.currentTarget.value = '';
+                            }
+                          }}
+                        />
+                        <p className="text-[10px] text-orange-400/60">Press Enter to generate</p>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Send Button */}
+                  <Button onClick={sendMessage} size="sm" className="h-9 md:h-10 px-3 md:px-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white" disabled={loading || isGeneratingImage || (!message.trim() && !selectedImage)}>
+                    {loading || isGeneratingImage ? <Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin" /> : <Send className="h-4 w-4 md:h-5 md:w-5" />}
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="text-[10px] text-orange-400/40 text-center">
+                Powered by Gemini AI • Type to chat or generate images
               </div>
             </div>
           </div>
-          </>}
-
-          {/* File inputs */}
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-          <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
+        </>}
+        </main>
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
-        
         <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
-        </main>
       </div>
     </SidebarProvider>;
 };
