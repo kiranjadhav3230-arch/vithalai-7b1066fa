@@ -18,8 +18,8 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { message, language = 'english', userProfile, imageData, isVoiceInput, chatHistory = [] } = await req.json();
-    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!imageData, 'IsVoice:', isVoiceInput, 'HistoryLength:', chatHistory.length);
+    const { message, language = 'english', userProfile, image, isVoiceInput, chatHistory = [] } = await req.json();
+    console.log('Received message:', message, 'Language:', language, 'HasImage:', !!image, 'IsVoice:', isVoiceInput, 'HistoryLength:', chatHistory.length);
 
     // Enhanced system prompt with profile awareness, conversation memory, and smart context
     const profileContext = userProfile ? `
@@ -48,13 +48,16 @@ serve(async (req) => {
     ` : 'First conversation - be welcoming and comprehensive.';
 
     // Handle multi-modal inputs
-    const inputType = imageData ? 'image' : (isVoiceInput ? 'voice' : 'text');
-    const multiModalContext = imageData ? `
+    const inputType = image ? 'image' : (isVoiceInput ? 'voice' : 'text');
+    const multiModalContext = image ? `
     [IMAGE PROVIDED] - User has shared an image. Analyze it for:
+    - Visual content analysis and description
     - Mathematical problems or equations to solve
     - Study materials or textbook content to explain
     - Handwritten notes or assignments for guidance
     - Career-related images for advice
+    - Image editing requests (e.g., "make it rainy", "change background")
+    - Answer questions about the image content
     ` : '';
 
     // Get user's name for personalization
@@ -161,11 +164,17 @@ serve(async (req) => {
     ];
 
     // Add image if provided
-    if (imageData) {
+    if (image) {
+      // Extract base64 data if it's a data URL
+      let base64Data = image;
+      if (image.includes('base64,')) {
+        base64Data = image.split('base64,')[1];
+      }
+      
       contentParts.push({
         inline_data: {
           mime_type: "image/jpeg",
-          data: imageData
+          data: base64Data
         }
       });
     }

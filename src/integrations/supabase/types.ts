@@ -78,29 +78,35 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_data: string | null
           message: string
           message_type: string | null
           response: string | null
           session_id: string
           user_id: string
+          youtube_courses: Json | null
         }
         Insert: {
           created_at?: string
           id?: string
+          image_data?: string | null
           message: string
           message_type?: string | null
           response?: string | null
           session_id: string
           user_id: string
+          youtube_courses?: Json | null
         }
         Update: {
           created_at?: string
           id?: string
+          image_data?: string | null
           message?: string
           message_type?: string | null
           response?: string | null
           session_id?: string
           user_id?: string
+          youtube_courses?: Json | null
         }
         Relationships: [
           {

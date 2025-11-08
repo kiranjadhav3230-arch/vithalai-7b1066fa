@@ -32,6 +32,8 @@ interface ChatMessage {
   response: string | null;
   message_type: string;
   created_at: string;
+  image_data?: string | null;
+  youtube_courses?: any;
 }
 interface GeminiChatInterfaceProps {
   user: User;

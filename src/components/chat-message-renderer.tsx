@@ -39,6 +39,7 @@ export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content })
 
   const renderContent = () => {
     const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
     const parts: JSX.Element[] = [];
     let lastIndex = 0;
     let match;
@@ -114,21 +115,80 @@ export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content })
       blockIndex++;
     }
 
-    // Add remaining text
+    // Add remaining text with image support
     if (lastIndex < content.length) {
-      const textContent = content.substring(lastIndex);
-      parts.push(
-        <div 
-          key={`text-final`}
-          className="prose prose-sm max-w-none dark:prose-invert"
-          dangerouslySetInnerHTML={{ 
-            __html: textContent
-              .replace(/\n/g, '<br>')
-              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-              .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          }}
-        />
-      );
+      let textContent = content.substring(lastIndex);
+      const imageParts: JSX.Element[] = [];
+      let imageLastIndex = 0;
+      let imageMatch;
+      let imageIndex = 0;
+
+      while ((imageMatch = imageRegex.exec(textContent)) !== null) {
+        // Add text before image
+        if (imageMatch.index > imageLastIndex) {
+          const beforeText = textContent.substring(imageLastIndex, imageMatch.index);
+          imageParts.push(
+            <div 
+              key={`before-img-${imageIndex}`}
+              className="prose prose-sm max-w-none dark:prose-invert"
+              dangerouslySetInnerHTML={{ 
+                __html: beforeText
+                  .replace(/\n/g, '<br>')
+                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
+              }}
+            />
+          );
+        }
+
+        // Add image
+        const altText = imageMatch[1];
+        const imageUrl = imageMatch[2];
+        imageParts.push(
+          <img 
+            key={`img-${imageIndex}`}
+            src={imageUrl} 
+            alt={altText}
+            className="max-w-full h-auto rounded-lg my-4 shadow-lg"
+          />
+        );
+
+        imageLastIndex = imageMatch.index + imageMatch[0].length;
+        imageIndex++;
+      }
+
+      // Add remaining text after images
+      if (imageLastIndex < textContent.length) {
+        const afterText = textContent.substring(imageLastIndex);
+        imageParts.push(
+          <div 
+            key={`text-final`}
+            className="prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ 
+              __html: afterText
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            }}
+          />
+        );
+      } else if (imageParts.length === 0) {
+        // No images found, render as normal text
+        imageParts.push(
+          <div 
+            key={`text-final`}
+            className="prose prose-sm max-w-none dark:prose-invert"
+            dangerouslySetInnerHTML={{ 
+              __html: textContent
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            }}
+          />
+        );
+      }
+
+      parts.push(...imageParts);
     }
 
     return parts;
