@@ -1251,13 +1251,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button
                           key={style.value}
                           onClick={() => setImageStyle(style.value)}
-                          className={`flex-1 px-3 py-1.5 rounded-md border transition-all text-xs font-medium ${
+                          className={`relative flex-1 px-3 py-1.5 rounded-md border transition-all text-xs font-medium overflow-hidden ${
                             imageStyle === style.value
-                              ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20'
-                              : 'border-transparent hover:border-purple-500/30 hover:bg-muted/50'
+                              ? 'border-transparent text-white shadow-lg z-10'
+                              : 'border-transparent hover:border-border hover:bg-muted/50'
                           }`}
+                          style={imageStyle === style.value ? {
+                            animation: 'liquid-bubble-flow 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                          } : {}}
                         >
-                          {style.label}
+                          {imageStyle === style.value && (
+                            <div 
+                              className="absolute inset-0 -z-10 rounded-md"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                                backgroundSize: '200% 200%',
+                                animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite',
+                                backdropFilter: 'blur(20px)',
+                                boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                              }}
+                            />
+                          )}
+                          <span className="relative z-10">{style.label}</span>
                         </button>
                       ))}
                     </div>
