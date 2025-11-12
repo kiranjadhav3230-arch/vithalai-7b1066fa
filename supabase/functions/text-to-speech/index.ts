@@ -25,10 +25,10 @@ serve(async (req) => {
 
     console.log('Generating speech for text:', text.substring(0, 100), 'Language:', language);
 
-    // Determine voice based on language
-    let voiceId = '9BWtsMINqrJLrRacOk9x'; // Aria - default English voice
+    // Determine voice based on language - using male voices
+    let voiceId = 'TX3LPaxmHKxFdv7VOQHJ'; // Liam - male English voice
     if (language === 'hi' || language === 'mr') {
-      voiceId = 'pFZP5JQG7iQjIQuC4Bku'; // Lily - better for Indian languages
+      voiceId = 'JBFqnCBsd6RMkjVDRZzb'; // George - male voice for Indian languages
     }
 
     // Generate speech from text using ElevenLabs API
