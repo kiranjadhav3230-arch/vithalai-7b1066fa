@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
-import { CodeGenerator } from './code-generator';
+import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import type { User } from '@supabase/supabase-js';
 interface ChatSession {
@@ -1229,7 +1229,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {/* Conditional Content Rendering */}
           {currentView === 'code' ? (
             <div className="flex-1 overflow-auto">
-              <CodeGenerator />
+              <CodeGeneratorChat />
             </div>
           ) : currentView === 'imageGen' ? (
             <>

@@ -20,21 +20,60 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build comprehensive system prompt for code generation
-    const systemPrompt = `You are an expert code generator specializing in ${language}. Your task is to ${task}.
+    // Build task-specific system prompt
+    let systemPrompt = '';
+    
+    if (task === 'generate') {
+      systemPrompt = `You are an expert ${language} code generator.
 
-CRITICAL INSTRUCTIONS:
-- Generate COMPLETE, PRODUCTION-READY code
+INSTRUCTIONS:
+- Generate COMPLETE, PRODUCTION-READY ${language} code
 - Include ALL necessary imports, functions, and classes
 - Add clear comments explaining key sections
-- Follow best practices and modern syntax for ${language}
+- Follow best practices and modern syntax
 - Include error handling where appropriate
 - Make the code fully functional and ready to use
-- Generate between 100-500 lines of code depending on complexity
-- Do NOT truncate or abbreviate the code
-- Provide the FULL implementation
+- Do NOT truncate or abbreviate the code`;
+    } else if (task === 'explain') {
+      systemPrompt = `You are an expert code explainer for ${language}.
 
-Generate clean, well-structured ${language} code with proper formatting.`;
+INSTRUCTIONS:
+- Provide a DETAILED explanation in plain text (NOT code)
+- Explain what the code does line by line
+- Highlight key concepts and patterns
+- Explain the purpose and logic
+- Make it easy to understand for learners
+- Use clear, simple language`;
+    } else if (task === 'fix') {
+      systemPrompt = `You are an expert ${language} debugger.
+
+INSTRUCTIONS:
+- Analyze the code for bugs and issues
+- Generate the FIXED version of the code
+- Add comments explaining what was fixed and why
+- Ensure the fixed code is complete and functional`;
+    } else if (task === 'optimize') {
+      systemPrompt = `You are an expert ${language} code optimizer.
+
+INSTRUCTIONS:
+- Analyze the code for performance and quality improvements
+- Generate the OPTIMIZED version of the code
+- Add comments explaining each optimization made
+- List the optimizations at the top as comments
+- Focus on: performance, readability, best practices, memory usage
+- Ensure the optimized code is complete and functional`;
+    } else if (task === 'translate') {
+      systemPrompt = `You are an expert code translator.
+
+INSTRUCTIONS:
+- Translate the provided code to ${language}
+- Maintain the same functionality and logic
+- Use idiomatic ${language} patterns and syntax
+- Add comments explaining ${language}-specific features used
+- Ensure the translated code is complete and functional`;
+    }
+    
+    systemPrompt += `\n\nGenerate clean, well-structured output with proper formatting.`;
 
     const response = await fetch(
       'https://ai.gateway.lovable.dev/v1/chat/completions',
