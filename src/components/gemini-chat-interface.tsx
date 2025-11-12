@@ -1158,7 +1158,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <ScrollArea className="h-full">
                   <div className="p-3 md:p-6">
                     <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                      {messages.filter(m => m.message.includes('🎨 Generate image')).length === 0 && !isGeneratingImage && (
+                      {messages.length === 0 && !isGeneratingImage && (
                         <div className="text-center py-8 md:py-16">
                           <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow">
                             <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
@@ -1175,7 +1175,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         </div>
                       )}
 
-                      {messages.filter(m => m.message.includes('🎨 Generate image')).map(msg => (
+                      {messages.map(msg => (
                         <div key={msg.id} className="space-y-4">
                           {/* User Request */}
                           <div className="flex justify-end">
@@ -1187,7 +1187,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             </div>
                           </div>
 
-                          {/* AI Generated Image */}
+                          {/* AI Generated Image/Response */}
                           {msg.response && (
                             <div className="flex justify-start">
                               <div className="flex items-start gap-3 w-full">
@@ -1195,28 +1195,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                   <Sparkles className="w-6 h-6 text-purple-400" />
                                 </div>
                                 <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
-                                   <ChatMessageRenderer content={msg.response} />
-                                   <div className="flex items-center justify-between mt-3">
-                                     <div className="text-xs text-purple-400/70">
-                                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                     </div>
-                                     {msg.response.includes('![Generated Image') && (
-                                       <Button
-                                         size="sm"
-                                         variant="ghost"
-                                         onClick={() => {
-                                           const match = msg.response?.match(/!\[Generated Image[^\]]*\]\(([^)]+)\)/);
-                                           if (match && match[1]) {
-                                             downloadImageWithWatermark(match[1], msg.message);
-                                           }
-                                         }}
-                                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
-                                       >
-                                         <Download className="h-3 w-3 mr-1" />
-                                         Download
-                                       </Button>
-                                     )}
-                                   </div>
+                                  <ChatMessageRenderer content={msg.response} />
+                                  <div className="flex items-center justify-between mt-3">
+                                    <div className="text-xs text-purple-400/70">
+                                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                    {msg.response.includes('![Generated Image') && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          const match = msg.response?.match(/!\[Generated Image[^\]]*\]\(([^)]+)\)/);
+                                          if (match && match[1]) {
+                                            downloadImageWithWatermark(match[1], msg.message);
+                                          }
+                                        }}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
+                                      >
+                                        <Download className="h-3 w-3 mr-1" />
+                                        Download
+                                      </Button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
