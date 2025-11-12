@@ -203,7 +203,27 @@ serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Gemini API error: ${response.status}`, errorText);
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+      
+      // Parse error message for better user feedback
+      let userMessage = 'Sorry, there was an error processing your request.';
+      try {
+        const errorData = JSON.parse(errorText);
+        const apiErrorMessage = errorData?.error?.message;
+        
+        if (response.status === 503) {
+          userMessage = '🔄 The AI model is currently overloaded. Please try again in a few moments.';
+        } else if (response.status === 429) {
+          userMessage = '⏳ Too many requests. Please wait a moment and try again.';
+        } else if (response.status === 400) {
+          userMessage = '❌ Invalid request. Please check your input and try again.';
+        } else if (apiErrorMessage) {
+          userMessage = `❌ ${apiErrorMessage}`;
+        }
+      } catch (e) {
+        // If we can't parse the error, use the generic message
+      }
+      
+      throw new Error(JSON.stringify({ status: response.status, message: userMessage, details: errorText }));
     }
 
     const data = await response.json();
@@ -227,9 +247,36 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in gemini-chat function:', error);
+    
+    // Try to parse structured error
+    let errorMessage = 'Sorry, there was an error processing your request. Please try again.';
+    let userResponse = 'I apologize, but I am experiencing technical difficulties. Please try sending your message again.';
+    
+    try {
+      const errorStr = error.message || String(error);
+      const parsedError = JSON.parse(errorStr);
+      if (parsedError.message) {
+        errorMessage = parsedError.message;
+        userResponse = parsedError.message;
+      }
+    } catch (e) {
+      // If not structured error, check for specific keywords
+      const errorStr = String(error);
+      if (errorStr.includes('overloaded') || errorStr.includes('503')) {
+        errorMessage = '🔄 The AI model is currently overloaded. Please try again in a few moments.';
+        userResponse = errorMessage;
+      } else if (errorStr.includes('429') || errorStr.includes('rate limit')) {
+        errorMessage = '⏳ Too many requests. Please wait a moment and try again.';
+        userResponse = errorMessage;
+      } else if (!GEMINI_API_KEY) {
+        errorMessage = '⚙️ API key not configured. Please contact support.';
+        userResponse = errorMessage;
+      }
+    }
+    
     return new Response(JSON.stringify({ 
-      error: 'Sorry, there was an error processing your request. Please try again.',
-      response: 'I apologize, but I am experiencing technical difficulties. Please try sending your message again.'
+      error: errorMessage,
+      response: userResponse
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
