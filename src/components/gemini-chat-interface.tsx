@@ -1242,48 +1242,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
                   {/* Style Selection Bar */}
                   <div className="mb-3">
-                    <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="relative flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/30 border border-border/50 overflow-hidden">
+                      {/* Flowing Liquid Bubble Background */}
+                      <div 
+                        className="absolute inset-y-1.5 rounded-md transition-all duration-500 ease-out"
+                        style={{
+                          width: 'calc((100% - 0.75rem) / 4)',
+                          left: `calc(0.375rem + (100% - 0.75rem) / 4 * ${['realistic', 'cartoon', 'watercolor', 'sketch'].indexOf(imageStyle)})`,
+                          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                          backgroundSize: '200% 200%',
+                          animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
+                          backdropFilter: 'blur(20px)',
+                          boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                          zIndex: 0,
+                        }}
+                      />
+                      
                       {[
-                        { value: 'realistic', label: 'Realistic', index: 0 },
-                        { value: 'cartoon', label: 'Cartoon', index: 1 },
-                        { value: 'watercolor', label: 'Watercolor', index: 2 },
-                        { value: 'sketch', label: 'Sketch', index: 3 }
-                      ].map((style) => {
-                        const styles = ['realistic', 'cartoon', 'watercolor', 'sketch'];
-                        const currentIndex = styles.indexOf(imageStyle);
-                        const previousIndex = styles.indexOf(previousStyle);
-                        const slideDistance = (previousIndex - style.index) * 100;
-                        
-                        return (
-                          <button
-                            key={style.value}
-                            onClick={() => {
-                              setPreviousStyle(imageStyle);
-                              setImageStyle(style.value);
-                            }}
-                            className={`relative flex-1 px-3 py-1.5 rounded-md border transition-all text-xs font-medium overflow-hidden ${
-                              imageStyle === style.value
-                                ? 'border-transparent text-white shadow-lg z-10'
-                                : 'border-transparent hover:border-border hover:bg-muted/50'
-                            }`}
-                          >
-                            {imageStyle === style.value && (
-                              <div 
-                                className="absolute inset-0 -z-10 rounded-md"
-                                style={{
-                                  background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
-                                  backgroundSize: '200% 200%',
-                                  animation: 'liquid-bubble-slide-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards, liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite',
-                                  backdropFilter: 'blur(20px)',
-                                  boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
-                                  '--slide-from': `${slideDistance}%`,
-                                } as React.CSSProperties}
-                              />
-                            )}
-                            <span className="relative z-10">{style.label}</span>
-                          </button>
-                        );
-                      })}
+                        { value: 'realistic', label: 'Realistic' },
+                        { value: 'cartoon', label: 'Cartoon' },
+                        { value: 'watercolor', label: 'Watercolor' },
+                        { value: 'sketch', label: 'Sketch' }
+                      ].map((style) => (
+                        <button
+                          key={style.value}
+                          onClick={() => {
+                            setPreviousStyle(imageStyle);
+                            setImageStyle(style.value);
+                          }}
+                          className={`relative flex-1 px-3 py-1.5 rounded-md transition-all text-xs font-medium z-10 ${
+                            imageStyle === style.value
+                              ? 'text-white'
+                              : 'hover:bg-muted/50'
+                          }`}
+                        >
+                          {style.label}
+                        </button>
+                      ))}
                     </div>
                   </div>
                   {/* Reference Image Preview */}
