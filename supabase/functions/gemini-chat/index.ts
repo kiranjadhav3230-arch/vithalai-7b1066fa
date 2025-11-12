@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -14,8 +14,8 @@ serve(async (req) => {
   }
 
   try {
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const { message, language = 'english', userProfile, image, isVoiceInput, chatHistory = [] } = await req.json();
@@ -157,52 +157,50 @@ serve(async (req) => {
     Input Type: ${inputType}
     Always maintain conversational tone while being highly informative, accurate, and actionable. Be like the most advanced AI assistant available today.`;
 
-    // Prepare content parts based on input type
-    const contentParts = [
-      { text: systemPrompt },
-      { text: `User message: ${message}` }
+    // Prepare messages for Lovable AI Gateway (OpenAI-compatible format)
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: message }
     ];
 
-    // Add image if provided
+    // Build request body
+    const requestBody: any = {
+      model: "google/gemini-2.5-flash",
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 2048,
+    };
+
+    // Add image if provided (as a base64 data URL in the user message)
     if (image) {
-      // Extract base64 data if it's a data URL
-      let base64Data = image;
-      if (image.includes('base64,')) {
-        base64Data = image.split('base64,')[1];
+      // Ensure it's a proper data URL
+      let imageDataUrl = image;
+      if (!image.startsWith('data:')) {
+        imageDataUrl = `data:image/jpeg;base64,${image}`;
       }
       
-      contentParts.push({
-        inline_data: {
-          mime_type: "image/jpeg",
-          data: base64Data
-        }
-      });
+      // For vision models, we add the image in the content array
+      messages[messages.length - 1] = {
+        role: "user",
+        content: [
+          { type: "text", text: message },
+          { type: "image_url", image_url: { url: imageDataUrl } }
+        ]
+      };
     }
 
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: contentParts
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Gemini API error: ${response.status}`, errorText);
+      console.error(`Lovable AI Gateway error: ${response.status}`, errorText);
       
       // Parse error message for better user feedback
       let userMessage = 'Sorry, there was an error processing your request.';
@@ -210,10 +208,12 @@ serve(async (req) => {
         const errorData = JSON.parse(errorText);
         const apiErrorMessage = errorData?.error?.message;
         
-        if (response.status === 503) {
-          userMessage = '🔄 The AI model is currently overloaded. Please try again in a few moments.';
-        } else if (response.status === 429) {
-          userMessage = '⏳ Too many requests. Please wait a moment and try again.';
+        if (response.status === 429) {
+          userMessage = '⏳ Rate limit exceeded. Please try again in a moment.';
+        } else if (response.status === 402) {
+          userMessage = '💳 AI credits exhausted. Please add credits to your Lovable workspace.';
+        } else if (response.status === 503) {
+          userMessage = '🔄 The AI service is temporarily unavailable. Please try again shortly.';
         } else if (response.status === 400) {
           userMessage = '❌ Invalid request. Please check your input and try again.';
         } else if (apiErrorMessage) {
@@ -227,14 +227,14 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log('Gemini response:', data);
+    console.log('Lovable AI Gateway response:', data);
     
-    if (!data.candidates || data.candidates.length === 0) {
-      console.error('No candidates in response:', data);
+    if (!data.choices || data.choices.length === 0) {
+      console.error('No choices in response:', data);
       throw new Error('No response generated from AI');
     }
     
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+    const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
 
     const youtubeCourses = await generateYouTubeCourses(message, userProfile);
     
@@ -268,7 +268,7 @@ serve(async (req) => {
       } else if (errorStr.includes('429') || errorStr.includes('rate limit')) {
         errorMessage = '⏳ Too many requests. Please wait a moment and try again.';
         userResponse = errorMessage;
-      } else if (!GEMINI_API_KEY) {
+      } else if (!LOVABLE_API_KEY) {
         errorMessage = '⚙️ API key not configured. Please contact support.';
         userResponse = errorMessage;
       }
