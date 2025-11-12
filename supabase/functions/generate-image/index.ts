@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, language = 'en', imageUrl } = await req.json();
+    const { prompt, language = 'en', imageUrl, style = 'realistic' } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -21,25 +21,37 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'with reference:', !!imageUrl);
+    console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'style:', style, 'with reference:', !!imageUrl);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Add language context to the prompt if not in English
+    // Style presets mapping
+    const styleInstructions: Record<string, string> = {
+      realistic: 'ultra-realistic, photorealistic, highly detailed, professional photography',
+      cartoon: 'cartoon style, animated, colorful, fun, playful illustration',
+      watercolor: 'watercolor painting, artistic, soft brushstrokes, painted texture',
+      sketch: 'pencil sketch, hand-drawn, artistic lines, detailed drawing'
+    };
+
+    const stylePrompt = styleInstructions[style] || styleInstructions['realistic'];
+
+    // Add language context and style to the prompt
     let enhancedPrompt = prompt;
     if (language === 'hi') {
       enhancedPrompt = imageUrl 
-        ? `Edit this image based on this Hindi description: ${prompt}. Understand the Hindi context and modify the image accordingly.`
-        : `Generate an image based on this Hindi description: ${prompt}. Understand the Hindi context and create an accurate visual representation.`;
+        ? `Edit this image based on this Hindi description: ${prompt}. Understand the Hindi context and modify the image accordingly. Style: ${stylePrompt}.`
+        : `Generate an image based on this Hindi description: ${prompt}. Understand the Hindi context and create an accurate visual representation. Style: ${stylePrompt}.`;
     } else if (language === 'mr') {
       enhancedPrompt = imageUrl
-        ? `Edit this image based on this Marathi description: ${prompt}. Understand the Marathi context and modify the image accordingly.`
-        : `Generate an image based on this Marathi description: ${prompt}. Understand the Marathi context and create an accurate visual representation.`;
+        ? `Edit this image based on this Marathi description: ${prompt}. Understand the Marathi context and modify the image accordingly. Style: ${stylePrompt}.`
+        : `Generate an image based on this Marathi description: ${prompt}. Understand the Marathi context and create an accurate visual representation. Style: ${stylePrompt}.`;
     } else if (imageUrl) {
-      enhancedPrompt = `Edit this image: ${prompt}`;
+      enhancedPrompt = `Edit this image: ${prompt}. Style: ${stylePrompt}.`;
+    } else {
+      enhancedPrompt = `${prompt}. Style: ${stylePrompt}.`;
     }
 
     // Prepare message content for image generation or editing

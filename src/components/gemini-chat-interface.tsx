@@ -61,6 +61,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
+  const [imageStyle, setImageStyle] = useState<string>('realistic');
+  const [batchCount, setBatchCount] = useState<number>(1);
+  const [generatedImages, setGeneratedImages] = useState<any[]>([]);
+  const [showImageHistory, setShowImageHistory] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageGenInputRef = useRef<HTMLInputElement>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -79,6 +83,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   useEffect(() => {
     loadChatSessions();
     loadUserProfile();
+    loadImageHistory();
     // Always start with a new chat
     createNewSession();
   }, []);
@@ -172,6 +177,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     } catch (error) {
       console.error('Error loading user profile:', error);
       setUserProfile({});
+    }
+  };
+
+  const loadImageHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('generated_images')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      setGeneratedImages(data || []);
+    } catch (error) {
+      console.error('Error loading image history:', error);
     }
   };
   const updateSessionTitle = async (sessionId: string, title: string) => {
@@ -442,6 +462,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     if (!currentSession) return;
     
     setIsGeneratingImage(true);
+    const imagesToGenerate = batchCount;
     
     try {
       // Add user message with image generation request
@@ -450,7 +471,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         .insert([{
           session_id: currentSession.id,
           user_id: user.id,
-          message: `🎨 Generate image: ${prompt}`,
+          message: `🎨 Generate ${imagesToGenerate} image(s) (${imageStyle} style): ${prompt}`,
           message_type: 'text'
         }])
         .select()
@@ -461,23 +482,46 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       // Reload messages to show user request
       await loadMessages(currentSession.id);
 
-      // Call image generation function with language support and reference image
-      const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
-        body: { 
-          prompt,
-          language,
-          imageUrl: referenceImage || undefined
+      const allGeneratedImages: string[] = [];
+      
+      // Generate images in batch
+      for (let i = 0; i < imagesToGenerate; i++) {
+        // Call image generation function with style preset and language support
+        const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
+          body: { 
+            prompt,
+            language,
+            style: imageStyle,
+            imageUrl: referenceImage || undefined
+          }
+        });
+
+        if (functionError) throw functionError;
+
+        if (!imageData?.imageUrl) {
+          throw new Error('No image URL received');
         }
-      });
 
-      if (functionError) throw functionError;
-
-      if (!imageData?.imageUrl) {
-        throw new Error('No image URL received');
+        allGeneratedImages.push(imageData.imageUrl);
+        
+        // Save to image history
+        await supabase.from('generated_images').insert({
+          user_id: user.id,
+          session_id: currentSession.id,
+          prompt,
+          image_url: imageData.imageUrl,
+          style: imageStyle,
+          language
+        });
       }
 
-      // Save AI response with generated image
-      const responseContent = `![Generated Image](${imageData.imageUrl})\n\n${imageData.description || 'Image generated successfully'}`;
+      // Reload image history
+      await loadImageHistory();
+
+      // Save AI response with all generated images
+      const responseContent = allGeneratedImages
+        .map((url, idx) => `![Generated Image ${idx + 1}](${url})`)
+        .join('\n\n') + `\n\n✨ Generated ${imagesToGenerate} image(s) in ${imageStyle} style!`;
       
       const { error: responseError } = await supabase
         .from('chat_messages')
@@ -495,8 +539,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setReferenceImageFile(null);
       
       toast({
-        title: "✅ Image Generated!",
-        description: "Your image has been created successfully."
+        title: "✅ Images Generated!",
+        description: `${imagesToGenerate} image(s) created successfully in ${imageStyle} style`
       });
 
     } catch (error: any) {
@@ -1037,15 +1081,78 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
                           </div>
                           <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">Vithal AI Chitrakar</h2>
-                          <p className="text-purple-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">
+                          <p className="text-purple-400/70 text-sm md:text-lg mb-4 max-w-md mx-auto px-4">
                             Upload an image to edit or generate new images from text. Supports English, Hindi, and Marathi.
                           </p>
+
+                          {/* Style Presets */}
+                          <div className="max-w-2xl mx-auto mb-4 px-4">
+                            <label className="text-sm font-medium mb-2 block">Style</label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                              {[
+                                { value: 'realistic', label: '📷 Realistic' },
+                                { value: 'cartoon', label: '🎨 Cartoon' },
+                                { value: 'watercolor', label: '🖌️ Watercolor' },
+                                { value: 'sketch', label: '✏️ Sketch' }
+                              ].map((style) => (
+                                <button
+                                  key={style.value}
+                                  onClick={() => setImageStyle(style.value)}
+                                  className={`p-2 rounded-lg border transition-all text-xs ${
+                                    imageStyle === style.value
+                                      ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                                      : 'border-border/50 hover:border-purple-500/30'
+                                  }`}
+                                >
+                                  {style.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Batch Count */}
+                          <div className="max-w-2xl mx-auto mb-4 px-4">
+                            <label className="text-sm font-medium mb-2 block">Variations: {batchCount}</label>
+                            <input
+                              type="range"
+                              min="1"
+                              max="4"
+                              value={batchCount}
+                              onChange={(e) => setBatchCount(parseInt(e.target.value))}
+                              className="w-full h-2 bg-muted rounded-lg accent-purple-500"
+                            />
+                          </div>
+
+                          {/* History Toggle */}
+                          <Button
+                            onClick={() => setShowImageHistory(!showImageHistory)}
+                            variant="outline"
+                            size="sm"
+                            className="mb-4 border-purple-500/30"
+                          >
+                            <ImageIcon className="h-3 w-3 mr-2" />
+                            {showImageHistory ? 'Hide' : 'Show'} History ({generatedImages.length})
+                          </Button>
+
+                          {/* History Gallery */}
+                          {showImageHistory && generatedImages.length > 0 && (
+                            <div className="max-w-2xl mx-auto mb-4 px-4">
+                              <div className="grid grid-cols-3 gap-2">
+                                {generatedImages.slice(0, 6).map((img) => (
+                                  <div key={img.id} className="relative group rounded overflow-hidden border border-border/50">
+                                    <img src={img.image_url} alt={img.prompt} className="w-full h-24 object-cover" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                                      <Button size="sm" onClick={() => setReferenceImage(img.image_url)} className="h-6 text-xs bg-purple-500">Use</Button>
+                                      <Button size="sm" onClick={() => downloadImageWithWatermark(img.image_url, img.prompt)} className="h-6 text-xs bg-green-500"><Download className="h-3 w-3" /></Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-center gap-2 text-xs text-purple-400/60">
-                            <span>🌐 English</span>
-                            <span>•</span>
-                            <span>🇮🇳 हिंदी</span>
-                            <span>•</span>
-                            <span>🇮🇳 मराठी</span>
+                            <span>🌐 English • 🇮🇳 हिंदी • 🇮🇳 मराठी</span>
                           </div>
                         </div>
                       )}
