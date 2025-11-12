@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -50,7 +50,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -65,6 +66,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [batchCount, setBatchCount] = useState<number>(1);
   const [generatedImages, setGeneratedImages] = useState<any[]>([]);
   const [showImageHistory, setShowImageHistory] = useState(false);
+  const [playingAudio, setPlayingAudio] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageGenInputRef = useRef<HTMLInputElement>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -750,58 +753,158 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     setSelectedImage(null);
     setImageFile(null);
   };
-  const startVoiceRecording = () => {
-    // Check if speech recognition is supported
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      toast({
-        variant: "destructive",
-        title: "Not Supported",
-        description: "Speech recognition is not supported in your browser"
-      });
-      return;
-    }
-    const recognitionInstance = new SpeechRecognition();
-    recognitionInstance.continuous = false;
-    recognitionInstance.interimResults = false;
-    recognitionInstance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US';
-    recognitionInstance.onstart = () => {
+  const startVoiceRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          try {
+            // Call voice-to-text edge function
+            const { data, error } = await supabase.functions.invoke('voice-to-text', {
+              body: { 
+                audio: base64Audio,
+                language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
+              }
+            });
+
+            if (error) throw error;
+
+            if (data?.text) {
+              setMessage(data.text);
+              toast({
+                title: "✅ Speech Recognized!",
+                description: "Text has been transcribed"
+              });
+            }
+          } catch (error: any) {
+            console.error('Transcription error:', error);
+            toast({
+              variant: "destructive",
+              title: "❌ Transcription Failed",
+              description: error.message || "Could not transcribe audio"
+            });
+          }
+        };
+        reader.readAsDataURL(audioBlob);
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      setMediaRecorder(recorder);
+      setAudioChunks([]);
+      recorder.start();
       setIsRecording(true);
+      
       toast({
-        title: "🎤 Listening...",
+        title: "🎤 Recording...",
         description: "Speak now, I'm listening!"
       });
-    };
-    recognitionInstance.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      setMessage(transcript);
-      setIsRecording(false);
-      toast({
-        title: "✅ Speech captured!",
-        description: "Click send to process your voice message"
-      });
-    };
-    recognitionInstance.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
-      setIsRecording(false);
+    } catch (error: any) {
+      console.error('Microphone access error:', error);
       toast({
         variant: "destructive",
-        title: "❌ Speech Error",
-        description: "Failed to recognize speech. Please try again."
+        title: "❌ Microphone Error",
+        description: "Could not access microphone. Please check permissions."
       });
-    };
-    recognitionInstance.onend = () => {
-      setIsRecording(false);
-    };
-    setRecognition(recognitionInstance);
-    recognitionInstance.start();
-  };
-  const stopVoiceRecording = () => {
-    if (recognition && isRecording) {
-      recognition.stop();
-      setIsRecording(false);
-      setRecognition(null);
     }
+  };
+
+  const stopVoiceRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      setMediaRecorder(null);
+    }
+  };
+
+  const playTextToSpeech = async (text: string, messageId: string) => {
+    try {
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      setPlayingAudio(messageId);
+
+      // Remove markdown formatting for cleaner speech
+      const cleanText = text
+        .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove markdown links
+        .replace(/[*_~`#]/g, '') // Remove markdown formatting
+        .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
+        .substring(0, 4000); // Limit to 4000 chars for TTS
+
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
+          text: cleanText,
+          language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.audioContent) {
+        // Convert base64 to audio
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
+          { type: 'audio/mpeg' }
+        );
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+        
+        audio.onended = () => {
+          setPlayingAudio(null);
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        audio.onerror = () => {
+          setPlayingAudio(null);
+          URL.revokeObjectURL(audioUrl);
+          toast({
+            variant: "destructive",
+            title: "❌ Playback Error",
+            description: "Could not play audio"
+          });
+        };
+        
+        await audio.play();
+      }
+    } catch (error: any) {
+      console.error('Text-to-speech error:', error);
+      setPlayingAudio(null);
+      toast({
+        variant: "destructive",
+        title: "❌ Speech Generation Failed",
+        description: error.message || "Could not generate speech"
+      });
+    }
+  };
+
+  const stopTextToSpeech = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setPlayingAudio(null);
   };
   const AppSidebar = () => {
     return <Sidebar className="border-r border-orange-500/20 bg-black/95 backdrop-blur-xl">
@@ -1459,16 +1562,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                       minute: '2-digit'
                                     })}
                                   </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => regenerateResponse(msg.id)}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
-                                    disabled={loading}
-                                  >
-                                    <Loader2 className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
-                                    Regenerate
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        if (playingAudio === msg.id) {
+                                          stopTextToSpeech();
+                                        } else {
+                                          playTextToSpeech(msg.response || '', msg.id);
+                                        }
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
+                                      disabled={loading}
+                                    >
+                                      {playingAudio === msg.id ? (
+                                        <>
+                                          <Square className="h-3 w-3 mr-1 fill-current" />
+                                          Stop
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Volume2 className="h-3 w-3 mr-1" />
+                                          Listen
+                                        </>
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => regenerateResponse(msg.id)}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
+                                      disabled={loading}
+                                    >
+                                      <Loader2 className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                                      Regenerate
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
