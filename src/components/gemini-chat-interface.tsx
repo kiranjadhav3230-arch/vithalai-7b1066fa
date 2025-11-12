@@ -64,6 +64,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
+  
+  // Sound effects
+  const playClickSound = () => {
+    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+    audio.volume = 0.2;
+    audio.play().catch(() => {});
+  };
+  
+  const playTabSound = () => {
+    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
+    audio.volume = 0.3;
+    audio.play().catch(() => {});
+  };
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -1015,18 +1028,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     style={{
                       width: 'calc((100% - 0.25rem) / 3)',
                       left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                      background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                      background: currentView === 'imageGen' 
+                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
+                        : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
-                      boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                      boxShadow: currentView === 'imageGen'
+                        ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
+                        : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
                   />
                   
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('chat')} 
+                    onClick={() => { playTabSound(); setCurrentView('chat'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'chat' 
@@ -1039,7 +1056,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('code')} 
+                    onClick={() => { playTabSound(); setCurrentView('code'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'code' 
@@ -1052,7 +1069,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('imageGen')} 
+                    onClick={() => { playTabSound(); setCurrentView('imageGen'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'imageGen' 
@@ -1073,18 +1090,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     style={{
                       width: 'calc((100% - 0.25rem) / 3)',
                       left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                      background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                      background: currentView === 'imageGen' 
+                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
+                        : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
-                      boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                      boxShadow: currentView === 'imageGen'
+                        ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
+                        : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
                   />
                   
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('chat')} 
+                    onClick={() => { playTabSound(); setCurrentView('chat'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1092,7 +1113,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('code')} 
+                    onClick={() => { playTabSound(); setCurrentView('code'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1100,7 +1121,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => setCurrentView('imageGen')} 
+                    onClick={() => { playTabSound(); setCurrentView('imageGen'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'imageGen' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1297,6 +1318,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button
                           key={style.value}
                           onClick={() => {
+                            playClickSound();
                             setPreviousStyle(imageStyle);
                             setImageStyle(style.value);
                           }}
