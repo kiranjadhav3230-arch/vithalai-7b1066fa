@@ -18,37 +18,39 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ELEVENLABS_API_KEY not configured');
     }
 
     console.log('Generating speech for text:', text.substring(0, 100), 'Language:', language);
 
     // Determine voice based on language
-    let voice = 'alloy'; // Default English voice
+    let voiceId = '9BWtsMINqrJLrRacOk9x'; // Aria - default English voice
     if (language === 'hi' || language === 'mr') {
-      voice = 'nova'; // Better for Indian languages
+      voiceId = 'pFZP5JQG7iQjIQuC4Bku'; // Lily - better for Indian languages
     }
 
-    // Generate speech from text using Lovable AI Gateway
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/audio/speech', {
+    // Generate speech from text using ElevenLabs API
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'xi-api-key': ELEVENLABS_API_KEY,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        input: text,
-        voice: voice,
-        response_format: 'mp3',
+        text: text,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI API error:', errorText);
+      console.error('ElevenLabs API error:', errorText);
       throw new Error(`Failed to generate speech: ${errorText}`);
     }
 
