@@ -94,17 +94,17 @@ serve(async (req) => {
     console.log('Image generation/editing response received');
 
     // Extract the generated image
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     const textResponse = data.choices?.[0]?.message?.content;
 
-    if (!imageUrl) {
+    if (!generatedImageUrl) {
       console.error('No image URL in response:', JSON.stringify(data));
       throw new Error('No image generated');
     }
 
     return new Response(
       JSON.stringify({ 
-        imageUrl,
+        imageUrl: generatedImageUrl,
         description: textResponse || 'Image generated successfully'
       }),
       { 
