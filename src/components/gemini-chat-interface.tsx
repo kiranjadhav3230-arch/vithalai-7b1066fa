@@ -1195,28 +1195,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                   <Sparkles className="w-6 h-6 text-purple-400" />
                                 </div>
                                 <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
-                                  <ChatMessageRenderer content={msg.response} />
-                                  <div className="flex items-center justify-between mt-3">
-                                    <div className="text-xs text-purple-400/70">
-                                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                    {msg.response.includes('![Generated Image]') && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => {
-                                          const match = msg.response?.match(/!\[Generated Image\]\((.*?)\)/);
-                                          if (match && match[1]) {
-                                            downloadImageWithWatermark(match[1], msg.message);
-                                          }
-                                        }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
-                                      >
-                                        <Download className="h-3 w-3 mr-1" />
-                                        Download
-                                      </Button>
-                                    )}
-                                  </div>
+                                   <ChatMessageRenderer content={msg.response} />
+                                   <div className="flex items-center justify-between mt-3">
+                                     <div className="text-xs text-purple-400/70">
+                                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                     </div>
+                                     {msg.response.includes('![Generated Image') && (
+                                       <Button
+                                         size="sm"
+                                         variant="ghost"
+                                         onClick={() => {
+                                           const match = msg.response?.match(/!\[Generated Image[^\]]*\]\(([^)]+)\)/);
+                                           if (match && match[1]) {
+                                             downloadImageWithWatermark(match[1], msg.message);
+                                           }
+                                         }}
+                                         className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
+                                       >
+                                         <Download className="h-3 w-3 mr-1" />
+                                         Download
+                                       </Button>
+                                     )}
+                                   </div>
                                 </div>
                               </div>
                             </div>
@@ -1249,42 +1249,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Image Generation Input */}
               <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
-                  {/* Style Presets - Show after first message */}
-                  {messages.filter(m => m.message.includes('🎨 Generate image')).length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-xs font-medium text-muted-foreground">Style:</span>
-                        {[
-                          { value: 'realistic', label: '📷 Realistic' },
-                          { value: 'cartoon', label: '🎨 Cartoon' },
-                          { value: 'watercolor', label: '🖌️ Watercolor' },
-                          { value: 'sketch', label: '✏️ Sketch' }
-                        ].map((style) => (
-                          <button
-                            key={style.value}
-                            onClick={() => setImageStyle(style.value)}
-                            className={`px-3 py-1.5 rounded-lg border transition-all text-xs ${
-                              imageStyle === style.value
-                                ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                                : 'border-border/50 hover:border-purple-500/30'
-                            }`}
-                          >
-                            {style.label}
-                          </button>
-                        ))}
-                        <span className="text-xs text-muted-foreground ml-2">|</span>
-                        <span className="text-xs font-medium text-muted-foreground">Variations: {batchCount}</span>
-                        <input
-                          type="range"
-                          min="1"
-                          max="4"
-                          value={batchCount}
-                          onChange={(e) => setBatchCount(parseInt(e.target.value))}
-                          className="w-24 h-1 bg-muted rounded-lg accent-purple-500"
-                        />
-                      </div>
+                  {/* Style Presets - Always Show */}
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-xs font-medium text-muted-foreground">Style:</span>
+                      {[
+                        { value: 'realistic', label: '📷 Realistic' },
+                        { value: 'cartoon', label: '🎨 Cartoon' },
+                        { value: 'watercolor', label: '🖌️ Watercolor' },
+                        { value: 'sketch', label: '✏️ Sketch' }
+                      ].map((style) => (
+                        <button
+                          key={style.value}
+                          onClick={() => setImageStyle(style.value)}
+                          className={`px-3 py-1.5 rounded-lg border transition-all text-xs ${
+                            imageStyle === style.value
+                              ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                              : 'border-border/50 hover:border-purple-500/30'
+                          }`}
+                        >
+                          {style.label}
+                        </button>
+                      ))}
+                      <span className="text-xs text-muted-foreground ml-2">|</span>
+                      <span className="text-xs font-medium text-muted-foreground">Variations: {batchCount}</span>
+                      <input
+                        type="range"
+                        min="1"
+                        max="4"
+                        value={batchCount}
+                        onChange={(e) => setBatchCount(parseInt(e.target.value))}
+                        className="w-24 h-1 bg-muted rounded-lg accent-purple-500"
+                      />
                     </div>
-                  )}
+                  </div>
                   {/* Reference Image Preview */}
                   {referenceImage && (
                     <div className="mb-3">
