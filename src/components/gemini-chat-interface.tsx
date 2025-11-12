@@ -65,17 +65,55 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
   
-  // Sound effects
-  const playClickSound = () => {
-    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-    audio.volume = 0.2;
-    audio.play().catch(() => {});
+  // Haptic feedback for mobile devices
+  const triggerHaptic = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10); // Short 10ms vibration
+    }
+  };
+
+  // Sound effects using Web Audio API for better reliability
+  const playSound = (frequency: number, duration: number = 100) => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration / 1000);
+    } catch (error) {
+      console.log('Audio playback not supported');
+    }
+  };
+
+  // Mode-specific sounds
+  const playChatSound = () => {
+    playSound(800, 80); // Higher pitch, quick
+    triggerHaptic();
   };
   
-  const playTabSound = () => {
-    const audio = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=');
-    audio.volume = 0.3;
-    audio.play().catch(() => {});
+  const playCodeSound = () => {
+    playSound(600, 100); // Mid pitch, slightly longer
+    triggerHaptic();
+  };
+  
+  const playImageSound = () => {
+    playSound(1000, 120); // Highest pitch, longest
+    triggerHaptic();
+  };
+  
+  const playStyleSound = () => {
+    playSound(700, 60); // Quick beep for style changes
+    triggerHaptic();
   };
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -1043,7 +1081,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('chat'); }} 
+                    onClick={() => { playChatSound(); setCurrentView('chat'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'chat' 
@@ -1056,7 +1094,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('code'); }} 
+                    onClick={() => { playCodeSound(); setCurrentView('code'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'code' 
@@ -1069,7 +1107,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('imageGen'); }} 
+                    onClick={() => { playImageSound(); setCurrentView('imageGen'); }} 
                     size="sm" 
                     className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'imageGen' 
@@ -1105,7 +1143,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('chat'); }} 
+                    onClick={() => { playChatSound(); setCurrentView('chat'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1113,7 +1151,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('code'); }} 
+                    onClick={() => { playCodeSound(); setCurrentView('code'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1121,7 +1159,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   </Button>
                   <Button 
                     variant="ghost" 
-                    onClick={() => { playTabSound(); setCurrentView('imageGen'); }} 
+                    onClick={() => { playImageSound(); setCurrentView('imageGen'); }} 
                     size="sm" 
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'imageGen' ? 'text-white' : 'text-orange-400/50'}`}
                   >
@@ -1318,7 +1356,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button
                           key={style.value}
                           onClick={() => {
-                            playClickSound();
+                            playStyleSound();
                             setPreviousStyle(imageStyle);
                             setImageStyle(style.value);
                           }}
