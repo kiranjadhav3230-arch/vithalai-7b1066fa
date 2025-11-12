@@ -230,6 +230,32 @@ All colors MUST be HSL.
     }
   }
 
+  @keyframes liquid-glow {
+    0%, 100% {
+      box-shadow: 
+        0 0 20px rgba(168, 85, 247, 0.4),
+        0 0 40px rgba(236, 72, 153, 0.3),
+        0 0 60px rgba(59, 130, 246, 0.2),
+        inset 0 0 20px rgba(168, 85, 247, 0.1);
+    }
+    50% {
+      box-shadow: 
+        0 0 30px rgba(236, 72, 153, 0.5),
+        0 0 50px rgba(168, 85, 247, 0.4),
+        0 0 70px rgba(59, 130, 246, 0.3),
+        inset 0 0 30px rgba(236, 72, 153, 0.15);
+    }
+  }
+
+  @keyframes liquid-shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
   @keyframes ripple {
     0% {
       transform: scale(0);

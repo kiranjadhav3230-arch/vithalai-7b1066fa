@@ -1251,11 +1251,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button
                           key={style.value}
                           onClick={() => setImageStyle(style.value)}
-                          className={`flex-1 px-3 py-1.5 rounded-md border transition-all text-xs font-medium ${
-                            imageStyle === style.value
-                              ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20'
-                              : 'border-transparent hover:border-purple-500/30 hover:bg-muted/50'
-                          }`}
+                          className={`
+                            relative flex-1 px-3 py-1.5 rounded-md border transition-all duration-300 text-xs font-medium
+                            ${imageStyle === style.value
+                              ? 'border-transparent bg-gradient-to-r from-purple-500/30 via-pink-500/30 to-blue-500/30 text-white backdrop-blur-xl animate-[liquid-glow_2s_ease-in-out_infinite] before:absolute before:inset-0 before:rounded-md before:bg-gradient-to-r before:from-purple-400/20 before:via-pink-400/20 before:to-blue-400/20 before:blur-xl before:-z-10 before:animate-[liquid-shimmer_3s_linear_infinite]'
+                              : 'border-transparent hover:border-purple-500/30 hover:bg-muted/50 text-muted-foreground'
+                            }
+                          `}
+                          style={imageStyle === style.value ? {
+                            backgroundSize: '200% 100%',
+                          } : {}}
                         >
                           {style.label}
                         </button>
