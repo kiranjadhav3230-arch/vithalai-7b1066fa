@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Code, Copy, Download, Send, Sparkles, Bug, Zap, Languages, BookOpen, Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { User } from '@supabase/supabase-js';
 
 const PROGRAMMING_LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
@@ -42,7 +43,11 @@ interface Message {
   timestamp: string;
 }
 
-export const CodeGeneratorChat = () => {
+interface CodeGeneratorChatProps {
+  user: User;
+}
+
+export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
@@ -50,6 +55,7 @@ export const CodeGeneratorChat = () => {
   const [sourceLanguage, setSourceLanguage] = useState('javascript');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -58,6 +64,83 @@ export const CodeGeneratorChat = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Create a new session on component mount
+    createNewCodeSession();
+  }, []);
+
+  const createNewCodeSession = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_sessions')
+        .insert({
+          user_id: user.id,
+          title: '💻 New Code Session'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setCurrentSessionId(data.id);
+    } catch (error) {
+      console.error('Error creating code session:', error);
+    }
+  };
+
+  const generateSmartCodeTitle = async (sessionId: string, task: string, language: string, prompt: string) => {
+    try {
+      let smartTitle = '💻 Code Session';
+      
+      const taskEmoji = {
+        generate: '✨',
+        explain: '📖',
+        fix: '🔧',
+        optimize: '⚡',
+        translate: '🔄'
+      }[task] || '💻';
+
+      const shortPrompt = prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt;
+      smartTitle = `${taskEmoji} ${language}: ${shortPrompt}`;
+
+      await supabase
+        .from('chat_sessions')
+        .update({ title: smartTitle })
+        .eq('id', sessionId);
+    } catch (error) {
+      console.error('Error generating smart code title:', error);
+    }
+  };
+
+  const saveMessageToSession = async (userPrompt: string, aiResponse: string, task: string, language: string) => {
+    if (!currentSessionId) return;
+
+    try {
+      // Save user message
+      await supabase.from('chat_messages').insert({
+        session_id: currentSessionId,
+        user_id: user.id,
+        message: userPrompt,
+        message_type: 'code_user'
+      });
+
+      // Save AI response
+      await supabase.from('chat_messages').insert({
+        session_id: currentSessionId,
+        user_id: user.id,
+        message: aiResponse,
+        response: aiResponse,
+        message_type: 'code_assistant'
+      });
+
+      // Generate smart title if first message
+      if (messages.length === 0) {
+        await generateSmartCodeTitle(currentSessionId, task, language, userPrompt);
+      }
+    } catch (error) {
+      console.error('Error saving message to session:', error);
+    }
+  };
 
   const generateResponse = async () => {
     if (!input.trim()) {
@@ -134,6 +217,9 @@ export const CodeGeneratorChat = () => {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Save to recent chats
+      await saveMessageToSession(input, data.code, selectedTask, selectedLanguage);
 
       toast({
         title: "Success",
@@ -277,6 +363,7 @@ export const CodeGeneratorChat = () => {
                           <SyntaxHighlighter
                             language={message.language || 'javascript'}
                             style={vscDarkPlus}
+                            showLineNumbers={true}
                             customStyle={{
                               margin: 0,
                               borderRadius: '0.5rem',
