@@ -815,75 +815,88 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
   const playTextToSpeech = async (text: string, messageId: string) => {
     try {
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+      // Check if speech synthesis is supported
+      if (!window.speechSynthesis) {
+        throw new Error('Text-to-speech is not supported in this browser');
       }
+
+      // Stop any currently playing speech
+      window.speechSynthesis.cancel();
 
       setPlayingAudio(messageId);
 
-      // Clean the text for TTS
+      // Remove markdown formatting for cleaner speech
       const cleanText = text
         .replace(/```[\s\S]*?```/g, '') // Remove code blocks
-        .replace(/`[^`]*`/g, '') // Remove inline code
-        .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
-        .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1') // Remove markdown links
+        .replace(/[*_~`#]/g, '') // Remove markdown formatting
         .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
         .substring(0, 4000); // Limit to 4000 chars for TTS
 
-      const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { 
-          text: cleanText,
-          language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
-        }
-      });
+      // Create speech utterance
+      const utterance = new SpeechSynthesisUtterance(cleanText);
 
-      if (error) throw error;
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
 
-      if (data?.audioContent) {
-        // Convert base64 to audio
-        const audioBlob = new Blob(
-          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
-          { type: 'audio/mpeg' }
-        );
-        const audioUrl = URL.createObjectURL(audioBlob);
-        
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-        
-        audio.onended = () => {
-          setPlayingAudio(null);
-          URL.revokeObjectURL(audioUrl);
-        };
-        
-        audio.onerror = () => {
-          setPlayingAudio(null);
-          URL.revokeObjectURL(audioUrl);
-          toast({
-            variant: "destructive",
-            title: "❌ Playback Error",
-            description: "Could not play audio"
-          });
-        };
-        
-        await audio.play();
+      // Select voice based on language
+      let selectedVoice = null;
+      if (language === 'hi') {
+        // Try to find Hindi voice
+        selectedVoice = voices.find(voice => voice.lang.startsWith('hi'));
+      } else if (language === 'mr') {
+        // Try to find Marathi voice, fallback to Hindi
+        selectedVoice = voices.find(voice => voice.lang.startsWith('mr')) || 
+                       voices.find(voice => voice.lang.startsWith('hi'));
+      } else {
+        // Default to English voice
+        selectedVoice = voices.find(voice => voice.lang.startsWith('en'));
       }
+
+      // Set voice if found
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      // Set speech parameters
+      utterance.rate = 0.9; // Slightly slower for clarity
+      utterance.pitch = 1;
+      utterance.volume = 1;
+
+      // Handle speech end
+      utterance.onend = () => {
+        setPlayingAudio(null);
+      };
+
+      // Handle speech error
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setPlayingAudio(null);
+        toast({
+          variant: "destructive",
+          title: "❌ Speech Error",
+          description: "Could not play speech"
+        });
+      };
+
+      // Start speaking
+      window.speechSynthesis.speak(utterance);
+
     } catch (error: any) {
       console.error('Text-to-speech error:', error);
       setPlayingAudio(null);
       toast({
         variant: "destructive",
-        title: "❌ Speech Generation Failed",
+        title: "❌ Speech Failed",
         description: error.message || "Could not generate speech"
       });
     }
   };
 
   const stopTextToSpeech = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
+    // Cancel any ongoing speech synthesis
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
     setPlayingAudio(null);
   };
