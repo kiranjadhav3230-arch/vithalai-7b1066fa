@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import vithalLogo from '@/assets/vithal-ai-logo-new.png';
-import { Code, Copy, Download, Save, Sparkles, Bug, Zap, Languages, BookOpen, Trash2, Loader2, Wifi, WifiOff, Lock, HardDrive, Terminal, Play } from 'lucide-react';
+import { Code, Copy, Download, Save, Sparkles, Bug, Zap, Languages, BookOpen, Trash2, Loader2, Wifi, WifiOff, Lock, HardDrive, Terminal, Play, History, ChevronLeft, ChevronRight } from 'lucide-react';
 import { pipeline, env } from '@huggingface/transformers';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -78,6 +78,16 @@ interface CodeSnippet {
   is_favorite: boolean;
   created_at: string;
 }
+
+interface CodeVersion {
+  id: string;
+  code: string;
+  language: string;
+  task: string;
+  prompt: string;
+  timestamp: string;
+  modelType: 'online' | 'offline';
+}
 export const CodeGenerator = () => {
   const [modelType, setModelType] = useState<'online' | 'offline' | null>(null);
   const [prompt, setPrompt] = useState('');
@@ -85,6 +95,9 @@ export const CodeGenerator = () => {
   const [selectedTask, setSelectedTask] = useState('generate');
   const [generatedCode, setGeneratedCode] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [codeVersions, setCodeVersions] = useState<CodeVersion[]>([]);
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const [savedSnippets, setSavedSnippets] = useState<CodeSnippet[]>([]);
   const [isLoadingSnippets, setIsLoadingSnippets] = useState(false);
   const [isDownloadingModel, setIsDownloadingModel] = useState(false);
@@ -366,6 +379,16 @@ export const CodeGenerator = () => {
     }
     setIsGenerating(true);
     setGeneratedCode('');
+    setGenerationProgress(0);
+
+    // Simulate progress animation
+    const progressInterval = setInterval(() => {
+      setGenerationProgress(prev => {
+        if (prev >= 95) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 300);
+
     try {
       let code: string;
       if (modelType === 'offline') {
@@ -373,8 +396,27 @@ export const CodeGenerator = () => {
       } else {
         code = await generateCodeWithGemini(prompt, selectedLanguage, selectedTask);
       }
+      
+      clearInterval(progressInterval);
+      setGenerationProgress(100);
+
       if (code) {
+        // Create new version
+        const newVersion: CodeVersion = {
+          id: Date.now().toString(),
+          code,
+          language: selectedLanguage,
+          task: selectedTask,
+          prompt,
+          timestamp: new Date().toISOString(),
+          modelType: modelType || 'online'
+        };
+
+        // Add to versions array
+        setCodeVersions(prev => [...prev, newVersion]);
+        setCurrentVersionIndex(codeVersions.length);
         setGeneratedCode(code);
+
         toast({
           title: "Success",
           description: `Code generated successfully with ${modelType === 'offline' ? 'Offline AI' : 'Gemini AI'}!`
@@ -382,13 +424,33 @@ export const CodeGenerator = () => {
       }
     } catch (error) {
       console.error('Generation error:', error);
+      clearInterval(progressInterval);
+      setGenerationProgress(0);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to generate code",
         variant: "destructive"
       });
     } finally {
-      setIsGenerating(false);
+      setTimeout(() => {
+        setIsGenerating(false);
+        setGenerationProgress(0);
+      }, 500);
+    }
+  };
+
+  const switchToVersion = (index: number) => {
+    if (index >= 0 && index < codeVersions.length) {
+      const version = codeVersions[index];
+      setCurrentVersionIndex(index);
+      setGeneratedCode(version.code);
+      setSelectedLanguage(version.language);
+      setSelectedTask(version.task);
+      setPrompt(version.prompt);
+      toast({
+        title: "Version Loaded",
+        description: `Switched to version ${index + 1} of ${codeVersions.length}`
+      });
     }
   };
   const copyToClipboard = async () => {
@@ -816,18 +878,106 @@ Only Supported To WebGPU Spported processor Device only . </p>
                 </Button>
 
                 {isGenerating && <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-                    <CardContent className="flex items-center justify-center gap-3 py-8">
-                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold">Generating Your Code...</p>
-                        <p className="text-xs text-muted-foreground">AI is crafting the perfect solution</p>
+                    <CardContent className="py-6 space-y-4">
+                      <div className="flex items-center justify-center gap-3">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold">Generating Your Code...</p>
+                          <p className="text-xs text-muted-foreground">AI is crafting the perfect solution</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium text-primary">{Math.round(generationProgress)}%</span>
+                        </div>
+                        <Progress value={generationProgress} className="h-2" />
                       </div>
                     </CardContent>
                   </Card>}
               </CardContent>
             </Card>
 
-            {generatedCode && <CodeGeneratorResult generatedCode={generatedCode} selectedLanguage={selectedLanguage} onCopy={copyToClipboard} onDownload={downloadCode} onSave={saveCodeSnippet} />}
+            {generatedCode && (
+              <>
+                {codeVersions.length > 1 && (
+                  <Card className="border-2 border-primary/20">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <History className="h-5 w-5 text-primary" />
+                          Version History
+                        </div>
+                        <Badge variant="secondary">
+                          {currentVersionIndex + 1} / {codeVersions.length}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => switchToVersion(currentVersionIndex - 1)}
+                          disabled={currentVersionIndex === 0}
+                        >
+                          <ChevronLeft className="h-4 w-4 mr-1" />
+                          Previous
+                        </Button>
+                        <div className="flex-1">
+                          <ScrollArea className="w-full">
+                            <div className="flex gap-2 pb-2">
+                              {codeVersions.map((version, index) => (
+                                <Button
+                                  key={version.id}
+                                  variant={index === currentVersionIndex ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => switchToVersion(index)}
+                                  className="min-w-fit"
+                                >
+                                  <span className="text-xs">
+                                    V{index + 1}
+                                    <span className="ml-1 text-[10px] opacity-70">
+                                      ({version.language})
+                                    </span>
+                                  </span>
+                                </Button>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => switchToVersion(currentVersionIndex + 1)}
+                          disabled={currentVersionIndex === codeVersions.length - 1}
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Button>
+                      </div>
+                      {codeVersions[currentVersionIndex] && (
+                        <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">Prompt:</p>
+                          <p className="text-sm">{codeVersions[currentVersionIndex].prompt}</p>
+                          <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>Task: {codeVersions[currentVersionIndex].task}</span>
+                            <span>Model: {codeVersions[currentVersionIndex].modelType === 'online' ? 'Gemini AI' : 'Offline'}</span>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                <CodeGeneratorResult 
+                  generatedCode={generatedCode} 
+                  selectedLanguage={selectedLanguage} 
+                  onCopy={copyToClipboard} 
+                  onDownload={downloadCode} 
+                  onSave={saveCodeSnippet} 
+                />
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="snippets" className="space-y-6">
