@@ -64,8 +64,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [batchCount, setBatchCount] = useState<number>(1);
-  const [generatedImages, setGeneratedImages] = useState<any[]>([]);
-  const [showImageHistory, setShowImageHistory] = useState(false);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -86,7 +84,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   useEffect(() => {
     loadChatSessions();
     loadUserProfile();
-    loadImageHistory();
     // Always start with a new chat
     createNewSession();
   }, []);
@@ -183,20 +180,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
 
-  const loadImageHistory = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('generated_images')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(50);
-      
-      if (error) throw error;
-      setGeneratedImages(data || []);
-    } catch (error) {
-      console.error('Error loading image history:', error);
-    }
-  };
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
       const {
@@ -226,7 +209,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       const message = userMessage.toLowerCase();
 
       // Smart title generation based on content analysis
-      if (message.includes('math') || message.includes('calculate') || message.includes('solve')) {
+      if (message.includes('🎨') || message.includes('generate image') || message.includes('chitrakar')) {
+        // Extract the actual prompt from image generation message
+        const promptMatch = userMessage.match(/: (.+)$/);
+        const actualPrompt = promptMatch ? promptMatch[1] : userMessage;
+        smartTitle = `🎨 Image: ${actualPrompt.substring(0, 30)}...`;
+      } else if (message.includes('math') || message.includes('calculate') || message.includes('solve')) {
         smartTitle = `📊 Math: ${userMessage.substring(0, 30)}...`;
       } else if (message.includes('code') || message.includes('program') || message.includes('python') || message.includes('java')) {
         smartTitle = `💻 Programming: ${userMessage.substring(0, 25)}...`;
@@ -506,20 +494,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         }
 
         allGeneratedImages.push(imageData.imageUrl);
-        
-        // Save to image history
-        await supabase.from('generated_images').insert({
-          user_id: user.id,
-          session_id: currentSession.id,
-          prompt,
-          image_url: imageData.imageUrl,
-          style: imageStyle,
-          language
-        });
       }
-
-      // Reload image history
-      await loadImageHistory();
 
       // Save AI response with all generated images
       const responseContent = allGeneratedImages
@@ -536,6 +511,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       if (responseError) throw responseError;
 
       await loadMessages(currentSession.id);
+      
+      // Generate smart title for first message in session
+      if (messages.length === 0) {
+        await generateSmartSessionTitle(currentSession.id, `🎨 Generate image: ${prompt}`, responseContent);
+      }
       
       // Clear reference image after generation
       setReferenceImage(null);
@@ -1188,71 +1168,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             Upload an image to edit or generate new images from text. Supports English, Hindi, and Marathi.
                           </p>
 
-                          {/* Style Presets */}
-                          <div className="max-w-2xl mx-auto mb-4 px-4">
-                            <label className="text-sm font-medium mb-2 block">Style</label>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                              {[
-                                { value: 'realistic', label: '📷 Realistic' },
-                                { value: 'cartoon', label: '🎨 Cartoon' },
-                                { value: 'watercolor', label: '🖌️ Watercolor' },
-                                { value: 'sketch', label: '✏️ Sketch' }
-                              ].map((style) => (
-                                <button
-                                  key={style.value}
-                                  onClick={() => setImageStyle(style.value)}
-                                  className={`p-2 rounded-lg border transition-all text-xs ${
-                                    imageStyle === style.value
-                                      ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                                      : 'border-border/50 hover:border-purple-500/30'
-                                  }`}
-                                >
-                                  {style.label}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Batch Count */}
-                          <div className="max-w-2xl mx-auto mb-4 px-4">
-                            <label className="text-sm font-medium mb-2 block">Variations: {batchCount}</label>
-                            <input
-                              type="range"
-                              min="1"
-                              max="4"
-                              value={batchCount}
-                              onChange={(e) => setBatchCount(parseInt(e.target.value))}
-                              className="w-full h-2 bg-muted rounded-lg accent-purple-500"
-                            />
-                          </div>
-
-                          {/* History Toggle */}
-                          <Button
-                            onClick={() => setShowImageHistory(!showImageHistory)}
-                            variant="outline"
-                            size="sm"
-                            className="mb-4 border-purple-500/30"
-                          >
-                            <ImageIcon className="h-3 w-3 mr-2" />
-                            {showImageHistory ? 'Hide' : 'Show'} History ({generatedImages.length})
-                          </Button>
-
-                          {/* History Gallery */}
-                          {showImageHistory && generatedImages.length > 0 && (
-                            <div className="max-w-2xl mx-auto mb-4 px-4">
-                              <div className="grid grid-cols-3 gap-2">
-                                {generatedImages.slice(0, 6).map((img) => (
-                                  <div key={img.id} className="relative group rounded overflow-hidden border border-border/50">
-                                    <img src={img.image_url} alt={img.prompt} className="w-full h-24 object-cover" />
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                                      <Button size="sm" onClick={() => setReferenceImage(img.image_url)} className="h-6 text-xs bg-purple-500">Use</Button>
-                                      <Button size="sm" onClick={() => downloadImageWithWatermark(img.image_url, img.prompt)} className="h-6 text-xs bg-green-500"><Download className="h-3 w-3" /></Button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
 
                           <div className="flex items-center justify-center gap-2 text-xs text-purple-400/60">
                             <span>🌐 English • 🇮🇳 हिंदी • 🇮🇳 मराठी</span>
@@ -1334,6 +1249,42 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Image Generation Input */}
               <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
+                  {/* Style Presets - Show after first message */}
+                  {messages.filter(m => m.message.includes('🎨 Generate image')).length > 0 && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-xs font-medium text-muted-foreground">Style:</span>
+                        {[
+                          { value: 'realistic', label: '📷 Realistic' },
+                          { value: 'cartoon', label: '🎨 Cartoon' },
+                          { value: 'watercolor', label: '🖌️ Watercolor' },
+                          { value: 'sketch', label: '✏️ Sketch' }
+                        ].map((style) => (
+                          <button
+                            key={style.value}
+                            onClick={() => setImageStyle(style.value)}
+                            className={`px-3 py-1.5 rounded-lg border transition-all text-xs ${
+                              imageStyle === style.value
+                                ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                                : 'border-border/50 hover:border-purple-500/30'
+                            }`}
+                          >
+                            {style.label}
+                          </button>
+                        ))}
+                        <span className="text-xs text-muted-foreground ml-2">|</span>
+                        <span className="text-xs font-medium text-muted-foreground">Variations: {batchCount}</span>
+                        <input
+                          type="range"
+                          min="1"
+                          max="4"
+                          value={batchCount}
+                          onChange={(e) => setBatchCount(parseInt(e.target.value))}
+                          className="w-24 h-1 bg-muted rounded-lg accent-purple-500"
+                        />
+                      </div>
+                    </div>
+                  )}
                   {/* Reference Image Preview */}
                   {referenceImage && (
                     <div className="mb-3">
