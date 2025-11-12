@@ -63,7 +63,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [imageStyle, setImageStyle] = useState<string>('realistic');
-  const [batchCount, setBatchCount] = useState<number>(1);
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -453,7 +452,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     if (!currentSession) return;
     
     setIsGeneratingImage(true);
-    const imagesToGenerate = batchCount;
     
     try {
       // Add user message with image generation request
@@ -462,7 +460,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         .insert([{
           session_id: currentSession.id,
           user_id: user.id,
-          message: `🎨 Generate ${imagesToGenerate} image(s) (${imageStyle} style): ${prompt}`,
+          message: `🎨 Generate image (${imageStyle} style): ${prompt}`,
           message_type: 'text'
         }])
         .select()
@@ -473,33 +471,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       // Reload messages to show user request
       await loadMessages(currentSession.id);
 
-      const allGeneratedImages: string[] = [];
-      
-      // Generate images in batch
-      for (let i = 0; i < imagesToGenerate; i++) {
-        // Call image generation function with style preset and language support
-        const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
-          body: { 
-            prompt,
-            language,
-            style: imageStyle,
-            imageUrl: referenceImage || undefined
-          }
-        });
-
-        if (functionError) throw functionError;
-
-        if (!imageData?.imageUrl) {
-          throw new Error('No image URL received');
+      // Call image generation function with style preset and language support
+      const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
+        body: { 
+          prompt,
+          language,
+          style: imageStyle,
+          imageUrl: referenceImage || undefined
         }
+      });
 
-        allGeneratedImages.push(imageData.imageUrl);
+      if (functionError) throw functionError;
+
+      if (!imageData?.imageUrl) {
+        throw new Error('No image URL received');
       }
 
-      // Save AI response with all generated images
-      const responseContent = allGeneratedImages
-        .map((url, idx) => `![Generated Image ${idx + 1}](${url})`)
-        .join('\n\n') + `\n\n✨ Generated ${imagesToGenerate} image(s) in ${imageStyle} style!`;
+      // Save AI response with generated image
+      const responseContent = `![Generated Image](${imageData.imageUrl})\n\n✨ Generated in ${imageStyle} style!`;
       
       const { error: responseError } = await supabase
         .from('chat_messages')
@@ -522,8 +511,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setReferenceImageFile(null);
       
       toast({
-        title: "✅ Images Generated!",
-        description: `${imagesToGenerate} image(s) created successfully in ${imageStyle} style`
+        title: "✅ Image Generated!",
+        description: `Image created successfully in ${imageStyle} style`
       });
 
     } catch (error: any) {
@@ -1250,10 +1239,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Image Generation Input */}
               <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
-                  {/* Style Presets - Always Show */}
+                  {/* Style Selection Bar */}
                   <div className="mb-4">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-xs font-medium text-muted-foreground">Style:</span>
+                    <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/30 border border-border/50">
+                      <span className="text-xs font-medium text-muted-foreground px-2">Style:</span>
                       {[
                         { value: 'realistic', label: '📷 Realistic' },
                         { value: 'cartoon', label: '🎨 Cartoon' },
@@ -1263,25 +1252,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button
                           key={style.value}
                           onClick={() => setImageStyle(style.value)}
-                          className={`px-3 py-1.5 rounded-lg border transition-all text-xs ${
+                          className={`flex-1 px-4 py-2 rounded-lg border transition-all text-xs font-medium ${
                             imageStyle === style.value
-                              ? 'border-purple-500 bg-purple-500/10 text-purple-400'
-                              : 'border-border/50 hover:border-purple-500/30'
+                              ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20'
+                              : 'border-transparent hover:border-purple-500/30 hover:bg-muted/50'
                           }`}
                         >
                           {style.label}
                         </button>
                       ))}
-                      <span className="text-xs text-muted-foreground ml-2">|</span>
-                      <span className="text-xs font-medium text-muted-foreground">Variations: {batchCount}</span>
-                      <input
-                        type="range"
-                        min="1"
-                        max="4"
-                        value={batchCount}
-                        onChange={(e) => setBatchCount(parseInt(e.target.value))}
-                        className="w-24 h-1 bg-muted rounded-lg accent-purple-500"
-                      />
                     </div>
                   </div>
                   {/* Reference Image Preview */}
