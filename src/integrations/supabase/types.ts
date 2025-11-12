@@ -300,6 +300,47 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          language: string | null
+          prompt: string
+          session_id: string | null
+          style: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          language?: string | null
+          prompt: string
+          session_id?: string | null
+          style?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          language?: string | null
+          prompt?: string
+          session_id?: string | null
+          style?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_images_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       location_history: {
         Row: {
           address: string | null
