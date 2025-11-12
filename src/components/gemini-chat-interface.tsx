@@ -1008,14 +1008,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Right: Mode Toggle + Actions */}
               <div className="flex items-center gap-1.5 md:gap-2">
                 {/* View Mode Toggle */}
-                <div className="hidden sm:flex items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20">
+                <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
+                  {/* Flowing Liquid Bubble Background */}
+                  <div 
+                    className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
+                    style={{
+                      width: 'calc((100% - 0.25rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                      backgroundSize: '200% 200%',
+                      animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                      zIndex: 0,
+                    }}
+                  />
+                  
                   <Button 
                     variant="ghost" 
                     onClick={() => setCurrentView('chat')} 
                     size="sm" 
-                    className={`h-6 px-2 text-[10px] md:text-xs transition-all ${
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'chat' 
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
+                        ? 'text-white' 
                         : 'text-orange-400/70 hover:text-orange-400'
                     }`}
                   >
@@ -1026,9 +1041,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     variant="ghost" 
                     onClick={() => setCurrentView('code')} 
                     size="sm" 
-                    className={`h-6 px-2 text-[10px] md:text-xs transition-all ${
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'code' 
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
+                        ? 'text-white' 
                         : 'text-orange-400/70 hover:text-orange-400'
                     }`}
                   >
@@ -1039,9 +1054,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     variant="ghost" 
                     onClick={() => setCurrentView('imageGen')} 
                     size="sm" 
-                    className={`h-6 px-2 text-[10px] md:text-xs transition-all ${
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
                       currentView === 'imageGen' 
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
+                        ? 'text-white' 
                         : 'text-orange-400/70 hover:text-orange-400'
                     }`}
                   >
@@ -1051,12 +1066,27 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 </div>
 
                 {/* Mobile View Toggle */}
-                <div className="sm:hidden flex items-center gap-1">
+                <div className="sm:hidden relative flex items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
+                  {/* Flowing Liquid Bubble Background */}
+                  <div 
+                    className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
+                    style={{
+                      width: 'calc((100% - 0.25rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
+                      backgroundSize: '200% 200%',
+                      animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
+                      zIndex: 0,
+                    }}
+                  />
+                  
                   <Button 
                     variant="ghost" 
                     onClick={() => setCurrentView('chat')} 
                     size="sm" 
-                    className={`h-7 w-7 p-0 ${currentView === 'chat' ? 'bg-orange-500/20 text-orange-400' : 'text-orange-400/50'}`}
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}
                   >
                     <MessageSquare className="h-3.5 w-3.5" />
                   </Button>
@@ -1064,7 +1094,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     variant="ghost" 
                     onClick={() => setCurrentView('code')} 
                     size="sm" 
-                    className={`h-7 w-7 p-0 ${currentView === 'code' ? 'bg-orange-500/20 text-orange-400' : 'text-orange-400/50'}`}
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}
                   >
                     <Code className="h-3.5 w-3.5" />
                   </Button>
@@ -1072,7 +1102,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     variant="ghost" 
                     onClick={() => setCurrentView('imageGen')} 
                     size="sm" 
-                    className={`h-7 w-7 p-0 ${currentView === 'imageGen' ? 'bg-orange-500/20 text-orange-400' : 'text-orange-400/50'}`}
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'imageGen' ? 'text-white' : 'text-orange-400/50'}`}
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                   </Button>
