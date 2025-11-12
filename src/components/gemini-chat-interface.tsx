@@ -1229,7 +1229,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {/* Conditional Content Rendering */}
           {currentView === 'code' ? (
             <div className="flex-1 overflow-auto">
-              <CodeGeneratorChat />
+              <CodeGeneratorChat user={user} />
             </div>
           ) : currentView === 'imageGen' ? (
             <>
