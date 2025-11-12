@@ -1240,19 +1240,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
                 <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
                   {/* Style Selection Bar */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/30 border border-border/50">
-                      <span className="text-xs font-medium text-muted-foreground px-2">Style:</span>
+                  <div className="mb-3">
+                    <div className="flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/30 border border-border/50">
                       {[
-                        { value: 'realistic', label: '📷 Realistic' },
-                        { value: 'cartoon', label: '🎨 Cartoon' },
-                        { value: 'watercolor', label: '🖌️ Watercolor' },
-                        { value: 'sketch', label: '✏️ Sketch' }
+                        { value: 'realistic', label: 'Realistic' },
+                        { value: 'cartoon', label: 'Cartoon' },
+                        { value: 'watercolor', label: 'Watercolor' },
+                        { value: 'sketch', label: 'Sketch' }
                       ].map((style) => (
                         <button
                           key={style.value}
                           onClick={() => setImageStyle(style.value)}
-                          className={`flex-1 px-4 py-2 rounded-lg border transition-all text-xs font-medium ${
+                          className={`flex-1 px-3 py-1.5 rounded-md border transition-all text-xs font-medium ${
                             imageStyle === style.value
                               ? 'border-purple-500 bg-purple-500/20 text-purple-400 shadow-lg shadow-purple-500/20'
                               : 'border-transparent hover:border-purple-500/30 hover:bg-muted/50'
