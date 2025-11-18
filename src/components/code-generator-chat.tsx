@@ -9,7 +9,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Code, Copy, Download, Send, Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { 
+  vscDarkPlus, 
+  atomDark, 
+  tomorrow, 
+  okaidia, 
+  nord,
+  oneDark,
+  dracula,
+  materialDark,
+  materialLight,
+  ghcolors
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
 
 const PROGRAMMING_LANGUAGES = [
@@ -25,6 +36,19 @@ const CODE_TASKS = [
   { value: 'explain', label: 'Explain' },
   { value: 'fix', label: 'Fix Bugs' },
   { value: 'optimize', label: 'Optimize' },
+];
+
+const SYNTAX_THEMES = [
+  { value: 'vscDarkPlus', label: 'VS Code Dark', theme: vscDarkPlus },
+  { value: 'oneDark', label: 'One Dark', theme: oneDark },
+  { value: 'dracula', label: 'Dracula', theme: dracula },
+  { value: 'nord', label: 'Nord', theme: nord },
+  { value: 'atomDark', label: 'Atom Dark', theme: atomDark },
+  { value: 'okaidia', label: 'Okaidia', theme: okaidia },
+  { value: 'materialDark', label: 'Material Dark', theme: materialDark },
+  { value: 'tomorrow', label: 'Tomorrow', theme: tomorrow },
+  { value: 'materialLight', label: 'Material Light', theme: materialLight },
+  { value: 'ghcolors', label: 'GitHub', theme: ghcolors },
 ];
 
 interface Message {
@@ -45,11 +69,21 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [input, setInput] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
   const [selectedTask, setSelectedTask] = useState('generate');
+  const [selectedTheme, setSelectedTheme] = useState(() => {
+    return localStorage.getItem('codeTheme') || 'vscDarkPlus';
+  });
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const currentTheme = SYNTAX_THEMES.find(t => t.value === selectedTheme)?.theme || vscDarkPlus;
+
+  const handleThemeChange = (value: string) => {
+    setSelectedTheme(value);
+    localStorage.setItem('codeTheme', value);
+  };
 
   useEffect(() => {
     if (sessionId) {
@@ -139,6 +173,10 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
             <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
             <SelectContent>{PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}</SelectContent>
           </Select>
+          <Select value={selectedTheme} onValueChange={handleThemeChange}>
+            <SelectTrigger className="w-32 h-8"><SelectValue placeholder="Theme" /></SelectTrigger>
+            <SelectContent>{SYNTAX_THEMES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -160,7 +198,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                       </Button>
                       <div className="rounded-lg overflow-hidden border">
                         <div className="bg-muted px-3 py-1.5"><Badge variant="outline" className="text-xs">{msg.language}</Badge></div>
-                        <SyntaxHighlighter language={msg.language} style={vscDarkPlus} customStyle={{ margin: 0, fontSize: '13px', padding: '12px' }}>
+                        <SyntaxHighlighter language={msg.language} style={currentTheme} customStyle={{ margin: 0, fontSize: '13px', padding: '12px' }}>
                           {msg.content}
                         </SyntaxHighlighter>
                       </div>
