@@ -65,6 +65,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
+  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean }>({
+    chat: false,
+    code: false,
+    imageGen: false
+  });
   
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -239,6 +244,35 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     } catch (error) {
       console.error('Error deleting session:', error);
     }
+  };
+
+  const clearAllChats = async () => {
+    if (!confirm('Are you sure you want to delete all chat sessions? This cannot be undone.')) {
+      return;
+    }
+    try {
+      const { error } = await supabase.from('chat_sessions').delete().eq('user_id', user.id);
+      if (error) throw error;
+      setChatSessions([]);
+      setCurrentSession(null);
+      setMessages([]);
+      toast({
+        title: "Success",
+        description: "All chats cleared successfully"
+      });
+    } catch (error) {
+      console.error('Error clearing all chats:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to clear all chats"
+      });
+    }
+  };
+
+  const toggleTab = (type: 'chat' | 'code' | 'imageGen') => {
+    setCollapsedTabs(prev => ({ ...prev, [type]: !prev[type] }));
+    triggerHaptic();
   };
   const loadUserProfile = async () => {
     try {
@@ -955,62 +989,118 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
   const AppSidebar = () => {
     return <Sidebar className="border-r border-orange-500/20 bg-black/95 backdrop-blur-xl">
+        {/* Header with New Chat */}
         <div className="flex items-center justify-between p-3 md:p-4 border-b border-orange-500/20">
-          <h2 className="font-semibold text-sm md:text-lg bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Vithal AI 2.0</h2>
-          <Button onClick={() => createNewSession('chat')} size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
-            <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
-          </Button>
+          <h2 className="font-semibold text-sm md:text-lg bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Vithal AI</h2>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+                <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur-xl border-orange-500/20">
+              <DropdownMenuItem onClick={() => createNewSession('chat')} className="cursor-pointer hover:bg-orange-500/10">
+                <MessageSquare className="h-4 w-4 mr-2 text-orange-400" />
+                New Chat
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => createNewSession('code')} className="cursor-pointer hover:bg-orange-500/10">
+                <Code className="h-4 w-4 mr-2 text-orange-400" />
+                New Code Session
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => createNewSession('imageGen')} className="cursor-pointer hover:bg-orange-500/10">
+                <ImageIcon className="h-4 w-4 mr-2 text-orange-400" />
+                New Image Session
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
-        <SidebarContent>
-          {['chat', 'code', 'imageGen'].map(type => {
-            const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
-            if (!sessions.length) return null;
-            const labels = { chat: '💬 Chats', code: '💻 Code', imageGen: '🎨 Images' };
-            return (
-              <SidebarGroup key={type}>
-                <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">{labels[type as keyof typeof labels]}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {sessions.map(session => (
-                      <SidebarMenuItem key={session.id}>
-                        <SidebarMenuButton onClick={() => switchToSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}>
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
-                            <span className="truncate text-xs">{session.title}</span>
-                          </div>
-                          <div onClick={e => { e.stopPropagation(); deleteSession(session.id); }} className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 cursor-pointer">
-                            <Trash2 className="h-2.5 w-2.5 text-destructive" />
-                          </div>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            );
-          })}
-          
-          {/* Help Section */}
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">Help & Support</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={() => setShowContactModal(true)} className="w-full hover:bg-orange-500/10 hover:text-orange-400">
-                    <div className="flex items-center gap-2">
-                      <svg className="h-3.5 w-3.5 md:h-4 md:w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                      <span className="text-xs md:text-sm">Contact Support</span>
-                    </div>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
+        {/* Clear All Button */}
+        {chatSessions.length > 0 && (
+          <div className="px-3 py-2 border-b border-orange-500/10">
+            <Button 
+              onClick={clearAllChats} 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-xs hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3 mr-2" />
+              Clear All Chats
+            </Button>
+          </div>
+        )}
+        
+        <ScrollArea className="flex-1">
+          <SidebarContent>
+            {/* Recent Chats with Collapsible Tabs */}
+            {['chat', 'code', 'imageGen'].map(type => {
+              const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
+              if (!sessions.length) return null;
+              const labels = { chat: '💬 Chats', code: '💻 Codes', imageGen: '🎨 Chitrakar' };
+              const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
+              
+              return (
+                <SidebarGroup key={type} className="mb-2">
+                  <SidebarGroupLabel 
+                    onClick={() => toggleTab(type as 'chat' | 'code' | 'imageGen')}
+                    className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between"
+                  >
+                    <span>{labels[type as keyof typeof labels]}</span>
+                    <ChevronRight className={`h-3 w-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
+                  </SidebarGroupLabel>
+                  
+                  {!isCollapsed && (
+                    <SidebarGroupContent>
+                      <SidebarMenu>
+                        {sessions.map(session => (
+                          <SidebarMenuItem key={session.id}>
+                            <SidebarMenuButton 
+                              onClick={() => switchToSession(session)} 
+                              className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400 border-l-2 border-orange-500' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
+                                <span className="truncate text-xs">{session.title}</span>
+                              </div>
+                              <Button
+                                onClick={e => { e.stopPropagation(); deleteSession(session.id); }} 
+                                variant="ghost"
+                                size="sm"
+                                className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10"
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
+                      </SidebarMenu>
+                    </SidebarGroupContent>
+                  )}
+                </SidebarGroup>
+              );
+            })}
+            
+            {/* Settings & Support Section */}
+            <SidebarGroup className="mt-4 border-t border-orange-500/20 pt-4">
+              <SidebarGroupLabel className="text-orange-400/70 font-semibold text-xs px-2">Settings</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => setShowContactModal(true)} className="w-full hover:bg-orange-500/10 hover:text-orange-400">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-3.5 w-3.5 md:h-4 md:w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        <span className="text-xs md:text-sm">Contact Support</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </ScrollArea>
 
         <div className="p-3 md:p-4 border-t border-orange-500/20">
           <div className="flex items-center justify-between mb-2">
