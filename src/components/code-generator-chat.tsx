@@ -160,7 +160,12 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                       </Button>
                       <div className="rounded-lg overflow-hidden border">
                         <div className="bg-muted px-3 py-1.5"><Badge variant="outline" className="text-xs">{msg.language}</Badge></div>
-                        <SyntaxHighlighter language={msg.language} style={vscDarkPlus} customStyle={{ margin: 0, fontSize: '13px', padding: '12px' }}>
+                        <SyntaxHighlighter 
+                          language={msg.language} 
+                          style={vscDarkPlus} 
+                          showLineNumbers={true}
+                          customStyle={{ margin: 0, fontSize: '13px', padding: '12px' }}
+                        >
                           {msg.content}
                         </SyntaxHighlighter>
                       </div>
