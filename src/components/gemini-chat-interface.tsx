@@ -25,6 +25,7 @@ interface ChatSession {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
+  session_type?: 'chat' | 'code' | 'imageGen';
 }
 interface ChatMessage {
   id: string;
@@ -135,8 +136,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   useEffect(() => {
     loadChatSessions();
     loadUserProfile();
-    // Always start with a new chat
-    createNewSession();
+    // Always start with a new chat (default type)
+    createNewSession('chat');
   }, []);
   useEffect(() => {
     if (currentSession) {
@@ -157,9 +158,25 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         ascending: false
       });
       if (error) throw error;
-      setChatSessions(data || []);
+      setChatSessions((data as ChatSession[]) || []);
     } catch (error) {
       console.error('Error loading chat sessions:', error);
+    }
+  };
+
+  const switchToSession = (session: ChatSession) => {
+    setCurrentSession(session);
+    // Auto-switch to the correct view based on session type
+    const sessionType = session.session_type || 'chat';
+    if (sessionType === 'code') {
+      setCurrentView('code');
+      playCodeSound();
+    } else if (sessionType === 'imageGen') {
+      setCurrentView('imageGen');
+      playImageSound();
+    } else {
+      setCurrentView('chat');
+      playChatSound();
     }
   };
   const loadMessages = async (sessionId: string) => {
@@ -176,20 +193,28 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       console.error('Error loading messages:', error);
     }
   };
-  const createNewSession = async () => {
+  const createNewSession = async (sessionType: 'chat' | 'code' | 'imageGen' = 'chat') => {
     try {
+      const titles = {
+        chat: 'New Chat',
+        code: '💻 New Code Session',
+        imageGen: '🎨 New Image Session'
+      };
+      
       const {
         data,
         error
       } = await supabase.from('chat_sessions').insert({
         user_id: user.id,
-        title: 'New Chat'
+        title: titles[sessionType],
+        session_type: sessionType
       }).select().single();
       if (error) throw error;
       const newSession = data as ChatSession;
       setChatSessions(prev => [newSession, ...prev]);
       setCurrentSession(newSession);
       setMessages([]);
+      setCurrentView(sessionType === 'chat' ? 'chat' : sessionType === 'code' ? 'code' : 'imageGen');
     } catch (error) {
       console.error('Error creating new session:', error);
       toast({
@@ -932,33 +957,39 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     return <Sidebar className="border-r border-orange-500/20 bg-black/95 backdrop-blur-xl">
         <div className="flex items-center justify-between p-3 md:p-4 border-b border-orange-500/20">
           <h2 className="font-semibold text-sm md:text-lg bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Vithal AI 2.0</h2>
-          <Button onClick={createNewSession} size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
+          <Button onClick={() => createNewSession('chat')} size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
             <Plus className="h-3.5 w-3.5 md:h-4 md:w-4 text-white" />
           </Button>
         </div>
         
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">Recent Chats</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {chatSessions.map(session => <SidebarMenuItem key={session.id}>
-                    <SidebarMenuButton onClick={() => setCurrentSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}>
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <MessageSquare className="h-3.5 w-3.5 md:h-4 md:w-4 flex-shrink-0" />
-                        <span className="truncate text-xs md:text-sm">{session.title}</span>
-                      </div>
-                      <div onClick={e => {
-                    e.stopPropagation();
-                    deleteSession(session.id);
-                  }} className="h-5 w-5 md:h-6 md:w-6 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center hover:bg-destructive/10 rounded">
-                        <Trash2 className="h-2.5 w-2.5 md:h-3 md:w-3 text-destructive" />
-                      </div>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>)}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {['chat', 'code', 'imageGen'].map(type => {
+            const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
+            if (!sessions.length) return null;
+            const labels = { chat: '💬 Chats', code: '💻 Code', imageGen: '🎨 Images' };
+            return (
+              <SidebarGroup key={type}>
+                <SidebarGroupLabel className="text-orange-400 font-semibold text-xs">{labels[type as keyof typeof labels]}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {sessions.map(session => (
+                      <SidebarMenuItem key={session.id}>
+                        <SidebarMenuButton onClick={() => switchToSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}>
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
+                            <span className="truncate text-xs">{session.title}</span>
+                          </div>
+                          <div onClick={e => { e.stopPropagation(); deleteSession(session.id); }} className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 cursor-pointer">
+                            <Trash2 className="h-2.5 w-2.5 text-destructive" />
+                          </div>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            );
+          })}
           
           {/* Help Section */}
           <SidebarGroup>
@@ -1169,7 +1200,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
                 {/* New Chat Button */}
                 <Button
-                  onClick={createNewSession}
+                  onClick={() => {
+                    const sessionType = currentView === 'code' ? 'code' : currentView === 'imageGen' ? 'imageGen' : 'chat';
+                    createNewSession(sessionType);
+                  }}
                   size="sm"
                   variant="ghost"
                   className="h-7 w-7 md:w-auto md:px-2 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20"
@@ -1229,7 +1263,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {/* Conditional Content Rendering */}
           {currentView === 'code' ? (
             <div className="flex-1 overflow-auto">
-              <CodeGeneratorChat user={user} />
+              <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
             </div>
           ) : currentView === 'imageGen' ? (
             <>
