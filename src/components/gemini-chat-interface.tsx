@@ -66,9 +66,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
   const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean }>({
-    chat: false,
-    code: false,
-    imageGen: false
+    chat: true,
+    code: true,
+    imageGen: true
   });
   
   // Haptic feedback for mobile devices
@@ -1035,7 +1035,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             {/* Recent Chats with Collapsible Tabs */}
             {['chat', 'code', 'imageGen'].map(type => {
               const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
-              if (!sessions.length) return null;
               const labels = { chat: '💬 Chats', code: '💻 Codes', imageGen: '🎨 Chitrakar' };
               const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
               
@@ -1045,34 +1044,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     onClick={() => toggleTab(type as 'chat' | 'code' | 'imageGen')}
                     className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between"
                   >
-                    <span>{labels[type as keyof typeof labels]}</span>
+                    <span>{labels[type as keyof typeof labels]} ({sessions.length})</span>
                     <ChevronRight className={`h-3 w-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
                   </SidebarGroupLabel>
                   
                   {!isCollapsed && (
                     <SidebarGroupContent>
                       <SidebarMenu>
-                        {sessions.map(session => (
-                          <SidebarMenuItem key={session.id}>
-                            <SidebarMenuButton 
-                              onClick={() => switchToSession(session)} 
-                              className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400 border-l-2 border-orange-500' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}
-                            >
-                              <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
-                                <span className="truncate text-xs">{session.title}</span>
-                              </div>
-                              <Button
-                                onClick={e => { e.stopPropagation(); deleteSession(session.id); }} 
-                                variant="ghost"
-                                size="sm"
-                                className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10"
+                        {sessions.length > 0 ? (
+                          sessions.map(session => (
+                            <SidebarMenuItem key={session.id}>
+                              <SidebarMenuButton 
+                                onClick={() => switchToSession(session)} 
+                                className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400 border-l-2 border-orange-500' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}
                               >
-                                <Trash2 className="h-3 w-3 text-destructive" />
-                              </Button>
-                            </SidebarMenuButton>
-                          </SidebarMenuItem>
-                        ))}
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
+                                  <span className="truncate text-xs">{session.title}</span>
+                                </div>
+                                <Button
+                                  onClick={e => { e.stopPropagation(); deleteSession(session.id); }} 
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-xs text-muted-foreground text-center">
+                            No sessions yet
+                          </div>
+                        )}
                       </SidebarMenu>
                     </SidebarGroupContent>
                   )}
@@ -1093,6 +1098,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                         </svg>
                         <span className="text-xs md:text-sm">Contact Support</span>
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton onClick={() => window.open('https://vithalaitermscondition.lovable.app', '_blank')} className="w-full hover:bg-orange-500/10 hover:text-orange-400">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-3.5 w-3.5 md:h-4 md:w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="text-xs md:text-sm">Terms & Conditions</span>
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

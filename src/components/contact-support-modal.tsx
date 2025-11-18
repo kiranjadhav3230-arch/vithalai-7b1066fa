@@ -53,7 +53,7 @@ export const ContactSupportModal: React.FC<ContactSupportModalProps> = ({
                   <h3 className="font-semibold">Instagram</h3>
                   <p className="text-sm text-muted-foreground">@vithal.ai</p>
                 </div>
-                <Button onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')} variant="outline" size="sm">
+                <Button onClick={() => window.open('https://www.instagram.com/vithal.ai?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')} variant="outline" size="sm">
                   Follow
                 </Button>
               </div>

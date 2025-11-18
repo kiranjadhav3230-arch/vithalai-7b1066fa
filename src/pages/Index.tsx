@@ -143,7 +143,7 @@ const Index = () => {
                       Email Support
                     </Button>
                     <Button 
-                      onClick={() => window.open('https://www.instagram.com/vithal_ai?igsh=MWF0Zmk5aDZtZmdocA==', '_blank')}
+                      onClick={() => window.open('https://www.instagram.com/vithal.ai?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank')}
                       className="w-full bg-gradient-to-r from-orange-600 to-red-500 hover:from-orange-700 hover:to-red-600 text-white font-display font-semibold py-5 md:py-6 text-sm md:text-base rounded-xl shadow-lg shadow-orange-600/30 hover:shadow-orange-600/50 hover:scale-105 transition-all duration-300"
                     >
                       <svg className="h-4 w-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
