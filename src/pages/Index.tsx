@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ModernHeader } from '@/components/modern-header';
 import { ModernHero } from '@/components/modern-hero';
 import { ModernHowItWorks } from '@/components/modern-how-it-works';
-import { ModernFeatures } from '@/components/modern-features';
+import { ComprehensiveFeatures } from '@/components/comprehensive-features';
 import { CodeGeneratorSection } from '@/components/code-generator-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
@@ -130,7 +130,7 @@ const Index = () => {
       <main className="relative">
         <ModernHero onGetStarted={handleGetStarted} />
         <ModernHowItWorks />
-        <ModernFeatures />
+        <ComprehensiveFeatures />
         <CodeGeneratorSection onGetStarted={handleGetStarted} />
           
           {/* Help Section */}
