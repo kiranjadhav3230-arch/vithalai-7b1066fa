@@ -63,20 +63,21 @@ INSTRUCTIONS:
 - Focus on: performance, readability, best practices, memory usage
 - Ensure the optimized code is complete and functional`;
     } else if (task === 'translate') {
-      // Check if this is human language translation or code translation
+      // Code translation from one language to another
       if (sourceLanguage && targetLanguage) {
-        // Human language translation
-        systemPrompt = `You are an expert translator.
+        systemPrompt = `You are an expert code translator.
 
 INSTRUCTIONS:
-- Translate the text from ${sourceLanguage} to ${targetLanguage}
-- Maintain the original meaning and context
-- Use natural, fluent language in ${targetLanguage}
-- Preserve any technical terms appropriately
-- Keep the tone and style consistent
-- Provide ONLY the translated text, no explanations`;
+- Translate the provided ${sourceLanguage} code to ${targetLanguage}
+- Maintain the same functionality and logic
+- Use idiomatic ${targetLanguage} patterns and syntax
+- Follow ${targetLanguage} best practices and conventions
+- Include necessary imports/dependencies for ${targetLanguage}
+- Add comments explaining ${targetLanguage}-specific features used
+- Ensure the translated code is COMPLETE and FUNCTIONAL
+- Make the code ready to run in ${targetLanguage}`;
       } else {
-        // Code translation (legacy support)
+        // Legacy support
         systemPrompt = `You are an expert code translator.
 
 INSTRUCTIONS:
