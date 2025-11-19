@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Button } from '@/components/ui/button';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Edit3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageRendererProps {
   content: string;
+  onImageClick?: (imageUrl: string) => void;
 }
 
-export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content }) => {
+export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content, onImageClick }) => {
   const [copiedBlocks, setCopiedBlocks] = useState<Set<number>>(new Set());
   const { toast } = useToast();
 
@@ -145,12 +146,24 @@ export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content })
         const altText = imageMatch[1];
         const imageUrl = imageMatch[2];
         imageParts.push(
-          <img 
-            key={`img-${imageIndex}`}
-            src={imageUrl} 
-            alt={altText}
-            className="max-w-full h-auto rounded-lg my-4 shadow-lg"
-          />
+          <div key={`img-wrapper-${imageIndex}`} className="relative group my-4">
+            <img 
+              key={`img-${imageIndex}`}
+              src={imageUrl} 
+              alt={altText}
+              className="max-w-full h-auto rounded-lg shadow-lg cursor-pointer transition-all hover:shadow-2xl hover:scale-[1.02]"
+              onClick={() => onImageClick?.(imageUrl)}
+              title="Click to edit this image"
+            />
+            {onImageClick && (
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                <div className="bg-white/90 text-black px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-1.5">
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Click to edit
+                </div>
+              </div>
+            )}
+          </div>
         );
 
         imageLastIndex = imageMatch.index + imageMatch[0].length;
