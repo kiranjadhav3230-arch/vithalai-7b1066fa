@@ -65,6 +65,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
   const [imageStyle, setImageStyle] = useState<string>('realistic');
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
+  const [lastGeneratedImage, setLastGeneratedImage] = useState<string | null>(null);
+  const [useLastImageForEdit, setUseLastImageForEdit] = useState(false);
   const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean }>({
     chat: true,
     code: true,
@@ -171,6 +173,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
   const switchToSession = (session: ChatSession) => {
     setCurrentSession(session);
+    // Reset image editing state when switching sessions
+    setLastGeneratedImage(null);
+    setUseLastImageForEdit(false);
+    setReferenceImage(null);
+    setReferenceImageFile(null);
     // Auto-switch to the correct view based on session type
     const sessionType = session.session_type || 'chat';
     if (sessionType === 'code') {
@@ -493,6 +500,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       const reader = new FileReader();
       reader.onload = (e) => {
         setReferenceImage(e.target?.result as string);
+        setUseLastImageForEdit(false); // User uploaded new image, don't use last generated
       };
       reader.readAsDataURL(file);
     }
@@ -594,15 +602,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         setMessages([]);
       }
       
+      // Use last generated image if enabled, otherwise use uploaded reference
+      const imageToUse = useLastImageForEdit && lastGeneratedImage ? lastGeneratedImage : referenceImage;
+      
       // Add user message with image generation request
       const { data: userMessageData, error: userMessageError } = await supabase
         .from('chat_messages')
         .insert([{
           session_id: imageGenSession.id,
           user_id: user.id,
-          message: `🎨 Generate image (${imageStyle} style): ${prompt}`,
-          message_type: referenceImage ? 'image' : 'text',
-          image_data: referenceImage || null
+          message: `🎨 ${imageToUse ? 'Edit image' : 'Generate image'} (${imageStyle} style): ${prompt}`,
+          message_type: imageToUse ? 'image' : 'text',
+          image_data: imageToUse || null
         }])
         .select()
         .single();
@@ -621,7 +632,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           prompt,
           language,
           style: imageStyle,
-          imageUrl: referenceImage || undefined
+          imageUrl: imageToUse || undefined
         }
       });
 
@@ -649,6 +660,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       if (messages.length === 0) {
         await generateSmartSessionTitle(imageGenSession.id, `🎨 Generate image: ${prompt}`, responseContent);
       }
+      
+      // Store the generated image for potential editing
+      setLastGeneratedImage(imageData.imageUrl);
+      setUseLastImageForEdit(true);
       
       // Clear reference image after generation
       setReferenceImage(null);
@@ -1554,11 +1569,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     </div>
                   </div>
                   {/* Reference Image Preview */}
-                  {referenceImage && (
+                  {(referenceImage || (useLastImageForEdit && lastGeneratedImage)) && (
                     <div className="mb-3">
                       <div className="relative inline-block rounded-xl overflow-hidden border border-purple-500/30 shadow-lg">
                         <img 
-                          src={referenceImage} 
+                          src={referenceImage || lastGeneratedImage || ''} 
                           alt="Reference" 
                           className="max-h-32 md:max-h-40 object-contain bg-muted/50" 
                         />
@@ -1566,13 +1581,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           onClick={() => {
                             setReferenceImage(null);
                             setReferenceImageFile(null);
+                            setUseLastImageForEdit(false);
                           }} 
                           className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
                       </div>
-                      <p className="text-xs text-purple-400/70 mt-2">Reference image for editing</p>
+                      <p className="text-xs text-purple-400/70 mt-2">
+                        {useLastImageForEdit && lastGeneratedImage && !referenceImage 
+                          ? '✨ Editing previous image' 
+                          : 'Reference image for editing'}
+                      </p>
                     </div>
                   )}
 
