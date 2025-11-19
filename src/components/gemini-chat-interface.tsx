@@ -1255,16 +1255,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 3)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      width: 'calc((100% - 0.25rem) / 4)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'imageGen' ? 2 : 3})`,
                       background: currentView === 'imageGen' 
                         ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
+                        : currentView === 'documentQA'
+                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)'
                         : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
                       boxShadow: currentView === 'imageGen'
                         ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
+                        : currentView === 'documentQA'
+                        ? '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(59, 130, 246, 0.3)'
                         : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
@@ -1308,6 +1312,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   >
                     <Sparkles className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Image</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('documentQA'); }} 
+                    size="sm" 
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
+                      currentView === 'documentQA' 
+                        ? 'text-white' 
+                        : 'text-blue-400/70 hover:text-blue-400'
+                    }`}
+                  >
+                    <FileText className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">Docs</span>
                   </Button>
                 </div>
 
