@@ -6,7 +6,6 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -71,8 +70,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     code: true,
     imageGen: true
   });
-  const [editingImage, setEditingImage] = useState<{ url: string; originalPrompt: string } | null>(null);
-  const [editPrompt, setEditPrompt] = useState('');
   
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -661,24 +658,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     } finally {
       setIsGeneratingImage(false);
     }
-  };
-
-  const handleImageClick = (imageUrl: string, originalPrompt: string) => {
-    setEditingImage({ url: imageUrl, originalPrompt });
-    setEditPrompt('');
-  };
-
-  const handleEditImageSubmit = async () => {
-    if (!editPrompt.trim() || !editingImage || !currentSession) return;
-    
-    // Set the clicked image as reference
-    setReferenceImage(editingImage.url);
-    
-    // Close the dialog
-    setEditingImage(null);
-    
-    // Generate new image with the edit prompt
-    await generateImage(editPrompt);
   };
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
@@ -1457,11 +1436,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20 p-1">
                                   <img src={vithalLogo} alt="Vithal AI" className="w-full h-full object-contain" />
                                 </div>
-                                 <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
-                                  <ChatMessageRenderer 
-                                    content={msg.response} 
-                                    onImageClick={(url) => handleImageClick(url, msg.message)}
-                                  />
+                                <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
+                                  <ChatMessageRenderer content={msg.response} />
                                   <div className="flex items-center justify-between mt-3">
                                     <div className="text-xs text-purple-400/70">
                                       {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -2000,78 +1976,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
         <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
-        
-        {/* Image Edit Dialog */}
-        <Dialog open={!!editingImage} onOpenChange={(open) => !open && setEditingImage(null)}>
-          <DialogContent className="sm:max-w-[600px] bg-gradient-to-br from-background via-background to-purple-950/20 border-purple-500/20">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-semibold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-                Edit Image
-              </DialogTitle>
-            </DialogHeader>
-            
-            {editingImage && (
-              <div className="space-y-4">
-                {/* Original Image */}
-                <div className="rounded-lg overflow-hidden border border-purple-500/30">
-                  <img 
-                    src={editingImage.url} 
-                    alt="Original" 
-                    className="w-full h-auto max-h-[300px] object-contain bg-black/20"
-                  />
-                </div>
-                
-                {/* Original Prompt */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-purple-400">Original Prompt:</label>
-                  <p className="text-sm text-muted-foreground bg-black/30 rounded-lg p-3 border border-purple-500/10">
-                    {editingImage.originalPrompt.replace('🎨 Generate image (realistic style): ', '').replace(/🎨 Generate image \(.*? style\): /, '')}
-                  </p>
-                </div>
-                
-                {/* Edit Prompt Input */}
-                <div className="space-y-2">
-                  <label htmlFor="edit-prompt" className="text-sm font-medium text-purple-400">
-                    New Prompt (describe changes):
-                  </label>
-                  <Textarea
-                    id="edit-prompt"
-                    value={editPrompt}
-                    onChange={(e) => setEditPrompt(e.target.value)}
-                    placeholder="E.g., 'make it sunset', 'add snow', 'change colors to blue and gold'..."
-                    className="min-h-[100px] bg-black/30 border-purple-500/30 focus:border-purple-500 resize-none"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && e.ctrlKey && editPrompt.trim()) {
-                        handleEditImageSubmit();
-                      }
-                    }}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Press Ctrl+Enter to submit
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            <DialogFooter className="gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setEditingImage(null)}
-                className="border-purple-500/30 hover:bg-purple-500/10"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleEditImageSubmit}
-                disabled={!editPrompt.trim()}
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Generate Edited Image
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </SidebarProvider>;
 };
