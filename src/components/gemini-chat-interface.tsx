@@ -521,7 +521,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
 
       canvas.width = img.width;
-      canvas.height = img.height + 60;
+      canvas.height = img.height + 80;
 
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -530,10 +530,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       const logoHeight = 40;
       const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
-      const logoX = (canvas.width - logoWidth) / 2;
-      const logoY = img.height + 10;
+      const logoX = 20;
+      const logoY = img.height + 20;
 
       ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+
+      // Add text watermark
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText('Vithal.Ai', logoX + logoWidth + 15, logoY + 15);
+      
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#666666';
+      ctx.fillText('https://vithalai.lovable.app', logoX + logoWidth + 15, logoY + 38);
 
       canvas.toBlob((blob) => {
         if (!blob) return;
@@ -572,7 +581,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           session_id: currentSession.id,
           user_id: user.id,
           message: `🎨 Generate image (${imageStyle} style): ${prompt}`,
-          message_type: 'text'
+          message_type: referenceImage ? 'image' : 'text',
+          image_data: referenceImage || null
         }])
         .select()
         .single();
@@ -1379,8 +1389,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
                       {messages.length === 0 && !isGeneratingImage && (
                         <div className="text-center py-8 md:py-16">
-                          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow">
-                            <Sparkles className="w-8 h-8 md:w-12 md:h-12 text-purple-400" />
+                          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow p-2">
+                            <img src={vithalLogo} alt="Vithal AI" className="w-full h-full object-contain" />
                           </div>
                           <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">Vithal AI Chitrakar</h2>
                           <p className="text-purple-400/70 text-sm md:text-lg mb-4 max-w-md mx-auto px-4">
@@ -1399,6 +1409,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           {/* User Request */}
                           <div className="flex justify-end">
                             <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 shadow-xl shadow-purple-500/30">
+                              {msg.image_data && (
+                                <div className="mb-3 rounded-lg overflow-hidden border border-white/20">
+                                  <img 
+                                    src={msg.image_data} 
+                                    alt="Reference" 
+                                    className="max-h-40 w-full object-contain bg-black/20"
+                                  />
+                                  <p className="text-xs opacity-70 mt-1 px-2 py-1">Reference image</p>
+                                </div>
+                              )}
                               <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                               <div className="text-xs opacity-70 mt-1">
                                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -1410,8 +1430,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           {msg.response && (
                             <div className="flex justify-start">
                               <div className="flex items-start gap-3 w-full">
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20">
-                                  <Sparkles className="w-6 h-6 text-purple-400" />
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20 p-1">
+                                  <img src={vithalLogo} alt="Vithal AI" className="w-full h-full object-contain" />
                                 </div>
                                 <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
                                   <ChatMessageRenderer content={msg.response} />
