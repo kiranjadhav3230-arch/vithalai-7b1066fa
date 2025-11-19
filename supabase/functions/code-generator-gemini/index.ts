@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, language, task } = await req.json();
-    console.log('Code generation request:', { language, task, promptLength: prompt?.length });
+    const { prompt, language, task, sourceLanguage, targetLanguage } = await req.json();
+    console.log('Code generation request:', { language, task, sourceLanguage, targetLanguage, promptLength: prompt?.length });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -63,7 +63,21 @@ INSTRUCTIONS:
 - Focus on: performance, readability, best practices, memory usage
 - Ensure the optimized code is complete and functional`;
     } else if (task === 'translate') {
-      systemPrompt = `You are an expert code translator.
+      // Check if this is human language translation or code translation
+      if (sourceLanguage && targetLanguage) {
+        // Human language translation
+        systemPrompt = `You are an expert translator.
+
+INSTRUCTIONS:
+- Translate the text from ${sourceLanguage} to ${targetLanguage}
+- Maintain the original meaning and context
+- Use natural, fluent language in ${targetLanguage}
+- Preserve any technical terms appropriately
+- Keep the tone and style consistent
+- Provide ONLY the translated text, no explanations`;
+      } else {
+        // Code translation (legacy support)
+        systemPrompt = `You are an expert code translator.
 
 INSTRUCTIONS:
 - Translate the provided code to ${language}
@@ -71,6 +85,7 @@ INSTRUCTIONS:
 - Use idiomatic ${language} patterns and syntax
 - Add comments explaining ${language}-specific features used
 - Ensure the translated code is complete and functional`;
+      }
     }
     
     systemPrompt += `\n\nGenerate clean, well-structured output with proper formatting.`;
@@ -129,7 +144,10 @@ INSTRUCTIONS:
     console.log('Code generation successful, length:', cleanCode.length);
 
     return new Response(
-      JSON.stringify({ code: cleanCode }),
+      JSON.stringify({ 
+        code: cleanCode,
+        translation: cleanCode // Support both for backwards compatibility
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
