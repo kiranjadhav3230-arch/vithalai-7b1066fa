@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Upload, FileText, Loader2, CheckCircle, AlertCircle, Send, MessageSquare } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,9 +18,6 @@ export const DocumentAnalyzer: React.FC<DocumentAnalyzerProps> = ({ user }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [documents, setDocuments] = useState<any[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
-  const [question, setQuestion] = useState('');
-  const [isAsking, setIsAsking] = useState(false);
-  const [qaHistory, setQaHistory] = useState<Array<{question: string, answer: string, references: string[], confidence: string}>>([]);
   const { toast } = useToast();
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,45 +129,6 @@ export const DocumentAnalyzer: React.FC<DocumentAnalyzerProps> = ({ user }) => {
     loadDocuments();
   }, [user]);
 
-  const handleAskQuestion = async () => {
-    if (!question.trim() || !selectedDocument) return;
-
-    setIsAsking(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('document-qa', {
-        body: {
-          documentId: selectedDocument.id,
-          question: question.trim()
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        setQaHistory([...qaHistory, {
-          question: data.question,
-          answer: data.answer,
-          references: data.references || [],
-          confidence: data.confidence || 'medium'
-        }]);
-        setQuestion('');
-        toast({
-          title: "Answer generated!",
-          description: "Your question has been answered based on the document."
-        });
-      }
-    } catch (error: any) {
-      console.error('Error asking question:', error);
-      toast({
-        title: "Failed to get answer",
-        description: error.message || "Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAsking(false);
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -274,11 +231,7 @@ export const DocumentAnalyzer: React.FC<DocumentAnalyzerProps> = ({ user }) => {
                     className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50 ${
                       selectedDocument?.id === doc.id ? 'bg-muted border-primary' : ''
                     }`}
-                    onClick={() => {
-                      setSelectedDocument(doc);
-                      setQaHistory([]);
-                      setQuestion('');
-                    }}
+                    onClick={() => setSelectedDocument(doc)}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
@@ -316,11 +269,10 @@ export const DocumentAnalyzer: React.FC<DocumentAnalyzerProps> = ({ user }) => {
           <CardContent>
             {selectedDocument && selectedDocument.analysis_result ? (
               <Tabs defaultValue="summary" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="summary">Summary</TabsTrigger>
                   <TabsTrigger value="questions">Questions</TabsTrigger>
                   <TabsTrigger value="topics">Topics</TabsTrigger>
-                  <TabsTrigger value="qa">Q&A</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="summary" className="space-y-4">
@@ -382,88 +334,6 @@ export const DocumentAnalyzer: React.FC<DocumentAnalyzerProps> = ({ user }) => {
                       </div>
                     </div>
                   )}
-                </TabsContent>
-
-                <TabsContent value="qa" className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2 flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4" />
-                        Ask Questions About This Document
-                      </h4>
-                      <p className="text-xs text-muted-foreground mb-4">
-                        Get AI-powered answers with references from the document
-                      </p>
-                    </div>
-
-                    {/* Q&A History */}
-                    <ScrollArea className="h-64 border rounded-lg p-3">
-                      {qaHistory.length > 0 ? (
-                        <div className="space-y-4">
-                          {qaHistory.map((qa, index) => (
-                            <div key={index} className="space-y-2">
-                              <div className="bg-primary/10 p-3 rounded-lg">
-                                <p className="text-sm font-medium">Q: {qa.question}</p>
-                              </div>
-                              <div className="bg-muted/50 p-3 rounded-lg space-y-2">
-                                <p className="text-sm">{qa.answer}</p>
-                                {qa.references.length > 0 && (
-                                  <div className="pt-2 border-t">
-                                    <p className="text-xs font-semibold mb-1">References:</p>
-                                    <ul className="text-xs text-muted-foreground space-y-1">
-                                      {qa.references.map((ref, idx) => (
-                                        <li key={idx}>• {ref}</li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                                <Badge variant="outline" className="text-xs">
-                                  Confidence: {qa.confidence}
-                                </Badge>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
-                          No questions asked yet. Type your question below!
-                        </div>
-                      )}
-                    </ScrollArea>
-
-                    {/* Question Input */}
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Ask a question about this document..."
-                        value={question}
-                        onChange={(e) => setQuestion(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && !isAsking) {
-                            handleAskQuestion();
-                          }
-                        }}
-                        disabled={isAsking || !selectedDocument.document_text}
-                        className="flex-1"
-                      />
-                      <Button
-                        onClick={handleAskQuestion}
-                        disabled={isAsking || !question.trim() || !selectedDocument.document_text}
-                        size="icon"
-                      >
-                        {isAsking ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-
-                    {!selectedDocument.document_text && (
-                      <p className="text-xs text-amber-600">
-                        Document content not available. Please re-upload this document to enable Q&A.
-                      </p>
-                    )}
-                  </div>
                 </TabsContent>
               </Tabs>
             ) : (
