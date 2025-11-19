@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User as UserIcon, Mail, GraduationCap, Brain, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { User as UserIcon, Mail, GraduationCap, Brain, Heart, Edit2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
 interface ProfileModalProps {
@@ -12,9 +17,53 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user }) => {
+  const { toast } = useToast();
+  const [showChangeEmail, setShowChangeEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  
   const userMetadata = user.user_metadata || {};
   const skills = userMetadata.skills ? userMetadata.skills.split(',').map((s: string) => s.trim()) : [];
   const interests = userMetadata.interests ? userMetadata.interests.split(',').map((i: string) => i.trim()) : [];
+
+  const handleChangeEmail = async () => {
+    if (!newEmail || !newEmail.includes('@')) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Email",
+        description: "Please enter a valid email address."
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.message
+        });
+      } else {
+        toast({
+          title: "Email Update Initiated",
+          description: "Please check both your old and new email addresses to confirm the change."
+        });
+        setShowChangeEmail(false);
+        setNewEmail('');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Something went wrong. Please try again."
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -92,10 +141,59 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
           </div>
 
           {/* Account Info */}
-          <div className="pt-4 border-t">
+          <div className="pt-4 border-t space-y-4">
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Account created: {new Date(user.created_at).toLocaleDateString()}</p>
               <p>Last sign in: {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Never'}</p>
+            </div>
+
+            {/* Change Email Section */}
+            <div className="space-y-2">
+              {showChangeEmail ? (
+                <div className="space-y-2">
+                  <Label htmlFor="new-email" className="text-sm font-medium">
+                    New Email Address
+                  </Label>
+                  <Input
+                    id="new-email"
+                    type="email"
+                    placeholder="Enter new email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleChangeEmail} 
+                      disabled={loading || !newEmail}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      {loading ? "Updating..." : "Update Email"}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowChangeEmail(false);
+                        setNewEmail('');
+                      }}
+                      size="sm"
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowChangeEmail(true)}
+                  size="sm"
+                  className="w-full"
+                >
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Change Email
+                </Button>
+              )}
             </div>
           </div>
         </div>
