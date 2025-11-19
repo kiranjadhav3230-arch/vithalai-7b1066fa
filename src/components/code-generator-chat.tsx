@@ -33,30 +33,12 @@ const PROGRAMMING_LANGUAGES = [
   { value: 'css', label: 'CSS' },
 ];
 
-const HUMAN_LANGUAGES = [
-  { value: 'en', label: 'English' },
-  { value: 'hi', label: 'Hindi (हिन्दी)' },
-  { value: 'mr', label: 'Marathi (मराठी)' },
-  { value: 'es', label: 'Spanish (Español)' },
-  { value: 'fr', label: 'French (Français)' },
-  { value: 'de', label: 'German (Deutsch)' },
-  { value: 'zh', label: 'Chinese (中文)' },
-  { value: 'ja', label: 'Japanese (日本語)' },
-  { value: 'ko', label: 'Korean (한국어)' },
-  { value: 'ar', label: 'Arabic (العربية)' },
-  { value: 'pt', label: 'Portuguese (Português)' },
-  { value: 'ru', label: 'Russian (Русский)' },
-  { value: 'it', label: 'Italian (Italiano)' },
-  { value: 'bn', label: 'Bengali (বাংলা)' },
-  { value: 'ta', label: 'Tamil (தமிழ்)' },
-];
-
 const CODE_TASKS = [
   { value: 'generate', label: 'Generate' },
   { value: 'explain', label: 'Explain' },
   { value: 'fix', label: 'Fix Bugs' },
   { value: 'optimize', label: 'Optimize' },
-  { value: 'translate', label: 'Translate Languages' },
+  { value: 'translate', label: 'Translate Code' },
 ];
 
 interface Message {
@@ -80,8 +62,8 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
-  const [sourceLanguage, setSourceLanguage] = useState('en');
-  const [targetLanguage, setTargetLanguage] = useState('hi');
+  const [sourceLanguage, setSourceLanguage] = useState('javascript');
+  const [targetLanguage, setTargetLanguage] = useState('python');
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -185,16 +167,16 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
           {selectedTask === 'translate' ? (
             <>
               <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                <SelectTrigger className="w-40 h-8"><SelectValue placeholder="From Language" /></SelectTrigger>
+                <SelectTrigger className="w-32 h-8"><SelectValue placeholder="From" /></SelectTrigger>
                 <SelectContent className="bg-background z-50 max-h-[300px]">
-                  {HUMAN_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                 </SelectContent>
               </Select>
               <span className="flex items-center text-muted-foreground">→</span>
               <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                <SelectTrigger className="w-40 h-8"><SelectValue placeholder="To Language" /></SelectTrigger>
+                <SelectTrigger className="w-32 h-8"><SelectValue placeholder="To" /></SelectTrigger>
                 <SelectContent className="bg-background z-50 max-h-[300px]">
-                  {HUMAN_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </>
@@ -252,7 +234,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
           <Textarea 
             value={input} 
             onChange={e => setInput(e.target.value)} 
-            placeholder={selectedTask === 'translate' ? "Enter text to translate..." : "Describe what you want to build..."} 
+            placeholder={selectedTask === 'translate' ? "Paste code to translate..." : "Describe what you want to build..."} 
             className="min-h-[80px]" 
             onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} 
           />
