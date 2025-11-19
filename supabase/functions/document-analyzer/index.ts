@@ -116,12 +116,13 @@ Please format your response as JSON with the following structure:
       };
     }
 
-    // Update document with analysis results
+    // Update document with analysis results and store document text
     const { error: updateError } = await supabaseClient
       .from('documents')
       .update({ 
         analysis_status: 'completed',
-        analysis_result: analysisResult
+        analysis_result: analysisResult,
+        document_text: documentText
       })
       .eq('id', documentId);
 
