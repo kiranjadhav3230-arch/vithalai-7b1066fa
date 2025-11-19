@@ -569,16 +569,36 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
 
   const generateImage = async (prompt: string) => {
-    if (!currentSession) return;
-    
     setIsGeneratingImage(true);
     
     try {
+      // Ensure we have an imageGen session
+      let imageGenSession = currentSession;
+      
+      if (!currentSession || currentSession.session_type !== 'imageGen') {
+        // Create a new imageGen session if current session is not imageGen
+        const { data, error } = await supabase
+          .from('chat_sessions')
+          .insert({
+            user_id: user.id,
+            title: '🎨 New Image Session',
+            session_type: 'imageGen'
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        imageGenSession = data as ChatSession;
+        setChatSessions(prev => [imageGenSession, ...prev]);
+        setCurrentSession(imageGenSession);
+        setMessages([]);
+      }
+      
       // Add user message with image generation request
       const { data: userMessageData, error: userMessageError } = await supabase
         .from('chat_messages')
         .insert([{
-          session_id: currentSession.id,
+          session_id: imageGenSession.id,
           user_id: user.id,
           message: `🎨 Generate image (${imageStyle} style): ${prompt}`,
           message_type: referenceImage ? 'image' : 'text',
@@ -623,11 +643,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       if (responseError) throw responseError;
 
-      await loadMessages(currentSession.id);
+      await loadMessages(imageGenSession.id);
       
       // Generate smart title for first message in session
       if (messages.length === 0) {
-        await generateSmartSessionTitle(currentSession.id, `🎨 Generate image: ${prompt}`, responseContent);
+        await generateSmartSessionTitle(imageGenSession.id, `🎨 Generate image: ${prompt}`, responseContent);
       }
       
       // Clear reference image after generation
