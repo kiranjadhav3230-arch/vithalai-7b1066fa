@@ -280,7 +280,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
 
-  const toggleTab = (type: 'chat' | 'code' | 'imageGen') => {
+  const toggleTab = (type: 'chat' | 'code' | 'imageGen' | 'documentQA') => {
     setCollapsedTabs(prev => ({ ...prev, [type]: !prev[type] }));
     triggerHaptic();
   };
@@ -1062,6 +1062,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <ImageIcon className="h-4 w-4 mr-2 text-orange-400" />
                 New Image Session
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => createNewSession('documentQA')} className="cursor-pointer hover:bg-orange-500/10">
+                <FileText className="h-4 w-4 mr-2 text-blue-400" />
+                New Document Q&A
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -1084,15 +1088,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         <ScrollArea className="flex-1">
           <SidebarContent>
             {/* Recent Chats with Collapsible Tabs */}
-            {['chat', 'code', 'imageGen'].map(type => {
+            {['chat', 'code', 'imageGen', 'documentQA'].map(type => {
               const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
-              const labels = { chat: '💬 Chats', code: '💻 Codes', imageGen: '🎨 Chitrakar' };
+              const labels = { chat: '💬 Chats', code: '💻 Codes', imageGen: '🎨 Chitrakar', documentQA: '📄 Documents' };
               const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
               
               return (
                 <SidebarGroup key={type} className="mb-2">
                   <SidebarGroupLabel 
-                    onClick={() => toggleTab(type as 'chat' | 'code' | 'imageGen')}
+                    onClick={() => toggleTab(type as 'chat' | 'code' | 'imageGen' | 'documentQA')}
                     className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between"
                   >
                     <span>{labels[type as keyof typeof labels]} ({sessions.length})</span>
