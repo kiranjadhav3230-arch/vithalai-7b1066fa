@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square, FileText } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,7 @@ import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
+import { DocumentAnalyzer } from './document-analyzer';
 import type { User } from '@supabase/supabase-js';
 interface ChatSession {
   id: string;
@@ -25,7 +26,7 @@ interface ChatSession {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
-  session_type?: 'chat' | 'code' | 'imageGen';
+  session_type?: 'chat' | 'code' | 'imageGen' | 'documentQA';
 }
 interface ChatMessage {
   id: string;
@@ -58,7 +59,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'imageGen'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'imageGen', 'documentQA'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -67,10 +68,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [previousStyle, setPreviousStyle] = useState<string>('realistic');
   const [lastGeneratedImage, setLastGeneratedImage] = useState<string | null>(null);
   const [useLastImageForEdit, setUseLastImageForEdit] = useState(false);
-  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean }>({
+  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean; documentQA: boolean }>({
     chat: true,
     code: true,
-    imageGen: true
+    imageGen: true,
+    documentQA: true
   });
   
   // Haptic feedback for mobile devices
@@ -205,12 +207,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       console.error('Error loading messages:', error);
     }
   };
-  const createNewSession = async (sessionType: 'chat' | 'code' | 'imageGen' = 'chat') => {
+  const createNewSession = async (sessionType: 'chat' | 'code' | 'imageGen' | 'documentQA' = 'chat') => {
     try {
       const titles = {
         chat: 'New Chat',
         code: '💻 New Code Session',
-        imageGen: '🎨 New Image Session'
+        imageGen: '🎨 New Image Session',
+        documentQA: '📄 New Document Q&A'
       };
       
       const {
@@ -1310,16 +1313,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 3)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      width: 'calc((100% - 0.25rem) / 4)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'imageGen' ? 2 : 3})`,
                       background: currentView === 'imageGen' 
                         ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
+                        : currentView === 'documentQA'
+                        ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)'
                         : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
                       boxShadow: currentView === 'imageGen'
                         ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
+                        : currentView === 'documentQA'
+                        ? '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(59, 130, 246, 0.3)'
                         : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
@@ -1349,12 +1356,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('documentQA'); }} 
+                    size="sm" 
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'documentQA' ? 'text-white' : 'text-orange-400/50'}`}
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
 
                 {/* New Chat Button */}
                 <Button
                   onClick={() => {
-                    const sessionType = currentView === 'code' ? 'code' : currentView === 'imageGen' ? 'imageGen' : 'chat';
+                    const sessionType = currentView === 'code' ? 'code' : currentView === 'imageGen' ? 'imageGen' : currentView === 'documentQA' ? 'documentQA' : 'chat';
                     createNewSession(sessionType);
                   }}
                   size="sm"
@@ -1678,6 +1693,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 </div>
               </div>
             </>
+          ) : currentView === 'documentQA' ? (
+            <div className="flex-1 overflow-auto">
+              <DocumentAnalyzer user={user} />
+            </div>
           ) : (
             <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
