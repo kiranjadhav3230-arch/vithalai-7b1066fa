@@ -589,7 +589,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       if (userMessageError) throw userMessageError;
 
-      // Reload messages to show user request
+      // Immediately add message to state so image shows right away
+      setMessages(prev => [...prev, userMessageData]);
+      
+      // Also reload from database to ensure consistency
       await loadMessages(currentSession.id);
 
       // Call image generation function with style preset and language support
