@@ -192,6 +192,7 @@ export type Database = {
           analysis_result: Json | null
           analysis_status: string | null
           created_at: string
+          document_text: string | null
           file_size: number | null
           file_url: string
           id: string
@@ -204,6 +205,7 @@ export type Database = {
           analysis_result?: Json | null
           analysis_status?: string | null
           created_at?: string
+          document_text?: string | null
           file_size?: number | null
           file_url: string
           id?: string
@@ -216,6 +218,7 @@ export type Database = {
           analysis_result?: Json | null
           analysis_status?: string | null
           created_at?: string
+          document_text?: string | null
           file_size?: number | null
           file_url?: string
           id?: string
@@ -715,6 +718,39 @@ export type Database = {
           icon_url?: string | null
           id?: string
           metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_bans: {
+        Row: {
+          ban_reason: string
+          banned_at: string
+          banned_by: string | null
+          created_at: string
+          id: string
+          unban_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ban_reason?: string
+          banned_at?: string
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          unban_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ban_reason?: string
+          banned_at?: string
+          banned_by?: string | null
+          created_at?: string
+          id?: string
+          unban_date?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

@@ -33,6 +33,30 @@ const Index = () => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Check for ban status when user signs in
+        if (session?.user) {
+          setTimeout(() => {
+            supabase
+              .from('user_bans')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single()
+              .then(({ data: banData }) => {
+                if (banData) {
+                  // User is banned, logout immediately
+                  supabase.auth.signOut();
+                  
+                  const unbanMessage = banData.unban_date 
+                    ? ` This account will be unblocked on ${new Date(banData.unban_date).toLocaleDateString()}.`
+                    : ' Please contact support for more information.';
+                  
+                  alert(`You are blocked by Vithal AI Team due to: ${banData.ban_reason}.${unbanMessage}`);
+                }
+              });
+          }, 0);
+        }
+        
         if (!initialLoading) {
           setLoading(false);
         }
