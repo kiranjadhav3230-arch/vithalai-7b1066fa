@@ -23,9 +23,9 @@ serve(async (req) => {
 
     console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'style:', style, 'with reference:', !!imageUrl);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     // Style presets mapping
@@ -54,36 +54,70 @@ serve(async (req) => {
       enhancedPrompt = `${prompt}. Style: ${stylePrompt}.`;
     }
 
-    // Prepare message content for image generation or editing
-    const messageContent: any = imageUrl 
-      ? [
-          { type: 'text', text: enhancedPrompt },
-          { type: 'image_url', image_url: { url: imageUrl } }
-        ]
-      : enhancedPrompt;
+    // Use Gemini 2.5 Flash for image generation
+    const geminiUrl = imageUrl
+      ? `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`
+      : `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`;
 
-    // Call Lovable AI Gateway for image generation/editing
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-pro-image-preview',
-        messages: [
+    let requestBody: any;
+
+    if (imageUrl) {
+      // Image editing with Gemini 2.5 Flash (multimodal)
+      // Extract base64 from data URL if present
+      const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+      const imageData = base64Match ? base64Match[2] : imageUrl;
+      const mimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
+
+      requestBody = {
+        contents: [
           {
-            role: 'user',
-            content: messageContent
+            parts: [
+              { text: enhancedPrompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: imageData
+                }
+              }
+            ]
           }
         ],
-        modalities: ['image', 'text']
-      }),
+        generationConfig: {
+          temperature: 0.8,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
+      };
+    } else {
+      // Image generation with Imagen
+      requestBody = {
+        instances: [
+          {
+            prompt: enhancedPrompt
+          }
+        ],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1",
+          negativePrompt: "blurry, low quality, distorted, ugly",
+          safetyFilterLevel: "block_medium_and_above",
+          personGeneration: "allow_adult"
+        }
+      };
+    }
+
+    const response = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -91,33 +125,36 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
-      throw new Error(`AI Gateway error: ${response.status} ${errorText}`);
+      throw new Error(`Gemini API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
     console.log('Image generation/editing response received');
 
-    // Extract the generated image
-    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    const textResponse = data.choices?.[0]?.message?.content;
+    let generatedImageUrl: string;
+    let textResponse = 'Image generated successfully';
 
-    if (!generatedImageUrl) {
-      console.error('No image URL in response:', JSON.stringify(data));
-      throw new Error('No image generated');
+    if (imageUrl) {
+      // Response from Gemini 2.5 Flash (multimodal editing)
+      textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || textResponse;
+      // For image editing, Gemini returns text descriptions, not images
+      // We'll return the original image with the description
+      generatedImageUrl = imageUrl;
+    } else {
+      // Response from Imagen (generation)
+      const imageBytes = data.predictions?.[0]?.bytesBase64Encoded;
+      if (!imageBytes) {
+        console.error('No image in response:', JSON.stringify(data));
+        throw new Error('No image generated');
+      }
+      generatedImageUrl = `data:image/png;base64,${imageBytes}`;
     }
 
     return new Response(
       JSON.stringify({ 
         imageUrl: generatedImageUrl,
-        description: textResponse || 'Image generated successfully'
+        description: textResponse
       }),
       { 
         status: 200, 
