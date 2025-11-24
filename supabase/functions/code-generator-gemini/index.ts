@@ -15,9 +15,9 @@ serve(async (req) => {
     const { prompt, language, task, sourceLanguage, targetLanguage, attachments } = await req.json();
     console.log('Code generation request:', { language, task, sourceLanguage, targetLanguage, promptLength: prompt?.length, attachments: attachments?.length });
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     // Build task-specific system prompt
@@ -92,71 +92,69 @@ INSTRUCTIONS:
     systemPrompt += `\n\nGenerate clean, well-structured output with proper formatting.`;
 
     // Build user message with attachments if provided
-    let userMessage: any = { role: 'user', content: [] };
+    let contentParts: any[] = [];
     
+    if (prompt) {
+      contentParts.push({ text: prompt });
+    } else if (attachments && attachments.length > 0) {
+      contentParts.push({ text: 'Generate code based on the attached image/design.' });
+    }
+    
+    // Add image attachments
     if (attachments && attachments.length > 0) {
-      // Add text prompt
-      if (prompt) {
-        userMessage.content.push({ type: 'text', text: prompt });
-      } else {
-        userMessage.content.push({ type: 'text', text: 'Generate code based on the attached image/design.' });
-      }
-      
-      // Add image attachments
       for (const att of attachments) {
         if (att.type === 'image') {
-          // Extract base64 data and mime type
+          // Extract base64 data
           const matches = att.data.match(/^data:([^;]+);base64,(.+)$/);
           if (matches) {
-            userMessage.content.push({
-              type: 'image_url',
-              image_url: { url: att.data }
+            contentParts.push({
+              inline_data: {
+                mime_type: matches[1],
+                data: matches[2]
+              }
             });
           }
         }
       }
-    } else {
-      // Simple text message
-      userMessage = { role: 'user', content: prompt };
     }
 
     const response = await fetch(
-      'https://ai.gateway.lovable.dev/v1/chat/completions',
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-3-pro-preview',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            userMessage
-          ],
-          max_tokens: 16000, // Increased to allow complete code generation
+          contents: [{
+            parts: [
+              { text: systemPrompt },
+              ...contentParts
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 16000,
+          }
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         throw new Error('Rate limit exceeded. Please try again in a few moments.');
       }
-      if (response.status === 402) {
-        throw new Error('Payment required. Please add credits to your Lovable AI workspace.');
-      }
       
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('AI response received');
+    console.log('Gemini response received');
 
-    const generatedCode = data.choices?.[0]?.message?.content || '';
+    const generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
     if (!generatedCode) {
       throw new Error('No code generated from Gemini API');

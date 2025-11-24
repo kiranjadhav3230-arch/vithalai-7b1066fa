@@ -16,21 +16,19 @@ serve(async (req) => {
     const { prompt, language = 'javascript', task = 'generate' } = await req.json();
     console.log(`Code generation request: ${task} in ${language}`);
 
-    const hfToken = Deno.env.get('HF_API_TOKEN');
-    if (!hfToken) {
-      throw new Error('HF_API_TOKEN not found');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY not found');
     }
 
-    let model = 'bigcode/starcoder2-3b';
     let systemPrompt = '';
 
-    // Configure model and prompt based on task
+    // Configure prompt based on task
     switch (task) {
       case 'generate':
         systemPrompt = `You are an expert ${language} programmer. Generate clean, efficient, and well-commented code based on the user's request. Only return the code without explanations.`;
         break;
       case 'explain':
-        model = 'microsoft/DialoGPT-medium';
         systemPrompt = `You are a code tutor. Explain the provided ${language} code clearly and concisely, breaking down what each part does.`;
         break;
       case 'fix':
@@ -46,55 +44,44 @@ serve(async (req) => {
         systemPrompt = `You are a helpful ${language} programming assistant.`;
     }
 
-    const response = await fetch(`https://api-inference.huggingface.co/models/${model}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${hfToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: `${systemPrompt}\n\nUser request: ${prompt}`,
-        parameters: {
-          max_new_tokens: 1000,
-          temperature: 0.1,
-          do_sample: true,
-          top_p: 0.95,
-          return_full_text: false
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        options: {
-          wait_for_model: true
-        }
-      }),
-    });
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nUser request: ${prompt}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 8000,
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Hugging Face API error:', errorText);
+      console.error('Gemini API error:', errorText);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log('HF Response:', result);
+    console.log('Gemini Response received');
 
-    let generatedCode = '';
-    if (Array.isArray(result) && result.length > 0) {
-      generatedCode = result[0].generated_text || result[0].text || '';
-    } else if (result.generated_text) {
-      generatedCode = result.generated_text;
-    } else {
-      throw new Error('Unexpected response format from Hugging Face');
-    }
+    const generatedCode = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // Clean up the generated code
-    generatedCode = generatedCode.trim();
-    
-    // Remove system prompt if it appears in response
-    if (generatedCode.includes(systemPrompt)) {
-      generatedCode = generatedCode.replace(systemPrompt, '').trim();
+    if (!generatedCode) {
+      throw new Error('No code generated from Gemini API');
     }
 
     return new Response(JSON.stringify({ 
-      code: generatedCode,
+      code: generatedCode.trim(),
       language,
       task
     }), {

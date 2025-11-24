@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     
-    if (!OPENAI_API_KEY) {
+    if (!GEMINI_API_KEY) {
       return new Response(JSON.stringify({ 
         error: 'API key missing',
-        response: 'OpenAI API key not configured'
+        response: 'Gemini API key not configured'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -26,18 +26,16 @@ serve(async (req) => {
 
     const { message, language = 'en', userProfile = null } = await req.json();
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: `You are Vithal AI Assistant, a helpful career guidance counselor for Indian students. 
+    const profileText = userProfile ? `
+    User Profile:
+    - Name: ${userProfile.name || userProfile.display_name || userProfile.email?.split('@')[0] || 'दोस्त'}
+    - Education: ${userProfile.education || 'Not specified'}
+    - Skills: ${userProfile.skills?.join?.(', ') || userProfile.skills || 'Not specified'}
+    - Interests: ${userProfile.interests?.join?.(', ') || userProfile.interests || 'Not specified'}
+    - Experience: ${userProfile.experience || 'Not specified'}
+    ` : '';
+
+    const systemPrompt = `You are Vithal AI Assistant, a helpful career guidance counselor for Indian students. 
             
 **LANGUAGE SUPPORT:**
 - Always respond in the user's preferred language (English, Hindi, or Marathi)
@@ -61,19 +59,33 @@ serve(async (req) => {
 - Keep responses concise but comprehensive
 - Use appropriate greetings like "Namaste" when suitable
 
-${userProfile ? `**USER PROFILE:**\n${JSON.stringify(userProfile, null, 2)}` : ''}` 
-          },
-          { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
+${profileText}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nUser: ${message}`
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2048,
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
       return new Response(JSON.stringify({ 
-        error: `OpenAI API error: ${response.status}`,
+        error: `Gemini API error: ${response.status}`,
         response: 'Sorry, there was an error with the AI service.'
       }), {
         status: 200,
@@ -82,7 +94,7 @@ ${userProfile ? `**USER PROFILE:**\n${JSON.stringify(userProfile, null, 2)}` : '
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, no response generated.';
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, no response generated.';
 
     return new Response(JSON.stringify({ 
       response: aiResponse,
