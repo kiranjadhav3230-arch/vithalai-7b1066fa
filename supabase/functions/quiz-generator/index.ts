@@ -35,10 +35,10 @@ serve(async (req) => {
 
     console.log(`Generating quiz for topic: ${topic}, difficulty: ${difficulty}, questions: ${questionCount}`);
 
-    // Generate quiz with Gemini
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not set');
+    // Generate quiz with Gemini 3.0 via Lovable AI Gateway
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not set');
     }
 
     const difficultyLevel = difficulty || 'medium';
@@ -72,24 +72,20 @@ Format your response as JSON:
 }`;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 3000,
-          }
+          model: 'google/gemini-3-pro-preview',
+          messages: [
+            { role: 'system', content: 'You are an expert quiz creator. Always return valid JSON in the exact format requested.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 3000,
         }),
       }
     );
@@ -99,9 +95,9 @@ Format your response as JSON:
     }
 
     const geminiData = await geminiResponse.json();
-    console.log('Gemini response received');
+    console.log('Gemini 3.0 response received');
 
-    const quizText = geminiData.candidates[0].content.parts[0].text;
+    const quizText = geminiData.choices?.[0]?.message?.content || '';
     
     // Parse the quiz JSON
     let quizData;

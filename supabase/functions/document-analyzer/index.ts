@@ -41,10 +41,10 @@ serve(async (req) => {
       .update({ analysis_status: 'analyzing' })
       .eq('id', documentId);
 
-    // Analyze document with Gemini
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not set');
+    // Analyze document with Gemini 3.0 via Lovable AI Gateway
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not set');
     }
 
     const prompt = `
@@ -70,24 +70,20 @@ Please format your response as JSON with the following structure:
 }`;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.3,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          }
+          model: 'google/gemini-3-pro-preview',
+          messages: [
+            { role: 'system', content: 'You are an expert document analyzer. Always return valid JSON in the exact format requested.' },
+            { role: 'user', content: prompt }
+          ],
+          max_tokens: 2048,
         }),
       }
     );
@@ -97,9 +93,9 @@ Please format your response as JSON with the following structure:
     }
 
     const geminiData = await geminiResponse.json();
-    console.log('Gemini response:', geminiData);
+    console.log('Gemini 3.0 response received');
 
-    const analysisText = geminiData.candidates[0].content.parts[0].text;
+    const analysisText = geminiData.choices?.[0]?.message?.content || '';
     
     // Try to parse as JSON, fallback to text
     let analysisResult;
