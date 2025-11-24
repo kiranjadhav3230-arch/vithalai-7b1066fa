@@ -242,7 +242,49 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     const fileName = `generated-code.${extension}`;
     
     try {
-      // Save the file
+      // Try File System Access API first (Chrome, Edge)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await (window as any).showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: 'Code File',
+              accept: { 'text/plain': [`.${extension}`] }
+            }]
+          });
+          
+          const writable = await handle.createWritable();
+          await writable.write(code);
+          await writable.close();
+          
+          // Copy to clipboard as backup
+          await navigator.clipboard.writeText(code);
+          
+          toast({
+            title: "File Saved Successfully",
+            description: "Now opening in VS Code Desktop. If it doesn't open automatically, right-click the file → 'Open with Code'",
+            duration: 6000,
+          });
+          
+          // Try to open with VS Code using the code:// protocol
+          // This works if VS Code is installed and registered as a URL handler
+          setTimeout(() => {
+            const vscodeUrl = `vscode://file${handle.name}`;
+            const link = document.createElement('a');
+            link.href = vscodeUrl;
+            link.click();
+          }, 500);
+          
+          return;
+        } catch (err) {
+          // User cancelled or API failed, fall through to download
+          if ((err as Error).name === 'AbortError') {
+            return; // User cancelled, don't show error
+          }
+        }
+      }
+      
+      // Fallback: Regular download
       const blob = new Blob([code], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -251,22 +293,36 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       
-      // Copy code to clipboard as backup
+      // Clean up and copy to clipboard
+      setTimeout(() => URL.revokeObjectURL(url), 100);
       await navigator.clipboard.writeText(code);
       
       toast({
         title: "File Downloaded",
-        description: `${fileName} saved to downloads. Right-click the file → "Open with Code" or drag it into VS Code Desktop.`,
+        description: `${fileName} saved to Downloads. To open: Right-click file → "Open with Code" or drag into VS Code window`,
         duration: 8000,
       });
+      
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to download file. Please copy the code manually.",
-        variant: "destructive",
-      });
+      console.error('Failed to save file:', error);
+      
+      // Last resort: just copy to clipboard
+      try {
+        await navigator.clipboard.writeText(code);
+        toast({
+          title: "Code Copied",
+          description: "Couldn't save file automatically. Code copied to clipboard - paste into VS Code",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } catch {
+        toast({
+          title: "Error",
+          description: "Failed to save or copy. Please select and copy the code manually.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
