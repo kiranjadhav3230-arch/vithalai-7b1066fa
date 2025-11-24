@@ -296,7 +296,7 @@ serve(async (req) => {
 
     // Build request body
     const requestBody: any = {
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-3-pro-preview",
       messages: messages,
       temperature: 0.7,
       max_tokens: 2048,
