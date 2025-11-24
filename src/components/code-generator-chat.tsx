@@ -147,14 +147,15 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
 
   const openInVSCodeWeb = async (code: string, language: string) => {
     const extension = getFileExtension(language);
-    const fileName = `code.${extension}`;
+    const fileName = `generated-code.${extension}`;
     
     try {
-      // Create a blob with the code
+      // Copy code to clipboard first
+      await navigator.clipboard.writeText(code);
+      
+      // Create and download the file
       const blob = new Blob([code], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      
-      // Create a temporary download link
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
@@ -163,24 +164,34 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      // Wait a moment for download to start
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Open VS Code Web
-      window.open('https://vscode.dev/', '_blank');
+      // Open VS Code Web immediately
+      setTimeout(() => {
+        window.open('https://vscode.dev/', '_blank');
+      }, 100);
       
       toast({
-        title: "File Downloaded & VS Code Opening",
-        description: "Drag the downloaded file into VS Code Web to open it",
+        title: "Opening VS Code Web",
+        description: `File downloaded as ${fileName}. Drag it into VS Code or press Ctrl+V to paste the code.`,
+        duration: 5000,
       });
     } catch (error) {
-      // Fallback to clipboard copy
-      navigator.clipboard.writeText(code);
-      window.open('https://vscode.dev/', '_blank');
-      toast({
-        title: "VS Code Web Opening",
-        description: "Code copied! Create new file and paste (Ctrl+V)",
-      });
+      // Fallback
+      try {
+        await navigator.clipboard.writeText(code);
+        window.open('https://vscode.dev/', '_blank');
+        toast({
+          title: "Code Copied",
+          description: "VS Code Web opened. Press Ctrl+N for new file, then Ctrl+V to paste.",
+          duration: 5000,
+        });
+      } catch {
+        window.open('https://vscode.dev/', '_blank');
+        toast({
+          title: "VS Code Web Opened",
+          description: "Please manually copy the code above.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
