@@ -145,13 +145,43 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     return extensions[language] || 'txt';
   };
 
-  const openInVSCodeWeb = (code: string, language: string) => {
-    navigator.clipboard.writeText(code);
-    window.open('https://vscode.dev/', '_blank');
-    toast({
-      title: "VS Code Web Opening",
-      description: "Code copied! Create new file and paste (Ctrl+V)",
-    });
+  const openInVSCodeWeb = async (code: string, language: string) => {
+    const extension = getFileExtension(language);
+    const fileName = `code.${extension}`;
+    
+    try {
+      // Create a blob with the code
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      
+      // Create a temporary download link
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      // Wait a moment for download to start
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Open VS Code Web
+      window.open('https://vscode.dev/', '_blank');
+      
+      toast({
+        title: "File Downloaded & VS Code Opening",
+        description: "Drag the downloaded file into VS Code Web to open it",
+      });
+    } catch (error) {
+      // Fallback to clipboard copy
+      navigator.clipboard.writeText(code);
+      window.open('https://vscode.dev/', '_blank');
+      toast({
+        title: "VS Code Web Opening",
+        description: "Code copied! Create new file and paste (Ctrl+V)",
+      });
+    }
   };
 
   const openInLocalVSCode = async (code: string, language: string) => {
