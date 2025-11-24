@@ -120,6 +120,34 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  const parseResponse = (text: string) => {
+    const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
+    const parts: Array<{ type: 'text' | 'code', content: string, language?: string }> = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        const textContent = text.substring(lastIndex, match.index).trim();
+        if (textContent) parts.push({ type: 'text', content: textContent });
+      }
+      const langMatch = text.substring(match.index, match.index + 10).match(/```(\w+)/);
+      parts.push({ 
+        type: 'code', 
+        content: match[1], 
+        language: langMatch ? langMatch[1] : selectedLanguage 
+      });
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      const textContent = text.substring(lastIndex).trim();
+      if (textContent) parts.push({ type: 'text', content: textContent });
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'code', content: text, language: selectedLanguage }];
+  };
+
   const handleSend = async () => {
     if (!input.trim() && attachments.length === 0) return;
 
@@ -155,14 +183,19 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
 
       if (error) throw error;
 
-      const aiMsg: Message = { 
-        id: Date.now().toString(), 
-        role: 'assistant', 
-        content: data.code || data.translation, 
-        isCode: selectedTask !== 'translate', 
-        language: selectedTask === 'translate' ? undefined : selectedLanguage 
-      };
-      setMessages(prev => [...prev, aiMsg]);
+      const responseText = data.code || data.translation;
+      const parsedParts = parseResponse(responseText);
+      
+      parsedParts.forEach((part, index) => {
+        const aiMsg: Message = { 
+          id: `${Date.now()}-${index}`, 
+          role: 'assistant', 
+          content: part.content, 
+          isCode: part.type === 'code', 
+          language: part.language || selectedLanguage 
+        };
+        setMessages(prev => [...prev, aiMsg]);
+      });
 
       if (currentSessionId) {
         await supabase.from('chat_messages').insert({
@@ -252,7 +285,13 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                           language={msg.language} 
                           style={vscDarkPlus} 
                           showLineNumbers={true}
-                          customStyle={{ margin: 0, fontSize: '13px', padding: '12px' }}
+                          customStyle={{ margin: 0, fontSize: '15px', padding: '14px', lineHeight: '1.6' }}
+                          codeTagProps={{
+                            style: {
+                              fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
+                              fontSize: '15px',
+                            }
+                          }}
                         >
                           {msg.content}
                         </SyntaxHighlighter>
