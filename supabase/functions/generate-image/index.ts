@@ -146,15 +146,15 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-      if (!imageUrl) {
+      const editedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!editedImageUrl) {
         console.error('No image in response:', JSON.stringify(data));
         throw new Error('No edited image generated');
       }
 
       return new Response(
         JSON.stringify({ 
-          imageUrl: imageUrl,
+          imageUrl: editedImageUrl,
           description: 'Image edited successfully'
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
