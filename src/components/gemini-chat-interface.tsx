@@ -457,6 +457,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       if (error) throw error;
 
+      // Check if the response contains an error from the edge function
+      if (data?.error) {
+        throw new Error(data.response || data.error);
+      }
+
       // Update message with response
       const { error: updateError } = await supabase
         .from('chat_messages')
@@ -483,10 +488,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
     } catch (error: any) {
       console.error('Error sending message:', error);
+      
+      // Check for specific rate limit error
+      const errorMessage = error.message || "Failed to send message. Please try again.";
+      const isRateLimit = errorMessage.toLowerCase().includes('rate limit');
+      
       toast({
         variant: "destructive",
-        title: "❌ Error",
-        description: error.message || "Failed to send message. Please try again."
+        title: isRateLimit ? "⏳ Rate Limit Reached" : "❌ Error",
+        description: isRateLimit 
+          ? "Your Gemini API key has reached its rate limit. Please wait 60 seconds before trying again, or upgrade your API quota at Google AI Studio."
+          : errorMessage,
+        duration: isRateLimit ? 10000 : 5000,
       });
     } finally {
       setLoading(false);
