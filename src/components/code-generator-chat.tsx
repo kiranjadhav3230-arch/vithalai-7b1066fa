@@ -242,33 +242,29 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     const fileName = `generated-code.${extension}`;
     
     try {
-      // First, save the file
+      // Save the file
       const blob = new Blob([code], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = fileName;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
       // Copy code to clipboard as backup
       await navigator.clipboard.writeText(code);
       
-      // Try to open VS Code Desktop
-      setTimeout(() => {
-        const vscodeUrl = `vscode://file/${fileName}`;
-        window.location.href = vscodeUrl;
-      }, 500);
-      
       toast({
-        title: "Opening VS Code Desktop",
-        description: `File downloaded as ${fileName}. If VS Code doesn't open automatically, locate the file and open it manually.`,
-        duration: 7000,
+        title: "File Downloaded",
+        description: `${fileName} saved to downloads. Right-click the file → "Open with Code" or drag it into VS Code Desktop.`,
+        duration: 8000,
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to open in VS Code Desktop. Please download and open manually.",
+        description: "Failed to download file. Please copy the code manually.",
         variant: "destructive",
       });
     }
