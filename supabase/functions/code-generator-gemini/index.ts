@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, language, task, sourceLanguage, targetLanguage } = await req.json();
-    console.log('Code generation request:', { language, task, sourceLanguage, targetLanguage, promptLength: prompt?.length });
+    const { prompt, language, task, sourceLanguage, targetLanguage, attachments } = await req.json();
+    console.log('Code generation request:', { language, task, sourceLanguage, targetLanguage, promptLength: prompt?.length, attachments: attachments?.length });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -91,6 +91,35 @@ INSTRUCTIONS:
     
     systemPrompt += `\n\nGenerate clean, well-structured output with proper formatting.`;
 
+    // Build user message with attachments if provided
+    let userMessage: any = { role: 'user', content: [] };
+    
+    if (attachments && attachments.length > 0) {
+      // Add text prompt
+      if (prompt) {
+        userMessage.content.push({ type: 'text', text: prompt });
+      } else {
+        userMessage.content.push({ type: 'text', text: 'Generate code based on the attached image/design.' });
+      }
+      
+      // Add image attachments
+      for (const att of attachments) {
+        if (att.type === 'image') {
+          // Extract base64 data and mime type
+          const matches = att.data.match(/^data:([^;]+);base64,(.+)$/);
+          if (matches) {
+            userMessage.content.push({
+              type: 'image_url',
+              image_url: { url: att.data }
+            });
+          }
+        }
+      }
+    } else {
+      // Simple text message
+      userMessage = { role: 'user', content: prompt };
+    }
+
     const response = await fetch(
       'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
@@ -103,7 +132,7 @@ INSTRUCTIONS:
           model: 'google/gemini-3-pro-preview',
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: prompt }
+            userMessage
           ],
           max_tokens: 4096,
         }),

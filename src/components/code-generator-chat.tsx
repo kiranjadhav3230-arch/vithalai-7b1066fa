@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2 } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, Image as ImageIcon, FileText } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -47,6 +47,7 @@ interface Message {
   content: string;
   language?: string;
   isCode: boolean;
+  attachments?: Array<{ type: 'image' | 'document'; data: string; name: string }>;
 }
 
 interface CodeGeneratorChatProps {
@@ -64,7 +65,9 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(sessionId || null);
   const [sourceLanguage, setSourceLanguage] = useState('javascript');
   const [targetLanguage, setTargetLanguage] = useState('python');
+  const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -91,12 +94,48 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     }
   };
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: input, isCode: false };
+    for (let i = 0; i < Math.min(files.length, 5); i++) {
+      const file = files[i];
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: "File too large", description: `${file.name} exceeds 10MB limit`, variant: "destructive" });
+        continue;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        const type = file.type.startsWith('image/') ? 'image' : 'document';
+        setAttachments(prev => [...prev, { type, data: result, name: file.name }]);
+      };
+      reader.readAsDataURL(file);
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSend = async () => {
+    if (!input.trim() && attachments.length === 0) return;
+
+    const userMsg: Message = { 
+      id: Date.now().toString(), 
+      role: 'user', 
+      content: input, 
+      isCode: false,
+      attachments: attachments.length > 0 ? [...attachments] : undefined
+    };
     setMessages(prev => [...prev, userMsg]);
+    
+    const currentInput = input;
+    const currentAttachments = [...attachments];
     setInput('');
+    setAttachments([]);
     setIsGenerating(true);
     setProgress(0);
 
@@ -104,8 +143,8 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
 
     try {
       const requestBody = selectedTask === 'translate' 
-        ? { prompt: input, task: selectedTask, sourceLanguage, targetLanguage }
-        : { prompt: input, language: selectedLanguage, task: selectedTask };
+        ? { prompt: currentInput, task: selectedTask, sourceLanguage, targetLanguage, attachments: currentAttachments }
+        : { prompt: currentInput, language: selectedLanguage, task: selectedTask, attachments: currentAttachments };
 
       const { data, error } = await supabase.functions.invoke('code-generator-gemini', {
         body: requestBody
@@ -219,7 +258,27 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                         </SyntaxHighlighter>
                       </div>
                     </div>
-                  ) : <div className="text-sm">{msg.content}</div>}
+                  ) : (
+                    <>
+                      <div className="text-sm">{msg.content}</div>
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {msg.attachments.map((att, i) => (
+                            <div key={i} className="relative">
+                              {att.type === 'image' ? (
+                                <img src={att.data} alt={att.name} className="max-w-[200px] rounded border" />
+                              ) : (
+                                <div className="flex items-center gap-2 border rounded p-2 bg-background/50">
+                                  <FileText className="w-4 h-4" />
+                                  <span className="text-xs">{att.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -230,17 +289,48 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       {isGenerating && <div className="px-4 py-2"><Progress value={progress} className="h-1" /></div>}
 
       <div className="border-t p-4">
-        <div className="flex gap-2 max-w-4xl mx-auto">
-          <Textarea 
-            value={input} 
-            onChange={e => setInput(e.target.value)} 
-            placeholder={selectedTask === 'translate' ? "Paste code to translate..." : "Describe what you want to build..."} 
-            className="min-h-[80px]" 
-            onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} 
-          />
-          <Button onClick={handleSend} disabled={isGenerating} className="h-auto">{isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</Button>
+        <div className="max-w-4xl mx-auto">
+          {attachments.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {attachments.map((att, i) => (
+                <div key={i} className="relative group">
+                  {att.type === 'image' ? (
+                    <div className="relative">
+                      <img src={att.data} alt={att.name} className="max-w-[120px] h-[120px] object-cover rounded border" />
+                      <Button size="sm" variant="destructive" onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100">
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 border rounded p-2 pr-8 bg-muted relative">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-xs max-w-[150px] truncate">{att.name}</span>
+                      <Button size="sm" variant="ghost" onClick={() => removeAttachment(i)} className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100">
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="flex gap-2">
+            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx" multiple className="hidden" />
+            <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isGenerating || attachments.length >= 5} className="h-auto">
+              <Paperclip className="w-4 h-4" />
+            </Button>
+            <Textarea 
+              value={input} 
+              onChange={e => setInput(e.target.value)} 
+              placeholder={selectedTask === 'translate' ? "Paste code to translate..." : "Describe what you want or attach a UI screenshot..."} 
+              className="min-h-[80px]" 
+              onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} 
+            />
+            <Button onClick={handleSend} disabled={isGenerating} className="h-auto">{isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</Button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1.5 text-center">Ctrl+Enter to send • Attach UI screenshots or designs (max 5 files, 10MB each)</p>
         </div>
-        <p className="text-xs text-muted-foreground mt-1.5 text-center">Ctrl+Enter to send</p>
       </div>
     </div>
   );
