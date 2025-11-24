@@ -153,10 +153,12 @@ export type Database = {
           created_at: string
           description: string | null
           generated_code: string
+          gist_url: string | null
           id: string
           is_favorite: boolean | null
           language: string
           prompt: string | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
@@ -165,10 +167,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           generated_code: string
+          gist_url?: string | null
           id?: string
           is_favorite?: boolean | null
           language?: string
           prompt?: string | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
@@ -177,10 +181,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           generated_code?: string
+          gist_url?: string | null
           id?: string
           is_favorite?: boolean | null
           language?: string
           prompt?: string | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string

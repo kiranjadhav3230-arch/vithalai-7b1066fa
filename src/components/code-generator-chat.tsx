@@ -7,7 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, Image as ImageIcon, FileText, Code2, FolderDown } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, Image as ImageIcon, FileText, Code2, FolderDown, BookOpen, Monitor } from 'lucide-react';
+import { CodeSnippetLibrary } from './code-snippet-library';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -67,6 +68,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [sourceLanguage, setSourceLanguage] = useState('javascript');
   const [targetLanguage, setTargetLanguage] = useState('python');
   const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
+  const [showLibrary, setShowLibrary] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -235,6 +237,70 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     }
   };
 
+  const openInVSCodeDesktop = async (code: string, language: string) => {
+    const extension = getFileExtension(language);
+    const fileName = `generated-code.${extension}`;
+    
+    try {
+      // First, save the file
+      const blob = new Blob([code], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      // Copy code to clipboard as backup
+      await navigator.clipboard.writeText(code);
+      
+      // Try to open VS Code Desktop
+      setTimeout(() => {
+        const vscodeUrl = `vscode://file/${fileName}`;
+        window.location.href = vscodeUrl;
+      }, 500);
+      
+      toast({
+        title: "Opening VS Code Desktop",
+        description: `File downloaded as ${fileName}. If VS Code doesn't open automatically, locate the file and open it manually.`,
+        duration: 7000,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to open in VS Code Desktop. Please download and open manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveSnippet = async (code: string, language: string) => {
+    const title = prompt("Enter a title for this snippet:");
+    if (!title) return;
+
+    const description = prompt("Enter a description (optional):");
+    const tagsInput = prompt("Enter tags separated by commas (optional):");
+    const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+    const { error } = await supabase
+      .from('code_snippets')
+      .insert({
+        user_id: user.id,
+        title,
+        description: description || null,
+        generated_code: code,
+        language,
+        tags: tags.length > 0 ? tags : null,
+      });
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to save snippet", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Success", description: "Snippet saved to library!" });
+  };
+
   const downloadAsProject = async (code: string, language: string) => {
     const zip = new JSZip();
     const extension = getFileExtension(language);
@@ -389,6 +455,15 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
           <Code className="w-5 h-5 text-primary" />
           <h2 className="font-semibold">Code Assistant</h2>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowLibrary(true)}
+          className="gap-2"
+        >
+          <BookOpen className="h-4 w-4" />
+          Library
+        </Button>
         <div className="flex gap-2 flex-wrap">
           <Select value={selectedTask} onValueChange={setSelectedTask}>
             <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
@@ -457,6 +532,14 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => openInVSCodeDesktop(msg.content, msg.language || 'javascript')}
+                        >
+                          <Monitor className="h-4 w-4 mr-2" />
+                          VS Code Desktop
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => openInLocalVSCode(msg.content, msg.language || 'javascript')}
                         >
                           <Download className="h-4 w-4 mr-2" />
@@ -469,6 +552,14 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                         >
                           <FolderDown className="h-4 w-4 mr-2" />
                           Project ZIP
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => saveSnippet(msg.content, msg.language || 'javascript')}
+                        >
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Save to Library
                         </Button>
                       </div>
                       <div className="rounded-lg overflow-hidden border">
@@ -563,6 +654,12 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
           <p className="text-xs text-muted-foreground mt-1.5 text-center">Ctrl+Enter to send • Attach UI screenshots or designs (max 5 files, 10MB each)</p>
         </div>
       </div>
+
+      <CodeSnippetLibrary
+        open={showLibrary}
+        onOpenChange={setShowLibrary}
+        user={user}
+      />
     </div>
   );
 };
