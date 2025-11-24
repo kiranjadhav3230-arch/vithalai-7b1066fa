@@ -134,7 +134,7 @@ INSTRUCTIONS:
             { role: 'system', content: systemPrompt },
             userMessage
           ],
-          max_tokens: 4096,
+          max_tokens: 16000, // Increased to allow complete code generation
         }),
       }
     );
@@ -162,14 +162,8 @@ INSTRUCTIONS:
       throw new Error('No code generated from Gemini API');
     }
 
-    // Clean up the code - remove markdown code blocks if present
-    let cleanCode = generatedCode.trim();
-    if (cleanCode.startsWith('```')) {
-      // Remove opening code fence
-      cleanCode = cleanCode.replace(/^```[\w]*\n/, '');
-      // Remove closing code fence
-      cleanCode = cleanCode.replace(/\n```$/, '');
-    }
+    // Keep the raw response with markdown - client will parse it
+    const cleanCode = generatedCode.trim();
 
     console.log('Code generation successful, length:', cleanCode.length);
 
