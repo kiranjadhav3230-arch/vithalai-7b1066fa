@@ -57,8 +57,8 @@ serve(async (req) => {
     if (imageUrl) {
       // Step 1: Use Gemini 2.5 Flash to analyze the image and create an enhanced prompt
       const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
-      const imageData = base64Match ? base64Match[2] : imageUrl;
-      const mimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
+      const inputImageData = base64Match ? base64Match[2] : imageUrl;
+      const inputMimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
 
       const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
       
@@ -73,8 +73,8 @@ serve(async (req) => {
               },
               {
                 inline_data: {
-                  mime_type: mimeType,
-                  data: imageData
+                  mime_type: inputMimeType,
+                  data: inputImageData
                 }
               }
             ]
@@ -143,15 +143,15 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      const imageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
-      const mimeTypeResponse = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
+      const generatedImageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
+      const generatedMimeType = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
       
-      if (!imageData) {
+      if (!generatedImageData) {
         console.error('No image in response:', JSON.stringify(data));
         throw new Error('No edited image generated');
       }
 
-      const editedImageUrl = `data:${mimeTypeResponse};base64,${imageData}`;
+      const editedImageUrl = `data:${generatedMimeType};base64,${generatedImageData}`;
 
       return new Response(
         JSON.stringify({ 
@@ -206,15 +206,15 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Image generation response received');
 
-    const imageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
-    const mimeType = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
+    const generatedImageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
+    const generatedMimeType = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
     
-    if (!imageData) {
+    if (!generatedImageData) {
       console.error('No image in response:', JSON.stringify(data));
       throw new Error('No image generated');
     }
 
-    const generatedImageUrl = `data:${mimeType};base64,${imageData}`;
+    const generatedImageUrl = `data:${generatedMimeType};base64,${generatedImageData}`;
 
     return new Response(
       JSON.stringify({ 
