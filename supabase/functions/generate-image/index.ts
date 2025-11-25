@@ -20,14 +20,14 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating image with OpenAI for prompt:', prompt, 'language:', language, 'style:', style);
+    console.log('Generating image with Gemini for prompt:', prompt, 'language:', language, 'style:', style);
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Style mapping for OpenAI
+    // Style mapping for image generation
     const styleInstructions: Record<string, string> = {
       realistic: 'ultra-realistic, photorealistic, highly detailed, professional photography, 8K resolution',
       cartoon: 'cartoon style, animated, colorful, fun, playful illustration, vibrant colors',
@@ -41,94 +41,67 @@ serve(async (req) => {
     let enhancedPrompt = `${prompt}. Style: ${stylePrompt}. High resolution, detailed, professional quality.`;
     
     if (language === 'hi') {
-      enhancedPrompt = `${prompt}. शैली: ${stylePrompt}. उच्च रिज़ॉल्यूशन, विस्तृत, पेशेवर गुणवत्ता।`;
+      enhancedPrompt = `${prompt}। शैली: ${stylePrompt}। उच्च रिज़ॉल्यूशन, विस्तृत, पेशेवर गुणवत्ता।`;
     } else if (language === 'mr') {
-      enhancedPrompt = `${prompt}. शैली: ${stylePrompt}. उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
+      enhancedPrompt = `${prompt}। शैली: ${stylePrompt}। उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
     }
+
+    const model = 'gemini-2.0-flash-exp-image-generation';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+    let requestBody: any = {
+      contents: [{
+        parts: []
+      }],
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"]
+      }
+    };
 
     if (imageUrl) {
       // Image editing workflow
-      console.log('Starting image editing workflow with OpenAI');
+      console.log('Starting image editing workflow with Gemini');
       
-      const requestBody: any = {
-        model: 'gpt-image-1',
-        prompt: `Based on this image, ${enhancedPrompt}. Modify and enhance the image according to these instructions while maintaining the original subject and composition.`,
-        n: 1,
-        size: '1024x1024',
-        quality: 'high',
-      };
-
-      // If imageUrl is provided, we need to include it in the request
-      // Note: OpenAI's image edit endpoint requires the image to be a file upload
-      // For base64 images, we need to use a different approach
+      // Extract base64 data if it's a data URL
+      let base64Data = imageUrl;
+      let mimeType = 'image/png';
       
-      const openaiUrl = 'https://api.openai.com/v1/images/generations';
-      
-      const response = await fetch(openaiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('OpenAI image edit error:', response.status, errorText);
-        
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+      if (imageUrl.startsWith('data:')) {
+        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (matches) {
+          mimeType = matches[1];
+          base64Data = matches[2];
         }
-        
-        throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
-      console.log('OpenAI edit response received');
-
-      const imageData = data.data?.[0];
-      
-      if (!imageData) {
-        throw new Error('No image data in response');
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          imageUrl: imageData.url || imageData.b64_json,
-          revisedPrompt: imageData.revised_prompt
-        }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      requestBody.contents[0].parts = [
+        { text: `Based on this image, ${enhancedPrompt}. Modify and enhance the image according to these instructions while maintaining the original subject and composition.` },
+        { 
+          inlineData: { 
+            data: base64Data, 
+            mimeType: mimeType 
+          } 
+        }
+      ];
+    } else {
+      // Image generation workflow
+      console.log('Generating new image with Gemini');
+      requestBody.contents[0].parts = [
+        { text: enhancedPrompt }
+      ];
     }
 
-    // Image generation workflow using OpenAI gpt-image-1
-    console.log('Generating image with OpenAI gpt-image-1');
-    
-    const openaiUrl = 'https://api.openai.com/v1/images/generations';
-    
-    const response = await fetch(openaiUrl, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: enhancedPrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'high',
-        response_format: 'b64_json',
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -137,23 +110,37 @@ serve(async (req) => {
         );
       }
       
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    const imageData = data.data?.[0];
-    
-    if (!imageData) {
-      throw new Error('Failed to generate image');
+    console.log('Gemini response received');
+
+    // Extract image from response
+    const candidate = data.candidates?.[0];
+    if (!candidate || !candidate.content || !candidate.content.parts) {
+      console.error('Invalid response structure:', JSON.stringify(data));
+      throw new Error('Invalid response from Gemini API');
     }
+
+    // Find the image data in the parts
+    const imagePart = candidate.content.parts.find((part: any) => part.inlineData);
+    
+    if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
+      console.error('No image data in response:', JSON.stringify(data));
+      throw new Error('No image data in response');
+    }
+
+    const imageBase64 = imagePart.inlineData.data;
+    const imageMimeType = imagePart.inlineData.mimeType || 'image/png';
 
     console.log('Image generated successfully');
 
     // Return the base64 image data
     return new Response(
       JSON.stringify({ 
-        imageUrl: `data:image/png;base64,${imageData.b64_json}`,
-        revisedPrompt: imageData.revised_prompt
+        imageUrl: `data:${imageMimeType};base64,${imageBase64}`,
+        revisedPrompt: enhancedPrompt
       }),
       { 
         status: 200, 
