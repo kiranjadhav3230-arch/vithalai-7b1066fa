@@ -102,8 +102,8 @@ serve(async (req) => {
       const editedPrompt = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || enhancedPrompt;
       console.log('Generated edit prompt:', editedPrompt);
 
-      // Step 2: Use Gemini 2.5 Flash Image API directly to generate the edited image
-      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${GEMINI_API_KEY}`;
+      // Step 2: Use Gemini 2.5 Flash Image API to generate the edited image
+      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
       
       const imageGenBody = {
         contents: [
@@ -114,11 +114,7 @@ serve(async (req) => {
               }
             ]
           }
-        ],
-        generationConfig: {
-          responseMimeType: "image/png",
-          responseModalities: ["IMAGE"]
-        }
+        ]
       };
 
       const response = await fetch(imageGenUrl, {
@@ -162,8 +158,8 @@ serve(async (req) => {
       );
     }
 
-    // Image generation with Gemini 2.5 Flash Image API directly
-    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${GEMINI_API_KEY}`;
+    // Image generation with Gemini 2.5 Flash Image API
+    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
     
     const imageGenBody = {
       contents: [
@@ -174,11 +170,7 @@ serve(async (req) => {
             }
           ]
         }
-      ],
-      generationConfig: {
-        responseMimeType: "image/png",
-        responseModalities: ["IMAGE"]
-      }
+      ]
     };
 
     const response = await fetch(imageGenUrl, {
