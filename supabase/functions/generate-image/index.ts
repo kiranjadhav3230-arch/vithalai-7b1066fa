@@ -23,9 +23,9 @@ serve(async (req) => {
 
     console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'style:', style, 'with reference:', !!imageUrl);
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     // Style presets mapping
@@ -55,39 +55,56 @@ serve(async (req) => {
     }
 
     if (imageUrl) {
-      // For image editing with reference image
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Step 1: Analyze image with Gemini 2.5 Flash
+      const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+      const inputImageData = base64Match ? base64Match[2] : imageUrl;
+      const inputMimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
+
+      const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+      
+      const analysisResponse = await fetch(analysisUrl, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: enhancedPrompt
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: imageUrl
-                  }
-                }
-              ]
-            }
-          ],
-          modalities: ['image', 'text']
+          contents: [{
+            parts: [
+              { text: `Create a detailed prompt for image generation based on this image and requested changes: ${enhancedPrompt}. Be specific and detailed.` },
+              { inline_data: { mime_type: inputMimeType, data: inputImageData } }
+            ]
+          }]
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        const errorText = await analysisResponse.text();
+        console.error('Analysis error:', analysisResponse.status, errorText);
+        throw new Error(`Image analysis failed: ${analysisResponse.status}`);
+      }
+
+      const analysisData = await analysisResponse.json();
+      const detailedPrompt = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || enhancedPrompt;
+      console.log('Enhanced prompt:', detailedPrompt);
+
+      // Step 2: Generate with Imagen 3
+      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`;
+      
+      const response = await fetch(imageGenUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{ prompt: detailedPrompt }],
+          parameters: {
+            sampleCount: 1,
+            aspectRatio: "1:1",
+            safetyFilterLevel: "block_some",
+            personGeneration: "allow_adult"
+          }
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Image editing error:', response.status, errorText);
+        console.error('Imagen error:', response.status, errorText);
         
         if (response.status === 429) {
           return new Response(
@@ -95,54 +112,46 @@ serve(async (req) => {
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        throw new Error(`Image editing failed: ${response.status} ${errorText}`);
+        throw new Error(`Image generation failed: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
-      const editedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      const imageData = data.predictions?.[0]?.bytesBase64Encoded;
       
-      if (!editedImageUrl) {
+      if (!imageData) {
         console.error('No image in response:', JSON.stringify(data));
         throw new Error('No edited image generated');
       }
 
       return new Response(
         JSON.stringify({ 
-          imageUrl: editedImageUrl,
+          imageUrl: `data:image/png;base64,${imageData}`,
           description: 'Image edited successfully'
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Image generation using Lovable AI Gateway
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Image generation with Google Imagen 3
+    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`;
+    
+    const response = await fetch(imageGenUrl, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: enhancedPrompt
-          }
-        ],
-        modalities: ['image', 'text']
+        instances: [{ prompt: enhancedPrompt }],
+        parameters: {
+          sampleCount: 1,
+          aspectRatio: "1:1",
+          safetyFilterLevel: "block_some",
+          personGeneration: "allow_adult"
+        }
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Image generation error:', response.status, errorText);
+      console.error('Imagen API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -150,29 +159,23 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
 
-      throw new Error(`Image generation failed: ${response.status} ${errorText}`);
+      throw new Error(`Imagen API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
     console.log('Image generation response received');
 
-    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const imageData = data.predictions?.[0]?.bytesBase64Encoded;
     
-    if (!generatedImageUrl) {
+    if (!imageData) {
       console.error('No image in response:', JSON.stringify(data));
       throw new Error('No image generated');
     }
 
     return new Response(
       JSON.stringify({ 
-        imageUrl: generatedImageUrl,
+        imageUrl: `data:image/png;base64,${imageData}`,
         description: 'Image generated successfully'
       }),
       { 
