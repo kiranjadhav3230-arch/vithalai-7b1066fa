@@ -20,12 +20,7 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating image with Gemini for prompt:', prompt, 'language:', language, 'style:', style);
-
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
-    }
+    console.log('Generating image with Pollinations.ai for prompt:', prompt, 'language:', language, 'style:', style);
 
     // Style mapping for image generation
     const styleInstructions: Record<string, string> = {
@@ -46,100 +41,47 @@ serve(async (req) => {
       enhancedPrompt = `${prompt}। शैली: ${stylePrompt}। उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
     }
 
-    const model = 'gemini-2.0-flash-exp-image-generation';
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    // Build Pollinations.ai URL
+    const params = new URLSearchParams({
+      width: '1024',
+      height: '1024',
+      model: imageUrl ? 'kontext' : 'flux',
+      enhance: 'true',
+      nologo: 'true',
+      private: 'true'
+    });
 
-    let requestBody: any = {
-      contents: [{
-        parts: []
-      }],
-      generationConfig: {
-        responseModalities: ["TEXT", "IMAGE"]
-      }
-    };
-
+    // Add image parameter for image editing
     if (imageUrl) {
-      // Image editing workflow
-      console.log('Starting image editing workflow with Gemini');
-      
-      // Extract base64 data if it's a data URL
-      let base64Data = imageUrl;
-      let mimeType = 'image/png';
-      
-      if (imageUrl.startsWith('data:')) {
-        const matches = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
-        if (matches) {
-          mimeType = matches[1];
-          base64Data = matches[2];
-        }
-      }
-
-      requestBody.contents[0].parts = [
-        { text: `Based on this image, ${enhancedPrompt}. Modify and enhance the image according to these instructions while maintaining the original subject and composition.` },
-        { 
-          inlineData: { 
-            data: base64Data, 
-            mimeType: mimeType 
-          } 
-        }
-      ];
+      console.log('Starting image editing workflow with Pollinations.ai');
+      params.append('image', imageUrl);
     } else {
-      // Image generation workflow
-      console.log('Generating new image with Gemini');
-      requestBody.contents[0].parts = [
-        { text: enhancedPrompt }
-      ];
+      console.log('Generating new image with Pollinations.ai');
     }
 
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?${params}`;
+    console.log('Fetching from Pollinations.ai...');
+
+    // Fetch the image
+    const response = await fetch(url);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+      console.error('Pollinations.ai error:', response.status, errorText);
+      throw new Error(`Pollinations.ai error: ${response.status} - ${errorText}`);
     }
 
-    const data = await response.json();
-    console.log('Gemini response received');
-
-    // Extract image from response
-    const candidate = data.candidates?.[0];
-    if (!candidate || !candidate.content || !candidate.content.parts) {
-      console.error('Invalid response structure:', JSON.stringify(data));
-      throw new Error('Invalid response from Gemini API');
-    }
-
-    // Find the image data in the parts
-    const imagePart = candidate.content.parts.find((part: any) => part.inlineData);
-    
-    if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
-      console.error('No image data in response:', JSON.stringify(data));
-      throw new Error('No image data in response');
-    }
-
-    const imageBase64 = imagePart.inlineData.data;
-    const imageMimeType = imagePart.inlineData.mimeType || 'image/png';
+    // Convert image to base64
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
 
     console.log('Image generated successfully');
 
     // Return the base64 image data
     return new Response(
       JSON.stringify({ 
-        imageUrl: `data:${imageMimeType};base64,${imageBase64}`,
+        imageUrl: `data:${contentType};base64,${base64}`,
         revisedPrompt: enhancedPrompt
       }),
       { 
