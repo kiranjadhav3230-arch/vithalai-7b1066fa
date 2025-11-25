@@ -6,7 +6,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,158 +20,156 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'style:', style, 'with reference:', !!imageUrl);
+    console.log('Generating image with Gemini for prompt:', prompt, 'language:', language, 'style:', style);
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
     if (!GEMINI_API_KEY) {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    // Style presets mapping
+    // Style presets
     const styleInstructions: Record<string, string> = {
-      realistic: 'ultra-realistic, photorealistic, highly detailed, professional photography',
-      cartoon: 'cartoon style, animated, colorful, fun, playful illustration',
-      watercolor: 'watercolor painting, artistic, soft brushstrokes, painted texture',
-      sketch: 'pencil sketch, hand-drawn, artistic lines, detailed drawing'
+      realistic: 'ultra-realistic, photorealistic, highly detailed, professional photography, 8K resolution',
+      cartoon: 'cartoon style, animated, colorful, fun, playful illustration, vibrant colors',
+      watercolor: 'watercolor painting, artistic, soft brushstrokes, painted texture, gentle colors',
+      sketch: 'pencil sketch, hand-drawn, artistic lines, detailed drawing, black and white'
     };
 
     const stylePrompt = styleInstructions[style] || styleInstructions['realistic'];
 
-    // Add language context and style to the prompt
-    let enhancedPrompt = prompt;
+    // Build enhanced prompt with language context
+    let enhancedPrompt = `Create a high-quality image: ${prompt}. Style: ${stylePrompt}. High resolution, detailed, professional quality.`;
+    
     if (language === 'hi') {
-      enhancedPrompt = imageUrl 
-        ? `Edit this image based on this Hindi description: ${prompt}. Understand the Hindi context and modify the image accordingly. Style: ${stylePrompt}.`
-        : `Generate an image based on this Hindi description: ${prompt}. Understand the Hindi context and create an accurate visual representation. Style: ${stylePrompt}.`;
+      enhancedPrompt = `यह हिंदी विवरण के आधार पर एक उच्च गुणवत्ता वाली छवि बनाएं: ${prompt}. शैली: ${stylePrompt}. उच्च रिज़ॉल्यूशन, विस्तृत, पेशेवर गुणवत्ता।`;
     } else if (language === 'mr') {
-      enhancedPrompt = imageUrl
-        ? `Edit this image based on this Marathi description: ${prompt}. Understand the Marathi context and modify the image accordingly. Style: ${stylePrompt}.`
-        : `Generate an image based on this Marathi description: ${prompt}. Understand the Marathi context and create an accurate visual representation. Style: ${stylePrompt}.`;
-    } else if (imageUrl) {
-      enhancedPrompt = `Edit this image: ${prompt}. Style: ${stylePrompt}.`;
-    } else {
-      enhancedPrompt = `${prompt}. Style: ${stylePrompt}.`;
+      enhancedPrompt = `या मराठी वर्णनाच्या आधारावर उच्च दर्जाची प्रतिमा तयार करा: ${prompt}. शैली: ${stylePrompt}. उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
     }
 
     if (imageUrl) {
-      // Step 1: Analyze image with Gemini 2.5 Flash
-      const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
-      const inputImageData = base64Match ? base64Match[2] : imageUrl;
-      const inputMimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
-
-      const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+      // Image editing workflow
+      console.log('Starting image editing workflow');
       
-      const analysisResponse = await fetch(analysisUrl, {
+      const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
+      const imageData = base64Match ? base64Match[2] : imageUrl;
+      const mimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
+
+      const editPrompt = `Based on this image, ${enhancedPrompt}. Modify and enhance the image according to these instructions while maintaining the original subject and composition.`;
+
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+      
+      const response = await fetch(geminiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{
             parts: [
-              { text: `Create a detailed prompt for image generation based on this image and requested changes: ${enhancedPrompt}. Be specific and detailed.` },
-              { inline_data: { mime_type: inputMimeType, data: inputImageData } }
+              { text: editPrompt },
+              { 
+                inline_data: { 
+                  mime_type: mimeType, 
+                  data: imageData 
+                } 
+              }
             ]
-          }]
-        }),
-      });
-
-      if (!analysisResponse.ok) {
-        const errorText = await analysisResponse.text();
-        console.error('Analysis error:', analysisResponse.status, errorText);
-        throw new Error(`Image analysis failed: ${analysisResponse.status}`);
-      }
-
-      const analysisData = await analysisResponse.json();
-      const detailedPrompt = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || enhancedPrompt;
-      console.log('Enhanced prompt:', detailedPrompt);
-
-      // Step 2: Generate with Imagen 3
-      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
-      
-      const response = await fetch(imageGenUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: detailedPrompt,
-          number_of_images: 1,
-          aspect_ratio: "1:1",
-          safety_filter_level: "block_some",
-          person_generation: "allow_adult"
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+          }
         }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Imagen error:', response.status, errorText);
+        console.error('Gemini image edit error:', response.status, errorText);
         
         if (response.status === 429) {
           return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        throw new Error(`Image generation failed: ${response.status} ${errorText}`);
+        
+        throw new Error(`Gemini API error: ${response.status}`);
       }
 
       const data = await response.json();
-      const imageData = data.images?.[0]?.bytesBase64Encoded;
+      console.log('Gemini edit response received');
+
+      // For image editing, we return a text description since Gemini doesn't support direct image output
+      // The user would need to use the description with an image generation service
+      const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
-      if (!imageData) {
-        console.error('No image in response:', JSON.stringify(data));
-        throw new Error('No edited image generated');
+      if (!textResponse) {
+        throw new Error('No response from Gemini');
       }
 
       return new Response(
         JSON.stringify({ 
-          imageUrl: `data:image/png;base64,${imageData}`,
-          description: 'Image edited successfully'
+          description: textResponse,
+          message: 'Image editing description generated. Use this with an image generation service to create the edited image.'
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Image generation with Google Imagen 3
-    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
+    // Image generation workflow using Gemini for description
+    console.log('Generating image description with Gemini');
     
-    const response = await fetch(imageGenUrl, {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const response = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        prompt: enhancedPrompt,
-        number_of_images: 1,
-        aspect_ratio: "1:1",
-        safety_filter_level: "block_some",
-        person_generation: "allow_adult"
+        contents: [{
+          parts: [{
+            text: `Create a detailed, vivid image generation prompt based on this request: ${enhancedPrompt}. Make it extremely detailed and descriptive, focusing on visual elements, composition, lighting, colors, and atmosphere. Return ONLY the image description, nothing else.`
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.9,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 1024,
+        }
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Imagen API error:', response.status, errorText);
+      console.error('Gemini error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-
-      throw new Error(`Imagen API error: ${response.status} ${errorText}`);
+      
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Image generation response received');
-
-    const imageData = data.images?.[0]?.bytesBase64Encoded;
+    const detailedPrompt = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    if (!imageData) {
-      console.error('No image in response:', JSON.stringify(data));
-      throw new Error('No image generated');
+    if (!detailedPrompt) {
+      throw new Error('Failed to generate image description');
     }
 
+    console.log('Generated detailed prompt:', detailedPrompt);
+
+    // Return the detailed description
+    // Note: Gemini API doesn't directly support image generation in the free tier
+    // Users would need to use this with an image generation service
     return new Response(
       JSON.stringify({ 
-        imageUrl: `data:image/png;base64,${imageData}`,
-        description: 'Image generated successfully'
+        description: detailedPrompt,
+        message: 'Image description generated successfully. Use this detailed prompt with an image generation service.',
+        prompt: enhancedPrompt
       }),
       { 
         status: 200, 
@@ -184,7 +181,8 @@ serve(async (req) => {
     console.error('Error in generate-image function:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        details: 'Image generation requires a service with image generation capabilities. Gemini API free tier provides text descriptions only.'
       }),
       { 
         status: 500, 
