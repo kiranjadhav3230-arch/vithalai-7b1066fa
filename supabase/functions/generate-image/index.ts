@@ -23,9 +23,9 @@ serve(async (req) => {
 
     console.log('Generating/editing image for prompt:', prompt, 'in language:', language, 'style:', style, 'with reference:', !!imageUrl);
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Style presets mapping
@@ -55,79 +55,39 @@ serve(async (req) => {
     }
 
     if (imageUrl) {
-      // Step 1: Use Gemini 2.5 Flash to analyze the image and create an enhanced prompt
-      const base64Match = imageUrl.match(/^data:image\/(png|jpeg|jpg|webp);base64,(.+)$/);
-      const inputImageData = base64Match ? base64Match[2] : imageUrl;
-      const inputMimeType = base64Match ? `image/${base64Match[1]}` : 'image/jpeg';
-
-      const analysisUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-      
-      const analysisBody = {
-        contents: [
-          {
-            parts: [
-              { 
-                text: `Analyze this image and create a detailed image generation prompt that incorporates these changes: ${enhancedPrompt}. 
-                Describe the complete scene including what should remain from the original and what should change. 
-                Be specific about colors, style, composition, and details. Return only the prompt, nothing else.` 
-              },
-              {
-                inline_data: {
-                  mime_type: inputMimeType,
-                  data: inputImageData
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 500,
-        }
-      };
-
-      const analysisResponse = await fetch(analysisUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(analysisBody),
-      });
-
-      if (!analysisResponse.ok) {
-        const errorText = await analysisResponse.text();
-        console.error('Gemini analysis error:', analysisResponse.status, errorText);
-        throw new Error(`Image analysis failed: ${analysisResponse.status}`);
-      }
-
-      const analysisData = await analysisResponse.json();
-      const editedPrompt = analysisData.candidates?.[0]?.content?.parts?.[0]?.text || enhancedPrompt;
-      console.log('Generated edit prompt:', editedPrompt);
-
-      // Step 2: Use Gemini 2.5 Flash Image API to generate the edited image
-      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
-      
-      const imageGenBody = {
-        contents: [
-          {
-            parts: [
-              {
-                text: editedPrompt
-              }
-            ]
-          }
-        ]
-      };
-
-      const response = await fetch(imageGenUrl, {
+      // For image editing with reference image
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(imageGenBody),
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash-image-preview',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: enhancedPrompt
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: imageUrl
+                  }
+                }
+              ]
+            }
+          ],
+          modalities: ['image', 'text']
+        }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Gemini generation error:', response.status, errorText);
+        console.error('Image editing error:', response.status, errorText);
         
         if (response.status === 429) {
           return new Response(
@@ -135,19 +95,22 @@ serve(async (req) => {
             { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
-        throw new Error(`Image generation failed: ${response.status} ${errorText}`);
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        throw new Error(`Image editing failed: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
-      const generatedImageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
-      const generatedMimeType = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
+      const editedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       
-      if (!generatedImageData) {
+      if (!editedImageUrl) {
         console.error('No image in response:', JSON.stringify(data));
         throw new Error('No edited image generated');
       }
-
-      const editedImageUrl = `data:${generatedMimeType};base64,${generatedImageData}`;
 
       return new Response(
         JSON.stringify({ 
@@ -158,32 +121,28 @@ serve(async (req) => {
       );
     }
 
-    // Image generation with Gemini 2.5 Flash Image API
-    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_API_KEY}`;
-    
-    const imageGenBody = {
-      contents: [
-        {
-          parts: [
-            {
-              text: enhancedPrompt
-            }
-          ]
-        }
-      ]
-    };
-
-    const response = await fetch(imageGenUrl, {
+    // Image generation using Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(imageGenBody),
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: enhancedPrompt
+          }
+        ],
+        modalities: ['image', 'text']
+      }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error('Image generation error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -191,22 +150,25 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits to your workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
 
-      throw new Error(`Gemini API error: ${response.status} ${errorText}`);
+      throw new Error(`Image generation failed: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
     console.log('Image generation response received');
 
-    const generatedImageData = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.data;
-    const generatedMimeType = data.candidates?.[0]?.content?.parts?.[0]?.inline_data?.mime_type || 'image/png';
+    const generatedImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!generatedImageData) {
+    if (!generatedImageUrl) {
       console.error('No image in response:', JSON.stringify(data));
       throw new Error('No image generated');
     }
-
-    const generatedImageUrl = `data:${generatedMimeType};base64,${generatedImageData}`;
 
     return new Response(
       JSON.stringify({ 
