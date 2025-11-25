@@ -86,19 +86,17 @@ serve(async (req) => {
       console.log('Enhanced prompt:', detailedPrompt);
 
       // Step 2: Generate with Imagen 3
-      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`;
+      const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
       
       const response = await fetch(imageGenUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          instances: [{ prompt: detailedPrompt }],
-          parameters: {
-            sampleCount: 1,
-            aspectRatio: "1:1",
-            safetyFilterLevel: "block_some",
-            personGeneration: "allow_adult"
-          }
+          prompt: detailedPrompt,
+          number_of_images: 1,
+          aspect_ratio: "1:1",
+          safety_filter_level: "block_some",
+          person_generation: "allow_adult"
         }),
       });
 
@@ -116,7 +114,7 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      const imageData = data.predictions?.[0]?.bytesBase64Encoded;
+      const imageData = data.images?.[0]?.bytesBase64Encoded;
       
       if (!imageData) {
         console.error('No image in response:', JSON.stringify(data));
@@ -133,19 +131,17 @@ serve(async (req) => {
     }
 
     // Image generation with Google Imagen 3
-    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${GEMINI_API_KEY}`;
+    const imageGenUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key=${GEMINI_API_KEY}`;
     
     const response = await fetch(imageGenUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        instances: [{ prompt: enhancedPrompt }],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: "1:1",
-          safetyFilterLevel: "block_some",
-          personGeneration: "allow_adult"
-        }
+        prompt: enhancedPrompt,
+        number_of_images: 1,
+        aspect_ratio: "1:1",
+        safety_filter_level: "block_some",
+        person_generation: "allow_adult"
       }),
     });
 
@@ -166,7 +162,7 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Image generation response received');
 
-    const imageData = data.predictions?.[0]?.bytesBase64Encoded;
+    const imageData = data.images?.[0]?.bytesBase64Encoded;
     
     if (!imageData) {
       console.error('No image in response:', JSON.stringify(data));
