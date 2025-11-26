@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
@@ -19,6 +19,7 @@ interface Message {
   created_at: string;
   image_data?: string | null;
   sender_name?: string | null;
+  reactions?: { type: string; count: number; users: string[] }[];
 }
 
 interface Note {
@@ -50,6 +51,7 @@ export const StudyRoomInterface: React.FC<{
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
+  const [aiMode, setAiMode] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -170,7 +172,34 @@ export const StudyRoomInterface: React.FC<{
       .eq('room_id', room.id)
       .order('created_at', { ascending: true });
 
-    if (data) setMessages(data);
+    if (data) {
+      // Load reactions for each message
+      const messagesWithReactions = await Promise.all(data.map(async (msg) => {
+        const { data: reactionsData } = await supabase
+          .from('room_message_reactions')
+          .select('reaction_type, user_id')
+          .eq('message_id', msg.id);
+
+        // Group reactions by type
+        const reactionsMap = new Map<string, { count: number; users: string[] }>();
+        reactionsData?.forEach(r => {
+          const existing = reactionsMap.get(r.reaction_type) || { count: 0, users: [] };
+          existing.count++;
+          existing.users.push(r.user_id);
+          reactionsMap.set(r.reaction_type, existing);
+        });
+
+        const reactions = Array.from(reactionsMap.entries()).map(([type, data]) => ({
+          type,
+          count: data.count,
+          users: data.users
+        }));
+
+        return { ...msg, reactions };
+      }));
+
+      setMessages(messagesWithReactions);
+    }
   };
 
   const loadNotes = async () => {
@@ -248,15 +277,15 @@ export const StudyRoomInterface: React.FC<{
 
       if (error) throw error;
 
-      // Get AI response if there's text
-      if (messageText.trim()) {
+      // Get AI response if there's text and AI mode is enabled
+      if ((messageText.trim() || imageData) && aiMode) {
         setIsLoadingAI(true);
         const { data, error: aiError } = await supabase.functions.invoke('room-chat', {
           body: {
             roomId: room.id,
-            message: messageText,
+            message: messageText || 'Please analyze this image',
             userId: user.id,
-            hasImage: !!imageData,
+            imageData: imageData,
           },
         });
 
@@ -312,6 +341,40 @@ export const StudyRoomInterface: React.FC<{
     }
   };
 
+  const addReaction = async (messageId: string, reactionType: string) => {
+    try {
+      const { error } = await supabase.from('room_message_reactions').insert({
+        message_id: messageId,
+        user_id: user.id,
+        reaction_type: reactionType,
+      });
+
+      if (error) {
+        // If already reacted, remove the reaction
+        if (error.code === '23505') {
+          await supabase
+            .from('room_message_reactions')
+            .delete()
+            .eq('message_id', messageId)
+            .eq('user_id', user.id)
+            .eq('reaction_type', reactionType);
+        } else {
+          throw error;
+        }
+      }
+
+      // Reload messages to update reactions
+      await loadMessages();
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add reaction',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <div className="border-b p-4 flex items-center justify-between">
@@ -332,14 +395,14 @@ export const StudyRoomInterface: React.FC<{
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <TabsList className="mx-4 mt-4">
           <TabsTrigger value="chat">Chat</TabsTrigger>
           <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
           <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="chat" className="flex-1 flex flex-col p-4">
+        <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4">
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
               {messages.map((msg) => (
@@ -378,7 +441,55 @@ export const StudyRoomInterface: React.FC<{
                     <p className="text-xs opacity-60 mt-1">
                       {new Date(msg.created_at).toLocaleTimeString()}
                     </p>
+                    {msg.reactions && msg.reactions.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {msg.reactions.map((reaction) => (
+                          <button
+                            key={reaction.type}
+                            onClick={() => addReaction(msg.id, reaction.type)}
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs ${
+                              reaction.users.includes(user.id)
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted hover:bg-muted/80'
+                            }`}
+                          >
+                            {reaction.type === 'like' && '👍'}
+                            {reaction.type === 'heart' && '❤️'}
+                            {reaction.type === 'smile' && '😊'}
+                            <span>{reaction.count}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                  {!msg.is_ai_response && (
+                    <div className="flex gap-1 mt-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2"
+                        onClick={() => addReaction(msg.id, 'like')}
+                      >
+                        👍
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2"
+                        onClick={() => addReaction(msg.id, 'heart')}
+                      >
+                        ❤️
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 px-2"
+                        onClick={() => addReaction(msg.id, 'smile')}
+                      >
+                        😊
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
               {isLoadingAI && (
@@ -392,7 +503,18 @@ export const StudyRoomInterface: React.FC<{
             </div>
           </ScrollArea>
 
-          <div className="space-y-2 mt-4">
+          <div className="space-y-2 mt-4 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <Button
+                variant={aiMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setAiMode(!aiMode)}
+                className="gap-2"
+              >
+                {aiMode ? <Bot className="h-4 w-4" /> : <BotOff className="h-4 w-4" />}
+                {aiMode ? 'AI Mode On' : 'AI Mode Off'}
+              </Button>
+            </div>
             {selectedImage && (
               <div className="relative inline-block">
                 <img

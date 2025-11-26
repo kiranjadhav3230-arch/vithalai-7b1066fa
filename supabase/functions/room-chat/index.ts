@@ -21,8 +21,8 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { roomId, message, userId } = await req.json();
-    console.log('Room chat request:', { roomId, userId, messageLength: message?.length });
+    const { roomId, message, userId, imageData } = await req.json();
+    console.log('Room chat request:', { roomId, userId, messageLength: message?.length, hasImage: !!imageData });
 
     if (!roomId || !message || !userId) {
       throw new Error('Missing required fields: roomId, message, userId');
@@ -75,6 +75,22 @@ Your role:
 
 Remember: This is a shared space where multiple students can interact with you together.`;
 
+    // Prepare message parts with optional image
+    const messageParts: any[] = [];
+    if (imageData) {
+      // Extract base64 data from data URL
+      const base64Data = imageData.split(',')[1];
+      messageParts.push({
+        inline_data: {
+          mime_type: 'image/jpeg',
+          data: base64Data
+        }
+      });
+    }
+    if (message) {
+      messageParts.push({ text: message });
+    }
+
     // Call Gemini API
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -88,7 +104,7 @@ Remember: This is a shared space where multiple students can interact with you t
             },
             ...conversationHistory,
             {
-              parts: [{ text: message }]
+              parts: messageParts
             }
           ],
           generationConfig: {

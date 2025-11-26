@@ -632,6 +632,38 @@ export type Database = {
           },
         ]
       }
+      room_message_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "room_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_messages: {
         Row: {
           created_at: string
@@ -639,6 +671,7 @@ export type Database = {
           image_data: string | null
           is_ai_response: boolean
           message: string
+          reactions: Json | null
           room_id: string
           sender_name: string | null
           user_id: string | null
@@ -649,6 +682,7 @@ export type Database = {
           image_data?: string | null
           is_ai_response?: boolean
           message: string
+          reactions?: Json | null
           room_id: string
           sender_name?: string | null
           user_id?: string | null
@@ -659,6 +693,7 @@ export type Database = {
           image_data?: string | null
           is_ai_response?: boolean
           message?: string
+          reactions?: Json | null
           room_id?: string
           sender_name?: string | null
           user_id?: string | null
