@@ -155,11 +155,11 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     setEditedCode(snippet.generated_code);
     setOriginalCode(snippet.generated_code);
     
-    // Show welcome animation for 2 seconds then switch to editor
+    // Show welcome animation for 5 seconds then switch to editor
     setTimeout(() => {
       setShowWelcomeAnimation(false);
       setIsEditing(true);
-    }, 2000);
+    }, 5000);
   };
 
   const saveEdit = async () => {
@@ -185,6 +185,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 
   const cancelEdit = () => {
     setIsEditing(false);
+    setShowWelcomeAnimation(false);
     setEditedCode(originalCode);
   };
 
@@ -311,15 +312,162 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[80vh] p-0">
+      <DialogContent className={`p-0 ${isEditing || showWelcomeAnimation ? 'max-w-full w-[95vw] h-[95vh]' : 'max-w-6xl h-[80vh]'}`}>
         <DialogHeader className="p-6 pb-4 border-b">
           <DialogTitle className="flex items-center gap-2">
+            {isEditing || showWelcomeAnimation ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelEdit}
+                className="mr-2"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Back to Library
+              </Button>
+            ) : null}
             <Code2 className="h-5 w-5 text-primary" />
-            Code Snippet Library
+            {isEditing || showWelcomeAnimation ? 'Code Editor' : 'Code Snippet Library'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col md:flex-row gap-4 p-6 pt-4 overflow-hidden" style={{ height: 'calc(80vh - 80px)' }}>
+        {(isEditing || showWelcomeAnimation) && selectedSnippet ? (
+          <div className="flex flex-col p-6 pt-4 overflow-hidden" style={{ height: 'calc(95vh - 80px)' }}>
+            <div className="flex items-start justify-between mb-4 pb-4 border-b flex-shrink-0">
+              <div className="flex-1">
+                <h2 className="text-xl font-bold mb-2">{selectedSnippet.title}</h2>
+                {selectedSnippet.description && (
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {selectedSnippet.description}
+                  </p>
+                )}
+              </div>
+              {isEditing && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={saveEdit}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditedCode(originalCode);
+                      toast({ title: "Reverted", description: "Code reverted to original" });
+                    }}
+                    title="Revert (Ctrl+Z)"
+                  >
+                    <Undo className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-h-0 relative">
+              {/* Welcome Animation */}
+              {showWelcomeAnimation && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-primary/10 animate-fade-in">
+                  <div className="text-center space-y-6 animate-scale-in">
+                    <div className="relative">
+                      <div className="absolute inset-0 animate-pulse">
+                        <div className="w-32 h-32 mx-auto bg-primary/20 rounded-full blur-2xl"></div>
+                      </div>
+                      <img 
+                        src="/src/assets/vithal-ai-logo-new.png" 
+                        alt="Vithal AI" 
+                        className="w-24 h-24 mx-auto relative animate-float-3d filter drop-shadow-lg"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <h2 className="text-3xl font-bold gradient-text animate-fade-in">
+                        Welcome to Vithal AI
+                      </h2>
+                      <p className="text-xl text-primary animate-fade-in font-semibold typing-effect">
+                        Code Editor
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground animate-fade-in">
+                      <Code2 className="h-5 w-5 animate-pulse" />
+                      <span className="text-sm font-mono">Initializing editor...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {isEditing && (
+                <div className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg animate-fade-in">
+                  <div className="text-xs font-medium mb-2 flex items-center gap-2">
+                    <Code2 className="h-3 w-3" />
+                    Keyboard Shortcuts
+                  </div>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between gap-4">
+                      <span>Save changes</span>
+                      <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+S</kbd>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span>Revert to original</span>
+                      <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+Z</kbd>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isEditing ? (
+                <div className="h-full border rounded-lg overflow-hidden animate-fade-in" onKeyDown={handleKeyDown}>
+                  <Editor
+                    height="100%"
+                    language={getMonacoLanguage(selectedSnippet.language)}
+                    value={editedCode}
+                    onChange={(value) => setEditedCode(value || '')}
+                    theme="vs-dark"
+                    options={{
+                      minimap: { enabled: true },
+                      fontSize: 15,
+                      lineNumbers: 'on',
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      tabSize: 4,
+                      insertSpaces: true,
+                      wordWrap: 'on',
+                      folding: true,
+                      foldingStrategy: 'indentation',
+                      showFoldingControls: 'always',
+                      lineDecorationsWidth: 10,
+                      lineNumbersMinChars: 3,
+                      glyphMargin: true,
+                      renderLineHighlight: 'all',
+                      scrollbar: {
+                        vertical: 'visible',
+                        horizontal: 'visible',
+                        useShadows: true,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10,
+                      },
+                      suggestOnTriggerCharacters: true,
+                      acceptSuggestionOnEnter: 'on',
+                      quickSuggestions: true,
+                      formatOnPaste: true,
+                      formatOnType: true,
+                      autoIndent: 'full',
+                      bracketPairColorization: {
+                        enabled: true,
+                      },
+                      guides: {
+                        indentation: true,
+                        bracketPairs: true,
+                      },
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-4 p-6 pt-4 overflow-hidden" style={{ height: 'calc(80vh - 80px)' }}>
           {/* Sidebar */}
           <div className="w-full md:w-1/3 flex flex-col gap-4 min-h-0">
             {/* Search */}
@@ -426,214 +574,81 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {isEditing ? (
-                      <>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={saveEdit}
-                        >
-                          <Save className="h-4 w-4 mr-1" />
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={cancelEdit}
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setEditedCode(originalCode);
-                            toast({ title: "Reverted", description: "Code reverted to original" });
-                          }}
-                          title="Revert (Ctrl+Z)"
-                        >
-                          <Undo className="h-4 w-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleFavorite(selectedSnippet)}
-                          title={selectedSnippet.is_favorite ? "Remove from favorites" : "Add to favorites"}
-                        >
-                          {selectedSnippet.is_favorite ? (
-                            <StarOff className="h-4 w-4" />
-                          ) : (
-                            <Star className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyCode(selectedSnippet.generated_code)}
-                          title="Copy code"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => startEditing(selectedSnippet)}
-                          title="Edit code"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => downloadVSCodeFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
-                          title="Download VS Code File"
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          VS Code
-                        </Button>
-                        {isHTMLLikeLanguage(selectedSnippet.language) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadHTMLFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
-                            title="Download HTML File"
-                          >
-                            <Download className="h-4 w-4 mr-1" />
-                            HTML
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteSnippet(selectedSnippet.id)}
-                          title="Delete snippet"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleFavorite(selectedSnippet)}
+                      title={selectedSnippet.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                    >
+                      {selectedSnippet.is_favorite ? (
+                        <StarOff className="h-4 w-4" />
+                      ) : (
+                        <Star className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyCode(selectedSnippet.generated_code)}
+                      title="Copy code"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => startEditing(selectedSnippet)}
+                      title="Edit code"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => downloadVSCodeFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
+                      title="Download VS Code File"
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      VS Code
+                    </Button>
+                    {isHTMLLikeLanguage(selectedSnippet.language) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => downloadHTMLFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
+                        title="Download HTML File"
+                      >
+                        <Download className="h-4 w-4 mr-1" />
+                        HTML
+                      </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteSnippet(selectedSnippet.id)}
+                      title="Delete snippet"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
 
-                <div className="flex-1 min-h-0 relative">
-                  {/* Welcome Animation */}
-                  {showWelcomeAnimation && (
-                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-primary/10 animate-fade-in">
-                      <div className="text-center space-y-6 animate-scale-in">
-                        <div className="relative">
-                          <div className="absolute inset-0 animate-pulse">
-                            <div className="w-32 h-32 mx-auto bg-primary/20 rounded-full blur-2xl"></div>
-                          </div>
-                          <img 
-                            src="/src/assets/vithal-ai-logo-new.png" 
-                            alt="Vithal AI" 
-                            className="w-24 h-24 mx-auto relative animate-float-3d filter drop-shadow-lg"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <h2 className="text-3xl font-bold gradient-text animate-fade-in">
-                            Welcome to Vithal AI
-                          </h2>
-                          <p className="text-xl text-primary animate-fade-in font-semibold typing-effect">
-                            Code Editor
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-center gap-2 text-muted-foreground animate-fade-in">
-                          <Code2 className="h-5 w-5 animate-pulse" />
-                          <span className="text-sm font-mono">Initializing editor...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {isEditing && (
-                    <div className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg animate-fade-in">
-                      <div className="text-xs font-medium mb-2 flex items-center gap-2">
-                        <Code2 className="h-3 w-3" />
-                        Keyboard Shortcuts
-                      </div>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        <div className="flex items-center justify-between gap-4">
-                          <span>Save changes</span>
-                          <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+S</kbd>
-                        </div>
-                        <div className="flex items-center justify-between gap-4">
-                          <span>Revert to original</span>
-                          <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+Z</kbd>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {isEditing ? (
-                    <div className="h-full border rounded-lg overflow-hidden animate-fade-in" onKeyDown={handleKeyDown}>
-                      <Editor
-                        height="100%"
-                        language={getMonacoLanguage(selectedSnippet.language)}
-                        value={editedCode}
-                        onChange={(value) => setEditedCode(value || '')}
-                        theme="vs-dark"
-                        options={{
-                          minimap: { enabled: true },
-                          fontSize: 15,
-                          lineNumbers: 'on',
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          tabSize: 4,
-                          insertSpaces: true,
-                          wordWrap: 'on',
-                          folding: true,
-                          foldingStrategy: 'indentation',
-                          showFoldingControls: 'always',
-                          lineDecorationsWidth: 10,
-                          lineNumbersMinChars: 3,
-                          glyphMargin: true,
-                          renderLineHighlight: 'all',
-                          scrollbar: {
-                            vertical: 'visible',
-                            horizontal: 'visible',
-                            useShadows: true,
-                            verticalScrollbarSize: 10,
-                            horizontalScrollbarSize: 10,
-                          },
-                          suggestOnTriggerCharacters: true,
-                          acceptSuggestionOnEnter: 'on',
-                          quickSuggestions: true,
-                          formatOnPaste: true,
-                          formatOnType: true,
-                          autoIndent: 'full',
-                          bracketPairColorization: {
-                            enabled: true,
-                          },
-                          guides: {
-                            indentation: true,
-                            bracketPairs: true,
-                          },
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <ScrollArea className="h-full">
-                      <div className="rounded-lg overflow-hidden border">
-                        <SyntaxHighlighter
-                          language={selectedSnippet.language}
-                          style={vscDarkPlus}
-                          showLineNumbers
-                          customStyle={{
-                            margin: 0,
-                            borderRadius: 0,
-                            fontSize: '0.875rem',
-                          }}
-                        >
-                          {selectedSnippet.generated_code}
-                        </SyntaxHighlighter>
-                      </div>
-                    </ScrollArea>
-                  )}
-                </div>
+                <ScrollArea className="h-full">
+                  <div className="rounded-lg overflow-hidden border">
+                    <SyntaxHighlighter
+                      language={selectedSnippet.language}
+                      style={vscDarkPlus}
+                      showLineNumbers
+                      customStyle={{
+                        margin: 0,
+                        borderRadius: 0,
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {selectedSnippet.generated_code}
+                    </SyntaxHighlighter>
+                   </div>
+                </ScrollArea>
               </>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -645,6 +660,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
             )}
           </div>
         </div>
+        )}
       </DialogContent>
     </Dialog>
   );
