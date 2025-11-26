@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
+import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo } from 'lucide-react';
@@ -185,6 +185,33 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const isHTMLLikeLanguage = (language: string): boolean => {
     const htmlLanguages = ['html', 'css', 'jsx', 'tsx', 'vue', 'svelte'];
     return htmlLanguages.includes(language.toLowerCase());
+  };
+
+  const getMonacoLanguage = (language: string): string => {
+    const languageMap: { [key: string]: string } = {
+      javascript: 'javascript',
+      typescript: 'typescript',
+      python: 'python',
+      java: 'java',
+      cpp: 'cpp',
+      c: 'c',
+      csharp: 'csharp',
+      ruby: 'ruby',
+      go: 'go',
+      rust: 'rust',
+      php: 'php',
+      swift: 'swift',
+      kotlin: 'kotlin',
+      html: 'html',
+      css: 'css',
+      jsx: 'javascript',
+      tsx: 'typescript',
+      json: 'json',
+      xml: 'xml',
+      sql: 'sql',
+      bash: 'shell',
+    };
+    return languageMap[language.toLowerCase()] || 'plaintext';
   };
 
   const downloadVSCodeFile = (code: string, language: string, title: string) => {
@@ -474,32 +501,44 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                   </div>
                 </div>
 
-                <ScrollArea className="flex-1">
+                <div className="flex-1">
                   {isEditing ? (
-                    <Textarea
-                      value={editedCode}
-                      onChange={(e) => setEditedCode(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="min-h-[500px] font-mono text-sm resize-none"
-                      placeholder="Edit your code here... (Ctrl+Z to revert)"
-                    />
-                  ) : (
-                    <div className="rounded-lg overflow-hidden border">
-                      <SyntaxHighlighter
-                        language={selectedSnippet.language}
-                        style={vscDarkPlus}
-                        showLineNumbers
-                        customStyle={{
-                          margin: 0,
-                          borderRadius: 0,
-                          fontSize: '0.875rem',
+                    <div className="h-[500px] border rounded-lg overflow-hidden" onKeyDown={handleKeyDown}>
+                      <Editor
+                        height="100%"
+                        language={getMonacoLanguage(selectedSnippet.language)}
+                        value={editedCode}
+                        onChange={(value) => setEditedCode(value || '')}
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                          tabSize: 2,
                         }}
-                      >
-                        {selectedSnippet.generated_code}
-                      </SyntaxHighlighter>
+                      />
                     </div>
+                  ) : (
+                    <ScrollArea className="h-[500px]">
+                      <div className="rounded-lg overflow-hidden border">
+                        <SyntaxHighlighter
+                          language={selectedSnippet.language}
+                          style={vscDarkPlus}
+                          showLineNumbers
+                          customStyle={{
+                            margin: 0,
+                            borderRadius: 0,
+                            fontSize: '0.875rem',
+                          }}
+                        >
+                          {selectedSnippet.generated_code}
+                        </SyntaxHighlighter>
+                      </div>
+                    </ScrollArea>
                   )}
-                </ScrollArea>
+                </div>
               </>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
