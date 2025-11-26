@@ -769,7 +769,7 @@ export type Database = {
           created_by: string
           description?: string | null
           id?: string
-          invite_code: string
+          invite_code?: string
           is_public?: boolean
           name: string
           updated_at?: string
