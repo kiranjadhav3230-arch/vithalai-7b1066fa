@@ -20,7 +20,16 @@ serve(async (req) => {
       );
     }
 
-    console.log('Generating image with Pollinations.ai for prompt:', prompt, 'language:', language, 'style:', style);
+    const GETIMG_API_KEY = Deno.env.get('GETIMG_API_KEY');
+    if (!GETIMG_API_KEY) {
+      console.error('GETIMG_API_KEY is not configured');
+      return new Response(
+        JSON.stringify({ error: 'GetImg.ai API key is not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Generating image with GetImg.ai for prompt:', prompt, 'language:', language, 'style:', style);
 
     // Style mapping for image generation
     const styleInstructions: Record<string, string> = {
@@ -41,47 +50,59 @@ serve(async (req) => {
       enhancedPrompt = `${prompt}। शैली: ${stylePrompt}। उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
     }
 
-    // Build Pollinations.ai URL
-    const params = new URLSearchParams({
-      width: '1024',
-      height: '1024',
-      model: imageUrl ? 'kontext' : 'flux',
-      enhance: 'true',
-      nologo: 'true',
-      private: 'true'
-    });
+    // Determine endpoint based on whether it's image editing or generation
+    let endpoint = 'https://api.getimg.ai/v1/flux-schnell/text-to-image';
+    const requestBody: any = {
+      prompt: enhancedPrompt,
+      width: 1024,
+      height: 1024,
+      steps: 4,
+      output_format: 'jpeg'
+    };
 
-    // Add image parameter for image editing
+    // Add image editing if imageUrl is provided
     if (imageUrl) {
-      console.log('Starting image editing workflow with Pollinations.ai');
-      params.append('image', imageUrl);
+      console.log('Starting image editing workflow with GetImg.ai');
+      endpoint = 'https://api.getimg.ai/v1/flux-schnell/image-to-image';
+      requestBody.image = imageUrl;
+      requestBody.strength = 0.8; // How much to transform the image (0-1)
     } else {
-      console.log('Generating new image with Pollinations.ai');
+      console.log('Generating new image with GetImg.ai');
     }
 
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?${params}`;
-    console.log('Fetching from Pollinations.ai...');
+    console.log('Calling GetImg.ai API...');
 
-    // Fetch the image
-    const response = await fetch(url);
+    // Call GetImg.ai API
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GETIMG_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Pollinations.ai error:', response.status, errorText);
-      throw new Error(`Pollinations.ai error: ${response.status} - ${errorText}`);
+      console.error('GetImg.ai error:', response.status, errorText);
+      throw new Error(`GetImg.ai API error: ${response.status} - ${errorText}`);
     }
 
-    // Convert image to base64
-    const arrayBuffer = await response.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    const contentType = response.headers.get('content-type') || 'image/jpeg';
-
+    const data = await response.json();
     console.log('Image generated successfully');
+
+    // GetImg.ai returns base64 image in the 'image' field
+    const base64Image = data.image;
+    
+    if (!base64Image) {
+      console.error('No image data in response:', data);
+      throw new Error('No image data received from GetImg.ai');
+    }
 
     // Return the base64 image data
     return new Response(
       JSON.stringify({ 
-        imageUrl: `data:${contentType};base64,${base64}`,
+        imageUrl: `data:image/jpeg;base64,${base64Image}`,
         revisedPrompt: enhancedPrompt
       }),
       { 
