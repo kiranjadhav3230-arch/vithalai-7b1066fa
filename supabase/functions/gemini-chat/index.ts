@@ -164,7 +164,7 @@ REMEMBER: You're ${userName}'s best friend who's smart and always ready to help!
             }],
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 2048,
+              maxOutputTokens: 8192,
             }
           }),
         }
