@@ -1,0 +1,370 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Users, Plus, Lock, Globe } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { StudyRoomInterface } from './study-room-interface';
+
+interface Room {
+  id: string;
+  name: string;
+  description: string | null;
+  is_public: boolean;
+  created_at: string;
+  member_count?: number;
+}
+
+export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isJoinOpen, setIsJoinOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Form states
+  const [roomName, setRoomName] = useState('');
+  const [roomDescription, setRoomDescription] = useState('');
+  const [isPublic, setIsPublic] = useState(true);
+  const [inviteCode, setInviteCode] = useState('');
+
+  useEffect(() => {
+    loadRooms();
+  }, []);
+
+  const loadRooms = async () => {
+    try {
+      // Get public rooms and rooms user is a member of
+      const { data: publicRooms } = await supabase
+        .from('study_rooms')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      const { data: memberRooms } = await supabase
+        .from('room_members')
+        .select('room_id, study_rooms(*)')
+        .eq('user_id', user.id);
+
+      const memberRoomData = memberRooms?.map(m => m.study_rooms).filter(Boolean) || [];
+      
+      // Combine and deduplicate
+      const allRooms = [...(publicRooms || []), ...memberRoomData];
+      const uniqueRooms = Array.from(new Map(allRooms.map(r => [r.id, r])).values());
+
+      // Get member counts
+      const roomsWithCounts = await Promise.all(
+        uniqueRooms.map(async (room) => {
+          const { count } = await supabase
+            .from('room_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('room_id', room.id);
+          return { ...room, member_count: count || 0 };
+        })
+      );
+
+      setRooms(roomsWithCounts);
+    } catch (error) {
+      console.error('Error loading rooms:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load study rooms',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createRoom = async () => {
+    if (!roomName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a room name',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const roomData: any = {
+        name: roomName,
+        description: roomDescription || null,
+        is_public: isPublic,
+        created_by: user.id,
+      };
+
+      if (!isPublic) {
+        roomData.invite_code = Math.random().toString(36).substring(2, 10).toUpperCase();
+      }
+
+      const { data: newRoom, error: roomError } = await supabase
+        .from('study_rooms')
+        .insert(roomData)
+        .select()
+        .single();
+
+      if (roomError) throw roomError;
+
+      // Add creator as member
+      const { error: memberError } = await supabase
+        .from('room_members')
+        .insert({
+          room_id: newRoom.id,
+          user_id: user.id,
+          role: 'owner',
+        });
+
+      if (memberError) throw memberError;
+
+      toast({
+        title: 'Success',
+        description: !isPublic ? `Room created! Invite code: ${roomData.invite_code}` : 'Room created successfully',
+      });
+
+      setIsCreateOpen(false);
+      setRoomName('');
+      setRoomDescription('');
+      setIsPublic(true);
+      loadRooms();
+    } catch (error) {
+      console.error('Error creating room:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create room',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const joinRoom = async (roomId: string) => {
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .insert({
+          room_id: roomId,
+          user_id: user.id,
+        });
+
+      if (error) {
+        if (error.message.includes('duplicate')) {
+          // Already a member, just open the room
+          const room = rooms.find(r => r.id === roomId);
+          if (room) setSelectedRoom(room);
+          return;
+        }
+        throw error;
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Joined room successfully',
+      });
+
+      const room = rooms.find(r => r.id === roomId);
+      if (room) setSelectedRoom(room);
+    } catch (error) {
+      console.error('Error joining room:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to join room',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const joinByInviteCode = async () => {
+    if (!inviteCode.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter an invite code',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { data: room, error: roomError } = await supabase
+        .from('study_rooms')
+        .select('*')
+        .eq('invite_code', inviteCode.toUpperCase())
+        .single();
+
+      if (roomError || !room) {
+        toast({
+          title: 'Error',
+          description: 'Invalid invite code',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      await joinRoom(room.id);
+      setIsJoinOpen(false);
+      setInviteCode('');
+    } catch (error) {
+      console.error('Error joining by invite:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to join room',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (selectedRoom) {
+    return (
+      <StudyRoomInterface
+        room={selectedRoom}
+        user={user}
+        onBack={() => {
+          setSelectedRoom(null);
+          loadRooms();
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Study Rooms</h1>
+          <p className="text-muted-foreground">Collaborate with AI and peers in real-time</p>
+        </div>
+        <div className="flex gap-2">
+          <Dialog open={isJoinOpen} onOpenChange={setIsJoinOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Lock className="mr-2 h-4 w-4" />
+                Join Private
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Join Private Room</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Invite Code</Label>
+                  <Input
+                    placeholder="Enter code"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                  />
+                </div>
+                <Button onClick={joinByInviteCode} className="w-full">
+                  Join Room
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Room
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Study Room</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Room Name</Label>
+                  <Input
+                    placeholder="e.g., Calculus Study Group"
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>Description (Optional)</Label>
+                  <Textarea
+                    placeholder="What's this room about?"
+                    value={roomDescription}
+                    onChange={(e) => setRoomDescription(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    <Label>Public Room</Label>
+                  </div>
+                  <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+                </div>
+                {!isPublic && (
+                  <p className="text-sm text-muted-foreground">
+                    An invite code will be generated for this private room
+                  </p>
+                )}
+                <Button onClick={createRoom} className="w-full">
+                  Create Room
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12">Loading rooms...</div>
+      ) : rooms.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">No study rooms yet</h3>
+            <p className="text-muted-foreground mb-4">Create your first room to start collaborating</p>
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Room
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rooms.map((room) => (
+            <Card key={room.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="flex items-center gap-2">
+                      {room.is_public ? (
+                        <Globe className="h-4 w-4" />
+                      ) : (
+                        <Lock className="h-4 w-4" />
+                      )}
+                      {room.name}
+                    </CardTitle>
+                    {room.description && (
+                      <CardDescription className="mt-2">{room.description}</CardDescription>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 mr-1" />
+                    {room.member_count || 0} members
+                  </div>
+                  <Button onClick={() => joinRoom(room.id)} size="sm">
+                    Enter
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
