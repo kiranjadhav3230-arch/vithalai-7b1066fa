@@ -50,30 +50,50 @@ serve(async (req) => {
       .eq('id', roomId)
       .single();
 
-    // Get recent room messages for context
+    // Get recent room messages for context (increased from 10 to 20 for better context)
     const { data: recentMessages } = await supabase
       .from('room_messages')
-      .select('message, is_ai_response, created_at')
+      .select('message, is_ai_response, created_at, sender_name')
       .eq('room_id', roomId)
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(20);
 
     // Build context from recent messages
     const conversationHistory = recentMessages?.reverse().map(msg => ({
       role: msg.is_ai_response ? 'model' : 'user',
-      parts: [{ text: msg.message }]
+      parts: [{ text: `${msg.sender_name ? `${msg.sender_name}: ` : ''}${msg.message}` }]
     })) || [];
 
-    const systemPrompt = `You are an AI study assistant in a collaborative study room called "${room?.name || 'Study Room'}". ${room?.description ? `Room description: ${room.description}` : ''}
+    const systemPrompt = `You are an advanced AI study assistant in a collaborative study room called "${room?.name || 'Study Room'}". ${room?.description ? `Room description: ${room.description}` : ''}
 
-Your role:
-- Help students with their studies collaboratively
-- Answer questions, explain concepts, and provide guidance
-- Be encouraging and supportive
-- Keep responses clear and concise
-- If multiple students are present, address the group
+YOUR CORE RESPONSIBILITIES:
+1. **Educational Excellence**: Provide accurate, comprehensive explanations tailored to student level
+2. **Problem Solving**: Break down complex problems into manageable steps
+3. **Visual Analysis**: When images are provided, analyze them thoroughly to identify:
+   - Mathematical equations and solutions
+   - Diagrams, charts, and graphs
+   - Code snippets and errors
+   - Scientific formulas and concepts
+   - Handwritten notes and problems
+4. **Adaptive Teaching**: Adjust your explanation depth based on student responses
+5. **Encouragement**: Motivate students and celebrate their progress
 
-Remember: This is a shared space where multiple students can interact with you together.`;
+COMMUNICATION GUIDELINES:
+- Start with a clear, direct answer to the question
+- Provide step-by-step explanations when solving problems
+- Use examples to illustrate complex concepts
+- If you're unsure, acknowledge it and offer alternative approaches
+- For image-based questions, describe what you see before providing solutions
+- Keep responses well-structured but conversational
+- Address the entire group when multiple students are present
+
+RESPONSE STRUCTURE:
+1. Quick answer/summary (if applicable)
+2. Detailed explanation with reasoning
+3. Examples or practice suggestions (when relevant)
+4. Follow-up questions to deepen understanding
+
+Remember: You're not just answering questions—you're facilitating learning and understanding in a collaborative environment.`;
 
     // Prepare message parts with optional image
     const messageParts: any[] = [];
@@ -108,8 +128,10 @@ Remember: This is a shared space where multiple students can interact with you t
             }
           ],
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
+            temperature: 0.8,
+            maxOutputTokens: 2048,
+            topP: 0.95,
+            topK: 40,
           }
         }),
       }
@@ -118,11 +140,38 @@ Remember: This is a shared space where multiple students can interact with you t
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      
+      // Provide helpful fallback message based on error type
+      let fallbackMessage = "I'm having trouble connecting to my knowledge base right now. ";
+      if (response.status === 429) {
+        fallbackMessage += "The service is experiencing high demand. Please try again in a moment.";
+      } else if (response.status >= 500) {
+        fallbackMessage += "There's a temporary service issue. Your question has been noted, please try again shortly.";
+      } else {
+        fallbackMessage += "Please try rephrasing your question or ask something else, and I'll do my best to help!";
+      }
+      
+      // Save fallback message to database
+      await supabase.from('room_messages').insert({
+        room_id: roomId,
+        user_id: null,
+        message: fallbackMessage,
+        is_ai_response: true
+      });
+
+      return new Response(
+        JSON.stringify({ response: fallbackMessage }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+    let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    // Enhanced fallback system
+    if (!aiResponse || aiResponse.trim().length === 0) {
+      aiResponse = "I understand you have a question, but I'm having trouble formulating a complete response right now. Could you try:\n\n1. Rephrasing your question\n2. Breaking it into smaller parts\n3. Providing more context\n\nI'm here to help you learn and understand!";
+    }
 
     // Save AI response to database
     await supabase.from('room_messages').insert({

@@ -52,8 +52,10 @@ export const StudyRoomInterface: React.FC<{
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [aiMode, setAiMode] = useState(true);
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   // Note form states
@@ -142,11 +144,34 @@ export const StudyRoomInterface: React.FC<{
       )
       .subscribe();
 
+    // Subscribe to typing indicators
+    const typingChannel = supabase
+      .channel(`room-typing-${room.id}`)
+      .on('broadcast', { event: 'typing' }, ({ payload }) => {
+        if (payload.user_id !== user.id) {
+          setTypingUsers(prev => ({
+            ...prev,
+            [payload.user_id]: payload.display_name
+          }));
+          
+          // Clear typing indicator after 3 seconds
+          setTimeout(() => {
+            setTypingUsers(prev => {
+              const updated = { ...prev };
+              delete updated[payload.user_id];
+              return updated;
+            });
+          }, 3000);
+        }
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(presenceChannel);
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(notesChannel);
       supabase.removeChannel(membersChannel);
+      supabase.removeChannel(typingChannel);
     };
   }, [room.id, user.id]);
 
@@ -247,6 +272,38 @@ export const StudyRoomInterface: React.FC<{
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleTyping = async () => {
+    if (!user) return;
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Get user profile for display name
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('user_id', user.id)
+      .single();
+
+    // Broadcast typing status
+    const typingChannel = supabase.channel(`room-typing-${room.id}`);
+    await typingChannel.send({
+      type: 'broadcast',
+      event: 'typing',
+      payload: {
+        user_id: user.id,
+        display_name: profile?.display_name || 'Someone'
+      }
+    });
+
+    // Set timeout to stop showing typing after 3 seconds
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 3000);
   };
 
   const sendMessage = async () => {
@@ -499,6 +556,21 @@ export const StudyRoomInterface: React.FC<{
                   </div>
                 </div>
               )}
+              
+              {/* Typing Indicator */}
+              {Object.keys(typingUsers).length > 0 && (
+                <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span>
+                    {Object.values(typingUsers).join(', ')} {Object.keys(typingUsers).length === 1 ? 'is' : 'are'} typing...
+                  </span>
+                </div>
+              )}
+              
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
@@ -551,7 +623,10 @@ export const StudyRoomInterface: React.FC<{
               <Input
                 placeholder="Type your message..."
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e) => {
+                  setInputMessage(e.target.value);
+                  handleTyping();
+                }}
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
                 disabled={isLoadingAI}
               />
