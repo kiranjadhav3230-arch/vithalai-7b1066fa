@@ -19,6 +19,7 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const { t } = useLanguage();
@@ -109,19 +110,23 @@ const Index = () => {
     return <LoadingScreen />;
   }
 
-  // Show NotebookLM interface if user is logged in
-  if (user && showChat) {
-    return (
-      <NotebookLMInterface user={user} onLogout={handleLogout} />
-    );
+  // Show selected feature interface if user is logged in
+  if (user && (showChat || selectedFeature)) {
+    if (selectedFeature === 'notebook-lm') {
+      return <NotebookLMInterface user={user} onLogout={handleLogout} />;
+    }
+    return <ChatInterface user={user} onLogout={handleLogout} />;
   }
 
-  // Show NotebookLM interface by default for logged in users
-  if (user) {
-    return (
-      <NotebookLMInterface user={user} onLogout={handleLogout} />
-    );
-  }
+  // Handle feature selection for non-logged in users
+  const handleFeatureSelect = (feature: string) => {
+    if (!user) {
+      setShowAuth(true);
+      setSelectedFeature(feature);
+    } else {
+      setSelectedFeature(feature);
+    }
+  };
 
   // Show landing page
   return (
@@ -131,7 +136,7 @@ const Index = () => {
       <main className="relative">
         <ModernHero onGetStarted={handleGetStarted} />
         <ModernHowItWorks />
-        <ComprehensiveFeatures />
+        <ComprehensiveFeatures onFeatureSelect={handleFeatureSelect} />
         <CodeGeneratorSection onGetStarted={handleGetStarted} />
           
           {/* Help Section */}

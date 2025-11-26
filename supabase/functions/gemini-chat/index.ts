@@ -51,18 +51,29 @@ serve(async (req) => {
 
     // Add document context if provided
     let documentContext = '';
+    let hasDocumentContent = false;
     if (context) {
       try {
         const docs = JSON.parse(context);
         if (Array.isArray(docs) && docs.length > 0) {
           documentContext = '\n\n📚 DOCUMENT CONTEXT:\nYou have access to the following documents:\n';
           docs.forEach((doc: any) => {
-            documentContext += `\n--- Document: ${doc.title} ---\n${doc.content}\n`;
-            if (doc.analysis?.summary) {
-              documentContext += `\nSummary: ${doc.analysis.summary}\n`;
+            if (doc.content && doc.content.trim().length > 0) {
+              hasDocumentContent = true;
+              documentContext += `\n--- Document: ${doc.title} ---\n${doc.content}\n`;
+              if (doc.analysis?.summary) {
+                documentContext += `\nSummary: ${doc.analysis.summary}\n`;
+              }
+            } else {
+              documentContext += `\n--- Document: ${doc.title} ---\n[Document is still being processed or has no text content]\n`;
             }
           });
-          documentContext += '\n⚡ IMPORTANT: Use this document information to answer questions accurately. Always cite the document title when referencing specific information.\n';
+          
+          if (hasDocumentContent) {
+            documentContext += '\n⚡ IMPORTANT: Use this document information to answer questions accurately. Always cite the document title when referencing specific information.\n';
+          } else {
+            documentContext += '\n⚠️ NOTE: The documents are still being processed or contain no extractable text. If the user asks questions about these documents, politely inform them that the documents are still being analyzed and they should wait a moment, or suggest they try uploading the documents again.\n';
+          }
         }
       } catch (e) {
         console.error('Error parsing context:', e);

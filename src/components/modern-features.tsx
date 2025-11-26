@@ -1,9 +1,13 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Brain, Target, BookOpen, Users, TrendingUp, Award, Zap, Sparkles, Globe, Shield } from 'lucide-react';
+import { Brain, Target, BookOpen, Users, TrendingUp, Award, Zap, Sparkles, Globe, Shield, FileText } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
-export const ModernFeatures: React.FC = () => {
+interface ModernFeaturesProps {
+  onFeatureSelect?: (feature: string) => void;
+}
+
+export const ModernFeatures: React.FC<ModernFeaturesProps> = ({ onFeatureSelect }) => {
   const { t } = useLanguage();
 
   const features = [
@@ -12,42 +16,56 @@ export const ModernFeatures: React.FC = () => {
       title: t('feature1Title'),
       description: t('feature1Desc'),
       gradient: 'from-orange-500 to-orange-600',
-      delay: '0s'
+      delay: '0s',
+      action: null
+    },
+    {
+      icon: FileText,
+      title: 'NotebookLM',
+      description: 'Upload documents and chat with your sources. Get answers from your PDFs and documents.',
+      gradient: 'from-orange-600 to-orange-700',
+      delay: '0.05s',
+      action: 'notebook-lm'
     },
     {
       icon: Target,
       title: t('feature3Title'),
       description: t('feature3Desc'),
       gradient: 'from-orange-600 to-red-500',
-      delay: '0.1s'
+      delay: '0.1s',
+      action: null
     },
     {
       icon: TrendingUp,
       title: t('feature2Title'),
       description: t('feature2Desc'),
       gradient: 'from-orange-400 to-orange-500',
-      delay: '0.2s'
+      delay: '0.2s',
+      action: null
     },
     {
       icon: BookOpen,
       title: 'Multi-language Support',
       description: 'Available in English, Hindi, and Marathi for better accessibility',
       gradient: 'from-orange-500 to-orange-700',
-      delay: '0.3s'
+      delay: '0.3s',
+      action: null
     },
     {
       icon: Users,
       title: 'Indian Youth Focus',
       description: 'Specially designed for Indian job market and cultural context',
       gradient: 'from-orange-600 to-orange-800',
-      delay: '0.4s'
+      delay: '0.4s',
+      action: null
     },
     {
       icon: Award,
       title: 'Career Success',
       description: 'Track your progress and celebrate your career milestones',
       gradient: 'from-orange-400 to-orange-600',
-      delay: '0.5s'
+      delay: '0.5s',
+      action: null
     }
   ];
 
@@ -91,6 +109,7 @@ export const ModernFeatures: React.FC = () => {
                 animationDelay: feature.delay,
                 transformStyle: 'preserve-3d'
               }}
+              onClick={() => feature.action && onFeatureSelect?.(feature.action)}
             >
               <CardContent className="p-6 md:p-8 relative z-10">
                 {/* Icon with Gradient */}
