@@ -100,16 +100,12 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         name: roomName,
         description: roomDescription || null,
         is_public: isPublic,
-        created_by: user.id,
+        // created_by is now set automatically by database trigger
       };
 
       if (!isPublic) {
         roomData.invite_code = Math.random().toString(36).substring(2, 10).toUpperCase();
       }
-
-      console.log('Creating room with data:', roomData);
-      console.log('User ID:', user.id);
-      console.log('Auth user:', (await supabase.auth.getUser()).data.user?.id);
 
       const { data: newRoom, error: roomError } = await supabase
         .from('study_rooms')
@@ -117,12 +113,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         .select()
         .single();
 
-      if (roomError) {
-        console.error('Room creation error:', roomError);
-        throw roomError;
-      }
-
-      console.log('Room created successfully:', newRoom);
+      if (roomError) throw roomError;
 
       // Add creator as member
       const { error: memberError } = await supabase
