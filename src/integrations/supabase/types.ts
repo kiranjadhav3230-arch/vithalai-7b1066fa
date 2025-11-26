@@ -636,25 +636,31 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          image_data: string | null
           is_ai_response: boolean
           message: string
           room_id: string
+          sender_name: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
+          image_data?: string | null
           is_ai_response?: boolean
           message: string
           room_id: string
+          sender_name?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
+          image_data?: string | null
           is_ai_response?: boolean
           message?: string
           room_id?: string
+          sender_name?: string | null
           user_id?: string | null
         }
         Relationships: [

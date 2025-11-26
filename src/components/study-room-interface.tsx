@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
@@ -17,6 +17,8 @@ interface Message {
   is_ai_response: boolean;
   user_id: string | null;
   created_at: string;
+  image_data?: string | null;
+  sender_name?: string | null;
 }
 
 interface Note {
@@ -31,7 +33,8 @@ interface Note {
 interface Member {
   user_id: string;
   joined_at: string;
-  profiles?: { display_name: string | null };
+  display_name?: string | null;
+  is_online?: boolean;
 }
 
 export const StudyRoomInterface: React.FC<{
@@ -42,10 +45,13 @@ export const StudyRoomInterface: React.FC<{
   const [messages, setMessages] = useState<Message[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
   const [inputMessage, setInputMessage] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   // Note form states
@@ -57,6 +63,33 @@ export const StudyRoomInterface: React.FC<{
     loadMessages();
     loadNotes();
     loadMembers();
+
+    // Set up presence tracking
+    const presenceChannel = supabase.channel(`room-presence-${room.id}`, {
+      config: { presence: { key: user.id } }
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const online = new Set<string>();
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.user_id) {
+              online.add(presence.user_id);
+            }
+          });
+        });
+        setOnlineUsers(online);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user_id: user.id,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
 
     // Subscribe to realtime updates
     const messagesChannel = supabase
@@ -108,15 +141,27 @@ export const StudyRoomInterface: React.FC<{
       .subscribe();
 
     return () => {
+      supabase.removeChannel(presenceChannel);
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(notesChannel);
       supabase.removeChannel(membersChannel);
     };
-  }, [room.id]);
+  }, [room.id, user.id]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Update members when online users change
+  useEffect(() => {
+    if (members.length > 0) {
+      const updatedMembers = members.map(m => ({
+        ...m,
+        is_online: onlineUsers.has(m.user_id)
+      }));
+      setMembers(updatedMembers);
+    }
+  }, [onlineUsers]);
 
   const loadMessages = async () => {
     const { data } = await supabase
@@ -139,44 +184,85 @@ export const StudyRoomInterface: React.FC<{
   };
 
   const loadMembers = async () => {
-    const { data } = await supabase
+    const { data: memberData } = await supabase
       .from('room_members')
-      .select('user_id, joined_at, profiles(display_name)')
+      .select('user_id, joined_at')
       .eq('room_id', room.id);
 
-    if (data) setMembers(data as any);
+    if (memberData) {
+      // Fetch profiles for all members
+      const userIds = memberData.map(m => m.user_id);
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', userIds);
+
+      const profileMap = new Map(profileData?.map(p => [p.user_id, p.display_name]) || []);
+      
+      const enrichedMembers = memberData.map(m => ({
+        ...m,
+        display_name: profileMap.get(m.user_id),
+        is_online: onlineUsers.has(m.user_id)
+      }));
+
+      setMembers(enrichedMembers);
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoadingAI) return;
+    if ((!inputMessage.trim() && !selectedImage) || isLoadingAI) return;
 
     const messageText = inputMessage;
+    const imageData = selectedImage;
     setInputMessage('');
+    setSelectedImage(null);
 
     try {
+      // Get sender name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', user.id)
+        .single();
+
       // Save user message
       const { error } = await supabase.from('room_messages').insert({
         room_id: room.id,
         user_id: user.id,
-        message: messageText,
+        message: messageText || (imageData ? 'Sent an image' : ''),
+        image_data: imageData,
+        sender_name: profile?.display_name || 'User',
         is_ai_response: false,
       });
 
       if (error) throw error;
 
-      // Get AI response
-      setIsLoadingAI(true);
-      const { data, error: aiError } = await supabase.functions.invoke('room-chat', {
-        body: {
-          roomId: room.id,
-          message: messageText,
-          userId: user.id,
-        },
-      });
+      // Get AI response if there's text
+      if (messageText.trim()) {
+        setIsLoadingAI(true);
+        const { data, error: aiError } = await supabase.functions.invoke('room-chat', {
+          body: {
+            roomId: room.id,
+            message: messageText,
+            userId: user.id,
+            hasImage: !!imageData,
+          },
+        });
 
-      if (aiError) throw aiError;
-
-      setIsLoadingAI(false);
+        if (aiError) throw aiError;
+        setIsLoadingAI(false);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setIsLoadingAI(false);
@@ -242,7 +328,7 @@ export const StudyRoomInterface: React.FC<{
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          {members.length} online
+          {onlineUsers.size} online / {members.length} total
         </div>
       </div>
 
@@ -259,8 +345,13 @@ export const StudyRoomInterface: React.FC<{
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${msg.is_ai_response ? 'justify-start' : msg.user_id === user.id ? 'justify-end' : 'justify-start'}`}
+                  className={`flex flex-col ${msg.is_ai_response ? 'items-start' : msg.user_id === user.id ? 'items-end' : 'items-start'}`}
                 >
+                  {!msg.is_ai_response && msg.user_id !== user.id && (
+                    <div className="text-xs text-muted-foreground mb-1 ml-2">
+                      {msg.sender_name || 'User'}
+                    </div>
+                  )}
                   <div
                     className={`max-w-[80%] rounded-lg p-3 ${
                       msg.is_ai_response
@@ -273,7 +364,20 @@ export const StudyRoomInterface: React.FC<{
                     {msg.is_ai_response && (
                       <div className="text-xs font-semibold mb-1">AI Assistant</div>
                     )}
+                    {msg.user_id === user.id && (
+                      <div className="text-xs opacity-70 mb-1">You</div>
+                    )}
+                    {msg.image_data && (
+                      <img
+                        src={msg.image_data}
+                        alt="Shared image"
+                        className="max-w-full rounded-lg mb-2"
+                      />
+                    )}
                     <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                    <p className="text-xs opacity-60 mt-1">
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -288,17 +392,51 @@ export const StudyRoomInterface: React.FC<{
             </div>
           </ScrollArea>
 
-          <div className="flex gap-2 mt-4">
-            <Input
-              placeholder="Type your message..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              disabled={isLoadingAI}
-            />
-            <Button onClick={sendMessage} disabled={isLoadingAI || !inputMessage.trim()}>
-              <Send className="h-4 w-4" />
-            </Button>
+          <div className="space-y-2 mt-4">
+            {selectedImage && (
+              <div className="relative inline-block">
+                <img
+                  src={selectedImage}
+                  alt="Preview"
+                  className="max-h-32 rounded-lg"
+                />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageSelect}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoadingAI}
+              >
+                <Image className="h-4 w-4" />
+              </Button>
+              <Input
+                placeholder="Type your message..."
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                disabled={isLoadingAI}
+              />
+              <Button onClick={sendMessage} disabled={isLoadingAI || (!inputMessage.trim() && !selectedImage)}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </TabsContent>
 
@@ -373,26 +511,38 @@ export const StudyRoomInterface: React.FC<{
         </TabsContent>
 
         <TabsContent value="members" className="flex-1 p-4">
-          <h3 className="text-lg font-semibold mb-4">Room Members</h3>
+          <h3 className="text-lg font-semibold mb-4">Room Members ({members.length})</h3>
           <ScrollArea className="h-[calc(100vh-250px)]">
             <div className="space-y-2">
-              {members.map((member) => (
-                <Card key={member.user_id}>
-                  <CardContent className="py-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">
-                          {member.profiles?.display_name || 'User'}
-                          {member.user_id === user.id && ' (You)'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Joined {new Date(member.joined_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
+              {members.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No members found</p>
                   </CardContent>
                 </Card>
-              ))}
+              ) : (
+                members.map((member) => (
+                  <Card key={member.user_id}>
+                    <CardContent className="py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
+                          <div>
+                            <p className="font-medium">
+                              {member.display_name || 'User'}
+                              {member.user_id === user.id && ' (You)'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {onlineUsers.has(member.user_id) ? 'Online' : 'Offline'} • Joined {new Date(member.joined_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </ScrollArea>
         </TabsContent>
