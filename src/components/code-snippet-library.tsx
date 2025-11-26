@@ -49,6 +49,13 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   }, [open]);
 
   useEffect(() => {
+    // Auto-select the first snippet when snippets are loaded
+    if (snippets.length > 0 && !selectedSnippet) {
+      setSelectedSnippet(snippets[0]);
+    }
+  }, [snippets]);
+
+  useEffect(() => {
     filterSnippets();
   }, [searchQuery, selectedTags, snippets]);
 
