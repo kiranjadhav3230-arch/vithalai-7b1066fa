@@ -180,6 +180,10 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
       setEditedCode(originalCode);
       toast({ title: "Reverted", description: "Code reverted to original" });
     }
+    if (e.ctrlKey && e.key === 's' && isEditing) {
+      e.preventDefault();
+      saveEdit();
+    }
   };
 
   const isHTMLLikeLanguage = (language: string): boolean => {
@@ -301,9 +305,9 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col md:flex-row gap-4 p-6 pt-4 h-full overflow-hidden">
+        <div className="flex flex-col md:flex-row gap-4 p-6 pt-4 overflow-hidden" style={{ height: 'calc(80vh - 80px)' }}>
           {/* Sidebar */}
-          <div className="w-full md:w-1/3 flex flex-col gap-4">
+          <div className="w-full md:w-1/3 flex flex-col gap-4 min-h-0">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -386,10 +390,10 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
           </div>
 
           {/* Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {selectedSnippet ? (
               <>
-                <div className="flex items-start justify-between mb-4 pb-4 border-b">
+                <div className="flex items-start justify-between mb-4 pb-4 border-b flex-shrink-0">
                   <div className="flex-1">
                     <h2 className="text-xl font-bold mb-2">{selectedSnippet.title}</h2>
                     {selectedSnippet.description && (
@@ -501,9 +505,27 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                   </div>
                 </div>
 
-                <div className="flex-1">
+                <div className="flex-1 min-h-0 relative">
+                  {isEditing && (
+                    <div className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">
+                      <div className="text-xs font-medium mb-2 flex items-center gap-2">
+                        <Code2 className="h-3 w-3" />
+                        Keyboard Shortcuts
+                      </div>
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        <div className="flex items-center justify-between gap-4">
+                          <span>Save changes</span>
+                          <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+S</kbd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <span>Revert to original</span>
+                          <kbd className="px-2 py-0.5 bg-muted rounded text-xs font-mono">Ctrl+Z</kbd>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   {isEditing ? (
-                    <div className="h-[500px] border rounded-lg overflow-hidden" onKeyDown={handleKeyDown}>
+                    <div className="h-full border rounded-lg overflow-hidden" onKeyDown={handleKeyDown}>
                       <Editor
                         height="100%"
                         language={getMonacoLanguage(selectedSnippet.language)}
@@ -521,7 +543,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       />
                     </div>
                   ) : (
-                    <ScrollArea className="h-[500px]">
+                    <ScrollArea className="h-full">
                       <div className="rounded-lg overflow-hidden border">
                         <SyntaxHighlighter
                           language={selectedSnippet.language}
