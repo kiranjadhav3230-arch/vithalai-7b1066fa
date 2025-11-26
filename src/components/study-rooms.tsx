@@ -44,10 +44,27 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     try {
       setLoading(true);
       
-      // Get rooms user is a member of - RLS will filter automatically
+      // First get rooms where user is a member
+      const { data: memberships, error: memberError } = await supabase
+        .from('room_members')
+        .select('room_id')
+        .eq('user_id', user.id);
+
+      if (memberError) throw memberError;
+
+      const roomIds = memberships?.map(m => m.room_id) || [];
+
+      if (roomIds.length === 0) {
+        setRooms([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get the room details for these rooms
       const { data: roomsData, error: roomsError } = await supabase
         .from('study_rooms')
         .select('*')
+        .in('id', roomIds)
         .order('created_at', { ascending: false });
 
       if (roomsError) throw roomsError;
