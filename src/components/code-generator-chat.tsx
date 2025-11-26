@@ -80,6 +80,34 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     }
   }, [sessionId]);
 
+  const parseResponse = (text: string) => {
+    const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
+    const parts: Array<{ type: 'text' | 'code', content: string, language?: string }> = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        const textContent = text.substring(lastIndex, match.index).trim();
+        if (textContent) parts.push({ type: 'text', content: textContent });
+      }
+      const langMatch = text.substring(match.index, match.index + 10).match(/```(\w+)/);
+      parts.push({ 
+        type: 'code', 
+        content: match[1], 
+        language: langMatch ? langMatch[1] : selectedLanguage 
+      });
+      lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+      const textContent = text.substring(lastIndex).trim();
+      if (textContent) parts.push({ type: 'text', content: textContent });
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'code', content: text, language: selectedLanguage }];
+  };
+
   const loadMessages = async (sid: string) => {
     const { data } = await supabase
       .from('chat_messages')
@@ -89,9 +117,23 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     
     if (data) {
       const msgs: Message[] = [];
-      data.forEach(m => {
+      data.forEach((m, msgIndex) => {
+        // Add user message
         msgs.push({ id: m.id, role: 'user', content: m.message, isCode: false });
-        if (m.response) msgs.push({ id: m.id + '-ai', role: 'assistant', content: m.response, isCode: true, language: selectedLanguage });
+        
+        // Parse and add AI response
+        if (m.response) {
+          const parsedParts = parseResponse(m.response);
+          parsedParts.forEach((part, partIndex) => {
+            msgs.push({
+              id: `${m.id}-ai-${partIndex}`,
+              role: 'assistant',
+              content: part.content,
+              isCode: part.type === 'code',
+              language: part.language || selectedLanguage
+            });
+          });
+        }
       });
       setMessages(msgs);
     }
@@ -399,33 +441,6 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     });
   };
 
-  const parseResponse = (text: string) => {
-    const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
-    const parts: Array<{ type: 'text' | 'code', content: string, language?: string }> = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      if (match.index > lastIndex) {
-        const textContent = text.substring(lastIndex, match.index).trim();
-        if (textContent) parts.push({ type: 'text', content: textContent });
-      }
-      const langMatch = text.substring(match.index, match.index + 10).match(/```(\w+)/);
-      parts.push({ 
-        type: 'code', 
-        content: match[1], 
-        language: langMatch ? langMatch[1] : selectedLanguage 
-      });
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < text.length) {
-      const textContent = text.substring(lastIndex).trim();
-      if (textContent) parts.push({ type: 'text', content: textContent });
-    }
-
-    return parts.length > 0 ? parts : [{ type: 'code', content: text, language: selectedLanguage }];
-  };
 
   const handleSend = async () => {
     if (!input.trim() && attachments.length === 0) return;
