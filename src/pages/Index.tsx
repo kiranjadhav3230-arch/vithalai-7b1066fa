@@ -7,7 +7,6 @@ import { ComprehensiveFeatures } from '@/components/comprehensive-features';
 import { CodeGeneratorSection } from '@/components/code-generator-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
-import { NotebookLMInterface } from '@/components/notebook-lm-interface';
 import { LoadingScreen } from '@/components/loading-screen';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ const Index = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
   const { t } = useLanguage();
@@ -110,23 +108,19 @@ const Index = () => {
     return <LoadingScreen />;
   }
 
-  // Show selected feature interface if user is logged in
-  if (user && (showChat || selectedFeature)) {
-    if (selectedFeature === 'notebook-lm') {
-      return <NotebookLMInterface user={user} onLogout={handleLogout} />;
-    }
-    return <ChatInterface user={user} onLogout={handleLogout} />;
+  // Show chat interface if user is logged in
+  if (user && showChat) {
+    return (
+      <ChatInterface user={user} onLogout={handleLogout} />
+    );
   }
 
-  // Handle feature selection for non-logged in users
-  const handleFeatureSelect = (feature: string) => {
-    if (!user) {
-      setShowAuth(true);
-      setSelectedFeature(feature);
-    } else {
-      setSelectedFeature(feature);
-    }
-  };
+  // Show chat interface by default for logged in users
+  if (user) {
+    return (
+      <ChatInterface user={user} onLogout={handleLogout} />
+    );
+  }
 
   // Show landing page
   return (
@@ -136,7 +130,7 @@ const Index = () => {
       <main className="relative">
         <ModernHero onGetStarted={handleGetStarted} />
         <ModernHowItWorks />
-        <ComprehensiveFeatures onFeatureSelect={handleFeatureSelect} />
+        <ComprehensiveFeatures />
         <CodeGeneratorSection onGetStarted={handleGetStarted} />
           
           {/* Help Section */}

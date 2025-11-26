@@ -18,11 +18,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
-interface ComprehensiveFeaturesProps {
-  onFeatureSelect?: (feature: string) => void;
-}
-
-export const ComprehensiveFeatures: React.FC<ComprehensiveFeaturesProps> = ({ onFeatureSelect }) => {
+export const ComprehensiveFeatures: React.FC = () => {
   const { t } = useLanguage();
 
   const features = [
@@ -31,104 +27,84 @@ export const ComprehensiveFeatures: React.FC<ComprehensiveFeaturesProps> = ({ on
       title: 'AI Chat Assistant',
       description: 'Get instant answers to your questions with our intelligent AI chatbot powered by Gemini',
       gradient: 'from-orange-500 to-orange-600',
-      category: 'Core',
-      action: null
-    },
-    {
-      icon: FileText,
-      title: 'NotebookLM',
-      description: 'Upload PDFs and documents, then chat with your sources to get AI-powered insights',
-      gradient: 'from-orange-600 to-orange-700',
-      category: 'Core',
-      action: 'notebook-lm'
+      category: 'Core'
     },
     {
       icon: Code,
       title: 'Code Generator',
       description: 'Generate, debug, explain, optimize, and translate code in 18+ programming languages',
       gradient: 'from-orange-600 to-red-500',
-      category: 'Developer',
-      action: null
+      category: 'Developer'
     },
     {
       icon: Target,
       title: 'Career Guidance',
       description: 'Personalized career advice tailored to Indian job market and your skills',
       gradient: 'from-orange-400 to-orange-500',
-      category: 'Career',
-      action: null
+      category: 'Career'
     },
     {
       icon: Brain,
       title: 'Career Assessment',
       description: 'Take comprehensive assessments to discover your strengths and ideal career paths',
       gradient: 'from-orange-500 to-orange-700',
-      category: 'Career',
-      action: null
+      category: 'Career'
     },
     {
       icon: Lightbulb,
       title: 'Quiz Generator',
       description: 'Generate custom quizzes on any topic to test your knowledge and prepare for exams',
       gradient: 'from-orange-600 to-orange-800',
-      category: 'Education',
-      action: null
+      category: 'Education'
     },
     {
       icon: Calendar,
       title: 'Study Planner',
       description: 'Create personalized study schedules and track your progress with AI-powered planning',
       gradient: 'from-orange-400 to-orange-600',
-      category: 'Education',
-      action: null
+      category: 'Education'
     },
     {
       icon: FileText,
       title: 'Document Analyzer',
       description: 'Upload PDFs and documents for AI-powered analysis, summaries, and insights',
       gradient: 'from-orange-500 to-red-600',
-      category: 'Productivity',
-      action: null
+      category: 'Productivity'
     },
     {
       icon: ImageIcon,
       title: 'Image Analysis',
       description: 'Upload or capture images for AI recognition, problem-solving, and analysis',
       gradient: 'from-orange-600 to-orange-700',
-      category: 'AI Tools',
-      action: null
+      category: 'AI Tools'
     },
     {
       icon: Mic,
       title: 'Voice Input',
       description: 'Speak naturally in English, Hindi, or Marathi for hands-free conversations',
       gradient: 'from-orange-400 to-orange-500',
-      category: 'Input',
-      action: null
+      category: 'Input'
     },
     {
       icon: Camera,
       title: 'Camera Integration',
       description: 'Take photos directly to solve problems, analyze content, or get instant help',
       gradient: 'from-orange-500 to-orange-600',
-      category: 'Input',
-      action: null
+      category: 'Input'
     },
     {
       icon: Languages,
       title: 'Multi-language Support',
       description: 'Available in English, Hindi, and Marathi for seamless communication',
       gradient: 'from-orange-600 to-red-500',
-      category: 'Accessibility',
-      action: null
+      category: 'Accessibility'
     },
     {
       icon: GraduationCap,
       title: 'Student Focused',
       description: 'Specially designed for Indian students with relevant content and guidance',
       gradient: 'from-orange-400 to-orange-600',
-      category: 'Target Audience',
-      action: null
+      category: 'Core'
     }
   ];
 
@@ -169,7 +145,6 @@ export const ComprehensiveFeatures: React.FC<ComprehensiveFeaturesProps> = ({ on
               variant="glass"
               className="group morph-shape cursor-pointer hover:scale-105 transition-all duration-500"
               style={{ animationDelay: `${index * 0.05}s` }}
-              onClick={() => feature.action && onFeatureSelect?.(feature.action)}
             >
               <CardContent className="p-8">
                 {/* Category Badge */}
