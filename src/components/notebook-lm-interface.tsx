@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Search, Send, Loader2, Sparkles, Download, Share2, Settings, MoreVertical, BookOpen, Mic, Video, Brain, FileQuestion, Zap, BookmarkPlus, MessageSquare, Code } from 'lucide-react';
+import { FileText, Plus, Search, Send, Loader2, Sparkles, Download, Share2, Settings, MoreVertical, BookOpen, Mic, Video, Brain, FileQuestion, Zap, BookmarkPlus, MessageSquare, Code, ScanText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [notebookTitle, setNotebookTitle] = useState('Untitled Notebook');
-  const [viewMode, setViewMode] = useState<'chat' | 'code'>('chat');
+  const [viewMode, setViewMode] = useState<'chat' | 'code' | 'analyzer'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -241,6 +241,15 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
               <Code className="w-4 h-4" />
               Code
             </Button>
+            <Button
+              variant={viewMode === 'analyzer' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('analyzer')}
+              className="gap-2"
+            >
+              <ScanText className="w-4 h-4" />
+              Analyzer
+            </Button>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -352,7 +361,9 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
         <div className="flex-1 flex flex-col">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold">{viewMode === 'chat' ? 'Chat' : 'Code'}</h2>
+              <h2 className="font-semibold">
+                {viewMode === 'chat' ? 'Chat' : viewMode === 'code' ? 'Code' : 'Document Analyzer'}
+              </h2>
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-xs">i</span>
               </div>
@@ -449,7 +460,7 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
                 </div>
               </div>
             </>
-          ) : (
+          ) : viewMode === 'code' ? (
             // Code View
             <ScrollArea className="flex-1 p-6">
               <div className="max-w-3xl mx-auto text-center py-12">
@@ -463,6 +474,88 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
                 <p className="text-sm text-muted-foreground">
                   Coming soon - Generate code snippets, examples, and implementations from your sources
                 </p>
+              </div>
+            </ScrollArea>
+          ) : (
+            // Document Analyzer View
+            <ScrollArea className="flex-1 p-6">
+              <div className="max-w-3xl mx-auto space-y-6">
+                {selectedDocs.size === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ScanText className="w-8 h-8 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-semibold mb-2">Document Analyzer</h3>
+                    <p className="text-muted-foreground">
+                      Select sources to analyze their content
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center pb-6">
+                      <h3 className="text-xl font-semibold mb-2">Document Analysis</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Analyzing {selectedDocs.size} selected document{selectedDocs.size !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    
+                    {documents.filter(d => selectedDocs.has(d.id)).map(doc => (
+                      <Card key={doc.id} className="p-6">
+                        <div className="flex items-start gap-4 mb-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-6 h-6 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-lg mb-1">{doc.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Status: {doc.analysis_status === 'completed' ? '✓ Analyzed' : '⏳ Processing...'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {doc.analysis_result && (
+                          <div className="space-y-4 mt-4 pt-4 border-t border-border">
+                            <div>
+                              <h5 className="font-medium text-sm mb-2">Summary</h5>
+                              <p className="text-sm text-muted-foreground">
+                                {doc.analysis_result.summary || 'No summary available'}
+                              </p>
+                            </div>
+                            
+                            {doc.analysis_result.key_topics && (
+                              <div>
+                                <h5 className="font-medium text-sm mb-2">Key Topics</h5>
+                                <div className="flex flex-wrap gap-2">
+                                  {doc.analysis_result.key_topics.map((topic: string, idx: number) => (
+                                    <span key={idx} className="px-3 py-1 bg-primary/10 rounded-full text-xs">
+                                      {topic}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {doc.document_text && (
+                              <div>
+                                <h5 className="font-medium text-sm mb-2">Document Preview</h5>
+                                <p className="text-xs text-muted-foreground line-clamp-3">
+                                  {doc.document_text.substring(0, 200)}...
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        {!doc.analysis_result && doc.analysis_status !== 'completed' && (
+                          <div className="flex items-center gap-2 text-muted-foreground text-sm mt-4">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Analyzing document...</span>
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                  </>
+                )}
               </div>
             </ScrollArea>
           )}
