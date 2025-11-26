@@ -50,8 +50,18 @@ serve(async (req) => {
       enhancedPrompt = `${prompt}। शैली: ${stylePrompt}। उच्च रिझोल्यूशन, तपशीलवार, व्यावसायिक गुणवत्ता।`;
     }
 
-    // Determine endpoint based on whether it's image editing or generation
-    let endpoint = 'https://api.getimg.ai/v1/flux-schnell/text-to-image';
+    // GetImg.ai FLUX Schnell only supports text-to-image, not image editing
+    if (imageUrl) {
+      console.log('Note: Image editing is not supported with GetImg.ai FLUX Schnell model');
+      return new Response(
+        JSON.stringify({ error: 'Image editing is not supported with the current model. Only text-to-image generation is available.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Generating new image with GetImg.ai');
+    
+    const endpoint = 'https://api.getimg.ai/v1/flux-schnell/text-to-image';
     const requestBody: any = {
       prompt: enhancedPrompt,
       width: 1024,
@@ -59,16 +69,6 @@ serve(async (req) => {
       steps: 4,
       output_format: 'jpeg'
     };
-
-    // Add image editing if imageUrl is provided
-    if (imageUrl) {
-      console.log('Starting image editing workflow with GetImg.ai');
-      endpoint = 'https://api.getimg.ai/v1/flux-schnell/image-to-image';
-      requestBody.image = imageUrl;
-      requestBody.strength = 0.8; // How much to transform the image (0-1)
-    } else {
-      console.log('Generating new image with GetImg.ai');
-    }
 
     console.log('Calling GetImg.ai API...');
 
