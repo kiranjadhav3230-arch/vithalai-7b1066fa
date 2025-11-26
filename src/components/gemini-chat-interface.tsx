@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square, ScanText } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,7 @@ import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
+import { DocumentAnalyzer } from './document-analyzer';
 import type { User } from '@supabase/supabase-js';
 interface ChatSession {
   id: string;
@@ -58,7 +59,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'analyzer'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean }>({
     chat: true,
@@ -1006,8 +1007,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 2)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      width: 'calc((100% - 0.25rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
                       background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
@@ -1043,6 +1044,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <Code className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Code</span>
                   </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playCodeSound(); setCurrentView('analyzer'); }} 
+                    size="sm" 
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
+                      currentView === 'analyzer' 
+                        ? 'text-white' 
+                        : 'text-orange-400/70 hover:text-orange-400'
+                    }`}
+                  >
+                    <ScanText className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">Analyzer</span>
+                  </Button>
                 </div>
 
                 {/* Mobile View Toggle */}
@@ -1051,8 +1065,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 2)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      width: 'calc((100% - 0.25rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
                       background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
@@ -1077,6 +1091,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}
                   >
                     <Code className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playCodeSound(); setCurrentView('analyzer'); }} 
+                    size="sm" 
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'analyzer' ? 'text-white' : 'text-orange-400/50'}`}
+                  >
+                    <ScanText className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
@@ -1146,6 +1168,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {currentView === 'code' ? (
             <div className="flex-1 overflow-auto">
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
+            </div>
+          ) : currentView === 'analyzer' ? (
+            <div className="flex-1 overflow-auto">
+              <DocumentAnalyzer user={user} />
             </div>
           ) : (
             <>
