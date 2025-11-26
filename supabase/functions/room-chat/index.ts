@@ -129,7 +129,7 @@ Remember: You're not just answering questions—you're facilitating learning and
           ],
           generationConfig: {
             temperature: 0.8,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 8192,
             topP: 0.95,
             topK: 40,
           }
