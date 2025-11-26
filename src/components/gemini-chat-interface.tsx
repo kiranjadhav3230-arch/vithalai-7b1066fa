@@ -61,14 +61,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'studyRooms'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [collapsedTabs, setCollapsedTabs] = useState<{
-    chat: boolean;
-    code: boolean;
-  }>({
+  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean }>({
     chat: true,
     code: true
   });
-
+  
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
     if ('vibrate' in navigator) {
@@ -82,12 +79,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
+      
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
+      
       oscillator.frequency.value = frequency;
       oscillator.type = 'sine';
+      
       gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+      
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + duration / 1000);
     } catch (error) {
@@ -100,6 +101,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     playSound(800, 80); // Higher pitch, quick
     triggerHaptic();
   };
+  
   const playCodeSound = () => {
     playSound(600, 100); // Mid pitch, slightly longer
     triggerHaptic();
@@ -145,11 +147,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         ascending: false
       });
       if (error) throw error;
-      setChatSessions(data as ChatSession[] || []);
+      setChatSessions((data as ChatSession[]) || []);
     } catch (error) {
       console.error('Error loading chat sessions:', error);
     }
   };
+
   const switchToSession = (session: ChatSession) => {
     setCurrentSession(session);
     // Auto-switch to the correct view based on session type
@@ -183,6 +186,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         code: '💻 New Code Session',
         imageGen: '🎨 New Image Session'
       };
+      
       const {
         data,
         error
@@ -222,14 +226,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       console.error('Error deleting session:', error);
     }
   };
+
   const clearAllChats = async () => {
     if (!confirm('Are you sure you want to delete all chat sessions? This cannot be undone.')) {
       return;
     }
     try {
-      const {
-        error
-      } = await supabase.from('chat_sessions').delete().eq('user_id', user.id);
+      const { error } = await supabase.from('chat_sessions').delete().eq('user_id', user.id);
       if (error) throw error;
       setChatSessions([]);
       setCurrentSession(null);
@@ -247,11 +250,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
+
   const toggleTab = (type: 'chat' | 'code' | 'imageGen') => {
-    setCollapsedTabs(prev => ({
-      ...prev,
-      [type]: !prev[type]
-    }));
+    setCollapsedTabs(prev => ({ ...prev, [type]: !prev[type] }));
     triggerHaptic();
   };
   const loadUserProfile = async () => {
@@ -269,6 +270,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setUserProfile({});
     }
   };
+
   const updateSessionTitle = async (sessionId: string, title: string) => {
     try {
       const {
@@ -365,17 +367,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const sendMessage = async () => {
-    if (!message.trim() && !selectedImage || !currentSession || loading) return;
+    if ((!message.trim() && !selectedImage) || !currentSession || loading) return;
+
     const userMessage = message.trim();
     const imageToSend = selectedImage;
+    
     setMessage('');
     setSelectedImage(null);
     setImageFile(null);
     setLoading(true);
+
     try {
       // Determine message type and content
       let messageType = 'text';
       let messageContent = userMessage;
+
       if (imageToSend) {
         messageType = 'image';
         // If there's both image and text, combine them
@@ -383,16 +389,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       }
 
       // Save user message
-      const {
-        data: userMessageData,
-        error: userMessageError
-      } = await supabase.from('chat_messages').insert([{
-        session_id: currentSession.id,
-        user_id: user.id,
-        message: messageContent,
-        message_type: messageType,
-        image_data: imageToSend || null
-      }]).select().single();
+      const { data: userMessageData, error: userMessageError } = await supabase
+        .from('chat_messages')
+        .insert([{
+          session_id: currentSession.id,
+          user_id: user.id,
+          message: messageContent,
+          message_type: messageType,
+          image_data: imageToSend || null
+        }])
+        .select()
+        .single();
+
       if (userMessageError) throw userMessageError;
 
       // Reload messages to show user message
@@ -416,12 +424,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       if (imageToSend) {
         requestBody.image = imageToSend;
       }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('gemini-chat', {
+
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
       });
+
       if (error) throw error;
 
       // Check if the response contains an error from the edge function
@@ -430,12 +437,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       }
 
       // Update message with response
-      const {
-        error: updateError
-      } = await supabase.from('chat_messages').update({
-        response: data.response,
-        youtube_courses: data.youtubeCourses || null
-      }).eq('id', userMessageData.id);
+      const { error: updateError } = await supabase
+        .from('chat_messages')
+        .update({ 
+          response: data.response,
+          youtube_courses: data.youtubeCourses || null
+        })
+        .eq('id', userMessageData.id);
+
       if (updateError) throw updateError;
 
       // Reload messages
@@ -445,53 +454,64 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       if (messages.length === 0) {
         await generateSmartSessionTitle(currentSession.id, userMessage, data.response);
       }
+
       toast({
         title: "✅ Response received!",
         description: "AI has processed your message"
       });
+
     } catch (error: any) {
       console.error('Error sending message:', error);
-
+      
       // Check for specific rate limit error
       const errorMessage = error.message || "Failed to send message. Please try again.";
       const isRateLimit = errorMessage.toLowerCase().includes('rate limit');
+      
       toast({
         variant: "destructive",
         title: isRateLimit ? "⏳ Rate Limit Reached" : "❌ Error",
-        description: isRateLimit ? "Your Gemini API key has reached its rate limit. Please wait 60 seconds before trying again, or upgrade your API quota at Google AI Studio." : errorMessage,
-        duration: isRateLimit ? 10000 : 5000
+        description: isRateLimit 
+          ? "Your Gemini API key has reached its rate limit. Please wait 60 seconds before trying again, or upgrade your API quota at Google AI Studio."
+          : errorMessage,
+        duration: isRateLimit ? 10000 : 5000,
       });
     } finally {
       setLoading(false);
     }
   };
+  
   const handleEditMessage = async (messageId: string, newContent: string) => {
     if (!newContent.trim() || !currentSession) return;
+
     try {
       // Update the message in the database
-      const {
-        error: updateError
-      } = await supabase.from('chat_messages').update({
-        message: newContent.trim()
-      }).eq('id', messageId);
+      const { error: updateError } = await supabase
+        .from('chat_messages')
+        .update({ message: newContent.trim() })
+        .eq('id', messageId);
+
       if (updateError) throw updateError;
 
       // Clear the AI response for this message
-      await supabase.from('chat_messages').update({
-        response: null
-      }).eq('id', messageId);
+      await supabase
+        .from('chat_messages')
+        .update({ response: null })
+        .eq('id', messageId);
 
       // Reload messages
       await loadMessages(currentSession.id);
 
       // Auto-regenerate the response
       await regenerateResponse(messageId, newContent.trim());
+
       setEditingMessageId(null);
       setEditedContent('');
+
       toast({
         title: "✅ Message Updated",
         description: "Regenerating AI response..."
       });
+
     } catch (error: any) {
       console.error('Error editing message:', error);
       toast({
@@ -501,20 +521,26 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
+
   const regenerateResponse = async (messageId: string, messageContent?: string) => {
     if (!currentSession) return;
+
     setLoading(true);
+
     try {
       // Find the message
       const messageToRegenerate = messages.find(m => m.id === messageId);
       if (!messageToRegenerate) throw new Error('Message not found');
+
       const contentToUse = messageContent || messageToRegenerate.message;
 
       // Get chat history up to this message
-      const chatHistory = messages.filter(m => m.created_at <= messageToRegenerate.created_at && m.id !== messageId).map(msg => ({
-        role: msg.message_type === 'user' ? 'user' : 'assistant',
-        content: msg.message
-      }));
+      const chatHistory = messages
+        .filter(m => m.created_at <= messageToRegenerate.created_at && m.id !== messageId)
+        .map(msg => ({
+          role: msg.message_type === 'user' ? 'user' : 'assistant',
+          content: msg.message
+        }));
 
       // Call Gemini chat
       const requestBody: any = {
@@ -525,26 +551,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       };
 
       // Call Gemini chat
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('gemini-chat', {
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
         body: requestBody
       });
+
       if (error) throw error;
 
       // Update message with new response
-      await supabase.from('chat_messages').update({
-        response: data.response,
-        youtube_courses: data.youtubeCourses || null
-      }).eq('id', messageId);
+      await supabase
+        .from('chat_messages')
+        .update({ 
+          response: data.response,
+          youtube_courses: data.youtubeCourses || null
+        })
+        .eq('id', messageId);
 
       // Reload messages
       await loadMessages(currentSession.id);
+
       toast({
         title: "✅ Response Regenerated!",
         description: "New AI response generated"
       });
+
     } catch (error: any) {
       console.error('Error regenerating response:', error);
       toast({
@@ -613,39 +642,35 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
   const startVoiceRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       const chunks: Blob[] = [];
-      recorder.ondataavailable = e => {
+
+      recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           chunks.push(e.data);
         }
       };
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, {
-          type: 'audio/webm'
-        });
 
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        
         // Convert to base64
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64Audio = (reader.result as string).split(',')[1];
+          
           try {
             // Call voice-to-text edge function
-            const {
-              data,
-              error
-            } = await supabase.functions.invoke('voice-to-text', {
-              body: {
+            const { data, error } = await supabase.functions.invoke('voice-to-text', {
+              body: { 
                 audio: base64Audio,
                 language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
               }
             });
+
             if (error) throw error;
+
             if (data?.text) {
               setMessage(data.text);
               toast({
@@ -663,14 +688,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           }
         };
         reader.readAsDataURL(audioBlob);
-
+        
         // Stop all tracks
         stream.getTracks().forEach(track => track.stop());
       };
+
       setMediaRecorder(recorder);
       setAudioChunks([]);
       recorder.start();
       setIsRecording(true);
+      
       toast({
         title: "🎤 Recording...",
         description: "Speak now, I'm listening!"
@@ -684,6 +711,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
+
   const stopVoiceRecording = () => {
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
@@ -691,6 +719,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setMediaRecorder(null);
     }
   };
+
   const playTextToSpeech = async (text: string, messageId: string) => {
     try {
       // Stop any currently playing audio
@@ -698,38 +727,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         audioRef.current.pause();
         audioRef.current = null;
       }
+
       setPlayingAudio(messageId);
 
       // Clean the text for TTS
-      const cleanText = text.replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/`[^`]*`/g, '') // Remove inline code
-      .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
-      .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
-      .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
-      .substring(0, 4000); // Limit to 4000 chars for TTS
+      const cleanText = text
+        .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+        .replace(/`[^`]*`/g, '') // Remove inline code
+        .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
+        .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
+        .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
+        .substring(0, 4000); // Limit to 4000 chars for TTS
 
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('text-to-speech', {
-        body: {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { 
           text: cleanText,
           language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
         }
       });
+
       if (error) throw error;
+
       if (data?.audioContent) {
         // Convert base64 to audio
-        const audioBlob = new Blob([Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))], {
-          type: 'audio/mpeg'
-        });
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))],
+          { type: 'audio/mpeg' }
+        );
         const audioUrl = URL.createObjectURL(audioBlob);
+        
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
+        
         audio.onended = () => {
           setPlayingAudio(null);
           URL.revokeObjectURL(audioUrl);
         };
+        
         audio.onerror = () => {
           setPlayingAudio(null);
           URL.revokeObjectURL(audioUrl);
@@ -739,6 +773,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             description: "Could not play audio"
           });
         };
+        
         await audio.play();
       }
     } catch (error: any) {
@@ -751,6 +786,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
+
   const stopTextToSpeech = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -787,51 +823,74 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         </div>
         
         {/* Clear All Button */}
-        {chatSessions.length > 0 && <div className="px-3 py-2 border-b border-orange-500/10">
-            <Button onClick={clearAllChats} variant="ghost" size="sm" className="w-full justify-start text-xs hover:bg-destructive/10 hover:text-destructive">
+        {chatSessions.length > 0 && (
+          <div className="px-3 py-2 border-b border-orange-500/10">
+            <Button 
+              onClick={clearAllChats} 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-xs hover:bg-destructive/10 hover:text-destructive"
+            >
               <Trash2 className="h-3 w-3 mr-2" />
               Clear All Chats
             </Button>
-          </div>}
+          </div>
+        )}
         
         <ScrollArea className="flex-1">
           <SidebarContent>
             {/* Recent Chats with Collapsible Tabs */}
             {['chat', 'code'].map(type => {
-            const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
-            const labels = {
-              chat: '💬 Chats',
-              code: '💻 Codes'
-            };
-            const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
-            return <SidebarGroup key={type} className="mb-2">
-                  <SidebarGroupLabel onClick={() => toggleTab(type as 'chat' | 'code')} className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between">
+              const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
+              const labels = { chat: '💬 Chats', code: '💻 Codes' };
+              const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
+              
+                return (
+                <SidebarGroup key={type} className="mb-2">
+                  <SidebarGroupLabel 
+                    onClick={() => toggleTab(type as 'chat' | 'code')}
+                    className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between"
+                  >
                     <span>{labels[type as keyof typeof labels]} ({sessions.length})</span>
                     <ChevronRight className={`h-3 w-3 transition-transform ${isCollapsed ? '' : 'rotate-90'}`} />
                   </SidebarGroupLabel>
                   
-                  {!isCollapsed && <SidebarGroupContent>
+                  {!isCollapsed && (
+                    <SidebarGroupContent>
                       <SidebarMenu>
-                        {sessions.length > 0 ? sessions.map(session => <SidebarMenuItem key={session.id}>
-                              <SidebarMenuButton onClick={() => switchToSession(session)} className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400 border-l-2 border-orange-500' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}>
+                        {sessions.length > 0 ? (
+                          sessions.map(session => (
+                            <SidebarMenuItem key={session.id}>
+                              <SidebarMenuButton 
+                                onClick={() => switchToSession(session)} 
+                                className={`w-full justify-between group ${currentSession?.id === session.id ? 'bg-orange-500/10 text-orange-400 border-l-2 border-orange-500' : 'text-foreground hover:bg-orange-500/5 hover:text-orange-400'}`}
+                              >
                                 <div className="flex items-center gap-2 min-w-0 flex-1">
                                   <MessageSquare className="h-3.5 w-3.5 flex-shrink-0" />
                                   <span className="truncate text-xs">{session.title}</span>
                                 </div>
-                                <Button onClick={e => {
-                        e.stopPropagation();
-                        deleteSession(session.id);
-                      }} variant="ghost" size="sm" className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10">
+                                <Button
+                                  onClick={e => { e.stopPropagation(); deleteSession(session.id); }} 
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 hover:bg-destructive/10"
+                                >
                                   <Trash2 className="h-3 w-3 text-destructive" />
                                 </Button>
                               </SidebarMenuButton>
-                            </SidebarMenuItem>) : <div className="px-3 py-2 text-xs text-muted-foreground text-center">
+                            </SidebarMenuItem>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-xs text-muted-foreground text-center">
                             No sessions yet
-                          </div>}
+                          </div>
+                        )}
                       </SidebarMenu>
-                    </SidebarGroupContent>}
-                </SidebarGroup>;
-          })}
+                    </SidebarGroupContent>
+                  )}
+                </SidebarGroup>
+              );
+            })}
             
             {/* Settings & Support Section */}
             <SidebarGroup className="mt-4 border-t border-orange-500/20 pt-4">
@@ -945,35 +1004,56 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 {/* View Mode Toggle */}
                 <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
-                  <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 3)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                  background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
-                  backgroundSize: '200% 200%',
-                  animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
-                  zIndex: 0
-                }} />
+                  <div 
+                    className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
+                    style={{
+                      width: 'calc((100% - 0.5rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                      backgroundSize: '200% 200%',
+                      animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
+                      zIndex: 0,
+                    }}
+                  />
                   
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('chat');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('chat'); }} 
+                    size="sm" 
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
+                      currentView === 'chat' 
+                        ? 'text-white' 
+                        : 'text-orange-400/70 hover:text-orange-400'
+                    }`}
+                  >
                     <MessageSquare className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Chat</span>
                   </Button>
-                  <Button variant="ghost" onClick={() => {
-                  playCodeSound();
-                  setCurrentView('code');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playCodeSound(); setCurrentView('code'); }} 
+                    size="sm" 
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
+                      currentView === 'code' 
+                        ? 'text-white' 
+                        : 'text-orange-400/70 hover:text-orange-400'
+                    }`}
+                  >
                     <Code className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Code</span>
                   </Button>
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('studyRooms');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('studyRooms'); }} 
+                    size="sm" 
+                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
+                      currentView === 'studyRooms' 
+                        ? 'text-white' 
+                        : 'text-orange-400/70 hover:text-orange-400'
+                    }`}
+                  >
                     <Users className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Rooms</span>
                   </Button>
@@ -982,42 +1062,56 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 {/* Mobile View Toggle */}
                 <div className="sm:hidden relative flex items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
-                  <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 3)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                  background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
-                  backgroundSize: '200% 200%',
-                  animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
-                  zIndex: 0
-                }} />
+                  <div 
+                    className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
+                    style={{
+                      width: 'calc((100% - 0.5rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                      background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                      backgroundSize: '200% 200%',
+                      animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
+                      backdropFilter: 'blur(20px)',
+                      boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
+                      zIndex: 0,
+                    }}
+                  />
                   
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('chat');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('chat'); }} 
+                    size="sm" 
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}
+                  >
                     <MessageSquare className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" onClick={() => {
-                  playCodeSound();
-                  setCurrentView('code');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playCodeSound(); setCurrentView('code'); }} 
+                    size="sm" 
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}
+                  >
                     <Code className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('studyRooms');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}>
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => { playChatSound(); setCurrentView('studyRooms'); }} 
+                    size="sm" 
+                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}
+                  >
                     <Users className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
                 {/* New Chat Button */}
-                <Button onClick={() => {
-                const sessionType = currentView === 'code' ? 'code' : 'chat';
-                createNewSession(sessionType);
-              }} size="sm" variant="ghost" className="h-7 w-7 md:w-auto md:px-2 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20">
+                <Button
+                  onClick={() => {
+                    const sessionType = currentView === 'code' ? 'code' : 'chat';
+                    createNewSession(sessionType);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 w-7 md:w-auto md:px-2 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20"
+                >
                   <Plus className="h-3.5 w-3.5" />
                   <span className="hidden md:inline ml-1 text-xs">New</span>
                 </Button>
@@ -1025,7 +1119,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 md:w-auto md:px-2 p-0 hover:bg-orange-500/10 border border-orange-500/20">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 md:w-auto md:px-2 p-0 hover:bg-orange-500/10 border border-orange-500/20"
+                    >
                       <Avatar className="h-5 w-5 border border-orange-500/50">
                         <AvatarImage src={user.user_metadata?.avatar_url} />
                         <AvatarFallback className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px]">
@@ -1051,7 +1149,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     </DropdownMenuItem>
                     <div className="px-2 py-1.5 border-t border-orange-500/20">
                       <div className="text-[10px] text-orange-400/70 mb-1">Language</div>
-                      <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
+                      <LanguageSelector 
+                        language={language} 
+                        onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                      />
                     </div>
                     <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:bg-red-500/10 cursor-pointer text-xs">
                       <LogOut className="h-3.5 w-3.5 mr-2" />
@@ -1064,11 +1165,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </header>
 
           {/* Main Content Area */}
-          {currentView === 'code' ? <div className="flex-1 overflow-auto">
+          {currentView === 'code' ? (
+            <div className="flex-1 overflow-auto">
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
-            </div> : currentView === 'studyRooms' ? <div className="flex-1 overflow-auto">
+            </div>
+          ) : currentView === 'studyRooms' ? (
+            <div className="flex-1 overflow-auto">
               <StudyRooms user={user} />
-            </div> : <>
+            </div>
+          ) : (
+            <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
@@ -1078,7 +1184,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
                         <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8 md:w-12 md:h-12" />
                       </div>
-                      <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4">Welcome to Vithal AI </h2>
+                      <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4">Welcome to Vithal AI 2.0</h2>
                       <p className="text-orange-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-w-2xl mx-auto mb-6 md:mb-8 px-4">
                         <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
@@ -1100,7 +1206,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                       <div className="text-[10px] md:text-xs text-orange-400/50 space-y-0.5 md:space-y-1 px-4">
                         <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span></p>
-                        
+                        <p>Sponsored by <span className="font-medium text-orange-400">Shree Alankar</span></p>
                         <p>Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
@@ -1109,39 +1215,68 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       {/* User Message */}
                       <div className="flex justify-end group">
                         <div className="max-w-[85%]">
-                          {editingMessageId === msg.id ? <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                              <Textarea value={editedContent} onChange={e => setEditedContent(e.target.value)} className="bg-white/10 border-white/20 text-white placeholder:text-white/60 mb-2 min-h-[60px]" autoFocus />
+                          {editingMessageId === msg.id ? (
+                            <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
+                              <Textarea
+                                value={editedContent}
+                                onChange={(e) => setEditedContent(e.target.value)}
+                                className="bg-white/10 border-white/20 text-white placeholder:text-white/60 mb-2 min-h-[60px]"
+                                autoFocus
+                              />
                               <div className="flex gap-2">
-                                <Button size="sm" onClick={() => handleEditMessage(msg.id, editedContent)} className="bg-white text-orange-600 hover:bg-white/90">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleEditMessage(msg.id, editedContent)}
+                                  className="bg-white text-orange-600 hover:bg-white/90"
+                                >
                                   <Check className="h-3 w-3 mr-1" />
                                   Save
                                 </Button>
-                                <Button size="sm" variant="ghost" onClick={() => {
-                              setEditingMessageId(null);
-                              setEditedContent('');
-                            }} className="text-white hover:bg-white/10">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingMessageId(null);
+                                    setEditedContent('');
+                                  }}
+                                  className="text-white hover:bg-white/10"
+                                >
                                   <X className="h-3 w-3 mr-1" />
                                   Cancel
                                 </Button>
                               </div>
-                            </div> : <div className="relative">
+                            </div>
+                          ) : (
+                            <div className="relative">
                               <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                                {msg.message_type === 'image' && (msg as any).image_data && <img src={(msg as any).image_data} alt="Uploaded" className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain" />}
+                                {msg.message_type === 'image' && (msg as any).image_data && (
+                                  <img 
+                                    src={(msg as any).image_data} 
+                                    alt="Uploaded" 
+                                    className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain"
+                                  />
+                                )}
                                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                                 <div className="text-xs opacity-70 mt-1">
                                   {new Date(msg.created_at).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
                                 </div>
                               </div>
-                              <Button size="sm" variant="ghost" onClick={() => {
-                            setEditingMessageId(msg.id);
-                            setEditedContent(msg.message);
-                          }} className="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-orange-500/10 text-orange-400">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingMessageId(msg.id);
+                                  setEditedContent(msg.message);
+                                }}
+                                className="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-orange-500/10 text-orange-400"
+                              >
                                 <Edit3 className="h-3.5 w-3.5" />
                               </Button>
-                            </div>}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -1157,27 +1292,43 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                                 <div className="flex items-center justify-between mt-3">
                                   <div className="text-xs text-orange-400/70">
                                     {new Date(msg.created_at).toLocaleTimeString([], {
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                })}
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <Button size="sm" variant="ghost" onClick={() => {
-                                  if (playingAudio === msg.id) {
-                                    stopTextToSpeech();
-                                  } else {
-                                    playTextToSpeech(msg.response || '', msg.id);
-                                  }
-                                }} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400" disabled={loading}>
-                                      {playingAudio === msg.id ? <>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        if (playingAudio === msg.id) {
+                                          stopTextToSpeech();
+                                        } else {
+                                          playTextToSpeech(msg.response || '', msg.id);
+                                        }
+                                      }}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
+                                      disabled={loading}
+                                    >
+                                      {playingAudio === msg.id ? (
+                                        <>
                                           <Square className="h-3 w-3 mr-1 fill-current" />
                                           Stop
-                                        </> : <>
+                                        </>
+                                      ) : (
+                                        <>
                                           <Volume2 className="h-3 w-3 mr-1" />
                                           Listen
-                                        </>}
+                                        </>
+                                      )}
                                     </Button>
-                                    <Button size="sm" variant="ghost" onClick={() => regenerateResponse(msg.id)} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400" disabled={loading}>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => regenerateResponse(msg.id)}
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400"
+                                      disabled={loading}
+                                    >
                                       <Loader2 className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
                                       Regenerate
                                     </Button>
@@ -1213,60 +1364,115 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
             <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
               {/* Image Preview */}
-              {selectedImage && <div className="mb-3">
+              {selectedImage && (
+                <div className="mb-3">
                   <div className="relative inline-block rounded-xl overflow-hidden border border-border/50 shadow-lg">
-                    <img src={selectedImage} alt="Selected" className="max-h-32 md:max-h-40 object-contain bg-muted/50" />
-                    <button onClick={removeSelectedImage} className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110">
+                    <img 
+                      src={selectedImage} 
+                      alt="Selected" 
+                      className="max-h-32 md:max-h-40 object-contain bg-muted/50" 
+                    />
+                    <button 
+                      onClick={removeSelectedImage} 
+                      className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
+                    >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                </div>}
+                </div>
+              )}
 
               {/* Input Container */}
               <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
                 {/* Hidden File Inputs */}
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
+                <input 
+                  ref={fileInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className="hidden" 
+                />
+                <input 
+                  ref={cameraInputRef} 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  onChange={handleCameraCapture} 
+                  className="hidden" 
+                />
 
                 {/* Textarea */}
-                <Textarea ref={textareaRef} value={message} onChange={e => {
-                  setMessage(e.target.value);
-                  // Auto-resize textarea
-                  if (textareaRef.current) {
-                    textareaRef.current.style.height = 'auto';
-                    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-                  }
-                }} onKeyPress={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                    if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                  }
-                }} placeholder={t('typeYourMessage') || "Message Vithal AI..."} className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={loading} rows={1} />
+                <Textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    // Auto-resize textarea
+                    if (textareaRef.current) {
+                      textareaRef.current.style.height = 'auto';
+                      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+                    }
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                    }
+                  }}
+                  placeholder={t('typeYourMessage') || "Message Vithal AI..."}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  disabled={loading}
+                  rows={1}
+                />
 
                 {/* Mic Button */}
-                <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} variant="ghost" size="icon" className={`h-9 w-9 rounded-full transition-all flex-shrink-0 ${isRecording ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' : 'hover:bg-accent text-muted-foreground hover:text-foreground'}`} disabled={loading}>
+                <Button 
+                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
+                  variant="ghost" 
+                  size="icon"
+                  className={`h-9 w-9 rounded-full transition-all flex-shrink-0 ${
+                    isRecording 
+                      ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' 
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                  disabled={loading}
+                >
                   <Mic className="h-5 w-5" />
                 </Button>
 
                 {/* Three Dot Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" disabled={loading}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" 
+                      disabled={loading}
+                    >
                       <MoreVertical className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border/50">
-                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer text-sm py-2.5">
+                    <DropdownMenuItem 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
                       <ImageIcon className="h-4 w-4 mr-3 text-primary" />
                       <span>Upload Image</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-sm py-2.5">
+                    <DropdownMenuItem 
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
                       <Camera className="h-4 w-4 mr-3 text-primary" />
                       <span>Take Photo</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setCurrentView('imageGen')} className="cursor-pointer text-sm py-2.5">
+                    <DropdownMenuItem 
+                      onClick={() => setCurrentView('imageGen')}
+                      className="cursor-pointer text-sm py-2.5"
+                    >
                       <Sparkles className="h-4 w-4 mr-3 text-purple-500" />
                       <span>Generate Image</span>
                     </DropdownMenuItem>
@@ -1274,11 +1480,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 </DropdownMenu>
 
                 {/* Send Button */}
-                <Button onClick={() => {
-                  sendMessage();
-                  if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                }} size="icon" className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0" disabled={loading || !message.trim() && !selectedImage}>
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                <Button 
+                  onClick={() => {
+                    sendMessage();
+                    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+                  }}
+                  size="icon"
+                  className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
+                  disabled={loading || (!message.trim() && !selectedImage)}
+                >
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
                 </Button>
               </div>
 
@@ -1290,7 +1505,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               </div>
             </div>
           </div>
-            </>}
+            </>
+          )}
         </main>
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
