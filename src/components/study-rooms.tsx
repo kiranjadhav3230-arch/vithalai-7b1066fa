@@ -44,19 +44,17 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     try {
       setLoading(true);
       
-      // Get only rooms user is a member of
-      const { data: memberRooms, error } = await supabase
-        .from('room_members')
-        .select('room_id, study_rooms(*)')
-        .eq('user_id', user.id);
+      // Get rooms user is a member of - RLS will filter automatically
+      const { data: roomsData, error: roomsError } = await supabase
+        .from('study_rooms')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (roomsError) throw roomsError;
 
-      const uniqueRooms = memberRooms?.map(m => m.study_rooms).filter(Boolean) || [];
-
-      // Get member counts
+      // Get member counts for each room
       const roomsWithCounts = await Promise.all(
-        uniqueRooms.map(async (room) => {
+        (roomsData || []).map(async (room) => {
           const { count } = await supabase
             .from('room_members')
             .select('*', { count: 'exact', head: true })
@@ -151,30 +149,40 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
 
   const joinRoom = async (roomId: string) => {
     try {
+      // Check if already a member
+      const { data: existing } = await supabase
+        .from('room_members')
+        .select('id')
+        .eq('room_id', roomId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        toast({
+          title: 'Already a member',
+          description: 'You are already in this room',
+        });
+        loadRooms();
+        return;
+      }
+
+      // Add as member
       const { error } = await supabase
         .from('room_members')
         .insert({
           room_id: roomId,
           user_id: user.id,
+          role: 'member',
         });
 
-      if (error) {
-        if (error.message.includes('duplicate')) {
-          // Already a member, just open the room
-          const room = rooms.find(r => r.id === roomId);
-          if (room) setSelectedRoom(room);
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: 'Success',
         description: 'Joined room successfully',
       });
 
-      const room = rooms.find(r => r.id === roomId);
-      if (room) setSelectedRoom(room);
+      loadRooms();
     } catch (error: any) {
       console.error('Error joining room:', error);
       toast({
@@ -431,7 +439,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
                     <Users className="h-4 w-4 mr-1" />
                     {room.member_count || 0} members
                   </div>
-                  <Button onClick={() => joinRoom(room.id)} size="sm">
+                  <Button onClick={() => setSelectedRoom(room)} size="sm">
                     Enter
                   </Button>
                 </div>
