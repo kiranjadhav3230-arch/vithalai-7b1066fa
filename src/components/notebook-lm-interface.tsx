@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Search, Send, Loader2, Sparkles, Download, Share2, Settings, MoreVertical, BookOpen, Mic, Video, Brain, FileQuestion, Zap, BookmarkPlus } from 'lucide-react';
+import { FileText, Plus, Search, Send, Loader2, Sparkles, Download, Share2, Settings, MoreVertical, BookOpen, Mic, Video, Brain, FileQuestion, Zap, BookmarkPlus, MessageSquare, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,7 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [notebookTitle, setNotebookTitle] = useState('Untitled Notebook');
+  const [viewMode, setViewMode] = useState<'chat' | 'code'>('chat');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -219,6 +220,28 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <h1 className="text-xl font-semibold">{notebookTitle}</h1>
+          
+          {/* View Mode Toggle */}
+          <div className="flex items-center gap-1 ml-4 bg-muted rounded-lg p-1">
+            <Button
+              variant={viewMode === 'chat' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('chat')}
+              className="gap-2"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Chat
+            </Button>
+            <Button
+              variant={viewMode === 'code' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('code')}
+              className="gap-2"
+            >
+              <Code className="w-4 h-4" />
+              Code
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon">
@@ -325,11 +348,11 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
           </ScrollArea>
         </div>
 
-        {/* Middle Panel - Chat */}
+        {/* Middle Panel - Dynamic based on view mode */}
         <div className="flex-1 flex flex-col">
           <div className="p-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h2 className="font-semibold">Chat</h2>
+              <h2 className="font-semibold">{viewMode === 'chat' ? 'Chat' : 'Code'}</h2>
               <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-xs">i</span>
               </div>
@@ -344,84 +367,105 @@ export const NotebookLMInterface: React.FC<NotebookLMInterfaceProps> = ({ user, 
             </div>
           </div>
 
-          <ScrollArea className="flex-1 p-6">
-            {messages.length === 0 && documents.length > 0 ? (
-              <div className="max-w-2xl mx-auto text-center py-12">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-2xl font-semibold mb-2">{notebookTitle}</h3>
-                <p className="text-muted-foreground mb-4">
-                  {selectedDocs.size} source{selectedDocs.size !== 1 ? 's' : ''} selected
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Ask questions about your documents or explore the content
-                </p>
-              </div>
-            ) : (
-              <div className="max-w-3xl mx-auto space-y-6">
-                {messages.map((msg, idx) => (
-                  <div key={idx} className={msg.role === 'user' ? 'flex justify-end' : ''}>
-                    <div className={`${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-4 max-w-[80%]`}>
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                      {msg.sources && msg.sources.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border/50">
-                          <p className="text-xs opacity-70">
-                            Sources: {msg.sources.join(', ')}
-                          </p>
-                        </div>
-                      )}
+          {viewMode === 'chat' ? (
+            // Chat View
+            <>
+              <ScrollArea className="flex-1 p-6">
+                {messages.length === 0 && documents.length > 0 ? (
+                  <div className="max-w-2xl mx-auto text-center py-12">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Sparkles className="w-8 h-8 text-primary" />
                     </div>
+                    <h3 className="text-2xl font-semibold mb-2">{notebookTitle}</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {selectedDocs.size} source{selectedDocs.size !== 1 ? 's' : ''} selected
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Ask questions about your documents or explore the content
+                    </p>
                   </div>
-                ))}
-                {isLoading && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Analyzing documents...</span>
+                ) : (
+                  <div className="max-w-3xl mx-auto space-y-6">
+                    {messages.map((msg, idx) => (
+                      <div key={idx} className={msg.role === 'user' ? 'flex justify-end' : ''}>
+                        <div className={`${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'} rounded-lg p-4 max-w-[80%]`}>
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          {msg.sources && msg.sources.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-border/50">
+                              <p className="text-xs opacity-70">
+                                Sources: {msg.sources.join(', ')}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {isLoading && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm">Analyzing documents...</span>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
                   </div>
                 )}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
-          </ScrollArea>
+              </ScrollArea>
 
-          <div className="p-4 border-t border-border">
-            {messages.length === 0 && selectedDocs.size > 0 && (
-              <div className="mb-3 flex gap-2 flex-wrap">
-                {suggestedQuestions.map((q, idx) => (
-                  <Button
-                    key={idx}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setInput(q)}
-                    className="text-xs"
+              <div className="p-4 border-t border-border">
+                {messages.length === 0 && selectedDocs.size > 0 && (
+                  <div className="mb-3 flex gap-2 flex-wrap">
+                    {suggestedQuestions.map((q, idx) => (
+                      <Button
+                        key={idx}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInput(q)}
+                        className="text-xs"
+                      >
+                        {q}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder={selectedDocs.size > 0 ? "Ask about your sources..." : "Select sources first..."}
+                    disabled={isLoading || selectedDocs.size === 0}
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !input.trim() || selectedDocs.size === 0}
+                    size="icon"
                   >
-                    {q}
+                    <Send className="w-4 h-4" />
                   </Button>
-                ))}
+                </div>
+                <div className="mt-2 text-xs text-center text-muted-foreground">
+                  {selectedDocs.size} source{selectedDocs.size !== 1 ? 's' : ''}
+                </div>
               </div>
-            )}
-            <div className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder={selectedDocs.size > 0 ? "Ask about your sources..." : "Select sources first..."}
-                disabled={isLoading || selectedDocs.size === 0}
-                className="flex-1"
-              />
-              <Button 
-                onClick={handleSendMessage}
-                disabled={isLoading || !input.trim() || selectedDocs.size === 0}
-                size="icon"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="mt-2 text-xs text-center text-muted-foreground">
-              {selectedDocs.size} source{selectedDocs.size !== 1 ? 's' : ''}
-            </div>
-          </div>
+            </>
+          ) : (
+            // Code View
+            <ScrollArea className="flex-1 p-6">
+              <div className="max-w-3xl mx-auto text-center py-12">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Code className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-semibold mb-2">Code Generation</h3>
+                <p className="text-muted-foreground mb-4">
+                  Generate code based on your documents
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Coming soon - Generate code snippets, examples, and implementations from your sources
+                </p>
+              </div>
+            </ScrollArea>
+          )}
         </div>
 
         {/* Right Panel - Studio */}
