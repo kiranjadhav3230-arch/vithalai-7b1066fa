@@ -25,7 +25,7 @@ interface ChatSession {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
-  session_type?: 'chat' | 'code' | 'imageGen';
+  session_type?: 'chat' | 'code';
 }
 interface ChatMessage {
   id: string;
@@ -58,19 +58,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'imageGen'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [referenceImage, setReferenceImage] = useState<string | null>(null);
-  const [referenceImageFile, setReferenceImageFile] = useState<File | null>(null);
-  const [imageStyle, setImageStyle] = useState<string>('realistic');
-  const [previousStyle, setPreviousStyle] = useState<string>('realistic');
-  const [lastGeneratedImage, setLastGeneratedImage] = useState<string | null>(null);
-  const [useLastImageForEdit, setUseLastImageForEdit] = useState(false);
-  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean; imageGen: boolean }>({
+  const [collapsedTabs, setCollapsedTabs] = useState<{ chat: boolean; code: boolean }>({
     chat: true,
-    code: true,
-    imageGen: true
+    code: true
   });
   
   // Haptic feedback for mobile devices
@@ -113,20 +105,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     playSound(600, 100); // Mid pitch, slightly longer
     triggerHaptic();
   };
-  
-  const playImageSound = () => {
-    playSound(1000, 120); // Highest pitch, longest
-    triggerHaptic();
-  };
-  
-  const playStyleSound = () => {
-    playSound(700, 60); // Quick beep for style changes
-    triggerHaptic();
-  };
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const imageGenInputRef = useRef<HTMLInputElement>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState('');
   const {
@@ -173,19 +154,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
   const switchToSession = (session: ChatSession) => {
     setCurrentSession(session);
-    // Reset image editing state when switching sessions
-    setLastGeneratedImage(null);
-    setUseLastImageForEdit(false);
-    setReferenceImage(null);
-    setReferenceImageFile(null);
     // Auto-switch to the correct view based on session type
     const sessionType = session.session_type || 'chat';
     if (sessionType === 'code') {
       setCurrentView('code');
       playCodeSound();
-    } else if (sessionType === 'imageGen') {
-      setCurrentView('imageGen');
-      playImageSound();
     } else {
       setCurrentView('chat');
       playChatSound();
@@ -506,208 +479,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   
-  const handleImageGenSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setReferenceImageFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setReferenceImage(e.target?.result as string);
-        setUseLastImageForEdit(false); // User uploaded new image, don't use last generated
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const downloadImageWithWatermark = async (imageUrl: string, prompt: string) => {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = imageUrl;
-      });
-
-      const logoImg = new Image();
-      await new Promise((resolve, reject) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = reject;
-        logoImg.src = vithalLogo;
-      });
-
-      canvas.width = img.width;
-      canvas.height = img.height + 80;
-
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.drawImage(img, 0, 0);
-
-      const logoHeight = 40;
-      const logoWidth = (logoImg.width / logoImg.height) * logoHeight;
-      const logoX = 20;
-      const logoY = img.height + 20;
-
-      ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
-
-      // Add text watermark
-      ctx.fillStyle = '#000000';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText('Vithal.Ai', logoX + logoWidth + 15, logoY + 15);
-      
-      ctx.font = '14px Arial';
-      ctx.fillStyle = '#666666';
-      ctx.fillText('https://vithalai.lovable.app', logoX + logoWidth + 15, logoY + 38);
-
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `vithal-ai-${Date.now()}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-        
-        toast({
-          title: "✅ Image Downloaded",
-          description: "Image saved with Vithal AI watermark",
-        });
-      }, 'image/png');
-    } catch (error) {
-      console.error('Error downloading image:', error);
-      toast({
-        title: "❌ Download Failed",
-        description: "Could not download image",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const generateImage = async (prompt: string) => {
-    setIsGeneratingImage(true);
-    
-    try {
-      // Ensure we have an imageGen session
-      let imageGenSession = currentSession;
-      
-      if (!currentSession || currentSession.session_type !== 'imageGen') {
-        // Create a new imageGen session if current session is not imageGen
-        const { data, error } = await supabase
-          .from('chat_sessions')
-          .insert({
-            user_id: user.id,
-            title: '🎨 New Image Session',
-            session_type: 'imageGen'
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
-        imageGenSession = data as ChatSession;
-        setChatSessions(prev => [imageGenSession, ...prev]);
-        setCurrentSession(imageGenSession);
-        setMessages([]);
-      }
-      
-      // Use last generated image if enabled, otherwise use uploaded reference
-      const imageToUse = useLastImageForEdit && lastGeneratedImage ? lastGeneratedImage : referenceImage;
-      
-      // Add user message with image generation request
-      const { data: userMessageData, error: userMessageError } = await supabase
-        .from('chat_messages')
-        .insert([{
-          session_id: imageGenSession.id,
-          user_id: user.id,
-          message: `🎨 ${imageToUse ? 'Edit image' : 'Generate image'} (${imageStyle} style): ${prompt}`,
-          message_type: imageToUse ? 'image' : 'text',
-          image_data: imageToUse || null
-        }])
-        .select()
-        .single();
-
-      if (userMessageError) throw userMessageError;
-
-      // Immediately add message to state so image shows right away
-      setMessages(prev => [...prev, userMessageData]);
-      
-      // Also reload from database to ensure consistency
-      await loadMessages(currentSession.id);
-
-      // Call image generation function with style preset and language support
-      const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
-        body: { 
-          prompt,
-          language,
-          style: imageStyle,
-          imageUrl: imageToUse || undefined
-        }
-      });
-
-      if (functionError) throw functionError;
-
-      if (!imageData?.imageUrl) {
-        throw new Error('No image URL received');
-      }
-
-      // Save AI response with generated image
-      const responseContent = `![Generated Image](${imageData.imageUrl})\n\n✨ Generated in ${imageStyle} style!`;
-      
-      const { error: responseError } = await supabase
-        .from('chat_messages')
-        .update({ 
-          response: responseContent
-        })
-        .eq('id', userMessageData.id);
-
-      if (responseError) throw responseError;
-
-      await loadMessages(imageGenSession.id);
-      
-      // Generate smart title for first message in session
-      if (messages.length === 0) {
-        await generateSmartSessionTitle(imageGenSession.id, `🎨 Generate image: ${prompt}`, responseContent);
-      }
-      
-      // Store the generated image for potential editing
-      setLastGeneratedImage(imageData.imageUrl);
-      setUseLastImageForEdit(true);
-      
-      // Clear reference image after generation
-      setReferenceImage(null);
-      setReferenceImageFile(null);
-      
-      toast({
-        title: "✅ Image Generated!",
-        description: `Image created successfully in ${imageStyle} style`
-      });
-
-    } catch (error: any) {
-      console.error('Error generating image:', error);
-      
-      let errorMessage = 'Failed to generate image. Please try again.';
-      
-      if (error.message?.includes('429')) {
-        errorMessage = 'Rate limit exceeded. Please try again later.';
-      } else if (error.message?.includes('402')) {
-        errorMessage = 'Payment required. Please add credits to your workspace.';
-      }
-      
-      toast({
-        variant: "destructive",
-        title: "❌ Generation Failed",
-        description: errorMessage
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
-
   const handleEditMessage = async (messageId: string, newContent: string) => {
     if (!newContent.trim() || !currentSession) return;
 
@@ -778,47 +549,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         chatHistory: chatHistory
       };
 
-      // Check if this is an image generation request
-      if (contentToUse.includes('🎨 Generate image:')) {
-        const prompt = contentToUse.replace('🎨 Generate image:', '').trim();
-        const { data: imageData, error: functionError } = await supabase.functions.invoke('generate-image', {
-          body: { 
-            prompt,
-            language,
-            imageUrl: referenceImage || undefined
-          }
-        });
+      // Call Gemini chat
+      const { data, error } = await supabase.functions.invoke('gemini-chat', {
+        body: requestBody
+      });
 
-        if (functionError) throw functionError;
+      if (error) throw error;
 
-        if (!imageData?.imageUrl) {
-          throw new Error('No image URL received');
-        }
-
-        const responseContent = `![Generated Image](${imageData.imageUrl})\n\n${imageData.description || 'Image generated successfully'}`;
-        
-        await supabase
-          .from('chat_messages')
-          .update({ response: responseContent })
-          .eq('id', messageId);
-
-      } else {
-        // Regular chat regeneration
-        const { data, error } = await supabase.functions.invoke('gemini-chat', {
-          body: requestBody
-        });
-
-        if (error) throw error;
-
-        // Update message with new response
-        await supabase
-          .from('chat_messages')
-          .update({ 
-            response: data.response,
-            youtube_courses: data.youtubeCourses || null
-          })
-          .eq('id', messageId);
-      }
+      // Update message with new response
+      await supabase
+        .from('chat_messages')
+        .update({ 
+          response: data.response,
+          youtube_courses: data.youtubeCourses || null
+        })
+        .eq('id', messageId);
 
       // Reload messages
       await loadMessages(currentSession.id);
@@ -1094,15 +839,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         <ScrollArea className="flex-1">
           <SidebarContent>
             {/* Recent Chats with Collapsible Tabs */}
-            {['chat', 'code', 'imageGen'].map(type => {
+            {['chat', 'code'].map(type => {
               const sessions = chatSessions.filter(s => (s.session_type || 'chat') === type);
-              const labels = { chat: '💬 Chats', code: '💻 Codes', imageGen: '🎨 Chitrakar' };
+              const labels = { chat: '💬 Chats', code: '💻 Codes' };
               const isCollapsed = collapsedTabs[type as keyof typeof collapsedTabs];
               
-              return (
+                return (
                 <SidebarGroup key={type} className="mb-2">
                   <SidebarGroupLabel 
-                    onClick={() => toggleTab(type as 'chat' | 'code' | 'imageGen')}
+                    onClick={() => toggleTab(type as 'chat' | 'code')}
                     className="text-orange-400 font-semibold text-xs cursor-pointer hover:bg-orange-500/10 rounded-md px-2 py-1.5 transition-all flex items-center justify-between"
                   >
                     <span>{labels[type as keyof typeof labels]} ({sessions.length})</span>
@@ -1261,17 +1006,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 3)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                      background: currentView === 'imageGen' 
-                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
-                        : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                      width: 'calc((100% - 0.25rem) / 2)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
-                      boxShadow: currentView === 'imageGen'
-                        ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
-                        : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
+                      boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
                   />
@@ -1302,19 +1043,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <Code className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Code</span>
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => { playImageSound(); setCurrentView('imageGen'); }} 
-                    size="sm" 
-                    className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${
-                      currentView === 'imageGen' 
-                        ? 'text-white' 
-                        : 'text-orange-400/70 hover:text-orange-400'
-                    }`}
-                  >
-                    <Sparkles className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">Image</span>
-                  </Button>
                 </div>
 
                 {/* Mobile View Toggle */}
@@ -1323,17 +1051,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 3)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
-                      background: currentView === 'imageGen' 
-                        ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)'
-                        : 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                      width: 'calc((100% - 0.25rem) / 2)',
+                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                       backdropFilter: 'blur(20px)',
-                      boxShadow: currentView === 'imageGen'
-                        ? '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)'
-                        : '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
+                      boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
                       zIndex: 0,
                     }}
                   />
@@ -1354,20 +1078,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   >
                     <Code className="h-3.5 w-3.5" />
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => { playImageSound(); setCurrentView('imageGen'); }} 
-                    size="sm" 
-                    className={`relative h-7 w-7 p-0 z-10 ${currentView === 'imageGen' ? 'text-white' : 'text-orange-400/50'}`}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
 
                 {/* New Chat Button */}
                 <Button
                   onClick={() => {
-                    const sessionType = currentView === 'code' ? 'code' : currentView === 'imageGen' ? 'imageGen' : 'chat';
+                    const sessionType = currentView === 'code' ? 'code' : 'chat';
                     createNewSession(sessionType);
                   }}
                   size="sm"
@@ -1426,271 +1142,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </div>
           </header>
 
-          {/* Conditional Content Rendering */}
+          {/* Main Content Area */}
           {currentView === 'code' ? (
             <div className="flex-1 overflow-auto">
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
             </div>
-          ) : currentView === 'imageGen' ? (
-            <>
-              {/* Image Generation Chat Interface */}
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">
-                  <div className="p-3 md:p-6">
-                    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                      {messages.length === 0 && !isGeneratingImage && (
-                        <div className="text-center py-8 md:py-16">
-                          <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse-glow p-2">
-                            <img src={vithalLogo} alt="Vithal AI" className="w-full h-full object-contain" />
-                          </div>
-                          <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-purple-400 via-pink-500 to-orange-600 bg-clip-text text-transparent px-4">Vithal AI Chitrakar</h2>
-                          <p className="text-purple-400/70 text-sm md:text-lg mb-4 max-w-md mx-auto px-4">
-                            Upload an image to edit or generate new images from text. Supports English, Hindi, and Marathi.
-                          </p>
-
-
-                          <div className="flex items-center justify-center gap-2 text-xs text-purple-400/60">
-                            <span>🌐 English • 🇮🇳 हिंदी • 🇮🇳 मराठी</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {messages.map(msg => (
-                        <div key={msg.id} className="space-y-4">
-                          {/* User Request */}
-                          <div className="flex justify-end">
-                            <div className="max-w-[85%] rounded-2xl bg-gradient-to-r from-purple-500 to-pink-600 text-white px-6 py-3 shadow-xl shadow-purple-500/30">
-                              {msg.image_data && (
-                                <div className="mb-3 rounded-lg overflow-hidden border border-white/20">
-                                  <img 
-                                    src={msg.image_data} 
-                                    alt="Reference" 
-                                    className="max-h-40 w-full object-contain bg-black/20"
-                                  />
-                                  <p className="text-xs opacity-70 mt-1 px-2 py-1">Reference image</p>
-                                </div>
-                              )}
-                              <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                              <div className="text-xs opacity-70 mt-1">
-                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* AI Generated Image/Response */}
-                          {msg.response && (
-                            <div className="flex justify-start">
-                              <div className="flex items-start gap-3 w-full">
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20 p-1">
-                                  <img src={vithalLogo} alt="Vithal AI" className="w-full h-full object-contain" />
-                                </div>
-                                <div className="flex-1 max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg group relative">
-                                  <ChatMessageRenderer content={msg.response} />
-                                  <div className="flex items-center justify-between mt-3">
-                                    <div className="text-xs text-purple-400/70">
-                                      {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                    {msg.response.includes('![Generated Image') && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        onClick={() => {
-                                          const match = msg.response?.match(/!\[Generated Image[^\]]*\]\(([^)]+)\)/);
-                                          if (match && match[1]) {
-                                            downloadImageWithWatermark(match[1], msg.message);
-                                          }
-                                        }}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-purple-500/10 text-purple-400"
-                                      >
-                                        <Download className="h-3 w-3 mr-1" />
-                                        Download
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      {isGeneratingImage && (
-                        <div className="flex justify-start">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500/30 to-pink-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-purple-500/30 shadow-lg shadow-purple-500/20">
-                              <Sparkles className="w-6 h-6 text-purple-400" />
-                            </div>
-                            <div className="max-w-[85%] rounded-2xl border border-purple-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
-                              <div className="flex items-center gap-3">
-                                <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
-                                <span className="text-sm text-purple-400">Creating your image...</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div ref={messagesEndRef} />
-                    </div>
-                  </div>
-                </ScrollArea>
-              </div>
-
-              {/* Image Generation Input */}
-              <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
-                <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
-                  {/* Style Selection Bar */}
-                  <div className="mb-3">
-                    <div className="relative flex items-center gap-1.5 p-1.5 rounded-lg bg-muted/30 border border-border/50 overflow-hidden">
-                      {/* Flowing Liquid Bubble Background */}
-                      <div 
-                        className="absolute inset-y-1.5 rounded-md transition-all duration-500 ease-out"
-                        style={{
-                          width: 'calc((100% - 0.75rem) / 4)',
-                          left: `calc(0.375rem + (100% - 0.75rem) / 4 * ${['realistic', 'cartoon', 'watercolor', 'sketch'].indexOf(imageStyle)})`,
-                          background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.8) 0%, rgba(236, 72, 153, 0.7) 25%, rgba(59, 130, 246, 0.7) 50%, rgba(168, 85, 247, 0.8) 100%)',
-                          backgroundSize: '200% 200%',
-                          animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
-                          backdropFilter: 'blur(20px)',
-                          boxShadow: '0 0 20px rgba(168, 85, 247, 0.4), 0 0 40px rgba(236, 72, 153, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.3)',
-                          zIndex: 0,
-                        }}
-                      />
-                      
-                      {[
-                        { value: 'realistic', label: 'Realistic' },
-                        { value: 'cartoon', label: 'Cartoon' },
-                        { value: 'watercolor', label: 'Watercolor' },
-                        { value: 'sketch', label: 'Sketch' }
-                      ].map((style) => (
-                        <button
-                          key={style.value}
-                          onClick={() => {
-                            playStyleSound();
-                            setPreviousStyle(imageStyle);
-                            setImageStyle(style.value);
-                          }}
-                          className={`relative flex-1 px-3 py-1.5 rounded-md transition-all text-xs font-medium z-10 ${
-                            imageStyle === style.value
-                              ? 'text-white'
-                              : 'hover:bg-muted/50'
-                          }`}
-                        >
-                          {style.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Reference Image Preview */}
-                  {(referenceImage || (useLastImageForEdit && lastGeneratedImage)) && (
-                    <div className="mb-3">
-                      <div className="relative inline-block rounded-xl overflow-hidden border border-purple-500/30 shadow-lg">
-                        <img 
-                          src={referenceImage || lastGeneratedImage || ''} 
-                          alt="Reference" 
-                          className="max-h-32 md:max-h-40 object-contain bg-muted/50" 
-                        />
-                        <button 
-                          onClick={() => {
-                            setReferenceImage(null);
-                            setReferenceImageFile(null);
-                            setUseLastImageForEdit(false);
-                          }} 
-                          className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                      <p className="text-xs text-purple-400/70 mt-2">
-                        {useLastImageForEdit && lastGeneratedImage && !referenceImage 
-                          ? '✨ Editing previous image' 
-                          : 'Reference image for editing'}
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
-                    {/* Hidden File Input */}
-                    <input 
-                      ref={imageGenInputRef} 
-                      type="file" 
-                      accept="image/*" 
-                      onChange={handleImageGenSelect} 
-                      className="hidden" 
-                    />
-
-                    {/* Upload Image Button */}
-                    <Button 
-                      onClick={() => imageGenInputRef.current?.click()}
-                      variant="ghost" 
-                      size="icon"
-                      className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
-                      disabled={isGeneratingImage}
-                    >
-                      <ImageIcon className="h-5 w-5" />
-                    </Button>
-
-                    {/* Textarea */}
-                    <Textarea
-                      ref={textareaRef}
-                      value={message}
-                      onChange={(e) => {
-                        setMessage(e.target.value);
-                        // Auto-resize textarea
-                        if (textareaRef.current) {
-                          textareaRef.current.style.height = 'auto';
-                          textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-                        }
-                      }}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (message.trim()) {
-                            generateImage(message.trim());
-                            setMessage('');
-                            if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                          }
-                        }
-                      }}
-                      placeholder={referenceImage ? "Describe how to modify this image..." : "Describe the image you want to create..."}
-                      className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0"
-                      disabled={isGeneratingImage}
-                      rows={1}
-                    />
-
-                    {/* Send Button */}
-                    <Button 
-                      onClick={() => {
-                        if (message.trim()) {
-                          generateImage(message.trim());
-                          setMessage('');
-                          if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                        }
-                      }}
-                      size="icon"
-                      className="h-9 w-9 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0"
-                      disabled={isGeneratingImage || !message.trim()}
-                    >
-                      {isGeneratingImage ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Helper Text */}
-                  <div className="mt-2 text-center">
-                    <p className="text-xs text-muted-foreground">
-                      {referenceImage 
-                        ? "Vithal AI Chitrakar - Edit or modify your uploaded image" 
-                        : "Vithal AI Chitrakar - Supports English, Hindi (हिंदी), and Marathi (मराठी)"
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </>
           ) : (
             <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
