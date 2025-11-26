@@ -22,15 +22,15 @@ export const CodeGeneratorSection: React.FC<CodeGeneratorSectionProps> = ({ onGe
       gradient: 'from-orange-600 to-red-500'
     },
     {
-      icon: Braces,
-      title: 'Code Optimization',
-      description: 'Optimize and refactor existing code for better performance',
+      icon: FileCode,
+      title: 'Professional Code Editor',
+      description: 'Monaco editor with syntax highlighting, auto-complete, and advanced editing features',
       gradient: 'from-orange-400 to-orange-500'
     },
     {
       icon: Terminal,
-      title: 'Debug & Fix',
-      description: 'Fix errors and debug code with intelligent suggestions',
+      title: 'Code Library & Management',
+      description: 'Save, organize, edit, and download code snippets with version control',
       gradient: 'from-orange-500 to-orange-700'
     }
   ];
@@ -60,7 +60,7 @@ export const CodeGeneratorSection: React.FC<CodeGeneratorSectionProps> = ({ onGe
             Vithal.AI Code Generator
           </h2>
           <p className="text-muted-foreground text-base md:text-xl max-w-3xl mx-auto font-sans leading-relaxed px-4">
-            Write code faster with AI-powered code generation. Support for 15+ programming languages with instant results.
+            Write code faster with AI-powered code generation, professional code editor, and library management. Support for 15+ programming languages with instant results.
           </p>
         </div>
 

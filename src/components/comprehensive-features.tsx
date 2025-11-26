@@ -51,25 +51,18 @@ export const ComprehensiveFeatures: React.FC = () => {
       category: 'Career'
     },
     {
-      icon: Lightbulb,
-      title: 'Quiz Generator',
-      description: 'Generate custom quizzes on any topic to test your knowledge and prepare for exams',
+      icon: Code,
+      title: 'Code Editor & Library',
+      description: 'Professional Monaco code editor with syntax highlighting, auto-save, and snippet library management',
       gradient: 'from-orange-600 to-orange-800',
-      category: 'Education'
+      category: 'Developer'
     },
     {
-      icon: Calendar,
-      title: 'Study Planner',
-      description: 'Create personalized study schedules and track your progress with AI-powered planning',
+      icon: GraduationCap,
+      title: 'Study Rooms',
+      description: 'Collaborative study spaces with AI assistance, real-time chat, reactions, and member management',
       gradient: 'from-orange-400 to-orange-600',
       category: 'Education'
-    },
-    {
-      icon: FileText,
-      title: 'Document Analyzer',
-      description: 'Upload PDFs and documents for AI-powered analysis, summaries, and insights',
-      gradient: 'from-orange-500 to-red-600',
-      category: 'Productivity'
     },
     {
       icon: ImageIcon,
@@ -100,7 +93,7 @@ export const ComprehensiveFeatures: React.FC = () => {
       category: 'Accessibility'
     },
     {
-      icon: GraduationCap,
+      icon: Sparkles,
       title: 'Student Focused',
       description: 'Specially designed for Indian students with relevant content and guidance',
       gradient: 'from-orange-400 to-orange-600',

@@ -229,7 +229,7 @@ const Index = () => {
         <footer className="relative border-t border-orange-500/20 py-12 md:py-16 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-black to-orange-950/10"></div>
           <div className="container mx-auto px-4 text-center relative z-10 space-y-6 md:space-y-8">
-            <p className="text-base md:text-xl font-display text-foreground/90">&copy; 2024 {t('appName')}. {t('professionalDescription')}</p>
+            <p className="text-base md:text-xl font-display text-foreground/90">&copy; 2025 {t('appName')}. {t('professionalDescription')}</p>
             <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-6">
               <div className="liquid-glass-intense px-4 md:px-6 py-2 md:py-3 rounded-xl border border-orange-500/20 morph-shape">
                 <span className="text-sm md:text-base font-display font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Powered by Gemini AI</span>
