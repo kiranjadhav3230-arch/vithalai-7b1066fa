@@ -189,183 +189,71 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     return extensions[language] || 'txt';
   };
 
-  const openInVSCodeWeb = async (code: string, language: string) => {
+  const downloadVSCodeFile = (code: string, language: string) => {
     const extension = getFileExtension(language);
     const fileName = `generated-code.${extension}`;
     
-    try {
-      // Copy code to clipboard first
-      await navigator.clipboard.writeText(code);
-      
-      // Create and download the file
-      const blob = new Blob([code], { type: 'text/plain' });
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Downloaded",
+      description: `${fileName} saved successfully`,
+    });
+  };
+
+  const downloadHTMLFile = (code: string) => {
+    // If it's a complete HTML document, download as is
+    if (code.toLowerCase().includes('<!doctype') || code.toLowerCase().includes('<html')) {
+      const blob = new Blob([code], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = 'index.html';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    } else {
+      // Wrap in a complete HTML structure
+      const htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Page</title>
+</head>
+<body>
+${code}
+</body>
+</html>`;
       
-      // Open VS Code Web immediately
-      setTimeout(() => {
-        window.open('https://vscode.dev/', '_blank');
-      }, 100);
-      
-      toast({
-        title: "Opening VS Code Web",
-        description: `File downloaded as ${fileName}. Drag it into VS Code or press Ctrl+V to paste the code.`,
-        duration: 5000,
-      });
-    } catch (error) {
-      // Fallback
-      try {
-        await navigator.clipboard.writeText(code);
-        window.open('https://vscode.dev/', '_blank');
-        toast({
-          title: "Code Copied",
-          description: "VS Code Web opened. Press Ctrl+N for new file, then Ctrl+V to paste.",
-          duration: 5000,
-        });
-      } catch {
-        window.open('https://vscode.dev/', '_blank');
-        toast({
-          title: "VS Code Web Opened",
-          description: "Please manually copy the code above.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const openInLocalVSCode = async (code: string, language: string) => {
-    const extension = getFileExtension(language);
-    const fileName = `generated-code.${extension}`;
-    
-    try {
-      if ('showSaveFilePicker' in window) {
-        const handle = await (window as any).showSaveFilePicker({
-          suggestedName: fileName,
-          types: [{
-            description: 'Code File',
-            accept: { 'text/plain': [`.${extension}`] }
-          }]
-        });
-        
-        const writable = await handle.createWritable();
-        await writable.write(code);
-        await writable.close();
-        
-        toast({
-          title: "File Saved",
-          description: "Open the file in VS Code to start editing",
-        });
-      } else {
-        const blob = new Blob([code], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
-        toast({
-          title: "File Downloaded",
-          description: "Open the downloaded file in VS Code",
-        });
-      }
-    } catch (error) {
-      console.log('Save cancelled or failed');
-    }
-  };
-
-  const openInVSCodeDesktop = async (code: string, language: string) => {
-    const extension = getFileExtension(language);
-    const fileName = `generated-code.${extension}`;
-    
-    try {
-      // Try File System Access API first (Chrome, Edge)
-      if ('showSaveFilePicker' in window) {
-        try {
-          const handle = await (window as any).showSaveFilePicker({
-            suggestedName: fileName,
-            types: [{
-              description: 'Code File',
-              accept: { 'text/plain': [`.${extension}`] }
-            }]
-          });
-          
-          const writable = await handle.createWritable();
-          await writable.write(code);
-          await writable.close();
-          
-          // Copy to clipboard as backup
-          await navigator.clipboard.writeText(code);
-          
-          toast({
-            title: "File Saved Successfully",
-            description: "Now opening in VS Code Desktop. If it doesn't open automatically, right-click the file → 'Open with Code'",
-            duration: 6000,
-          });
-          
-          // Try to open with VS Code using the code:// protocol
-          // This works if VS Code is installed and registered as a URL handler
-          setTimeout(() => {
-            const vscodeUrl = `vscode://file${handle.name}`;
-            const link = document.createElement('a');
-            link.href = vscodeUrl;
-            link.click();
-          }, 500);
-          
-          return;
-        } catch (err) {
-          // User cancelled or API failed, fall through to download
-          if ((err as Error).name === 'AbortError') {
-            return; // User cancelled, don't show error
-          }
-        }
-      }
-      
-      // Fallback: Regular download
-      const blob = new Blob([code], { type: 'text/plain' });
+      const blob = new Blob([htmlContent], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = fileName;
+      a.download = 'index.html';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      
-      // Clean up and copy to clipboard
-      setTimeout(() => URL.revokeObjectURL(url), 100);
-      await navigator.clipboard.writeText(code);
-      
-      toast({
-        title: "File Downloaded",
-        description: `${fileName} saved to Downloads. To open: Right-click file → "Open with Code" or drag into VS Code window`,
-        duration: 8000,
-      });
-      
-    } catch (error) {
-      console.error('Failed to save file:', error);
-      
-      // Last resort: just copy to clipboard
-      try {
-        await navigator.clipboard.writeText(code);
-        toast({
-          title: "Code Copied",
-          description: "Couldn't save file automatically. Code copied to clipboard - paste into VS Code",
-          variant: "destructive",
-          duration: 5000,
-        });
-      } catch {
-        toast({
-          title: "Error",
-          description: "Failed to save or copy. Please select and copy the code manually.",
-          variant: "destructive",
-        });
-      }
+      URL.revokeObjectURL(url);
     }
+    
+    toast({
+      title: "HTML Downloaded",
+      description: "index.html saved successfully",
+    });
+  };
+
+  const isHTMLLikeLanguage = (language: string) => {
+    return ['html', 'css', 'jsx', 'tsx', 'vue', 'svelte'].includes(language.toLowerCase());
   };
 
   const saveSnippet = async (code: string, language: string) => {
@@ -591,27 +479,21 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openInVSCodeWeb(msg.content, msg.language || 'javascript')}
+                          onClick={() => downloadVSCodeFile(msg.content, msg.language || 'javascript')}
                         >
                           <Code2 className="h-4 w-4 mr-2" />
-                          VS Code Web
+                          VS Code File
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openInVSCodeDesktop(msg.content, msg.language || 'javascript')}
-                        >
-                          <Monitor className="h-4 w-4 mr-2" />
-                          VS Code Desktop
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openInLocalVSCode(msg.content, msg.language || 'javascript')}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Save Local
-                        </Button>
+                        {isHTMLLikeLanguage(msg.language || '') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadHTMLFile(msg.content)}
+                          >
+                            <Download className="h-4 w-4 mr-2" />
+                            Download HTML
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
