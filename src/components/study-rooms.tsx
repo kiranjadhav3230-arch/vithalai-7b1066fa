@@ -107,13 +107,22 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         roomData.invite_code = Math.random().toString(36).substring(2, 10).toUpperCase();
       }
 
+      console.log('Creating room with data:', roomData);
+      console.log('User ID:', user.id);
+      console.log('Auth user:', (await supabase.auth.getUser()).data.user?.id);
+
       const { data: newRoom, error: roomError } = await supabase
         .from('study_rooms')
         .insert(roomData)
         .select()
         .single();
 
-      if (roomError) throw roomError;
+      if (roomError) {
+        console.error('Room creation error:', roomError);
+        throw roomError;
+      }
+
+      console.log('Room created successfully:', newRoom);
 
       // Add creator as member
       const { error: memberError } = await supabase
