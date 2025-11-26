@@ -18,7 +18,7 @@ import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
-import { DocumentAnalyzer } from './document-analyzer';
+import { NotebookLMInterface } from './notebook-lm-interface';
 import type { User } from '@supabase/supabase-js';
 interface ChatSession {
   id: string;
@@ -1170,9 +1170,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
             </div>
           ) : currentView === 'analyzer' ? (
-            <div className="flex-1 overflow-auto">
-              <DocumentAnalyzer user={user} />
-            </div>
+            <NotebookLMInterface user={user} onLogout={onLogout} />
           ) : (
             <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
