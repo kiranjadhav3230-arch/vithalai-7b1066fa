@@ -40,6 +40,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [isEditing, setIsEditing] = useState(false);
   const [editedCode, setEditedCode] = useState('');
   const [originalCode, setOriginalCode] = useState('');
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -150,9 +151,15 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   };
 
   const startEditing = (snippet: CodeSnippet) => {
-    setIsEditing(true);
+    setShowWelcomeAnimation(true);
     setEditedCode(snippet.generated_code);
     setOriginalCode(snippet.generated_code);
+    
+    // Show welcome animation for 2 seconds then switch to editor
+    setTimeout(() => {
+      setShowWelcomeAnimation(false);
+      setIsEditing(true);
+    }, 2000);
   };
 
   const saveEdit = async () => {
@@ -513,8 +520,38 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                 </div>
 
                 <div className="flex-1 min-h-0 relative">
+                  {/* Welcome Animation */}
+                  {showWelcomeAnimation && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-primary/10 animate-fade-in">
+                      <div className="text-center space-y-6 animate-scale-in">
+                        <div className="relative">
+                          <div className="absolute inset-0 animate-pulse">
+                            <div className="w-32 h-32 mx-auto bg-primary/20 rounded-full blur-2xl"></div>
+                          </div>
+                          <img 
+                            src="/src/assets/vithal-ai-logo-new.png" 
+                            alt="Vithal AI" 
+                            className="w-24 h-24 mx-auto relative animate-float-3d filter drop-shadow-lg"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <h2 className="text-3xl font-bold gradient-text animate-fade-in">
+                            Welcome to Vithal AI
+                          </h2>
+                          <p className="text-xl text-primary animate-fade-in font-semibold typing-effect">
+                            Code Editor
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 text-muted-foreground animate-fade-in">
+                          <Code2 className="h-5 w-5 animate-pulse" />
+                          <span className="text-sm font-mono">Initializing editor...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {isEditing && (
-                    <div className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg">
+                    <div className="absolute top-2 right-2 z-10 bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg animate-fade-in">
                       <div className="text-xs font-medium mb-2 flex items-center gap-2">
                         <Code2 className="h-3 w-3" />
                         Keyboard Shortcuts
@@ -532,7 +569,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     </div>
                   )}
                   {isEditing ? (
-                    <div className="h-full border rounded-lg overflow-hidden" onKeyDown={handleKeyDown}>
+                    <div className="h-full border rounded-lg overflow-hidden animate-fade-in" onKeyDown={handleKeyDown}>
                       <Editor
                         height="100%"
                         language={getMonacoLanguage(selectedSnippet.language)}
@@ -540,12 +577,41 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                         onChange={(value) => setEditedCode(value || '')}
                         theme="vs-dark"
                         options={{
-                          minimap: { enabled: false },
-                          fontSize: 14,
+                          minimap: { enabled: true },
+                          fontSize: 15,
                           lineNumbers: 'on',
                           scrollBeyondLastLine: false,
                           automaticLayout: true,
-                          tabSize: 2,
+                          tabSize: 4,
+                          insertSpaces: true,
+                          wordWrap: 'on',
+                          folding: true,
+                          foldingStrategy: 'indentation',
+                          showFoldingControls: 'always',
+                          lineDecorationsWidth: 10,
+                          lineNumbersMinChars: 3,
+                          glyphMargin: true,
+                          renderLineHighlight: 'all',
+                          scrollbar: {
+                            vertical: 'visible',
+                            horizontal: 'visible',
+                            useShadows: true,
+                            verticalScrollbarSize: 10,
+                            horizontalScrollbarSize: 10,
+                          },
+                          suggestOnTriggerCharacters: true,
+                          acceptSuggestionOnEnter: 'on',
+                          quickSuggestions: true,
+                          formatOnPaste: true,
+                          formatOnType: true,
+                          autoIndent: 'full',
+                          bracketPairColorization: {
+                            enabled: true,
+                          },
+                          guides: {
+                            indentation: true,
+                            bracketPairs: true,
+                          },
                         }}
                       />
                     </div>
