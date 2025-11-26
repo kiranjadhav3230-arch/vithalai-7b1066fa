@@ -196,15 +196,15 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     }
 
     try {
-      const { data: room, error: roomError } = await supabase
-        .from('study_rooms')
-        .select('*')
-        .eq('invite_code', joinCode.toUpperCase().trim())
-        .maybeSingle();
+      // Use the security definer function to lookup room by invite code
+      const { data: roomId, error: lookupError } = await supabase
+        .rpc('get_room_by_invite_code', { 
+          _invite_code: joinCode.toUpperCase().trim() 
+        });
 
-      if (roomError) throw roomError;
+      if (lookupError) throw lookupError;
 
-      if (!room) {
+      if (!roomId) {
         toast({
           title: 'Error',
           description: 'Invalid join code',
@@ -213,7 +213,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         return;
       }
 
-      await joinRoom(room.id);
+      await joinRoom(roomId);
       setIsJoinOpen(false);
       setJoinCode('');
       loadRooms();

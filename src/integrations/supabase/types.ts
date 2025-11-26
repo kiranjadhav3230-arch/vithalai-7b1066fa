@@ -904,6 +904,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_room_by_invite_code: {
+        Args: { _invite_code: string }
+        Returns: string
+      }
       is_public_room: { Args: { _room_id: string }; Returns: boolean }
       is_room_creator: {
         Args: { _room_id: string; _user_id: string }
