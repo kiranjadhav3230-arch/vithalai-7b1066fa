@@ -1007,8 +1007,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 2)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      width: 'calc((100% - 0.5rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
                       background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
@@ -1065,8 +1065,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <div 
                     className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out"
                     style={{
-                      width: 'calc((100% - 0.25rem) / 2)',
-                      left: `calc(0.125rem + (100% - 0.25rem) / 2 * ${currentView === 'chat' ? 0 : 1})`,
+                      width: 'calc((100% - 0.5rem) / 3)',
+                      left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
                       background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                       backgroundSize: '200% 200%',
                       animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
