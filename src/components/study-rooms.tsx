@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Users, Plus, Lock, Globe } from 'lucide-react';
+import { Users, Plus, Lock, Globe, Copy, Check, Share2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomInterface } from './study-room-interface';
 
@@ -26,6 +26,9 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [currentInviteCode, setCurrentInviteCode] = useState<string>('');
   const { toast } = useToast();
 
   // Form states
@@ -125,8 +128,14 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
 
       toast({
         title: 'Success',
-        description: !isPublic ? `Room created! Invite code: ${roomData.invite_code}` : 'Room created successfully',
+        description: 'Room created successfully!',
       });
+
+      // Show invite code dialog for private rooms
+      if (!isPublic && roomData.invite_code) {
+        setCurrentInviteCode(roomData.invite_code);
+        setShowInviteDialog(true);
+      }
 
       setIsCreateOpen(false);
       setRoomName('');
@@ -218,6 +227,25 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
+  const copyInviteCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    toast({
+      title: 'Copied!',
+      description: 'Invite code copied to clipboard',
+    });
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const copyInviteLink = (code: string) => {
+    const inviteLink = `${window.location.origin}?invite=${code}`;
+    navigator.clipboard.writeText(inviteLink);
+    toast({
+      title: 'Copied!',
+      description: 'Invite link copied to clipboard',
+    });
+  };
+
   if (selectedRoom) {
     return (
       <StudyRoomInterface
@@ -276,6 +304,9 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Create Study Room</DialogTitle>
+                <DialogDescription>
+                  Create a new study room to collaborate with others
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
@@ -309,6 +340,55 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
                 <Button onClick={createRoom} className="w-full">
                   Create Room
                 </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Invite Code Success Dialog */}
+          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Room Created Successfully!</DialogTitle>
+                <DialogDescription>
+                  Share this invite code with others to join your private room
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <Label className="text-sm text-muted-foreground mb-2">Invite Code</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <code className="flex-1 text-2xl font-bold text-center py-3 px-4 bg-background rounded border">
+                      {currentInviteCode}
+                    </code>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => copyInviteCode(currentInviteCode)}
+                    >
+                      {copiedCode === currentInviteCode ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => copyInviteLink(currentInviteCode)}
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Copy Invite Link
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => setShowInviteDialog(false)}
+                  >
+                    Done
+                  </Button>
+                </div>
               </div>
             </DialogContent>
           </Dialog>
