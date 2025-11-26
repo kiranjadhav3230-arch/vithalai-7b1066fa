@@ -5,6 +5,8 @@ import { ModernHero } from '@/components/modern-hero';
 import { ModernHowItWorks } from '@/components/modern-how-it-works';
 import { ComprehensiveFeatures } from '@/components/comprehensive-features';
 import { CodeGeneratorSection } from '@/components/code-generator-section';
+import { FeatureShowcaseCarousel } from '@/components/feature-showcase-carousel';
+import { FaqSection } from '@/components/faq-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
 import { LoadingScreen } from '@/components/loading-screen';
@@ -120,7 +122,9 @@ const Index = () => {
         <ModernHero onGetStarted={handleGetStarted} />
         <ModernHowItWorks />
         <ComprehensiveFeatures />
+        <FeatureShowcaseCarousel />
         <CodeGeneratorSection onGetStarted={handleGetStarted} />
+        <FaqSection />
           
           {/* Help Section */}
           <section id="help" className="py-20 md:py-32 px-4 relative overflow-hidden">
