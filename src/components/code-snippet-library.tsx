@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -36,6 +37,9 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedSnippet, setSelectedSnippet] = useState<CodeSnippet | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedCode, setEditedCode] = useState('');
+  const [originalCode, setOriginalCode] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -136,6 +140,120 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const copyCode = async (code: string) => {
     await navigator.clipboard.writeText(code);
     toast({ title: "Copied!", description: "Code copied to clipboard" });
+  };
+
+  const startEditing = (snippet: CodeSnippet) => {
+    setIsEditing(true);
+    setEditedCode(snippet.generated_code);
+    setOriginalCode(snippet.generated_code);
+  };
+
+  const saveEdit = async () => {
+    if (!selectedSnippet) return;
+
+    const { error } = await supabase
+      .from('code_snippets')
+      .update({ generated_code: editedCode })
+      .eq('id', selectedSnippet.id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to save changes", variant: "destructive" });
+      return;
+    }
+
+    setSnippets(prev =>
+      prev.map(s => s.id === selectedSnippet.id ? { ...s, generated_code: editedCode } : s)
+    );
+    setSelectedSnippet({ ...selectedSnippet, generated_code: editedCode });
+    setIsEditing(false);
+    toast({ title: "Success", description: "Code updated successfully" });
+  };
+
+  const cancelEdit = () => {
+    setIsEditing(false);
+    setEditedCode(originalCode);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.ctrlKey && e.key === 'z' && isEditing) {
+      e.preventDefault();
+      setEditedCode(originalCode);
+      toast({ title: "Reverted", description: "Code reverted to original" });
+    }
+  };
+
+  const isHTMLLikeLanguage = (language: string): boolean => {
+    const htmlLanguages = ['html', 'css', 'jsx', 'tsx', 'vue', 'svelte'];
+    return htmlLanguages.includes(language.toLowerCase());
+  };
+
+  const downloadVSCodeFile = (code: string, language: string, title: string) => {
+    const extensions: { [key: string]: string } = {
+      javascript: 'js',
+      typescript: 'ts',
+      python: 'py',
+      java: 'java',
+      cpp: 'cpp',
+      c: 'c',
+      csharp: 'cs',
+      ruby: 'rb',
+      go: 'go',
+      rust: 'rs',
+      php: 'php',
+      swift: 'swift',
+      kotlin: 'kt',
+      html: 'html',
+      css: 'css',
+      jsx: 'jsx',
+      tsx: 'tsx',
+    };
+
+    const extension = extensions[language.toLowerCase()] || 'txt';
+    const fileName = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`;
+    
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Downloaded!", description: `File saved as ${fileName}` });
+  };
+
+  const downloadHTMLFile = (code: string, language: string, title: string) => {
+    let htmlContent = code;
+    
+    if (!code.trim().toLowerCase().startsWith('<!doctype') && !code.trim().toLowerCase().startsWith('<html')) {
+      htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  ${language === 'css' ? '<style>\n' + code + '\n</style>' : ''}
+</head>
+<body>
+  ${language === 'css' ? '' : code}
+</body>
+</html>`;
+    }
+    
+    const fileName = `${title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({ title: "Downloaded!", description: `HTML file saved as ${fileName}` });
   };
 
   const formatDate = (dateString: string) => {
@@ -262,50 +380,125 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleFavorite(selectedSnippet)}
-                    >
-                      {selectedSnippet.is_favorite ? (
-                        <StarOff className="h-4 w-4" />
-                      ) : (
-                        <Star className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyCode(selectedSnippet.generated_code)}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteSnippet(selectedSnippet.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={saveEdit}
+                        >
+                          <Save className="h-4 w-4 mr-1" />
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={cancelEdit}
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Cancel
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setEditedCode(originalCode);
+                            toast({ title: "Reverted", description: "Code reverted to original" });
+                          }}
+                          title="Revert (Ctrl+Z)"
+                        >
+                          <Undo className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleFavorite(selectedSnippet)}
+                          title={selectedSnippet.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                        >
+                          {selectedSnippet.is_favorite ? (
+                            <StarOff className="h-4 w-4" />
+                          ) : (
+                            <Star className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyCode(selectedSnippet.generated_code)}
+                          title="Copy code"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => startEditing(selectedSnippet)}
+                          title="Edit code"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => downloadVSCodeFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
+                          title="Download VS Code File"
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          VS Code
+                        </Button>
+                        {isHTMLLikeLanguage(selectedSnippet.language) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => downloadHTMLFile(selectedSnippet.generated_code, selectedSnippet.language, selectedSnippet.title)}
+                            title="Download HTML File"
+                          >
+                            <Download className="h-4 w-4 mr-1" />
+                            HTML
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteSnippet(selectedSnippet.id)}
+                          title="Delete snippet"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
 
                 <ScrollArea className="flex-1">
-                  <div className="rounded-lg overflow-hidden border">
-                    <SyntaxHighlighter
-                      language={selectedSnippet.language}
-                      style={vscDarkPlus}
-                      showLineNumbers
-                      customStyle={{
-                        margin: 0,
-                        borderRadius: 0,
-                        fontSize: '0.875rem',
-                      }}
-                    >
-                      {selectedSnippet.generated_code}
-                    </SyntaxHighlighter>
-                  </div>
+                  {isEditing ? (
+                    <Textarea
+                      value={editedCode}
+                      onChange={(e) => setEditedCode(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="min-h-[500px] font-mono text-sm resize-none"
+                      placeholder="Edit your code here... (Ctrl+Z to revert)"
+                    />
+                  ) : (
+                    <div className="rounded-lg overflow-hidden border">
+                      <SyntaxHighlighter
+                        language={selectedSnippet.language}
+                        style={vscDarkPlus}
+                        showLineNumbers
+                        customStyle={{
+                          margin: 0,
+                          borderRadius: 0,
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        {selectedSnippet.generated_code}
+                      </SyntaxHighlighter>
+                    </div>
+                  )}
                 </ScrollArea>
               </>
             ) : (
