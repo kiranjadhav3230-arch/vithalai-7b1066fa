@@ -7,6 +7,7 @@ import { ComprehensiveFeatures } from '@/components/comprehensive-features';
 import { CodeGeneratorSection } from '@/components/code-generator-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
+import { NotebookLMInterface } from '@/components/notebook-lm-interface';
 import { LoadingScreen } from '@/components/loading-screen';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -108,17 +109,17 @@ const Index = () => {
     return <LoadingScreen />;
   }
 
-  // Show chat interface if user is logged in
+  // Show NotebookLM interface if user is logged in
   if (user && showChat) {
     return (
-      <ChatInterface user={user} onLogout={handleLogout} />
+      <NotebookLMInterface user={user} onLogout={handleLogout} />
     );
   }
 
-  // Show chat interface by default for logged in users
+  // Show NotebookLM interface by default for logged in users
   if (user) {
     return (
-      <ChatInterface user={user} onLogout={handleLogout} />
+      <NotebookLMInterface user={user} onLogout={handleLogout} />
     );
   }
 
