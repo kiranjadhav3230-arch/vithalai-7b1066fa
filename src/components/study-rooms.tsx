@@ -100,7 +100,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         name: roomName,
         description: roomDescription || null,
         is_public: isPublic,
-        // created_by is now set automatically by database trigger
+        created_by: user.id, // RLS validates this matches auth.uid()
       };
 
       if (!isPublic) {
