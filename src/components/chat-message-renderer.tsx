@@ -194,5 +194,5 @@ export const ChatMessageRenderer: React.FC<MessageRendererProps> = ({ content })
     return parts;
   };
 
-  return <div className="space-y-2">{renderContent()}</div>;
+  return <div className="space-y-2 font-chat">{renderContent()}</div>;
 };

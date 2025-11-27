@@ -1127,7 +1127,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             </div> : <div className="relative">
                               <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
                                 {msg.message_type === 'image' && (msg as any).image_data && <img src={(msg as any).image_data} alt="Uploaded" className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain" />}
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap font-chat">{msg.message}</p>
                                 <div className="text-xs opacity-70 mt-1">
                                   {new Date(msg.created_at).toLocaleTimeString([], {
                                 hour: '2-digit',
