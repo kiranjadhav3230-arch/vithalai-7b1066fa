@@ -12,8 +12,6 @@ import { ChatInterface } from '@/components/chat-interface';
 import { LoadingScreen } from '@/components/loading-screen';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/app-sidebar';
 import { useLanguage } from '@/hooks/useLanguage';
 import type { User, Session } from '@supabase/supabase-js';
 const Index = () => {
@@ -108,40 +106,12 @@ const Index = () => {
 
   // Show chat interface if user is logged in
   if (user && showChat) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar userId={user.id} onHistoryDeleted={() => window.location.reload()} />
-          <div className="flex-1 flex flex-col">
-            <header className="h-12 flex items-center border-b px-4">
-              <SidebarTrigger />
-            </header>
-            <main className="flex-1">
-              <ChatInterface user={user} onLogout={handleLogout} />
-            </main>
-          </div>
-        </div>
-      </SidebarProvider>
-    );
+    return <ChatInterface user={user} onLogout={handleLogout} />;
   }
 
   // Show chat interface by default for logged in users
   if (user) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <AppSidebar userId={user.id} onHistoryDeleted={() => window.location.reload()} />
-          <div className="flex-1 flex flex-col">
-            <header className="h-12 flex items-center border-b px-4">
-              <SidebarTrigger />
-            </header>
-            <main className="flex-1">
-              <ChatInterface user={user} onLogout={handleLogout} />
-            </main>
-          </div>
-        </div>
-      </SidebarProvider>
-    );
+    return <ChatInterface user={user} onLogout={handleLogout} />;
   }
 
   // Show landing page
