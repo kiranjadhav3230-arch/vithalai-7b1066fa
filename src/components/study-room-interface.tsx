@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
@@ -64,6 +64,9 @@ export const StudyRoomInterface: React.FC<{
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
+  
+  // Invite dialog state
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
 
   useEffect(() => {
     loadMessages();
@@ -434,6 +437,25 @@ export const StudyRoomInterface: React.FC<{
     }
   };
 
+  const copyInviteCode = () => {
+    if (room.invite_code) {
+      navigator.clipboard.writeText(room.invite_code);
+      toast({
+        title: 'Copied!',
+        description: 'Invite code copied to clipboard',
+      });
+    }
+  };
+
+  const copyInviteLink = () => {
+    const inviteLink = `${window.location.origin}/?invite=${room.invite_code}`;
+    navigator.clipboard.writeText(inviteLink);
+    toast({
+      title: 'Copied!',
+      description: 'Invite link copied to clipboard',
+    });
+  };
+
   if (showWelcome) {
     return <StudyRoomWelcomeAnimation onComplete={() => setShowWelcome(false)} />;
   }
@@ -452,9 +474,62 @@ export const StudyRoomInterface: React.FC<{
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          {onlineUsers.size} online / {members.length} total
+        <div className="flex items-center gap-4">
+          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite Member
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Invite Members</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Invite Code</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={room.invite_code || ''} 
+                      readOnly 
+                      className="flex-1"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={copyInviteCode}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Invite Link</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      value={`${window.location.origin}/?invite=${room.invite_code}`}
+                      readOnly 
+                      className="flex-1 text-sm"
+                    />
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={copyInviteLink}
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            {onlineUsers.size} online / {members.length} total
+          </div>
         </div>
       </div>
 
