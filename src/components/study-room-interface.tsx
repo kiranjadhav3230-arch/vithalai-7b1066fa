@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export const StudyRoomInterface: React.FC<{
   user: any;
   onBack: () => void;
 }> = ({ room, user, onBack }) => {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -431,6 +433,10 @@ export const StudyRoomInterface: React.FC<{
       });
     }
   };
+
+  if (showWelcome) {
+    return <StudyRoomWelcomeAnimation onComplete={() => setShowWelcome(false)} />;
+  }
 
   return (
     <div className="h-screen flex flex-col">
