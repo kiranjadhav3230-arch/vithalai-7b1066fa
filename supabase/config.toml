@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.room-chat]
 verify_jwt = true
+
+[functions.generate-session-title]
+verify_jwt = true
