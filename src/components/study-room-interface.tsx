@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Message {
@@ -446,9 +446,72 @@ export const StudyRoomInterface: React.FC<{
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users className="h-4 w-4" />
-          {onlineUsers.size} online / {members.length} total
+        <div className="flex items-center gap-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Invite Member
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite Members to {room.name}</DialogTitle>
+                <DialogDescription>
+                  Share the invite code or link with others to join this study room
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Invite Code</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input value={room.invite_code || ''} readOnly className="font-mono" />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(room.invite_code || '');
+                        toast({
+                          title: 'Success',
+                          description: 'Invite code copied!',
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label>Invite Link</Label>
+                  <div className="flex gap-2 mt-2">
+                    <Input 
+                      value={`${window.location.origin}/?invite=${room.invite_code}`} 
+                      readOnly 
+                      className="text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const link = `${window.location.origin}/?invite=${room.invite_code}`;
+                        navigator.clipboard.writeText(link);
+                        toast({
+                          title: 'Success',
+                          description: 'Invite link copied!',
+                        });
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="h-4 w-4" />
+            {onlineUsers.size} online / {members.length} total
+          </div>
         </div>
       </div>
 
