@@ -628,7 +628,7 @@ export const EnhancedChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, 
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                        <p className="text-sm whitespace-pre-wrap font-chat">{message.text}</p>
                       </Card>
                       
                       {/* Course Suggestions */}

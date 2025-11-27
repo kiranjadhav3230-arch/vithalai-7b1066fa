@@ -500,7 +500,7 @@ export const StudyRoomInterface: React.FC<{
                         className="max-w-full rounded-lg mb-2"
                       />
                     )}
-                    <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
+                    <p className="text-sm whitespace-pre-wrap font-chat">{msg.message}</p>
                     <p className="text-xs opacity-60 mt-1">
                       {new Date(msg.created_at).toLocaleTimeString()}
                     </p>
