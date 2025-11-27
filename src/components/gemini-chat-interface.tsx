@@ -1100,7 +1100,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                       <div className="text-[10px] md:text-xs text-orange-400/50 space-y-0.5 md:space-y-1 px-4">
                         <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span></p>
-                        <p>Sponsored by <span className="font-medium text-orange-400">Shree Alankar</span></p>
+                        
                         <p>Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
