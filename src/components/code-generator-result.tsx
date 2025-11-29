@@ -1,11 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Copy, Download, Save, Eye, EyeOff } from 'lucide-react';
+import { Terminal, Copy, Download, Save, ExternalLink } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { toast } from 'sonner';
 
 interface CodeGeneratorResultProps {
   generatedCode: string;
@@ -22,21 +23,20 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
   onDownload,
   onSave,
 }) => {
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewContent, setPreviewContent] = useState('');
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
   // Check if the language supports preview
-  const isPreviewable = ['html', 'css', 'javascript', 'react', 'typescript'].includes(selectedLanguage.toLowerCase());
+  const isPreviewable = ['html', 'css', 'javascript'].includes(selectedLanguage.toLowerCase());
 
-  // Update preview content when code changes
-  useEffect(() => {
-    if (showPreview && isPreviewable) {
-      let content = generatedCode;
+  const handleOpenPreview = () => {
+    if (!isPreviewable) {
+      toast.error(`Live preview is not available for ${selectedLanguage}. Use the code in your development environment.`);
+      return;
+    }
 
-      // For CSS, wrap in HTML structure
-      if (selectedLanguage.toLowerCase() === 'css') {
-        content = `<!DOCTYPE html>
+    let content = generatedCode;
+
+    // For CSS, wrap in HTML structure
+    if (selectedLanguage.toLowerCase() === 'css') {
+      content = `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -54,10 +54,10 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
     </div>
   </body>
 </html>`;
-      }
-      // For JavaScript, wrap in HTML structure
-      else if (selectedLanguage.toLowerCase() === 'javascript') {
-        content = `<!DOCTYPE html>
+    }
+    // For JavaScript, wrap in HTML structure
+    else if (selectedLanguage.toLowerCase() === 'javascript') {
+      content = `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -77,55 +77,20 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
     </script>
   </body>
 </html>`;
-      }
-      // For React/TypeScript, show a message
-      else if (['react', 'typescript'].includes(selectedLanguage.toLowerCase())) {
-        content = `<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      body { 
-        margin: 0; 
-        padding: 40px; 
-        font-family: system-ui; 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-      .message {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        text-align: center;
-        max-width: 500px;
-      }
-      h2 { color: #667eea; margin: 0 0 10px 0; }
-      p { color: #666; line-height: 1.6; }
-      code { 
-        background: #f5f5f5; 
-        padding: 2px 8px; 
-        border-radius: 4px;
-        font-family: monospace;
-        color: #e83e8c;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="message">
-      <h2>⚛️ ${selectedLanguage} Code</h2>
-      <p>Live preview is not available for ${selectedLanguage} components. Use the code in your development environment with proper build setup.</p>
-      <p>Copy the code and paste it into your <code>${selectedLanguage === 'react' ? 'React' : 'TypeScript'}</code> project to see it in action!</p>
-    </div>
-  </body>
-</html>`;
-      }
-
-      setPreviewContent(content);
     }
-  }, [generatedCode, showPreview, selectedLanguage, isPreviewable]);
+
+    // Create blob and open in new tab
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+    
+    if (newWindow) {
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } else {
+      toast.error('Please allow pop-ups to open the preview.');
+    }
+  };
 
   return (
     <Card className="border-2 border-primary/20 shadow-lg">
@@ -139,17 +104,15 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
             </Badge>
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
-            {isPreviewable && (
-              <Button 
-                onClick={() => setShowPreview(!showPreview)} 
-                variant={showPreview ? "default" : "outline"} 
-                size="sm" 
-                className="gap-2 hover:border-primary"
-              >
-                {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showPreview ? 'Hide Preview' : 'Show Preview'}
-              </Button>
-            )}
+            <Button 
+              onClick={handleOpenPreview} 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 hover:border-primary"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open Preview
+            </Button>
             <Button onClick={onCopy} variant="outline" size="sm" className="gap-2 hover:border-primary">
               <Copy className="h-4 w-4" />
               Copy
@@ -166,53 +129,29 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className={`grid ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-0`}>
-          <ScrollArea className="h-[600px] w-full">
-            <SyntaxHighlighter
-              language={selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage}
-              style={vscDarkPlus}
-              showLineNumbers={true}
-              wrapLines={true}
-              customStyle={{
-                margin: 0,
-                borderRadius: 0,
+        <ScrollArea className="h-[600px] w-full">
+          <SyntaxHighlighter
+            language={selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage}
+            style={vscDarkPlus}
+            showLineNumbers={true}
+            wrapLines={true}
+            customStyle={{
+              margin: 0,
+              borderRadius: 0,
+              fontSize: '0.875rem',
+              padding: '1.5rem',
+              background: 'hsl(var(--card))',
+            }}
+            codeTagProps={{
+              style: {
+                fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
                 fontSize: '0.875rem',
-                padding: '1.5rem',
-                background: 'hsl(var(--card))',
-              }}
-              codeTagProps={{
-                style: {
-                  fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
-                  fontSize: '0.875rem',
-                }
-              }}
-            >
-              {generatedCode}
-            </SyntaxHighlighter>
-          </ScrollArea>
-          
-          {showPreview && isPreviewable && (
-            <div className="h-[600px] w-full border-l border-border bg-background">
-              <div className="h-full w-full relative">
-                <div className="absolute top-0 left-0 right-0 bg-muted/50 border-b border-border px-4 py-2 flex items-center gap-2 z-10">
-                  <Eye className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium text-muted-foreground">Live Preview</span>
-                </div>
-                <iframe
-                  ref={iframeRef}
-                  className="w-full h-full pt-10"
-                  sandbox="allow-scripts"
-                  srcDoc={previewContent}
-                  title="Code Preview"
-                  style={{
-                    border: 'none',
-                    background: 'white',
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+              }
+            }}
+          >
+            {generatedCode}
+          </SyntaxHighlighter>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
