@@ -8,7 +8,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
@@ -33,7 +34,9 @@ interface Note {
 }
 
 interface Member {
+  id: string;
   user_id: string;
+  role: string;
   joined_at: string;
   display_name?: string | null;
   is_online?: boolean;
@@ -67,6 +70,10 @@ export const StudyRoomInterface: React.FC<{
   
   // Invite dialog state
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  
+  // Member management dialog state
+  const [isMemberManagementOpen, setIsMemberManagementOpen] = useState(false);
+  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     loadMessages();
@@ -245,7 +252,7 @@ export const StudyRoomInterface: React.FC<{
   const loadMembers = async () => {
     const { data: memberData } = await supabase
       .from('room_members')
-      .select('user_id, joined_at')
+      .select('id, user_id, role, joined_at')
       .eq('room_id', room.id);
 
     if (memberData) {
@@ -456,6 +463,71 @@ export const StudyRoomInterface: React.FC<{
     });
   };
 
+  const handleRoleChange = async (memberId: string, newRole: string) => {
+    setUpdatingMemberId(memberId);
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .update({ role: newRole })
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Member role updated successfully',
+      });
+      
+      loadMembers();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingMemberId(null);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string, userId: string) => {
+    if (userId === user?.id) {
+      toast({
+        title: 'Error',
+        description: 'You cannot remove yourself',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setUpdatingMemberId(memberId);
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Member removed successfully',
+      });
+      
+      loadMembers();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingMemberId(null);
+    }
+  };
+
+  const isRoomCreator = user?.id === room.created_by;
+
   if (showWelcome) {
     return <StudyRoomWelcomeAnimation onComplete={() => setShowWelcome(false)} />;
   }
@@ -525,6 +597,70 @@ export const StudyRoomInterface: React.FC<{
               </div>
             </DialogContent>
           </Dialog>
+          
+          {isRoomCreator && (
+            <Dialog open={isMemberManagementOpen} onOpenChange={setIsMemberManagementOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage Members
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Manage Members</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3 mt-4">
+                  {members.map((member) => (
+                    <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-primary" />
+                          </div>
+                          {onlineUsers.has(member.user_id) && (
+                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-medium">User {member.user_id.slice(0, 8)}</div>
+                          <div className="text-xs text-muted-foreground capitalize">
+                            {member.role}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Select
+                          value={member.role}
+                          onValueChange={(value) => handleRoleChange(member.id, value)}
+                          disabled={updatingMemberId === member.id || member.user_id === user?.id}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="moderator">Moderator</SelectItem>
+                            <SelectItem value="member">Member</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveMember(member.id, member.user_id)}
+                          disabled={updatingMemberId === member.id || member.user_id === user?.id}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
