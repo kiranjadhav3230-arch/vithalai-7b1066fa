@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,10 +8,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, Eye, EyeOff } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
+import { toast as sonnerToast } from 'sonner';
 
 interface CodeSnippet {
   id: string;
@@ -41,8 +42,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [editedCode, setEditedCode] = useState('');
   const [originalCode, setOriginalCode] = useState('');
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -312,16 +311,22 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     });
   };
 
-  // Preview Pane Component
-  const PreviewPane: React.FC<{ code: string; language: string; iframeRef: React.RefObject<HTMLIFrameElement> }> = ({ code, language, iframeRef }) => {
-    const [previewContent, setPreviewContent] = useState('');
+  // Check if the language supports preview
+  const isPreviewable = (language: string) => {
+    return ['html', 'css', 'javascript'].includes(language.toLowerCase());
+  };
 
-    useEffect(() => {
-      let content = code;
+  // Open preview in new tab
+  const handleOpenPreview = (code: string, language: string) => {
+    if (!isPreviewable(language)) {
+      sonnerToast.error(`Live preview is not available for ${language}. Use the code in your development environment.`);
+      return;
+    }
 
-      // For CSS, wrap in HTML structure
-      if (language.toLowerCase() === 'css') {
-        content = `<!DOCTYPE html>
+    let content = code;
+
+    if (language.toLowerCase() === 'css') {
+      content = `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -339,10 +344,8 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     </div>
   </body>
 </html>`;
-      }
-      // For JavaScript, wrap in HTML structure
-      else if (language.toLowerCase() === 'javascript') {
-        content = `<!DOCTYPE html>
+    } else if (language.toLowerCase() === 'javascript') {
+      content = `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -362,76 +365,18 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     </script>
   </body>
 </html>`;
-      }
-      // For React/TypeScript, show a message
-      else if (['react', 'typescript'].includes(language.toLowerCase())) {
-        content = `<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      body { 
-        margin: 0; 
-        padding: 40px; 
-        font-family: system-ui; 
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-      .message {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        text-align: center;
-        max-width: 500px;
-      }
-      h2 { color: #667eea; margin: 0 0 10px 0; }
-      p { color: #666; line-height: 1.6; }
-      code { 
-        background: #f5f5f5; 
-        padding: 2px 8px; 
-        border-radius: 4px;
-        font-family: monospace;
-        color: #e83e8c;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="message">
-      <h2>⚛️ ${language} Code</h2>
-      <p>Live preview is not available for ${language} components. Use the code in your development environment with proper build setup.</p>
-      <p>Copy the code and paste it into your <code>${language === 'react' ? 'React' : 'TypeScript'}</code> project to see it in action!</p>
-    </div>
-  </body>
-</html>`;
-      }
+    }
 
-      setPreviewContent(content);
-    }, [code, language]);
-
-    return (
-      <div className="h-full w-full border-l border-border bg-background">
-        <div className="h-full w-full relative">
-          <div className="absolute top-0 left-0 right-0 bg-muted/50 border-b border-border px-4 py-2 flex items-center gap-2 z-10">
-            <Eye className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">Live Preview</span>
-          </div>
-          <iframe
-            ref={iframeRef}
-            className="w-full h-full pt-10"
-            sandbox="allow-scripts"
-            srcDoc={previewContent}
-            title="Code Preview"
-            style={{
-              border: 'none',
-              background: 'white',
-            }}
-          />
-        </div>
-      </div>
-    );
+    // Create blob and open in new tab
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const newWindow = window.open(url, '_blank');
+    
+    if (newWindow) {
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } else {
+      sonnerToast.error('Please allow pop-ups to open the preview.');
+    }
   };
 
   return (
@@ -698,16 +643,14 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {['html', 'css', 'javascript', 'react', 'typescript'].includes(selectedSnippet.language.toLowerCase()) && (
-                      <Button
-                        variant={showPreview ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setShowPreview(!showPreview)}
-                        title={showPreview ? "Hide preview" : "Show preview"}
-                      >
-                        {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenPreview(selectedSnippet.generated_code, selectedSnippet.language)}
+                      title="Open preview in new tab"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -767,32 +710,22 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                   </div>
                 </div>
 
-                <div className={`grid ${showPreview ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-0 h-full`}>
-                  <ScrollArea className="h-full">
-                    <div className="rounded-lg overflow-hidden border">
-                      <SyntaxHighlighter
-                        language={selectedSnippet.language}
-                        style={vscDarkPlus}
-                        showLineNumbers
-                        customStyle={{
-                          margin: 0,
-                          borderRadius: 0,
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        {selectedSnippet.generated_code}
-                      </SyntaxHighlighter>
-                    </div>
-                  </ScrollArea>
-
-                  {showPreview && (
-                    <PreviewPane 
-                      code={selectedSnippet.generated_code} 
+                <ScrollArea className="h-full">
+                  <div className="rounded-lg overflow-hidden border">
+                    <SyntaxHighlighter
                       language={selectedSnippet.language}
-                      iframeRef={iframeRef}
-                    />
-                  )}
-                </div>
+                      style={vscDarkPlus}
+                      showLineNumbers
+                      customStyle={{
+                        margin: 0,
+                        borderRadius: 0,
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {selectedSnippet.generated_code}
+                    </SyntaxHighlighter>
+                  </div>
+                </ScrollArea>
               </>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
