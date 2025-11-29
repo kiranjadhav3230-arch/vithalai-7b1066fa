@@ -102,7 +102,7 @@ export const PublishWebsiteDialog = ({
             Publish Your Website
           </DialogTitle>
           <DialogDescription>
-            Publish your code as a live website accessible to anyone
+            Publish your website and make it accessible via a unique URL on Vithal AI.
           </DialogDescription>
         </DialogHeader>
 

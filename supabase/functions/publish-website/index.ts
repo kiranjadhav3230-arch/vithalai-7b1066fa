@@ -106,7 +106,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const publishedUrl = `https://${subdomain}.vithal-web.app`;
+    // Get the app domain from the request origin
+    const origin = req.headers.get('origin') || 'https://vithal-ai.lovable.app';
+    const publishedUrl = `${origin}/view/${subdomain}`;
     
     return new Response(
       JSON.stringify({
