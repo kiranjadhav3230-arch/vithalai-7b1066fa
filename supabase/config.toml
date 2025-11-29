@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.room-chat]
 verify_jwt = true
+
+[functions.publish-website]
+verify_jwt = true
+
+[functions.serve-website]
+verify_jwt = false

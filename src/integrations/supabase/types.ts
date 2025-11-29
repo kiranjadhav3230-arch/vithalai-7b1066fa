@@ -555,6 +555,65 @@ export type Database = {
         }
         Relationships: []
       }
+      published_websites: {
+        Row: {
+          code_snippet_id: string | null
+          created_at: string
+          css_content: string | null
+          custom_domain: string | null
+          html_content: string
+          id: string
+          is_published: boolean | null
+          js_content: string | null
+          language: string | null
+          subdomain: string
+          title: string
+          updated_at: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          code_snippet_id?: string | null
+          created_at?: string
+          css_content?: string | null
+          custom_domain?: string | null
+          html_content: string
+          id?: string
+          is_published?: boolean | null
+          js_content?: string | null
+          language?: string | null
+          subdomain: string
+          title: string
+          updated_at?: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          code_snippet_id?: string | null
+          created_at?: string
+          css_content?: string | null
+          custom_domain?: string | null
+          html_content?: string
+          id?: string
+          is_published?: boolean | null
+          js_content?: string | null
+          language?: string | null
+          subdomain?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "published_websites_code_snippet_id_fkey"
+            columns: ["code_snippet_id"]
+            isOneToOne: false
+            referencedRelation: "code_snippets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_sessions: {
         Row: {
           completed_at: string | null
