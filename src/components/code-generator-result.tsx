@@ -23,119 +23,107 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
   onSave,
 }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [previewContent, setPreviewContent] = useState('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Check if the language supports preview
   const isPreviewable = ['html', 'css', 'javascript', 'react', 'typescript'].includes(selectedLanguage.toLowerCase());
 
-  // Update preview when code changes
+  // Update preview content when code changes
   useEffect(() => {
-    if (showPreview && iframeRef.current && isPreviewable) {
-      const iframe = iframeRef.current;
-      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-      
-      if (iframeDoc) {
-        let previewContent = generatedCode;
+    if (showPreview && isPreviewable) {
+      let content = generatedCode;
 
-        // For CSS, wrap in HTML structure
-        if (selectedLanguage.toLowerCase() === 'css') {
-          previewContent = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { margin: 0; padding: 20px; font-family: system-ui; }
-                  ${generatedCode}
-                </style>
-              </head>
-              <body>
-                <h1>CSS Preview</h1>
-                <p>Your CSS styles are applied to this preview.</p>
-                <div class="demo-content">
-                  <button>Button</button>
-                  <input type="text" placeholder="Input field" />
-                  <p>Sample paragraph with styles applied.</p>
-                </div>
-              </body>
-            </html>
-          `;
-        }
-        // For JavaScript, wrap in HTML structure
-        else if (selectedLanguage.toLowerCase() === 'javascript') {
-          previewContent = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { margin: 0; padding: 20px; font-family: system-ui; }
-                  #output { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
-                </style>
-              </head>
-              <body>
-                <h1>JavaScript Preview</h1>
-                <div id="output"></div>
-                <script>
-                  try {
-                    ${generatedCode}
-                  } catch (error) {
-                    document.getElementById('output').innerHTML = '<strong>Error:</strong> ' + error.message;
-                  }
-                </script>
-              </body>
-            </html>
-          `;
-        }
-        // For React/TypeScript, show a message
-        else if (['react', 'typescript'].includes(selectedLanguage.toLowerCase())) {
-          previewContent = `
-            <!DOCTYPE html>
-            <html>
-              <head>
-                <style>
-                  body { 
-                    margin: 0; 
-                    padding: 40px; 
-                    font-family: system-ui; 
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                  }
-                  .message {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 12px;
-                    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                    text-align: center;
-                    max-width: 500px;
-                  }
-                  h2 { color: #667eea; margin: 0 0 10px 0; }
-                  p { color: #666; line-height: 1.6; }
-                  code { 
-                    background: #f5f5f5; 
-                    padding: 2px 8px; 
-                    border-radius: 4px;
-                    font-family: monospace;
-                    color: #e83e8c;
-                  }
-                </style>
-              </head>
-              <body>
-                <div class="message">
-                  <h2>⚛️ ${selectedLanguage} Code</h2>
-                  <p>Live preview is not available for ${selectedLanguage} components. Use the code in your development environment with proper build setup.</p>
-                  <p>Copy the code and paste it into your <code>${selectedLanguage === 'react' ? 'React' : 'TypeScript'}</code> project to see it in action!</p>
-                </div>
-              </body>
-            </html>
-          `;
-        }
-
-        iframeDoc.open();
-        iframeDoc.write(previewContent);
-        iframeDoc.close();
+      // For CSS, wrap in HTML structure
+      if (selectedLanguage.toLowerCase() === 'css') {
+        content = `<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body { margin: 0; padding: 20px; font-family: system-ui; }
+      ${generatedCode}
+    </style>
+  </head>
+  <body>
+    <h1>CSS Preview</h1>
+    <p>Your CSS styles are applied to this preview.</p>
+    <div class="demo-content">
+      <button>Button</button>
+      <input type="text" placeholder="Input field" />
+      <p>Sample paragraph with styles applied.</p>
+    </div>
+  </body>
+</html>`;
       }
+      // For JavaScript, wrap in HTML structure
+      else if (selectedLanguage.toLowerCase() === 'javascript') {
+        content = `<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body { margin: 0; padding: 20px; font-family: system-ui; }
+      #output { margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>JavaScript Preview</h1>
+    <div id="output"></div>
+    <script>
+      try {
+        ${generatedCode}
+      } catch (error) {
+        document.getElementById('output').innerHTML = '<strong>Error:</strong> ' + error.message;
+      }
+    </script>
+  </body>
+</html>`;
+      }
+      // For React/TypeScript, show a message
+      else if (['react', 'typescript'].includes(selectedLanguage.toLowerCase())) {
+        content = `<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body { 
+        margin: 0; 
+        padding: 40px; 
+        font-family: system-ui; 
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+      .message {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        text-align: center;
+        max-width: 500px;
+      }
+      h2 { color: #667eea; margin: 0 0 10px 0; }
+      p { color: #666; line-height: 1.6; }
+      code { 
+        background: #f5f5f5; 
+        padding: 2px 8px; 
+        border-radius: 4px;
+        font-family: monospace;
+        color: #e83e8c;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="message">
+      <h2>⚛️ ${selectedLanguage} Code</h2>
+      <p>Live preview is not available for ${selectedLanguage} components. Use the code in your development environment with proper build setup.</p>
+      <p>Copy the code and paste it into your <code>${selectedLanguage === 'react' ? 'React' : 'TypeScript'}</code> project to see it in action!</p>
+    </div>
+  </body>
+</html>`;
+      }
+
+      setPreviewContent(content);
     }
   }, [generatedCode, showPreview, selectedLanguage, isPreviewable]);
 
@@ -206,7 +194,7 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
           {showPreview && isPreviewable && (
             <div className="h-[600px] w-full border-l border-border bg-background">
               <div className="h-full w-full relative">
-                <div className="absolute top-0 left-0 right-0 bg-muted/50 border-b border-border px-4 py-2 flex items-center gap-2">
+                <div className="absolute top-0 left-0 right-0 bg-muted/50 border-b border-border px-4 py-2 flex items-center gap-2 z-10">
                   <Eye className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">Live Preview</span>
                 </div>
@@ -214,6 +202,7 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
                   ref={iframeRef}
                   className="w-full h-full pt-10"
                   sandbox="allow-scripts"
+                  srcDoc={previewContent}
                   title="Code Preview"
                   style={{
                     border: 'none',
