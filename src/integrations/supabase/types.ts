@@ -672,6 +672,7 @@ export type Database = {
           is_ai_response: boolean
           message: string
           reactions: Json | null
+          reply_to: string | null
           room_id: string
           sender_name: string | null
           user_id: string | null
@@ -683,6 +684,7 @@ export type Database = {
           is_ai_response?: boolean
           message: string
           reactions?: Json | null
+          reply_to?: string | null
           room_id: string
           sender_name?: string | null
           user_id?: string | null
@@ -694,11 +696,19 @@ export type Database = {
           is_ai_response?: boolean
           message?: string
           reactions?: Json | null
+          reply_to?: string | null
           room_id?: string
           sender_name?: string | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "room_messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "room_messages"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "room_messages_room_id_fkey"
             columns: ["room_id"]
