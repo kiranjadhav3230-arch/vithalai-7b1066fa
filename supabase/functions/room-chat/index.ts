@@ -21,8 +21,8 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    const { roomId, message, userId, imageData } = await req.json();
-    console.log('Room chat request:', { roomId, userId, messageLength: message?.length, hasImage: !!imageData });
+    const { roomId, message, userId, imageData, replyTo } = await req.json();
+    console.log('Room chat request:', { roomId, userId, messageLength: message?.length, hasImage: !!imageData, hasReply: !!replyTo });
 
     if (!roomId || !message || !userId) {
       throw new Error('Missing required fields: roomId, message, userId');
@@ -77,6 +77,7 @@ YOUR CORE RESPONSIBILITIES:
    - Handwritten notes and problems
 4. **Adaptive Teaching**: Adjust your explanation depth based on student responses
 5. **Encouragement**: Motivate students and celebrate their progress
+6. **Reply Context**: When responding to a reply, acknowledge the original message and provide contextual answers
 
 COMMUNICATION GUIDELINES:
 - Start with a clear, direct answer to the question
@@ -86,6 +87,7 @@ COMMUNICATION GUIDELINES:
 - For image-based questions, describe what you see before providing solutions
 - Keep responses well-structured but conversational
 - Address the entire group when multiple students are present
+- When replying to a specific message, reference it naturally in your response
 
 RESPONSE STRUCTURE:
 1. Quick answer/summary (if applicable)
@@ -93,7 +95,7 @@ RESPONSE STRUCTURE:
 3. Examples or practice suggestions (when relevant)
 4. Follow-up questions to deepen understanding
 
-Remember: You're not just answering questions—you're facilitating learning and understanding in a collaborative environment.`;
+Remember: You're not just answering questions—you're facilitating learning and understanding in a collaborative environment.${replyTo ? `\n\nIMPORTANT: The current message is a REPLY to this previous message:\n"${replyTo.is_ai_response ? '🤖 AI Assistant' : replyTo.sender_name}: ${replyTo.message}"\n\nMake sure to acknowledge and reference this context in your response.` : ''}`;
 
     // Prepare message parts with optional image
     const messageParts: any[] = [];
@@ -178,7 +180,8 @@ Remember: You're not just answering questions—you're facilitating learning and
       room_id: roomId,
       user_id: null,
       message: aiResponse,
-      is_ai_response: true
+      is_ai_response: true,
+      reply_to: replyTo?.id || null,
     });
 
     console.log('Room chat response generated successfully');

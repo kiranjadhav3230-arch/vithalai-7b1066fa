@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
@@ -22,6 +22,13 @@ interface Message {
   image_data?: string | null;
   sender_name?: string | null;
   reactions?: { type: string; count: number; users: string[] }[];
+  reply_to?: string | null;
+  replied_message?: {
+    id: string;
+    message: string;
+    is_ai_response: boolean;
+    sender_name?: string | null;
+  };
 }
 
 interface Note {
@@ -74,6 +81,9 @@ export const StudyRoomInterface: React.FC<{
   // Member management dialog state
   const [isMemberManagementOpen, setIsMemberManagementOpen] = useState(false);
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
+  
+  // Reply state
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
   useEffect(() => {
     loadMessages();
@@ -210,8 +220,9 @@ export const StudyRoomInterface: React.FC<{
       .order('created_at', { ascending: true });
 
     if (data) {
-      // Load reactions for each message
+      // Load reactions and replied message for each message
       const messagesWithReactions = await Promise.all(data.map(async (msg) => {
+        // Fetch reactions
         const { data: reactionsData } = await supabase
           .from('room_message_reactions')
           .select('reaction_type, user_id')
@@ -232,7 +243,19 @@ export const StudyRoomInterface: React.FC<{
           users: data.users
         }));
 
-        return { ...msg, reactions };
+        // Fetch replied message if exists
+        let replied_message = null;
+        if (msg.reply_to) {
+          const { data: replyData } = await supabase
+            .from('room_messages')
+            .select('id, message, is_ai_response, sender_name')
+            .eq('id', msg.reply_to)
+            .single();
+          
+          replied_message = replyData;
+        }
+
+        return { ...msg, reactions, replied_message };
       }));
 
       setMessages(messagesWithReactions);
@@ -323,8 +346,10 @@ export const StudyRoomInterface: React.FC<{
 
     const messageText = inputMessage;
     const imageData = selectedImage;
+    const replyToMessage = replyingTo;
     setInputMessage('');
     setSelectedImage(null);
+    setReplyingTo(null);
 
     try {
       // Get sender name
@@ -342,6 +367,7 @@ export const StudyRoomInterface: React.FC<{
         image_data: imageData,
         sender_name: profile?.display_name || 'User',
         is_ai_response: false,
+        reply_to: replyToMessage?.id || null,
       });
 
       if (error) throw error;
@@ -355,6 +381,12 @@ export const StudyRoomInterface: React.FC<{
             message: messageText || 'Please analyze this image',
             userId: user.id,
             imageData: imageData,
+            replyTo: replyToMessage ? {
+              id: replyToMessage.id,
+              message: replyToMessage.message,
+              is_ai_response: replyToMessage.is_ai_response,
+              sender_name: replyToMessage.sender_name
+            } : null,
           },
         });
 
@@ -704,6 +736,25 @@ export const StudyRoomInterface: React.FC<{
                     {msg.user_id === user.id && (
                       <div className="text-xs opacity-70 mb-1">You</div>
                     )}
+                    
+                    {/* Show replied message context */}
+                    {msg.replied_message && (
+                      <div className={`mb-2 p-2 rounded border-l-2 text-xs ${
+                        msg.is_ai_response || msg.user_id !== user.id
+                          ? 'border-primary/40 bg-background/30'
+                          : 'border-primary-foreground/40 bg-primary-foreground/10'
+                      }`}>
+                        <div className="font-semibold opacity-80">
+                          {msg.replied_message.is_ai_response 
+                            ? '🤖 AI Assistant' 
+                            : msg.replied_message.sender_name || 'User'}
+                        </div>
+                        <div className="opacity-70 line-clamp-2">
+                          {msg.replied_message.message}
+                        </div>
+                      </div>
+                    )}
+                    
                     {msg.image_data && (
                       <img
                         src={msg.image_data}
@@ -736,34 +787,44 @@ export const StudyRoomInterface: React.FC<{
                       </div>
                     )}
                   </div>
-                  {!msg.is_ai_response && (
-                    <div className="flex gap-1 mt-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2"
-                        onClick={() => addReaction(msg.id, 'like')}
-                      >
-                        👍
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2"
-                        onClick={() => addReaction(msg.id, 'heart')}
-                      >
-                        ❤️
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-6 px-2"
-                        onClick={() => addReaction(msg.id, 'smile')}
-                      >
-                        😊
-                      </Button>
-                    </div>
-                  )}
+                  <div className="flex gap-1 mt-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2"
+                      onClick={() => setReplyingTo(msg)}
+                    >
+                      <Reply className="h-3 w-3" />
+                    </Button>
+                    {!msg.is_ai_response && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2"
+                          onClick={() => addReaction(msg.id, 'like')}
+                        >
+                          👍
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2"
+                          onClick={() => addReaction(msg.id, 'heart')}
+                        >
+                          ❤️
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2"
+                          onClick={() => addReaction(msg.id, 'smile')}
+                        >
+                          😊
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
               {isLoadingAI && (
@@ -804,6 +865,31 @@ export const StudyRoomInterface: React.FC<{
                 {aiMode ? 'AI Mode On' : 'AI Mode Off'}
               </Button>
             </div>
+            
+            {/* Reply context UI */}
+            {replyingTo && (
+              <div className="bg-muted p-3 rounded-lg relative">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="text-xs font-semibold text-muted-foreground mb-1">
+                      Replying to {replyingTo.is_ai_response ? '🤖 AI Assistant' : replyingTo.sender_name || 'User'}
+                    </div>
+                    <div className="text-sm line-clamp-2">
+                      {replyingTo.message}
+                    </div>
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6"
+                    onClick={() => setReplyingTo(null)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
             {selectedImage && (
               <div className="relative inline-block">
                 <img
