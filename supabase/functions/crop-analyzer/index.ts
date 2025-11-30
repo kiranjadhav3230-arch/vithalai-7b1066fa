@@ -64,7 +64,7 @@ Language: ${language}`;
           }],
           generationConfig: {
             temperature: 0.4,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 8000,
           }
         })
       }
