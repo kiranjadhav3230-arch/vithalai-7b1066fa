@@ -77,7 +77,7 @@ Provide practical, actionable advice that farmers can implement. Use simple lang
           contents: messages,
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 8000,
           }
         })
       }
