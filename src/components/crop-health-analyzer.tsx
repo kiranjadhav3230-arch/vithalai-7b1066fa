@@ -3,19 +3,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useLanguage } from '@/hooks/useLanguage';
+import { LanguageSelector } from '@/components/ui/language-selector';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export const CropHealthAnalyzer: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [language, setLanguage] = useState('en');
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { language } = useLanguage();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -83,21 +94,91 @@ export const CropHealthAnalyzer: React.FC = () => {
     setAnalysis(null);
   };
 
+  const handleChatSend = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    
+    const newMessages: Message[] = [...chatMessages, { role: 'user', content: userMessage }];
+    setChatMessages(newMessages);
+
+    setChatLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('crop-chat', {
+        body: {
+          message: userMessage,
+          language: language,
+          chatHistory: newMessages
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      setChatMessages([...newMessages, { role: 'assistant', content: data.response }]);
+      
+      // Scroll to bottom
+      setTimeout(() => {
+        chatScrollRef.current?.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: 'smooth' });
+      }, 100);
+
+    } catch (error: any) {
+      console.error('Error in crop chat:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Chat Error",
+        description: error.message || "Failed to get response"
+      });
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSend();
+    }
+  };
+
   return (
     <div className="h-full flex flex-col gap-4 p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+            <Leaf className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">🌱 Crop Health Assistant</h1>
+            <p className="text-sm text-muted-foreground">AI-powered agricultural support</p>
+          </div>
+        </div>
+        <LanguageSelector language={language} onLanguageChange={setLanguage} />
+      </div>
+
+      <Tabs defaultValue="analyzer" className="flex-1 flex flex-col">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="analyzer" className="flex items-center gap-2">
+            <Camera className="w-4 h-4" />
+            Image Analyzer
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" />
+            Chat with AI
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="analyzer" className="flex-1 flex flex-col gap-4 mt-0">
       <Card className="border-primary/20">
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-              <Leaf className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-2xl">🌱 Crop Health Analyzer</CardTitle>
-              <CardDescription>
-                Upload plant/leaf images for AI-powered disease diagnosis and treatment recommendations
-              </CardDescription>
-            </div>
-          </div>
+          <CardTitle className="text-xl">Upload Plant Image</CardTitle>
+          <CardDescription>
+            Get AI-powered disease diagnosis and treatment recommendations
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!selectedImage ? (
@@ -231,6 +312,117 @@ export const CropHealthAnalyzer: React.FC = () => {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="chat" className="flex-1 flex flex-col gap-4 mt-0">
+          <Card className="flex-1 flex flex-col border-green-500/20">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-green-600" />
+                Agricultural Expert Chat
+              </CardTitle>
+              <CardDescription>
+                Ask questions about crop diseases, nutrients, farming practices, and more
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden">
+              <ScrollArea className="flex-1 pr-4" ref={chatScrollRef}>
+                {chatMessages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                    <div className="p-4 bg-green-100 dark:bg-green-950 rounded-full mb-4">
+                      <Leaf className="w-12 h-12 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      Ask me about plant diseases, nutrient deficiencies, pest control, organic farming, soil health, or any agricultural topic!
+                    </p>
+                    <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-md">
+                      <Button 
+                        variant="outline" 
+                        className="justify-start text-left h-auto py-3 border-green-500/30"
+                        onClick={() => setChatInput(language === 'hi' ? 'मेरी फसल की पत्तियाँ पीली हो रही हैं, क्या करूँ?' : language === 'mr' ? 'माझ्या पिकाची पाने पिवळी होत आहेत, काय करावे?' : 'My crop leaves are turning yellow, what should I do?')}
+                      >
+                        <span className="text-xs">💡 {language === 'hi' ? 'मेरी फसल की पत्तियाँ पीली हो रही हैं...' : language === 'mr' ? 'माझ्या पिकाची पाने पिवळी होत आहेत...' : 'My crop leaves are turning yellow...'}</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="justify-start text-left h-auto py-3 border-green-500/30"
+                        onClick={() => setChatInput(language === 'hi' ? 'जैविक कीटनाशक कैसे बनाएं?' : language === 'mr' ? 'सेंद्रिय कीटकनाशक कसे बनवावे?' : 'How to make organic pesticide?')}
+                      >
+                        <span className="text-xs">💡 {language === 'hi' ? 'जैविक कीटनाशक कैसे बनाएं?' : language === 'mr' ? 'सेंद्रिय कीटकनाशक कसे बनवावे?' : 'How to make organic pesticide?'}</span>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="justify-start text-left h-auto py-3 border-green-500/30"
+                        onClick={() => setChatInput(language === 'hi' ? 'मिट्टी की उर्वरता कैसे बढ़ाएं?' : language === 'mr' ? 'मातीची सुपीकता कशी वाढवावी?' : 'How to improve soil fertility?')}
+                      >
+                        <span className="text-xs">💡 {language === 'hi' ? 'मिट्टी की उर्वरता कैसे बढ़ाएं?' : language === 'mr' ? 'मातीची सुपीकता कशी वाढवावी?' : 'How to improve soil fertility?'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {chatMessages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[80%] rounded-lg p-3 ${
+                            msg.role === 'user'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif] text-sm leading-relaxed">
+                            {msg.content}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {chatLoading && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[80%] rounded-lg p-3 bg-muted">
+                          <Loader2 className="w-5 h-5 animate-spin text-green-600" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </ScrollArea>
+
+              <div className="flex gap-2">
+                <Textarea
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={
+                    language === 'hi' 
+                      ? 'अपना कृषि संबंधी सवाल पूछें...'
+                      : language === 'mr'
+                      ? 'तुमचा शेती संबंधी प्रश्न विचारा...'
+                      : 'Ask your agricultural question...'
+                  }
+                  className="flex-1 min-h-[60px] max-h-[120px] resize-none font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
+                  disabled={chatLoading}
+                />
+                <Button
+                  onClick={handleChatSend}
+                  disabled={!chatInput.trim() || chatLoading}
+                  className="self-end bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                  size="icon"
+                >
+                  {chatLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

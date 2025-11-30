@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.crop-analyzer]
 verify_jwt = false
+
+[functions.crop-chat]
+verify_jwt = false
