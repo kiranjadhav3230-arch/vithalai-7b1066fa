@@ -8,13 +8,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink, Globe } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
 import { toast as sonnerToast } from 'sonner';
-import { PublishWebsiteDialog } from './publish-website-dialog';
-import { PublishedSitesManager } from './published-sites-manager';
 
 interface CodeSnippet {
   id: string;
@@ -44,8 +42,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [editedCode, setEditedCode] = useState('');
   const [originalCode, setOriginalCode] = useState('');
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
-  const [publishingSnippet, setPublishingSnippet] = useState<CodeSnippet | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -383,11 +379,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     }
   };
 
-  const handlePublish = (snippet: CodeSnippet) => {
-    setPublishingSnippet(snippet);
-    setPublishDialogOpen(true);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={`p-0 ${isEditing || showWelcomeAnimation ? 'max-w-full w-[95vw] h-[95vh]' : 'max-w-6xl h-[80vh]'}`}>
@@ -661,15 +652,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       <ExternalLink className="h-4 w-4" />
                     </Button>
                     <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handlePublish(selectedSnippet)}
-                      title="Publish as live website"
-                      disabled={!isPreviewable(selectedSnippet.language)}
-                    >
-                      <Globe className="h-4 w-4" />
-                    </Button>
-                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleFavorite(selectedSnippet)}
@@ -757,16 +739,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
         </div>
         )}
       </DialogContent>
-      
-      {publishingSnippet && (
-        <PublishWebsiteDialog
-          open={publishDialogOpen}
-          onOpenChange={setPublishDialogOpen}
-          code={publishingSnippet.generated_code}
-          language={publishingSnippet.language}
-          codeSnippetId={publishingSnippet.id}
-        />
-      )}
     </Dialog>
   );
 };
