@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.serve-website]
 verify_jwt = false
+
+[functions.crop-analyzer]
+verify_jwt = false

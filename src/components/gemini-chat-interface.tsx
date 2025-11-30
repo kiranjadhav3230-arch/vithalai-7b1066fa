@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square, Users } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square, Users, Leaf } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,7 @@ import { ContactSupportModal } from './contact-support-modal';
 import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
+import { CropHealthAnalyzer } from './crop-health-analyzer';
 import type { User } from '@supabase/supabase-js';
 interface ChatSession {
   id: string;
@@ -59,7 +60,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'studyRooms'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'studyRooms', 'crop'
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [collapsedTabs, setCollapsedTabs] = useState<{
     chat: boolean;
@@ -946,8 +947,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 3)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                  width: 'calc((100% - 0.5rem) / 4)',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'studyRooms' ? 2 : 3})`,
                   background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
@@ -977,14 +978,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <Users className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Rooms</span>
                   </Button>
+                  <Button variant="ghost" onClick={() => {
+                  playChatSound();
+                  setCurrentView('crop');
+                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'crop' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
+                    <Leaf className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">Crop</span>
+                  </Button>
                 </div>
 
                 {/* Mobile View Toggle */}
                 <div className="sm:hidden relative flex items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 3)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 3 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : 2})`,
+                  width: 'calc((100% - 0.5rem) / 4)',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'studyRooms' ? 2 : 3})`,
                   background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
@@ -1010,6 +1018,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   setCurrentView('studyRooms');
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}>
                     <Users className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" onClick={() => {
+                  playChatSound();
+                  setCurrentView('crop');
+                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'crop' ? 'text-white' : 'text-orange-400/50'}`}>
+                    <Leaf className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
@@ -1068,6 +1082,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
             </div> : currentView === 'studyRooms' ? <div className="flex-1 overflow-auto">
               <StudyRooms user={user} />
+            </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
+              <CropHealthAnalyzer />
             </div> : <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
