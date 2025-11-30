@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Copy, Download, Save, ExternalLink, Globe } from 'lucide-react';
+import { Terminal, Copy, Download, Save, ExternalLink } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { toast } from 'sonner';
-import { PublishWebsiteDialog } from './publish-website-dialog';
 
 interface CodeGeneratorResultProps {
   generatedCode: string;
@@ -24,7 +23,6 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
   onDownload,
   onSave,
 }) => {
-  const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   
   // Check if the language supports preview
   const isPreviewable = ['html', 'css', 'javascript'].includes(selectedLanguage.toLowerCase());
@@ -116,16 +114,6 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
               <ExternalLink className="h-4 w-4" />
               Open Preview
             </Button>
-            <Button 
-              onClick={() => setPublishDialogOpen(true)} 
-              variant="default"
-              size="sm" 
-              className="gap-2"
-              disabled={!isPreviewable}
-            >
-              <Globe className="h-4 w-4" />
-              Publish Web
-            </Button>
             <Button onClick={onCopy} variant="outline" size="sm" className="gap-2 hover:border-primary">
               <Copy className="h-4 w-4" />
               Copy
@@ -166,13 +154,6 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
           </SyntaxHighlighter>
         </ScrollArea>
       </CardContent>
-
-      <PublishWebsiteDialog
-        open={publishDialogOpen}
-        onOpenChange={setPublishDialogOpen}
-        code={generatedCode}
-        language={selectedLanguage}
-      />
     </Card>
   );
 };
