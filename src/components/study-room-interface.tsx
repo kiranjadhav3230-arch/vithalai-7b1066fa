@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
@@ -91,17 +91,41 @@ export const StudyRoomInterface: React.FC<{
   
   // Notification permission state
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+
+  // Check notification permission on mount and show prompt if needed
+  useEffect(() => {
+    if ('Notification' in window) {
+      const currentPermission = Notification.permission;
+      setNotificationPermission(currentPermission);
+      
+      // Show custom prompt if permission not granted
+      if (currentPermission === 'default') {
+        // Show prompt after a short delay for better UX
+        const timer = setTimeout(() => {
+          setShowNotificationPrompt(true);
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      setShowNotificationPrompt(false);
+      
+      if (permission === 'granted') {
+        toast({
+          title: 'Notifications Enabled',
+          description: 'You will receive room updates.',
+        });
+      }
+    }
+  };
 
   useEffect(() => {
-    // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
-        setNotificationPermission(permission);
-      });
-    } else if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-    }
-    
     loadMessages();
     loadNotes();
     loadMembers();
@@ -816,6 +840,37 @@ export const StudyRoomInterface: React.FC<{
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={leaveRoom} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   Leave Room
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          {/* Notification Permission Prompt */}
+          <AlertDialog open={showNotificationPrompt} onOpenChange={setShowNotificationPrompt}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <div className="flex items-center gap-3 mb-2">
+                  <Bell className="h-6 w-6 text-primary" />
+                  <AlertDialogTitle>Stay Updated with Notifications</AlertDialogTitle>
+                </div>
+                <AlertDialogDescription className="text-base space-y-3">
+                  <p>Enable notifications to receive real-time updates when:</p>
+                  <ul className="list-disc list-inside space-y-2 ml-2">
+                    <li>New members join the room</li>
+                    <li>Members send messages</li>
+                    <li>AI responds to questions</li>
+                  </ul>
+                  <p className="text-muted-foreground text-sm mt-3">
+                    You can change this anytime in your browser settings.
+                  </p>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setShowNotificationPrompt(false)}>
+                  Not Now
+                </AlertDialogCancel>
+                <AlertDialogAction onClick={requestNotificationPermission}>
+                  Enable Notifications
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
