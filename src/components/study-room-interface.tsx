@@ -204,8 +204,8 @@ export const StudyRoomInterface: React.FC<{
           const newMessage = payload.new as Message;
           setMessages((prev) => [...prev, newMessage]);
           
-          // Show browser notification if document is hidden and user didn't send the message
-          if (document.hidden && newMessage.user_id !== user.id && notificationPermission === 'granted') {
+          // Show browser notification if user didn't send the message
+          if (newMessage.user_id !== user.id && 'Notification' in window && Notification.permission === 'granted') {
             const notificationTitle = newMessage.is_ai_response 
               ? '🤖 AI Assistant in ' + room.name
               : (newMessage.sender_name || 'Someone') + ' in ' + room.name;
@@ -213,11 +213,16 @@ export const StudyRoomInterface: React.FC<{
               ? newMessage.message.substring(0, 100) + '...' 
               : newMessage.message;
             
-            new Notification(notificationTitle, {
-              body: notificationBody,
-              icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-              tag: 'room-message-' + newMessage.id,
-            });
+            try {
+              new Notification(notificationTitle, {
+                body: notificationBody,
+                icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
+                tag: 'room-message-' + newMessage.id,
+                requireInteraction: false,
+              });
+            } catch (error) {
+              console.error('Failed to show notification:', error);
+            }
           }
         }
       )
@@ -253,7 +258,7 @@ export const StudyRoomInterface: React.FC<{
           loadMembers();
           
           // Show notification when someone joins
-          if (document.hidden && notificationPermission === 'granted' && payload.new.user_id !== user.id) {
+          if ('Notification' in window && Notification.permission === 'granted' && payload.new.user_id !== user.id) {
             // Fetch the user's profile to get display name
             const { data: profile } = await supabase
               .from('profiles')
@@ -262,11 +267,16 @@ export const StudyRoomInterface: React.FC<{
               .single();
             
             const memberName = profile?.display_name || 'Someone';
-            new Notification('New Member Joined', {
-              body: `${memberName} joined ${room.name}`,
-              icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-              tag: 'room-member-joined-' + payload.new.id,
-            });
+            try {
+              new Notification('New Member Joined', {
+                body: `${memberName} joined ${room.name}`,
+                icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
+                tag: 'room-member-joined-' + payload.new.id,
+                requireInteraction: false,
+              });
+            } catch (error) {
+              console.error('Failed to show notification:', error);
+            }
           }
         }
       )
