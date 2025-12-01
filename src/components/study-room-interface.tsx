@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 
@@ -495,6 +495,32 @@ export const StudyRoomInterface: React.FC<{
     });
   };
 
+  const leaveRoom = async () => {
+    try {
+      const { error } = await supabase
+        .from('room_members')
+        .delete()
+        .eq('room_id', room.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'You have left the room',
+      });
+
+      onBack();
+    } catch (error) {
+      console.error('Error leaving room:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to leave room',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleRoleChange = async (memberId: string, newRole: string) => {
     setUpdatingMemberId(memberId);
     try {
@@ -693,6 +719,11 @@ export const StudyRoomInterface: React.FC<{
               </DialogContent>
             </Dialog>
           )}
+          
+          <Button variant="destructive" size="sm" onClick={leaveRoom}>
+            <LogOut className="h-4 w-4 mr-2" />
+            Leave Room
+          </Button>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
