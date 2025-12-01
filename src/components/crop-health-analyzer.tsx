@@ -276,6 +276,11 @@ export const CropHealthAnalyzer: React.FC = () => {
       return;
     }
 
+    // Prevent multiple simultaneous calls
+    if (isAnalyzingLocation) {
+      return;
+    }
+
     setIsAnalyzingLocation(true);
     setLocationAnalysis("");
 
@@ -286,12 +291,13 @@ export const CropHealthAnalyzer: React.FC = () => {
 
       const locationPrompt = `Provide a comprehensive agricultural analysis for ${location.name || `${location.lat}, ${location.lng}`} during ${season} season. Include:
 
-1. **Climate & Soil**: Typical climate conditions and soil types in this region
-2. **Recommended Crops**: Best crops to grow in this season
-3. **Common Pests & Diseases**: Major agricultural pests and diseases prevalent in this area during ${season}
-4. **Seasonal Care Tips**: Specific farming practices and care recommendations
-5. **Water Management**: Irrigation recommendations based on seasonal rainfall
-6. **Market Trends**: Popular crops and market demand in this region
+1. **Current Weather & Climate**: Provide current weather conditions and typical climate patterns for this region and season (use your knowledge about weather patterns)
+2. **Soil Conditions**: Typical soil types in this region
+3. **Recommended Crops**: Best crops to grow in this season considering weather and climate
+4. **Common Pests & Diseases**: Major agricultural pests and diseases prevalent in this area during ${season}
+5. **Seasonal Care Tips**: Specific farming practices and care recommendations based on weather conditions
+6. **Water Management**: Irrigation recommendations based on seasonal rainfall and weather
+7. **Market Trends**: Popular crops and market demand in this region
 
 Provide detailed, actionable information for farmers in this area. Format in ${language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English'}.`;
 
