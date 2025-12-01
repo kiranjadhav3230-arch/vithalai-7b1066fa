@@ -27,7 +27,6 @@ const cropTranslations = {
     setButton: "Set",
     analyzeLocation: "Analyze Location",
     analyzingLocation: "Analyzing Location...",
-    locationAnalysisTitle: "Location Analysis Results",
     regionalAlerts: "Regional Pest & Disease Alerts",
     imageAnalyzer: "Image Analyzer",
     chatWithAI: "Chat with AI",
@@ -54,7 +53,6 @@ const cropTranslations = {
     setButton: "सेट करें",
     analyzeLocation: "स्थान का विश्लेषण करें",
     analyzingLocation: "स्थान का विश्लेषण हो रहा है...",
-    locationAnalysisTitle: "स्थान विश्लेषण परिणाम",
     regionalAlerts: "क्षेत्रीय कीट और रोग अलर्ट",
     imageAnalyzer: "चित्र विश्लेषक",
     chatWithAI: "AI से चैट करें",
@@ -81,7 +79,6 @@ const cropTranslations = {
     setButton: "सेट करा",
     analyzeLocation: "स्थान विश्लेषण करा",
     analyzingLocation: "स्थान विश्लेषण करत आहे...",
-    locationAnalysisTitle: "स्थान विश्लेषण परिणाम",
     regionalAlerts: "प्रादेशिक कीटक आणि रोग इशारे",
     imageAnalyzer: "प्रतिमा विश्लेषक",
     chatWithAI: "AI शी चॅट करा",
@@ -133,7 +130,6 @@ export const CropHealthAnalyzer: React.FC = () => {
   const [manualLocation, setManualLocation] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [regionalAlerts, setRegionalAlerts] = useState<string>('');
-  const [locationAnalysis, setLocationAnalysis] = useState<string>('');
   const [isAnalyzingLocation, setIsAnalyzingLocation] = useState(false);
   
   // Chat states
@@ -145,13 +141,6 @@ export const CropHealthAnalyzer: React.FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
-  // Load regional alerts when location changes
-  useEffect(() => {
-    if (location) {
-      loadRegionalAlerts();
-    }
-  }, [location, language]);
 
   // Rotate suggested questions every 10 seconds
   useEffect(() => {
@@ -242,30 +231,6 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
   };
 
-  const loadRegionalAlerts = async () => {
-    try {
-      const currentMonth = new Date().getMonth() + 1;
-      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
-                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
-      
-      const prompt = `For ${location?.name || 'this region'} during ${season} season, list 3-4 common crop pests or diseases farmers should watch for. Be brief and specific.`;
-      
-      const { data, error } = await supabase.functions.invoke('crop-chat', {
-        body: { 
-          message: prompt,
-          language,
-          location,
-          chatHistory: []
-        }
-      });
-
-      if (error) throw error;
-      setRegionalAlerts(data.response);
-    } catch (error) {
-      console.error('Error loading regional alerts:', error);
-    }
-  };
-
   const analyzeLocationInfo = async () => {
     if (!location) {
       toast({
@@ -282,28 +247,26 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
 
     setIsAnalyzingLocation(true);
-    setLocationAnalysis("");
 
     try {
       const currentMonth = new Date().getMonth() + 1;
       const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
                      currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+      
+      const prompt = `For ${location?.name || 'this region'} during ${season} season, provide detailed information about:
 
-      const locationPrompt = `Provide a comprehensive agricultural analysis for ${location.name || `${location.lat}, ${location.lng}`} during ${season} season. Include:
+**Regional Pest & Disease Alerts**:
+- List major crop pests and diseases prevalent in this area during this season
+- Include current weather conditions and how they affect pest/disease spread
+- Provide specific symptoms to watch for
+- Recommend preventive measures and treatment options
+- Include organic and chemical control methods
 
-1. **Current Weather & Climate**: Provide current weather conditions and typical climate patterns for this region and season (use your knowledge about weather patterns)
-2. **Soil Conditions**: Typical soil types in this region
-3. **Recommended Crops**: Best crops to grow in this season considering weather and climate
-4. **Common Pests & Diseases**: Major agricultural pests and diseases prevalent in this area during ${season}
-5. **Seasonal Care Tips**: Specific farming practices and care recommendations based on weather conditions
-6. **Water Management**: Irrigation recommendations based on seasonal rainfall and weather
-7. **Market Trends**: Popular crops and market demand in this region
-
-Provide detailed, actionable information for farmers in this area. Format in ${language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English'}.`;
-
+Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English'}.`;
+      
       const { data, error } = await supabase.functions.invoke('crop-chat', {
         body: { 
-          message: locationPrompt,
+          message: prompt,
           language,
           location,
           chatHistory: []
@@ -311,11 +274,11 @@ Provide detailed, actionable information for farmers in this area. Format in ${l
       });
 
       if (error) throw error;
-
-      setLocationAnalysis(data.response);
+      
+      setRegionalAlerts(data.response);
       toast({
         title: "✅ Analysis Complete",
-        description: "Location analyzed successfully!"
+        description: "Regional pest & disease alerts loaded!"
       });
     } catch (error: any) {
       console.error('Error analyzing location:', error);
@@ -535,25 +498,6 @@ Provide detailed, actionable information for farmers in this area. Format in ${l
           </div>
         </CardContent>
       </Card>
-
-      {/* Location Analysis Results */}
-      {locationAnalysis && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-          <CardContent className="pt-4">
-            <div className="flex items-start gap-2 mb-2">
-              <MapPin className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-              <h4 className="font-semibold text-green-800 dark:text-green-200 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                {t.locationAnalysisTitle}
-              </h4>
-            </div>
-            <ScrollArea className="max-h-[400px]">
-              <div className="text-sm text-green-700 dark:text-green-300 whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                {locationAnalysis}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Regional Alerts */}
       {regionalAlerts && (
