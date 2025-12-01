@@ -107,27 +107,53 @@ export const StudyRoomInterface: React.FC<{
   }, []);
 
   const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      try {
-        const permission = await Notification.requestPermission();
-        setNotificationPermission(permission);
+    if (!('Notification' in window)) {
+      toast({
+        title: 'Not Supported',
+        description: 'Notifications are not supported in this browser.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // This triggers the browser's native permission popup
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === 'granted') {
+        setShowNotificationBanner(false);
+        toast({
+          title: 'Notifications Enabled',
+          description: 'You will receive room updates.',
+        });
         
-        if (permission === 'granted') {
-          setShowNotificationBanner(false);
-          toast({
-            title: 'Notifications Enabled',
-            description: 'You will receive room updates.',
-          });
-        } else if (permission === 'denied') {
-          toast({
-            title: 'Notifications Blocked',
-            description: 'Please enable notifications in your browser settings.',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
+        // Send a test notification
+        new Notification('Vithal AI Study Room', {
+          body: 'Notifications are now enabled for this room!',
+          icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
+        });
+      } else if (permission === 'denied') {
+        setShowNotificationBanner(false);
+        toast({
+          title: 'Notifications Blocked',
+          description: 'Please enable notifications in your browser settings.',
+          variant: 'destructive',
+        });
+      } else {
+        // User dismissed the popup without choosing
+        toast({
+          title: 'Permission Required',
+          description: 'Please allow notifications to receive updates.',
+        });
       }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to request notification permission.',
+        variant: 'destructive',
+      });
     }
   };
 
