@@ -38,8 +38,9 @@ Location Context: ${location.name || `${location.lat}, ${location.lng}`}
 Current Season: ${season}
 
 Based on this location and season, also include:
-7. **Regional Pest & Disease Alerts**: Mention common pests and diseases prevalent in this region during this season.
-8. **Seasonal Care Tips**: Provide season-specific advice for crop management in this area.`;
+7. **Weather & Climate**: Provide current weather conditions and climate information for this region (use your knowledge about typical weather patterns for this location and season).
+8. **Regional Pest & Disease Alerts**: Mention common pests and diseases prevalent in this region during this season.
+9. **Seasonal Care Tips**: Provide season-specific advice for crop management in this area considering the weather conditions.`;
     }
 
     // Specialized agricultural analysis prompt

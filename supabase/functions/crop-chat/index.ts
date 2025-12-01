@@ -45,9 +45,10 @@ Location Context: ${location.name || `${location.lat}, ${location.lng}`}
 Current Season: ${season}
 
 When providing advice, consider:
+- Current weather conditions for this location and season (use your knowledge about typical weather patterns)
 - Regional pests and diseases common in this area during this season
 - Local weather patterns and their impact on crop health
-- Season-specific agricultural practices for this region`;
+- Season-specific agricultural practices for this region considering weather conditions`;
     }
 
     const systemPrompt = `You are an expert agricultural AI assistant specializing in crop health, plant diseases, farming practices, and sustainable agriculture. 
