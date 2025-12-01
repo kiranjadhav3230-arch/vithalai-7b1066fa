@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { image, language = 'en' } = await req.json();
+    const { image, language = 'en', location } = await req.json();
 
     if (!image) {
       return new Response(
@@ -25,6 +25,23 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
+    // Build location context
+    let locationContext = '';
+    if (location) {
+      const currentMonth = new Date().getMonth() + 1;
+      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
+                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+      
+      locationContext = `
+
+Location Context: ${location.name || `${location.lat}, ${location.lng}`}
+Current Season: ${season}
+
+Based on this location and season, also include:
+7. **Regional Pest & Disease Alerts**: Mention common pests and diseases prevalent in this region during this season.
+8. **Seasonal Care Tips**: Provide season-specific advice for crop management in this area.`;
+    }
+
     // Specialized agricultural analysis prompt
     const systemPrompt = `You are an expert agricultural AI assistant specializing in plant health diagnosis. Analyze the uploaded plant/leaf image and provide:
 
@@ -33,7 +50,7 @@ serve(async (req) => {
 3. **Health Score**: Rate the overall plant health from 0-100 (0=critically ill, 100=perfectly healthy).
 4. **Treatment Recommendations**: Provide both organic and chemical treatment options with specific product types or home remedies.
 5. **Prevention Tips**: Suggest preventive measures to avoid future problems.
-6. **Crop Type Identification**: If possible, identify the plant/crop type.
+6. **Crop Type Identification**: If possible, identify the plant/crop type.${locationContext}
 
 Format your response in a clear, structured way. Use simple language that farmers can understand. Support multilingual responses (English, Hindi, Marathi) based on the language parameter.
 
