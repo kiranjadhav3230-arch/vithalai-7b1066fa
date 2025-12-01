@@ -93,7 +93,7 @@ export const StudyRoomInterface: React.FC<{
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationBanner, setShowNotificationBanner] = useState(true);
 
-  // Check notification permission on mount and setup real-time message listener
+  // Check notification permission on mount
   useEffect(() => {
     if ('Notification' in window) {
       const currentPermission = Notification.permission;
@@ -104,64 +104,7 @@ export const StudyRoomInterface: React.FC<{
         setShowNotificationBanner(false);
       }
     }
-
-    // Subscribe to real-time messages for browser notifications
-    const channel = supabase
-      .channel('room-messages-' + room.id)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'room_messages',
-          filter: `room_id=eq.${room.id}`
-        },
-        (payload) => {
-          const newMessage = payload.new;
-          
-          // Only send notification if message is not from current user and user has granted permission
-          if (newMessage.user_id !== user.id && Notification.permission === 'granted') {
-            const senderName = newMessage.sender_name || 'Someone';
-            const messageText = newMessage.message.length > 50 
-              ? newMessage.message.substring(0, 50) + '...' 
-              : newMessage.message;
-            
-            const notification = new Notification(`${senderName} in ${room.name}`, {
-              body: messageText,
-              icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-              tag: room.id,
-              requireInteraction: false,
-            });
-
-            // Update unread count in localStorage (for badge counter)
-            const currentCount = parseInt(localStorage.getItem('studyRoomUnreadCount') || '0');
-            localStorage.setItem('studyRoomUnreadCount', (currentCount + 1).toString());
-            
-            // Trigger storage event for cross-component communication
-            window.dispatchEvent(new StorageEvent('storage', {
-              key: 'studyRoomUnreadCount',
-              newValue: (currentCount + 1).toString(),
-            }));
-
-            notification.onclick = () => {
-              window.focus();
-              notification.close();
-            };
-
-            // Auto-close after 5 seconds
-            setTimeout(() => notification.close(), 5000);
-          }
-
-          // Refresh messages to show new message
-          loadMessages();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [room.id, user.id]);
+  }, []);
 
   const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {

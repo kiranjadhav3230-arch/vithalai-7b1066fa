@@ -69,7 +69,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     chat: true,
     code: true
   });
-  const [unreadRoomCount, setUnreadRoomCount] = useState(0);
 
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -127,24 +126,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     loadUserProfile();
     // Always start with a new chat (default type)
     createNewSession('chat');
-    
-    // Listen for unread count updates from localStorage
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'studyRoomUnreadCount') {
-        setUnreadRoomCount(parseInt(e.newValue || '0'));
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Check initial unread count
-    const storedCount = localStorage.getItem('studyRoomUnreadCount');
-    if (storedCount) {
-      setUnreadRoomCount(parseInt(storedCount));
-    }
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
   }, []);
   useEffect(() => {
     if (currentSession) {
@@ -993,16 +974,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
                   setCurrentView('studyRooms');
-                  setUnreadRoomCount(0);
-                  localStorage.setItem('studyRoomUnreadCount', '0');
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
                     <Users className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Rooms</span>
-                    {unreadRoomCount > 0 && (
-                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] rounded-full">
-                        {unreadRoomCount > 99 ? '99+' : unreadRoomCount}
-                      </Badge>
-                    )}
                   </Button>
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
@@ -1042,15 +1016,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
                   setCurrentView('studyRooms');
-                  setUnreadRoomCount(0);
-                  localStorage.setItem('studyRoomUnreadCount', '0');
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}>
                     <Users className="h-3.5 w-3.5" />
-                    {unreadRoomCount > 0 && (
-                      <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 text-[9px] rounded-full">
-                        {unreadRoomCount > 99 ? '99+' : unreadRoomCount}
-                      </Badge>
-                    )}
                   </Button>
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
