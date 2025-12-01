@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, language = 'en', chatHistory = [] } = await req.json();
+    const { message, language = 'en', chatHistory = [], location } = await req.json();
 
     if (!message) {
       return new Response(
@@ -32,6 +32,24 @@ serve(async (req) => {
       mr: 'Respond in Marathi (मराठीत उत्तर द्या)'
     };
 
+    // Build location context
+    let locationContext = '';
+    if (location) {
+      const currentMonth = new Date().getMonth() + 1;
+      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
+                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+      
+      locationContext = `
+
+Location Context: ${location.name || `${location.lat}, ${location.lng}`}
+Current Season: ${season}
+
+When providing advice, consider:
+- Regional pests and diseases common in this area during this season
+- Local weather patterns and their impact on crop health
+- Season-specific agricultural practices for this region`;
+    }
+
     const systemPrompt = `You are an expert agricultural AI assistant specializing in crop health, plant diseases, farming practices, and sustainable agriculture. 
 
 Your expertise includes:
@@ -45,7 +63,7 @@ Your expertise includes:
 - Seasonal planting advice
 - Fertilizer recommendations
 - Weather-related crop protection
-- Post-harvest management
+- Post-harvest management${locationContext}
 
 ${languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en}
 

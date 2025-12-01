@@ -1,14 +1,21 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Wifi, WifiOff, CloudUpload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSelector } from '@/components/ui/language-selector';
+import { 
+  savePendingAnalysis, 
+  getAllPendingAnalyses, 
+  deletePendingAnalysis,
+  type PendingAnalysis 
+} from '@/utils/offlineStorage';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -20,13 +27,179 @@ export const CropHealthAnalyzer: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
+  
+  // Location states
+  const [location, setLocation] = useState<{ lat: number; lng: number; name?: string } | null>(null);
+  const [manualLocation, setManualLocation] = useState('');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [regionalAlerts, setRegionalAlerts] = useState<string>('');
+  
+  // Offline states
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingPhotos, setPendingPhotos] = useState<PendingAnalysis[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  
+  // Chat states
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast({
+        title: "✅ Back Online",
+        description: "Processing queued photos..."
+      });
+      processQueuedPhotos();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast({
+        title: "📵 Offline Mode",
+        description: "Photos will be queued for later analysis"
+      });
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    loadPendingPhotos();
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Load regional alerts when location changes
+  useEffect(() => {
+    if (location) {
+      loadRegionalAlerts();
+    }
+  }, [location, language]);
+
+  const loadPendingPhotos = async () => {
+    try {
+      const pending = await getAllPendingAnalyses();
+      setPendingPhotos(pending);
+    } catch (error) {
+      console.error('Error loading pending photos:', error);
+    }
+  };
+
+  const getDeviceLocation = () => {
+    setIsGettingLocation(true);
+    if (!navigator.geolocation) {
+      toast({
+        variant: "destructive",
+        title: "❌ Not Supported",
+        description: "Geolocation is not supported by your browser"
+      });
+      setIsGettingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const loc = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        };
+        setLocation(loc);
+        toast({
+          title: "✅ Location Detected",
+          description: "Successfully detected your location"
+        });
+        setIsGettingLocation(false);
+      },
+      (error) => {
+        toast({
+          variant: "destructive",
+          title: "❌ Location Error",
+          description: "Could not get your location. Please enter manually."
+        });
+        setIsGettingLocation(false);
+      }
+    );
+  };
+
+  const handleManualLocation = () => {
+    if (manualLocation.trim()) {
+      setLocation({ lat: 0, lng: 0, name: manualLocation });
+      toast({
+        title: "✅ Location Set",
+        description: "Location set manually"
+      });
+    }
+  };
+
+  const loadRegionalAlerts = async () => {
+    try {
+      const currentMonth = new Date().getMonth() + 1;
+      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
+                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+      
+      const prompt = `For ${location?.name || 'this region'} during ${season} season, list 3-4 common crop pests or diseases farmers should watch for. Be brief and specific.`;
+      
+      const { data, error } = await supabase.functions.invoke('crop-chat', {
+        body: { 
+          message: prompt,
+          language,
+          location,
+          chatHistory: []
+        }
+      });
+
+      if (error) throw error;
+      setRegionalAlerts(data.response);
+    } catch (error) {
+      console.error('Error loading regional alerts:', error);
+    }
+  };
+
+  const processQueuedPhotos = async () => {
+    if (isProcessingQueue || pendingPhotos.length === 0) return;
+    
+    setIsProcessingQueue(true);
+    const results = [];
+    
+    for (const pending of pendingPhotos) {
+      try {
+        const { data, error } = await supabase.functions.invoke('crop-analyzer', {
+          body: { 
+            image: pending.image, 
+            language: pending.language,
+            location: pending.location
+          }
+        });
+
+        if (error) throw error;
+        
+        results.push({ id: pending.id, success: true });
+        await deletePendingAnalysis(pending.id);
+      } catch (error) {
+        results.push({ id: pending.id, success: false });
+      }
+    }
+    
+    await loadPendingPhotos();
+    setIsProcessingQueue(false);
+    
+    const successCount = results.filter(r => r.success).length;
+    if (successCount > 0) {
+      toast({
+        title: "✅ Queue Processed",
+        description: `Analyzed ${successCount} queued photo(s)`
+      });
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -56,12 +229,42 @@ export const CropHealthAnalyzer: React.FC = () => {
   const analyzeImage = async () => {
     if (!selectedImage) return;
 
+    // If offline, queue the photo
+    if (!isOnline) {
+      try {
+        const pending: PendingAnalysis = {
+          id: Date.now().toString(),
+          image: selectedImage,
+          language,
+          location: location || undefined,
+          timestamp: Date.now()
+        };
+        
+        await savePendingAnalysis(pending);
+        await loadPendingPhotos();
+        toast({
+          title: "📵 Queued for Later",
+          description: "Photo saved for analysis when you're back online"
+        });
+        clearImage();
+        return;
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "❌ Failed to Save",
+          description: "Could not save photo offline"
+        });
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('crop-analyzer', {
         body: {
           image: selectedImage,
-          language: language
+          language,
+          location
         }
       });
 
@@ -108,7 +311,8 @@ export const CropHealthAnalyzer: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('crop-chat', {
         body: {
           message: userMessage,
-          language: language,
+          language,
+          location,
           chatHistory: newMessages
         }
       });
@@ -121,7 +325,6 @@ export const CropHealthAnalyzer: React.FC = () => {
 
       setChatMessages([...newMessages, { role: 'assistant', content: data.response }]);
       
-      // Scroll to bottom
       setTimeout(() => {
         chatScrollRef.current?.scrollTo({ top: chatScrollRef.current.scrollHeight, behavior: 'smooth' });
       }, 100);
@@ -147,7 +350,7 @@ export const CropHealthAnalyzer: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
             <Leaf className="w-6 h-6 text-white" />
@@ -156,9 +359,96 @@ export const CropHealthAnalyzer: React.FC = () => {
             <h1 className="text-2xl font-bold">🌱 Crop Health Assistant</h1>
             <p className="text-sm text-muted-foreground">AI-powered agricultural support</p>
           </div>
+          {!isOnline && (
+            <Badge variant="destructive" className="flex items-center gap-1">
+              <WifiOff className="h-3 w-3" />
+              Offline
+            </Badge>
+          )}
+          {isOnline && (
+            <Badge variant="secondary" className="flex items-center gap-1">
+              <Wifi className="h-3 w-3" />
+              Online
+            </Badge>
+          )}
         </div>
         <LanguageSelector language={language} onLanguageChange={setLanguage} />
       </div>
+
+      {/* Location Input */}
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <MapPin className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold">Location (Recommended for Regional Alerts)</h3>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button 
+              onClick={getDeviceLocation} 
+              disabled={isGettingLocation}
+              variant="outline"
+              className="flex-1"
+            >
+              {isGettingLocation ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+              Auto-Detect Location
+            </Button>
+            <div className="flex gap-2 flex-1">
+              <Input 
+                placeholder="Or enter city/region"
+                value={manualLocation}
+                onChange={(e) => setManualLocation(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
+              />
+              <Button onClick={handleManualLocation} variant="outline">Set</Button>
+            </div>
+          </div>
+          {location && (
+            <p className="text-sm text-muted-foreground mt-2">
+              📍 {location.name || `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Regional Alerts */}
+      {regionalAlerts && (
+        <Card className="border-green-500/20 bg-green-50/50 dark:bg-green-950/20">
+          <CardContent className="p-4">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <Leaf className="h-5 w-5 text-green-600" />
+              Regional Pest & Disease Alerts
+            </h3>
+            <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{regionalAlerts}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Queued Photos */}
+      {pendingPhotos.length > 0 && (
+        <Card className="border-orange-500/20 bg-orange-50/50 dark:bg-orange-950/20">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <CloudUpload className="h-5 w-5 text-orange-500" />
+                Queued Photos ({pendingPhotos.length}/5)
+              </h3>
+              {isOnline && (
+                <Button 
+                  size="sm" 
+                  onClick={processQueuedPhotos}
+                  disabled={isProcessingQueue}
+                >
+                  {isProcessingQueue ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Process Now
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {isOnline ? 'Photos will be analyzed automatically' : 'Photos will be analyzed when you\'re back online'}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <Tabs defaultValue="analyzer" className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -306,6 +596,8 @@ export const CropHealthAnalyzer: React.FC = () => {
                   <li>Make sure the image is well-lit and focused</li>
                   <li>Include visible symptoms like discoloration, spots, or wilting</li>
                   <li>Wait for AI analysis with disease detection and treatment recommendations</li>
+                  <li>Set your location for regional pest alerts</li>
+                  <li>Offline? Photos will be queued automatically</li>
                 </ul>
               </div>
             </div>
@@ -318,7 +610,7 @@ export const CropHealthAnalyzer: React.FC = () => {
           <Card className="flex-1 flex flex-col border-green-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-green-600" />
+                <MessageSquare className="w-5 w-5 text-green-600" />
                 Agricultural Expert Chat
               </CardTitle>
               <CardDescription>
@@ -347,34 +639,29 @@ export const CropHealthAnalyzer: React.FC = () => {
                       <Button 
                         variant="outline" 
                         className="justify-start text-left h-auto py-3 border-green-500/30"
-                        onClick={() => setChatInput(language === 'hi' ? 'जैविक कीटनाशक कैसे बनाएं?' : language === 'mr' ? 'सेंद्रिय कीटकनाशक कसे बनवावे?' : 'How to make organic pesticide?')}
+                        onClick={() => setChatInput(language === 'hi' ? 'जैविक खेती के लिए क्या करें?' : language === 'mr' ? 'सेंद्रिय शेतीसाठी काय करावे?' : 'How do I start organic farming?')}
                       >
-                        <span className="text-xs">💡 {language === 'hi' ? 'जैविक कीटनाशक कैसे बनाएं?' : language === 'mr' ? 'सेंद्रिय कीटकनाशक कसे बनवावे?' : 'How to make organic pesticide?'}</span>
+                        <span className="text-xs">🌿 {language === 'hi' ? 'जैविक खेती के बारे में...' : language === 'mr' ? 'सेंद्रिय शेतीबद्दल...' : 'About organic farming...'}</span>
                       </Button>
                       <Button 
                         variant="outline" 
                         className="justify-start text-left h-auto py-3 border-green-500/30"
-                        onClick={() => setChatInput(language === 'hi' ? 'मिट्टी की उर्वरता कैसे बढ़ाएं?' : language === 'mr' ? 'मातीची सुपीकता कशी वाढवावी?' : 'How to improve soil fertility?')}
+                        onClick={() => setChatInput(language === 'hi' ? 'कीट नियंत्रण के लिए घरेलू उपाय?' : language === 'mr' ? 'कीड नियंत्रणासाठी घरगुती उपाय?' : 'Home remedies for pest control?')}
                       >
-                        <span className="text-xs">💡 {language === 'hi' ? 'मिट्टी की उर्वरता कैसे बढ़ाएं?' : language === 'mr' ? 'मातीची सुपीकता कशी वाढवावी?' : 'How to improve soil fertility?'}</span>
+                        <span className="text-xs">🐛 {language === 'hi' ? 'कीट नियंत्रण उपाय...' : language === 'mr' ? 'कीड नियंत्रण उपाय...' : 'Pest control remedies...'}</span>
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {chatMessages.map((msg, idx) => (
-                      <div
-                        key={idx}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            msg.role === 'user'
-                              ? 'bg-green-600 text-white'
-                              : 'bg-muted'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif] text-sm leading-relaxed">
+                      <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[80%] rounded-lg p-3 ${
+                          msg.role === 'user' 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-muted'
+                        }`}>
+                          <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
                             {msg.content}
                           </p>
                         </div>
@@ -382,8 +669,8 @@ export const CropHealthAnalyzer: React.FC = () => {
                     ))}
                     {chatLoading && (
                       <div className="flex justify-start">
-                        <div className="max-w-[80%] rounded-lg p-3 bg-muted">
-                          <Loader2 className="w-5 h-5 animate-spin text-green-600" />
+                        <div className="bg-muted rounded-lg p-3">
+                          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                         </div>
                       </div>
                     )}
@@ -395,28 +682,22 @@ export const CropHealthAnalyzer: React.FC = () => {
                 <Textarea
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder={
-                    language === 'hi' 
-                      ? 'अपना कृषि संबंधी सवाल पूछें...'
-                      : language === 'mr'
-                      ? 'तुमचा शेती संबंधी प्रश्न विचारा...'
-                      : 'Ask your agricultural question...'
+                    language === 'hi' ? 'अपना प्रश्न पूछें...' :
+                    language === 'mr' ? 'तुमचा प्रश्न विचारा...' :
+                    'Ask your agricultural question...'
                   }
-                  className="flex-1 min-h-[60px] max-h-[120px] resize-none font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
+                  className="min-h-[60px] resize-none font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
                   disabled={chatLoading}
                 />
-                <Button
-                  onClick={handleChatSend}
-                  disabled={!chatInput.trim() || chatLoading}
-                  className="self-end bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                <Button 
+                  onClick={handleChatSend} 
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                   size="icon"
                 >
-                  {chatLoading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Send className="w-5 h-5" />
-                  )}
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
