@@ -38,6 +38,16 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
 
   useEffect(() => {
     loadRooms();
+    
+    // Check for invite code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const inviteCode = urlParams.get('invite');
+    if (inviteCode) {
+      // Join room using the invite code
+      joinByCode(inviteCode);
+      // Clear the URL parameter
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, [user.id]);
 
   const loadRooms = async () => {
@@ -210,8 +220,10 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     }
   };
 
-  const joinByCode = async () => {
-    if (!joinCode.trim()) {
+  const joinByCode = async (codeParam?: string) => {
+    const code = codeParam || joinCode;
+    
+    if (!code.trim()) {
       toast({
         title: 'Error',
         description: 'Please enter a join code',
@@ -224,7 +236,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
       // Use the security definer function to lookup room by invite code
       const { data: roomId, error: lookupError } = await supabase
         .rpc('get_room_by_invite_code', { 
-          _invite_code: joinCode.toUpperCase().trim() 
+          _invite_code: code.toUpperCase().trim() 
         });
 
       if (lookupError) throw lookupError;
@@ -250,6 +262,10 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
         variant: 'destructive',
       });
     }
+  };
+  
+  const handleJoinByCodeClick = () => {
+    joinByCode();
   };
 
   const copyInviteCode = (code: string) => {
@@ -314,10 +330,10 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                     maxLength={8}
-                    onKeyPress={(e) => e.key === 'Enter' && joinByCode()}
+                    onKeyPress={(e) => e.key === 'Enter' && handleJoinByCodeClick()}
                   />
                 </div>
-                <Button onClick={joinByCode} className="w-full">
+                <Button onClick={handleJoinByCodeClick} className="w-full">
                   Join Room
                 </Button>
               </div>
