@@ -6,16 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Wifi, WifiOff, CloudUpload } from 'lucide-react';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { 
-  savePendingAnalysis, 
-  getAllPendingAnalyses, 
-  deletePendingAnalysis,
-  type PendingAnalysis 
-} from '@/utils/offlineStorage';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -26,14 +20,15 @@ const cropTranslations = {
   en: {
     title: "🌱 Crop Health Assistant",
     subtitle: "AI-powered agricultural support",
-    featureInfo: "Upload crop images for AI disease detection, get treatment recommendations, and receive location-based pest alerts",
-    locationHeader: "Location (Recommended for Regional Alerts)",
+    locationFeatureTitle: "Location-Based Analysis (Recommended for Regional Alerts)",
+    locationFeatureInfo: "Enable location to receive regional pest alerts, seasonal care tips, and crop recommendations specific to your area's climate and conditions.",
     autoDetect: "Auto-Detect Location",
     enterLocation: "Or enter city/region",
     setButton: "Set",
+    analyzeLocation: "Analyze Location",
+    analyzingLocation: "Analyzing Location...",
+    locationAnalysisTitle: "Location Analysis Results",
     regionalAlerts: "Regional Pest & Disease Alerts",
-    queuedPhotos: "Queued Photos",
-    processNow: "Process Now",
     imageAnalyzer: "Image Analyzer",
     chatWithAI: "Chat with AI",
     uploadTitle: "Upload Plant Image",
@@ -48,20 +43,19 @@ const cropTranslations = {
     clearImage: "Clear Image",
     analysisResult: "Analysis Results",
     suggestedQuestions: "Suggested Questions",
-    online: "Online",
-    offline: "Offline",
   },
   hi: {
     title: "🌱 फसल स्वास्थ्य सहायक",
     subtitle: "AI-संचालित कृषि सहायता",
-    featureInfo: "रोग पहचान के लिए फसल चित्र अपलोड करें, उपचार सिफारिशें प्राप्त करें और स्थान-आधारित कीट अलर्ट प्राप्त करें",
-    locationHeader: "स्थान (क्षेत्रीय अलर्ट के लिए अनुशंसित)",
+    locationFeatureTitle: "स्थान-आधारित विश्लेषण (क्षेत्रीय अलर्ट के लिए अनुशंसित)",
+    locationFeatureInfo: "अपने क्षेत्र की जलवायु और परिस्थितियों के अनुसार क्षेत्रीय कीट अलर्ट, मौसमी देखभाल युक्तियाँ और फसल की सिफारिशें प्राप्त करने के लिए स्थान सक्षम करें।",
     autoDetect: "स्वतः स्थान पता लगाएं",
     enterLocation: "या शहर/क्षेत्र दर्ज करें",
     setButton: "सेट करें",
+    analyzeLocation: "स्थान का विश्लेषण करें",
+    analyzingLocation: "स्थान का विश्लेषण हो रहा है...",
+    locationAnalysisTitle: "स्थान विश्लेषण परिणाम",
     regionalAlerts: "क्षेत्रीय कीट और रोग अलर्ट",
-    queuedPhotos: "कतारबद्ध फोटो",
-    processNow: "अभी प्रोसेस करें",
     imageAnalyzer: "चित्र विश्लेषक",
     chatWithAI: "AI से चैट करें",
     uploadTitle: "पौधे की छवि अपलोड करें",
@@ -76,20 +70,19 @@ const cropTranslations = {
     clearImage: "छवि हटाएं",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुझाए गए प्रश्न",
-    online: "ऑनलाइन",
-    offline: "ऑफलाइन",
   },
   mr: {
     title: "🌱 पीक आरोग्य सहाय्यक",
     subtitle: "AI-संचालित कृषी सहाय्य",
-    featureInfo: "रोग ओळख करण्यासाठी पीक चित्रे अपलोड करा, उपचार शिफारसी मिळवा आणि स्थान-आधारित कीटक इशारे मिळवा",
-    locationHeader: "स्थान (प्रादेशिक इशाऱ्यांसाठी शिफारस केलेले)",
+    locationFeatureTitle: "स्थान-आधारित विश्लेषण (प्रादेशिक इशाऱ्यांसाठी शिफारस केलेले)",
+    locationFeatureInfo: "तुमच्या क्षेत्राच्या हवामान आणि परिस्थितीनुसार प्रादेशिक कीटक इशारे, हंगामी काळजी टिपा आणि पीक शिफारसी मिळवण्यासाठी स्थान सक्षम करा।",
     autoDetect: "स्वयं स्थान शोधा",
     enterLocation: "किंवा शहर/प्रदेश प्रविष्ट करा",
     setButton: "सेट करा",
+    analyzeLocation: "स्थान विश्लेषण करा",
+    analyzingLocation: "स्थान विश्लेषण करत आहे...",
+    locationAnalysisTitle: "स्थान विश्लेषण परिणाम",
     regionalAlerts: "प्रादेशिक कीटक आणि रोग इशारे",
-    queuedPhotos: "रांगेत असलेले फोटो",
-    processNow: "आता प्रक्रिया करा",
     imageAnalyzer: "प्रतिमा विश्लेषक",
     chatWithAI: "AI शी चॅट करा",
     uploadTitle: "वनस्पती प्रतिमा अपलोड करा",
@@ -104,8 +97,6 @@ const cropTranslations = {
     clearImage: "प्रतिमा काढा",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुचवलेले प्रश्न",
-    online: "ऑनलाइन",
-    offline: "ऑफलाइन",
   }
 };
 
@@ -142,11 +133,8 @@ export const CropHealthAnalyzer: React.FC = () => {
   const [manualLocation, setManualLocation] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [regionalAlerts, setRegionalAlerts] = useState<string>('');
-  
-  // Offline states
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [pendingPhotos, setPendingPhotos] = useState<PendingAnalysis[]>([]);
-  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+  const [locationAnalysis, setLocationAnalysis] = useState<string>('');
+  const [isAnalyzingLocation, setIsAnalyzingLocation] = useState(false);
   
   // Chat states
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
@@ -158,50 +146,12 @@ export const CropHealthAnalyzer: React.FC = () => {
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Monitor online/offline status
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast({
-        title: "✅ Back Online",
-        description: "Processing queued photos..."
-      });
-      processQueuedPhotos();
-    };
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast({
-        title: "📵 Offline Mode",
-        description: "Photos will be queued for later analysis"
-      });
-    };
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    loadPendingPhotos();
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
   // Load regional alerts when location changes
   useEffect(() => {
     if (location) {
       loadRegionalAlerts();
     }
   }, [location, language]);
-
-  const loadPendingPhotos = async () => {
-    try {
-      const pending = await getAllPendingAnalyses();
-      setPendingPhotos(pending);
-    } catch (error) {
-      console.error('Error loading pending photos:', error);
-    }
-  };
 
   // Rotate suggested questions every 10 seconds
   useEffect(() => {
@@ -316,40 +266,60 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
   };
 
-  const processQueuedPhotos = async () => {
-    if (isProcessingQueue || pendingPhotos.length === 0) return;
-    
-    setIsProcessingQueue(true);
-    const results = [];
-    
-    for (const pending of pendingPhotos) {
-      try {
-        const { data, error } = await supabase.functions.invoke('crop-analyzer', {
-          body: { 
-            image: pending.image, 
-            language: pending.language,
-            location: pending.location
-          }
-        });
-
-        if (error) throw error;
-        
-        results.push({ id: pending.id, success: true });
-        await deletePendingAnalysis(pending.id);
-      } catch (error) {
-        results.push({ id: pending.id, success: false });
-      }
-    }
-    
-    await loadPendingPhotos();
-    setIsProcessingQueue(false);
-    
-    const successCount = results.filter(r => r.success).length;
-    if (successCount > 0) {
+  const analyzeLocationInfo = async () => {
+    if (!location) {
       toast({
-        title: "✅ Queue Processed",
-        description: `Analyzed ${successCount} queued photo(s)`
+        variant: "destructive",
+        title: "❌ Location Required",
+        description: "Please set your location first"
       });
+      return;
+    }
+
+    setIsAnalyzingLocation(true);
+    setLocationAnalysis("");
+
+    try {
+      const currentMonth = new Date().getMonth() + 1;
+      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
+                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+
+      const locationPrompt = `Provide a comprehensive agricultural analysis for ${location.name || `${location.lat}, ${location.lng}`} during ${season} season. Include:
+
+1. **Climate & Soil**: Typical climate conditions and soil types in this region
+2. **Recommended Crops**: Best crops to grow in this season
+3. **Common Pests & Diseases**: Major agricultural pests and diseases prevalent in this area during ${season}
+4. **Seasonal Care Tips**: Specific farming practices and care recommendations
+5. **Water Management**: Irrigation recommendations based on seasonal rainfall
+6. **Market Trends**: Popular crops and market demand in this region
+
+Provide detailed, actionable information for farmers in this area. Format in ${language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English'}.`;
+
+      const { data, error } = await supabase.functions.invoke('crop-chat', {
+        body: { 
+          message: locationPrompt,
+          language,
+          location,
+          chatHistory: []
+        }
+      });
+
+      if (error) throw error;
+
+      setLocationAnalysis(data.response);
+      toast({
+        title: "✅ Analysis Complete",
+        description: "Location analyzed successfully!"
+      });
+    } catch (error: any) {
+      console.error('Error analyzing location:', error);
+      toast({
+        variant: "destructive",
+        title: "❌ Analysis Failed",
+        description: error.message || "Failed to analyze location"
+      });
+    } finally {
+      setIsAnalyzingLocation(false);
     }
   };
 
@@ -380,35 +350,6 @@ export const CropHealthAnalyzer: React.FC = () => {
 
   const analyzeImage = async () => {
     if (!selectedImage) return;
-
-    // If offline, queue the photo
-    if (!isOnline) {
-      try {
-        const pending: PendingAnalysis = {
-          id: Date.now().toString(),
-          image: selectedImage,
-          language,
-          location: location || undefined,
-          timestamp: Date.now()
-        };
-        
-        await savePendingAnalysis(pending);
-        await loadPendingPhotos();
-        toast({
-          title: "📵 Queued for Later",
-          description: "Photo saved for analysis when you're back online"
-        });
-        clearImage();
-        return;
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: "❌ Failed to Save",
-          description: "Could not save photo offline"
-        });
-        return;
-      }
-    }
 
     setLoading(true);
     try {
@@ -514,66 +455,99 @@ export const CropHealthAnalyzer: React.FC = () => {
             <h1 className="text-2xl font-bold">{t.title}</h1>
             <p className="text-sm text-muted-foreground">{t.subtitle}</p>
           </div>
-          {!isOnline && (
-            <Badge variant="destructive" className="flex items-center gap-1">
-              <WifiOff className="h-3 w-3" />
-              {t.offline}
-            </Badge>
-          )}
-          {isOnline && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Wifi className="h-3 w-3" />
-              {t.online}
-            </Badge>
-          )}
         </div>
         <LanguageSelector language={language} onLanguageChange={setLanguage} />
       </div>
 
-      {/* Feature Info */}
+      {/* Location Feature Info */}
       <Card className="border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20">
         <CardContent className="p-4">
-          <p className="text-sm font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-            ℹ️ {t.featureInfo}
-          </p>
+          <div className="flex items-start gap-3">
+            <MapPin className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold mb-1 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                {t.locationFeatureTitle}
+              </h3>
+              <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                {t.locationFeatureInfo}
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Location Input */}
       <Card className="border-primary/20">
         <CardContent className="p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <MapPin className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.locationHeader}</h3>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button 
-              onClick={getDeviceLocation} 
-              disabled={isGettingLocation}
-              variant="outline"
-              className="flex-1 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
-            >
-              {isGettingLocation ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
-              {t.autoDetect}
-            </Button>
-            <div className="flex gap-2 flex-1">
-              <Input 
-                placeholder={t.enterLocation}
-                value={manualLocation}
-                onChange={(e) => setManualLocation(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
-                className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
-              />
-              <Button onClick={handleManualLocation} variant="outline" className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.setButton}</Button>
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                onClick={getDeviceLocation} 
+                disabled={isGettingLocation}
+                variant="outline"
+                className="flex-1 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
+              >
+                {isGettingLocation ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+                {t.autoDetect}
+              </Button>
+              <div className="flex gap-2 flex-1">
+                <Input 
+                  placeholder={t.enterLocation}
+                  value={manualLocation}
+                  onChange={(e) => setManualLocation(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
+                  className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
+                />
+                <Button onClick={handleManualLocation} variant="outline" className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.setButton}</Button>
+              </div>
             </div>
+            
+            {location && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                  📍 {location.name || manualLocation || `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`}
+                </p>
+                <Button
+                  onClick={analyzeLocationInfo}
+                  disabled={isAnalyzingLocation}
+                  className="w-full gap-2"
+                >
+                  {isAnalyzingLocation ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t.analyzingLocation}
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="w-4 h-4" />
+                      {t.analyzeLocation}
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
           </div>
-          {location && (
-            <p className="text-sm text-muted-foreground mt-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-              📍 {location.name || manualLocation || `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`}
-            </p>
-          )}
         </CardContent>
       </Card>
+
+      {/* Location Analysis Results */}
+      {locationAnalysis && (
+        <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
+          <CardContent className="pt-4">
+            <div className="flex items-start gap-2 mb-2">
+              <MapPin className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <h4 className="font-semibold text-green-800 dark:text-green-200 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                {t.locationAnalysisTitle}
+              </h4>
+            </div>
+            <ScrollArea className="max-h-[400px]">
+              <div className="text-sm text-green-700 dark:text-green-300 whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                {locationAnalysis}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Regional Alerts */}
       {regionalAlerts && (
@@ -584,34 +558,6 @@ export const CropHealthAnalyzer: React.FC = () => {
               {t.regionalAlerts}
             </h3>
             <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{regionalAlerts}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Queued Photos */}
-      {pendingPhotos.length > 0 && (
-        <Card className="border-orange-500/20 bg-orange-50/50 dark:bg-orange-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                <CloudUpload className="h-5 w-5 text-orange-500" />
-                {t.queuedPhotos} ({pendingPhotos.length}/5)
-              </h3>
-              {isOnline && (
-                <Button 
-                  size="sm" 
-                  onClick={processQueuedPhotos}
-                  disabled={isProcessingQueue}
-                  className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
-                >
-                  {isProcessingQueue ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {t.processNow}
-                </Button>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-              {isOnline ? 'Photos will be analyzed automatically' : 'Photos will be analyzed when you\'re back online'}
-            </p>
           </CardContent>
         </Card>
       )}
@@ -763,7 +709,6 @@ export const CropHealthAnalyzer: React.FC = () => {
                   <li>Include visible symptoms like discoloration, spots, or wilting</li>
                   <li>Wait for AI analysis with disease detection and treatment recommendations</li>
                   <li>Set your location for regional pest alerts</li>
-                  <li>Offline? Photos will be queued automatically</li>
                 </ul>
               </div>
             </div>
