@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut } from 'lucide-react';
@@ -84,8 +85,23 @@ export const StudyRoomInterface: React.FC<{
   
   // Reply state
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  
+  // Leave confirmation state
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  
+  // Notification permission state
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(permission => {
+        setNotificationPermission(permission);
+      });
+    } else if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+    
     loadMessages();
     loadNotes();
     loadMembers();
@@ -129,7 +145,24 @@ export const StudyRoomInterface: React.FC<{
           filter: `room_id=eq.${room.id}`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          const newMessage = payload.new as Message;
+          setMessages((prev) => [...prev, newMessage]);
+          
+          // Show browser notification if document is hidden and user didn't send the message
+          if (document.hidden && newMessage.user_id !== user.id && notificationPermission === 'granted') {
+            const notificationTitle = newMessage.is_ai_response 
+              ? '🤖 AI Assistant in ' + room.name
+              : (newMessage.sender_name || 'Someone') + ' in ' + room.name;
+            const notificationBody = newMessage.message.length > 100 
+              ? newMessage.message.substring(0, 100) + '...' 
+              : newMessage.message;
+            
+            new Notification(notificationTitle, {
+              body: notificationBody,
+              icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
+              tag: 'room-message-' + newMessage.id,
+            });
+          }
         }
       )
       .subscribe();
@@ -155,7 +188,48 @@ export const StudyRoomInterface: React.FC<{
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
+          schema: 'public',
+          table: 'room_members',
+          filter: `room_id=eq.${room.id}`,
+        },
+        async (payload) => {
+          loadMembers();
+          
+          // Show notification when someone joins
+          if (document.hidden && notificationPermission === 'granted' && payload.new.user_id !== user.id) {
+            // Fetch the user's profile to get display name
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('display_name')
+              .eq('user_id', payload.new.user_id)
+              .single();
+            
+            const memberName = profile?.display_name || 'Someone';
+            new Notification('New Member Joined', {
+              body: `${memberName} joined ${room.name}`,
+              icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
+              tag: 'room-member-joined-' + payload.new.id,
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'room_members',
+          filter: `room_id=eq.${room.id}`,
+        },
+        () => {
+          loadMembers();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
           schema: 'public',
           table: 'room_members',
           filter: `room_id=eq.${room.id}`,
@@ -510,6 +584,7 @@ export const StudyRoomInterface: React.FC<{
         description: 'You have left the room',
       });
 
+      setShowLeaveConfirm(false);
       onBack();
     } catch (error) {
       console.error('Error leaving room:', error);
@@ -519,6 +594,10 @@ export const StudyRoomInterface: React.FC<{
         variant: 'destructive',
       });
     }
+  };
+  
+  const handleLeaveClick = () => {
+    setShowLeaveConfirm(true);
   };
 
   const handleRoleChange = async (memberId: string, newRole: string) => {
@@ -720,10 +799,27 @@ export const StudyRoomInterface: React.FC<{
             </Dialog>
           )}
           
-          <Button variant="destructive" size="sm" onClick={leaveRoom}>
+          <Button variant="destructive" size="sm" onClick={handleLeaveClick}>
             <LogOut className="h-4 w-4 mr-2" />
             Leave Room
           </Button>
+          
+          <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Leave Room?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to leave "{room.name}"? You'll need the invite code to rejoin.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={leaveRoom} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Leave Room
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
