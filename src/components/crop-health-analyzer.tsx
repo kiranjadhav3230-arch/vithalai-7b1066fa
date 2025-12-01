@@ -22,11 +22,120 @@ interface Message {
   content: string;
 }
 
+const cropTranslations = {
+  en: {
+    title: "🌱 Crop Health Assistant",
+    subtitle: "AI-powered agricultural support",
+    featureInfo: "Upload crop images for AI disease detection, get treatment recommendations, and receive location-based pest alerts",
+    locationHeader: "Location (Recommended for Regional Alerts)",
+    autoDetect: "Auto-Detect Location",
+    enterLocation: "Or enter city/region",
+    setButton: "Set",
+    regionalAlerts: "Regional Pest & Disease Alerts",
+    queuedPhotos: "Queued Photos",
+    processNow: "Process Now",
+    imageAnalyzer: "Image Analyzer",
+    chatWithAI: "Chat with AI",
+    uploadTitle: "Upload Plant Image",
+    uploadDesc: "Get AI-powered disease diagnosis and treatment recommendations",
+    uploadText: "Upload Plant Image",
+    dragDrop: "Click to browse or drag and drop your image here",
+    maxSize: "Max 10MB • JPG, PNG, WEBP",
+    chooseImage: "Choose Image",
+    openCamera: "Open Camera",
+    analyzeButton: "Analyze Crop",
+    analyzing: "Analyzing...",
+    clearImage: "Clear Image",
+    analysisResult: "Analysis Results",
+    suggestedQuestions: "Suggested Questions",
+    online: "Online",
+    offline: "Offline",
+  },
+  hi: {
+    title: "🌱 फसल स्वास्थ्य सहायक",
+    subtitle: "AI-संचालित कृषि सहायता",
+    featureInfo: "रोग पहचान के लिए फसल चित्र अपलोड करें, उपचार सिफारिशें प्राप्त करें और स्थान-आधारित कीट अलर्ट प्राप्त करें",
+    locationHeader: "स्थान (क्षेत्रीय अलर्ट के लिए अनुशंसित)",
+    autoDetect: "स्वतः स्थान पता लगाएं",
+    enterLocation: "या शहर/क्षेत्र दर्ज करें",
+    setButton: "सेट करें",
+    regionalAlerts: "क्षेत्रीय कीट और रोग अलर्ट",
+    queuedPhotos: "कतारबद्ध फोटो",
+    processNow: "अभी प्रोसेस करें",
+    imageAnalyzer: "चित्र विश्लेषक",
+    chatWithAI: "AI से चैट करें",
+    uploadTitle: "पौधे की छवि अपलोड करें",
+    uploadDesc: "AI-संचालित रोग निदान और उपचार सिफारिशें प्राप्त करें",
+    uploadText: "पौधे की छवि अपलोड करें",
+    dragDrop: "ब्राउज़ करने के लिए क्लिक करें या यहां अपनी छवि खींचें और छोड़ें",
+    maxSize: "अधिकतम 10MB • JPG, PNG, WEBP",
+    chooseImage: "छवि चुनें",
+    openCamera: "कैमरा खोलें",
+    analyzeButton: "फसल का विश्लेषण करें",
+    analyzing: "विश्लेषण हो रहा है...",
+    clearImage: "छवि हटाएं",
+    analysisResult: "विश्लेषण परिणाम",
+    suggestedQuestions: "सुझाए गए प्रश्न",
+    online: "ऑनलाइन",
+    offline: "ऑफलाइन",
+  },
+  mr: {
+    title: "🌱 पीक आरोग्य सहाय्यक",
+    subtitle: "AI-संचालित कृषी सहाय्य",
+    featureInfo: "रोग ओळख करण्यासाठी पीक चित्रे अपलोड करा, उपचार शिफारसी मिळवा आणि स्थान-आधारित कीटक इशारे मिळवा",
+    locationHeader: "स्थान (प्रादेशिक इशाऱ्यांसाठी शिफारस केलेले)",
+    autoDetect: "स्वयं स्थान शोधा",
+    enterLocation: "किंवा शहर/प्रदेश प्रविष्ट करा",
+    setButton: "सेट करा",
+    regionalAlerts: "प्रादेशिक कीटक आणि रोग इशारे",
+    queuedPhotos: "रांगेत असलेले फोटो",
+    processNow: "आता प्रक्रिया करा",
+    imageAnalyzer: "प्रतिमा विश्लेषक",
+    chatWithAI: "AI शी चॅट करा",
+    uploadTitle: "वनस्पती प्रतिमा अपलोड करा",
+    uploadDesc: "AI-संचालित रोग निदान आणि उपचार शिफारसी मिळवा",
+    uploadText: "वनस्पती प्रतिमा अपलोड करा",
+    dragDrop: "ब्राउझ करण्यासाठी क्लिक करा किंवा येथे आपली प्रतिमा ड्रॅग आणि ड्रॉप करा",
+    maxSize: "कमाल 10MB • JPG, PNG, WEBP",
+    chooseImage: "प्रतिमा निवडा",
+    openCamera: "कॅमेरा उघडा",
+    analyzeButton: "पिकाचे विश्लेषण करा",
+    analyzing: "विश्लेषण करत आहे...",
+    clearImage: "प्रतिमा काढा",
+    analysisResult: "विश्लेषण परिणाम",
+    suggestedQuestions: "सुचवलेले प्रश्न",
+    online: "ऑनलाइन",
+    offline: "ऑफलाइन",
+  }
+};
+
+const suggestedQuestionsPool = {
+  en: [
+    ["What are common tomato diseases?", "How to prevent leaf curl?", "Best organic fertilizers?"],
+    ["When to apply pesticides?", "How to improve soil health?", "Water requirements for wheat?"],
+    ["Signs of nutrient deficiency?", "Pest control for cotton?", "Best planting season?"],
+    ["How to increase crop yield?", "Organic farming tips?", "Disease-resistant varieties?"]
+  ],
+  hi: [
+    ["टमाटर की सामान्य बीमारियां क्या हैं?", "पत्ती मुड़ने से कैसे रोकें?", "सर्वोत्तम जैविक उर्वरक?"],
+    ["कीटनाशक कब लगाएं?", "मिट्टी का स्वास्थ्य कैसे सुधारें?", "गेहूं के लिए पानी की आवश्यकता?"],
+    ["पोषक तत्व की कमी के संकेत?", "कपास के लिए कीट नियंत्रण?", "सर्वोत्तम रोपण का मौसम?"],
+    ["फसल की पैदावार कैसे बढ़ाएं?", "जैविक खेती के सुझाव?", "रोग प्रतिरोधी किस्में?"]
+  ],
+  mr: [
+    ["टोमॅटोचे सामान्य रोग काय आहेत?", "पाने वळण कसे टाळावे?", "सर्वोत्तम सेंद्रिय खते?"],
+    ["कीटकनाशके कधी लावावी?", "मातीचे आरोग्य कसे सुधारावे?", "गव्हासाठी पाण्याची आवश्यकता?"],
+    ["पोषक तत्वांच्या कमतरतेची चिन्हे?", "कापसासाठी कीटक नियंत्रण?", "सर्वोत्तम लागवड हंगाम?"],
+    ["पीक उत्पन्न कसे वाढवावे?", "सेंद्रिय शेतीचे टिपा?", "रोग प्रतिरोधक जाती?"]
+  ]
+};
+
 export const CropHealthAnalyzer: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [language, setLanguage] = useState('en');
+  const [currentQuestionSet, setCurrentQuestionSet] = useState(0);
   
   // Location states
   const [location, setLocation] = useState<{ lat: number; lng: number; name?: string } | null>(null);
@@ -94,6 +203,36 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
   };
 
+  // Rotate suggested questions every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuestionSet((prev) => (prev + 1) % suggestedQuestionsPool[language as keyof typeof suggestedQuestionsPool].length);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [language]);
+
+  const reverseGeocode = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${language}`
+      );
+      const data = await response.json();
+      
+      // Extract city/village name
+      const cityName = data.address?.city || 
+                       data.address?.town || 
+                       data.address?.village || 
+                       data.address?.county ||
+                       data.address?.state ||
+                       'Unknown Location';
+      
+      return cityName;
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      return null;
+    }
+  };
+
   const getDeviceLocation = () => {
     setIsGettingLocation(true);
     if (!navigator.geolocation) {
@@ -107,15 +246,28 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        
+        // Get city name from coordinates
+        const cityName = await reverseGeocode(lat, lng);
+        
         const loc = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
+          lat,
+          lng,
+          name: cityName || undefined
         };
         setLocation(loc);
+        
+        // Set the city name in the manual input field
+        if (cityName) {
+          setManualLocation(cityName);
+        }
+        
         toast({
           title: "✅ Location Detected",
-          description: "Successfully detected your location"
+          description: `Location: ${cityName || 'Coordinates detected'}`
         });
         setIsGettingLocation(false);
       },
@@ -348,6 +500,9 @@ export const CropHealthAnalyzer: React.FC = () => {
     }
   };
 
+  const t = cropTranslations[language as keyof typeof cropTranslations];
+  const currentQuestions = suggestedQuestionsPool[language as keyof typeof suggestedQuestionsPool][currentQuestionSet];
+
   return (
     <div className="h-full flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -356,55 +511,65 @@ export const CropHealthAnalyzer: React.FC = () => {
             <Leaf className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">🌱 Crop Health Assistant</h1>
-            <p className="text-sm text-muted-foreground">AI-powered agricultural support</p>
+            <h1 className="text-2xl font-bold">{t.title}</h1>
+            <p className="text-sm text-muted-foreground">{t.subtitle}</p>
           </div>
           {!isOnline && (
             <Badge variant="destructive" className="flex items-center gap-1">
               <WifiOff className="h-3 w-3" />
-              Offline
+              {t.offline}
             </Badge>
           )}
           {isOnline && (
             <Badge variant="secondary" className="flex items-center gap-1">
               <Wifi className="h-3 w-3" />
-              Online
+              {t.online}
             </Badge>
           )}
         </div>
         <LanguageSelector language={language} onLanguageChange={setLanguage} />
       </div>
 
+      {/* Feature Info */}
+      <Card className="border-blue-500/20 bg-blue-50/50 dark:bg-blue-950/20">
+        <CardContent className="p-4">
+          <p className="text-sm font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+            ℹ️ {t.featureInfo}
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Location Input */}
       <Card className="border-primary/20">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <MapPin className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold">Location (Recommended for Regional Alerts)</h3>
+            <h3 className="font-semibold font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.locationHeader}</h3>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               onClick={getDeviceLocation} 
               disabled={isGettingLocation}
               variant="outline"
-              className="flex-1"
+              className="flex-1 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
             >
               {isGettingLocation ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
-              Auto-Detect Location
+              {t.autoDetect}
             </Button>
             <div className="flex gap-2 flex-1">
               <Input 
-                placeholder="Or enter city/region"
+                placeholder={t.enterLocation}
                 value={manualLocation}
                 onChange={(e) => setManualLocation(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleManualLocation()}
+                className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
               />
-              <Button onClick={handleManualLocation} variant="outline">Set</Button>
+              <Button onClick={handleManualLocation} variant="outline" className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.setButton}</Button>
             </div>
           </div>
           {location && (
-            <p className="text-sm text-muted-foreground mt-2">
-              📍 {location.name || `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`}
+            <p className="text-sm text-muted-foreground mt-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+              📍 {location.name || manualLocation || `${location.lat.toFixed(2)}, ${location.lng.toFixed(2)}`}
             </p>
           )}
         </CardContent>
@@ -414,9 +579,9 @@ export const CropHealthAnalyzer: React.FC = () => {
       {regionalAlerts && (
         <Card className="border-green-500/20 bg-green-50/50 dark:bg-green-950/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-2 flex items-center gap-2">
+            <h3 className="font-semibold mb-2 flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
               <Leaf className="h-5 w-5 text-green-600" />
-              Regional Pest & Disease Alerts
+              {t.regionalAlerts}
             </h3>
             <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{regionalAlerts}</p>
           </CardContent>
@@ -428,22 +593,23 @@ export const CropHealthAnalyzer: React.FC = () => {
         <Card className="border-orange-500/20 bg-orange-50/50 dark:bg-orange-950/20">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold flex items-center gap-2">
+              <h3 className="font-semibold flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
                 <CloudUpload className="h-5 w-5 text-orange-500" />
-                Queued Photos ({pendingPhotos.length}/5)
+                {t.queuedPhotos} ({pendingPhotos.length}/5)
               </h3>
               {isOnline && (
                 <Button 
                   size="sm" 
                   onClick={processQueuedPhotos}
                   disabled={isProcessingQueue}
+                  className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
                 >
                   {isProcessingQueue ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Process Now
+                  {t.processNow}
                 </Button>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
               {isOnline ? 'Photos will be analyzed automatically' : 'Photos will be analyzed when you\'re back online'}
             </p>
           </CardContent>
@@ -452,22 +618,22 @@ export const CropHealthAnalyzer: React.FC = () => {
 
       <Tabs defaultValue="analyzer" className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-2 mb-4">
-          <TabsTrigger value="analyzer" className="flex items-center gap-2">
+          <TabsTrigger value="analyzer" className="flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
             <Camera className="w-4 h-4" />
-            Image Analyzer
+            {t.imageAnalyzer}
           </TabsTrigger>
-          <TabsTrigger value="chat" className="flex items-center gap-2">
+          <TabsTrigger value="chat" className="flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
             <MessageSquare className="w-4 h-4" />
-            Chat with AI
+            {t.chatWithAI}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="analyzer" className="flex-1 flex flex-col gap-4 mt-0">
       <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle className="text-xl">Upload Plant Image</CardTitle>
-          <CardDescription>
-            Get AI-powered disease diagnosis and treatment recommendations
+          <CardTitle className="text-xl font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.uploadTitle}</CardTitle>
+          <CardDescription className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+            {t.uploadDesc}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -478,32 +644,32 @@ export const CropHealthAnalyzer: React.FC = () => {
                 className="border-2 border-dashed border-primary/30 rounded-lg p-12 text-center cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all"
               >
                 <Upload className="w-12 h-12 mx-auto mb-4 text-primary" />
-                <p className="text-lg font-medium mb-2">Upload Plant Image</p>
-                <p className="text-sm text-muted-foreground">
-                  Click to browse or drag and drop your image here
+                <p className="text-lg font-medium mb-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.uploadText}</p>
+                <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                  {t.dragDrop}
                 </p>
-                <Badge variant="secondary" className="mt-3">
-                  Max 10MB • JPG, PNG, WEBP
+                <Badge variant="secondary" className="mt-3 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                  {t.maxSize}
                 </Badge>
               </div>
 
               <div className="flex gap-3">
                 <Button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
                   size="lg"
                 >
                   <Upload className="mr-2 h-5 w-5" />
-                  Choose Image
+                  {t.chooseImage}
                 </Button>
                 <Button
                   onClick={() => cameraInputRef.current?.click()}
                   variant="outline"
-                  className="flex-1 border-green-500/50 hover:bg-green-500/10"
+                  className="flex-1 border-green-500/50 hover:bg-green-500/10 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
                   size="lg"
                 >
                   <Camera className="mr-2 h-5 w-5" />
-                  Take Photo
+                  {t.openCamera}
                 </Button>
               </div>
 
@@ -544,18 +710,18 @@ export const CropHealthAnalyzer: React.FC = () => {
               <Button
                 onClick={analyzeImage}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
                 size="lg"
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Analyzing Plant Health...
+                    {t.analyzing}
                   </>
                 ) : (
                   <>
                     <Leaf className="mr-2 h-5 w-5" />
-                    Analyze Crop Health
+                    {t.analyzeButton}
                   </>
                 )}
               </Button>
@@ -567,9 +733,9 @@ export const CropHealthAnalyzer: React.FC = () => {
       {analysis && (
         <Card className="flex-1 border-green-500/20 bg-gradient-to-br from-green-50/50 to-background dark:from-green-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
               <CheckCircle className="w-5 h-5" />
-              Analysis Results
+              {t.analysisResult}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -609,12 +775,14 @@ export const CropHealthAnalyzer: React.FC = () => {
         <TabsContent value="chat" className="flex-1 flex flex-col gap-4 mt-0">
           <Card className="flex-1 flex flex-col border-green-500/20">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
                 <MessageSquare className="w-5 w-5 text-green-600" />
-                Agricultural Expert Chat
+                {language === 'hi' ? 'कृषि विशेषज्ञ चैट' : language === 'mr' ? 'कृषी तज्ञ चॅट' : 'Agricultural Expert Chat'}
               </CardTitle>
-              <CardDescription>
-                Ask questions about crop diseases, nutrients, farming practices, and more
+              <CardDescription className="font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                {language === 'hi' ? 'फसल रोग, पोषक तत्व, खेती प्रथाओं और अधिक के बारे में प्रश्न पूछें' :
+                 language === 'mr' ? 'पीक रोग, पोषक तत्वे, शेती पद्धती आणि अधिक बद्दल प्रश्न विचारा' :
+                 'Ask questions about crop diseases, nutrients, farming practices, and more'}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col gap-3 overflow-hidden">
@@ -624,32 +792,28 @@ export const CropHealthAnalyzer: React.FC = () => {
                     <div className="p-4 bg-green-100 dark:bg-green-950 rounded-full mb-4">
                       <Leaf className="w-12 h-12 text-green-600 dark:text-green-400" />
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-                    <p className="text-sm text-muted-foreground max-w-md">
-                      Ask me about plant diseases, nutrient deficiencies, pest control, organic farming, soil health, or any agricultural topic!
+                    <h3 className="text-lg font-semibold mb-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                      {language === 'hi' ? 'बातचीत शुरू करें' : language === 'mr' ? 'संवाद सुरू करा' : 'Start a conversation'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-md mb-4 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                      {language === 'hi' ? 'पौधों के रोग, पोषक तत्व की कमी, कीट नियंत्रण, जैविक खेती, मिट्टी स्वास्थ्य, या किसी भी कृषि विषय के बारे में मुझसे पूछें!' :
+                       language === 'mr' ? 'वनस्पती रोग, पोषक तत्वांची कमतरता, कीड नियंत्रण, सेंद्रिय शेती, माती आरोग्य, किंवा कोणत्याही कृषी विषयाबद्दल मला विचारा!' :
+                       'Ask me about plant diseases, nutrient deficiencies, pest control, organic farming, soil health, or any agricultural topic!'}
                     </p>
-                    <div className="mt-6 grid grid-cols-1 gap-2 w-full max-w-md">
-                      <Button 
-                        variant="outline" 
-                        className="justify-start text-left h-auto py-3 border-green-500/30"
-                        onClick={() => setChatInput(language === 'hi' ? 'मेरी फसल की पत्तियाँ पीली हो रही हैं, क्या करूँ?' : language === 'mr' ? 'माझ्या पिकाची पाने पिवळी होत आहेत, काय करावे?' : 'My crop leaves are turning yellow, what should I do?')}
-                      >
-                        <span className="text-xs">💡 {language === 'hi' ? 'मेरी फसल की पत्तियाँ पीली हो रही हैं...' : language === 'mr' ? 'माझ्या पिकाची पाने पिवळी होत आहेत...' : 'My crop leaves are turning yellow...'}</span>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="justify-start text-left h-auto py-3 border-green-500/30"
-                        onClick={() => setChatInput(language === 'hi' ? 'जैविक खेती के लिए क्या करें?' : language === 'mr' ? 'सेंद्रिय शेतीसाठी काय करावे?' : 'How do I start organic farming?')}
-                      >
-                        <span className="text-xs">🌿 {language === 'hi' ? 'जैविक खेती के बारे में...' : language === 'mr' ? 'सेंद्रिय शेतीबद्दल...' : 'About organic farming...'}</span>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="justify-start text-left h-auto py-3 border-green-500/30"
-                        onClick={() => setChatInput(language === 'hi' ? 'कीट नियंत्रण के लिए घरेलू उपाय?' : language === 'mr' ? 'कीड नियंत्रणासाठी घरगुती उपाय?' : 'Home remedies for pest control?')}
-                      >
-                        <span className="text-xs">🐛 {language === 'hi' ? 'कीट नियंत्रण उपाय...' : language === 'mr' ? 'कीड नियंत्रण उपाय...' : 'Pest control remedies...'}</span>
-                      </Button>
+                    <div className="mb-3">
+                      <p className="text-xs font-semibold text-muted-foreground mb-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.suggestedQuestions}</p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 w-full max-w-md">
+                      {currentQuestions.map((question, idx) => (
+                        <Button 
+                          key={idx}
+                          variant="outline" 
+                          className="justify-start text-left h-auto py-3 border-green-500/30 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]"
+                          onClick={() => setChatInput(question)}
+                        >
+                          <span className="text-xs">💡 {question}</span>
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 ) : (
