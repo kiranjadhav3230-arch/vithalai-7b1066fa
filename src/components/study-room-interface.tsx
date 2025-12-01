@@ -92,18 +92,32 @@ export const StudyRoomInterface: React.FC<{
   // Notification permission state
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [showNotificationBanner, setShowNotificationBanner] = useState(true);
+  const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
 
-  // Check notification permission on mount
+  // Register Service Worker for notifications
   useEffect(() => {
-    if ('Notification' in window) {
-      const currentPermission = Notification.permission;
-      setNotificationPermission(currentPermission);
-      
-      // Hide banner if already granted
-      if (currentPermission === 'granted') {
-        setShowNotificationBanner(false);
+    const registerServiceWorker = async () => {
+      if ('serviceWorker' in navigator && 'Notification' in window) {
+        try {
+          const registration = await navigator.serviceWorker.register('/sw.js');
+          console.log('Service Worker registered:', registration);
+          setServiceWorkerReady(true);
+          
+          // Check notification permission
+          const currentPermission = Notification.permission;
+          setNotificationPermission(currentPermission);
+          
+          // Hide banner if already granted
+          if (currentPermission === 'granted') {
+            setShowNotificationBanner(false);
+          }
+        } catch (error) {
+          console.error('Service Worker registration failed:', error);
+        }
       }
-    }
+    };
+
+    registerServiceWorker();
   }, []);
 
   const requestNotificationPermission = async () => {
@@ -112,6 +126,14 @@ export const StudyRoomInterface: React.FC<{
         title: 'Not Supported',
         description: 'Notifications are not supported in this browser.',
         variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!serviceWorkerReady) {
+      toast({
+        title: 'Please Wait',
+        description: 'Setting up notifications...',
       });
       return;
     }
@@ -125,14 +147,18 @@ export const StudyRoomInterface: React.FC<{
         setShowNotificationBanner(false);
         toast({
           title: 'Notifications Enabled',
-          description: 'You will receive room updates.',
+          description: 'You will receive room updates even when the app is in background.',
         });
         
-        // Send a test notification
-        new Notification('Vithal AI Study Room', {
-          body: 'Notifications are now enabled for this room!',
-          icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-        });
+        // Send a test notification through service worker
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SHOW_NOTIFICATION',
+            title: 'Vithal AI Study Room',
+            body: 'Notifications are now enabled! You will receive updates in your notification bar.',
+            tag: 'test-notification',
+          });
+        }
       } else if (permission === 'denied') {
         setShowNotificationBanner(false);
         toast({
@@ -204,7 +230,7 @@ export const StudyRoomInterface: React.FC<{
           const newMessage = payload.new as Message;
           setMessages((prev) => [...prev, newMessage]);
           
-          // Show browser notification if user didn't send the message
+          // Show notification through service worker if user didn't send the message
           if (newMessage.user_id !== user.id && 'Notification' in window && Notification.permission === 'granted') {
             const notificationTitle = newMessage.is_ai_response 
               ? '🤖 AI Assistant in ' + room.name
@@ -214,12 +240,15 @@ export const StudyRoomInterface: React.FC<{
               : newMessage.message;
             
             try {
-              new Notification(notificationTitle, {
-                body: notificationBody,
-                icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-                tag: 'room-message-' + newMessage.id,
-                requireInteraction: false,
-              });
+              // Use service worker to show notification so it persists even when app is in background
+              if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                  type: 'SHOW_NOTIFICATION',
+                  title: notificationTitle,
+                  body: notificationBody,
+                  tag: 'room-message-' + newMessage.id,
+                });
+              }
             } catch (error) {
               console.error('Failed to show notification:', error);
             }
@@ -257,7 +286,7 @@ export const StudyRoomInterface: React.FC<{
         async (payload) => {
           loadMembers();
           
-          // Show notification when someone joins
+          // Show notification when someone joins through service worker
           if ('Notification' in window && Notification.permission === 'granted' && payload.new.user_id !== user.id) {
             // Fetch the user's profile to get display name
             const { data: profile } = await supabase
@@ -268,12 +297,15 @@ export const StudyRoomInterface: React.FC<{
             
             const memberName = profile?.display_name || 'Someone';
             try {
-              new Notification('New Member Joined', {
-                body: `${memberName} joined ${room.name}`,
-                icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
-                tag: 'room-member-joined-' + payload.new.id,
-                requireInteraction: false,
-              });
+              // Use service worker for persistent notifications
+              if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({
+                  type: 'SHOW_NOTIFICATION',
+                  title: 'New Member Joined',
+                  body: `${memberName} joined ${room.name}`,
+                  tag: 'room-member-joined-' + payload.new.id,
+                });
+              }
             } catch (error) {
               console.error('Failed to show notification:', error);
             }
