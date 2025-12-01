@@ -91,36 +91,42 @@ export const StudyRoomInterface: React.FC<{
   
   // Notification permission state
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(true);
 
-  // Check notification permission on mount and show prompt if needed
+  // Check notification permission on mount
   useEffect(() => {
     if ('Notification' in window) {
       const currentPermission = Notification.permission;
       setNotificationPermission(currentPermission);
       
-      // Show custom prompt if permission not granted
-      if (currentPermission === 'default') {
-        // Show prompt after a short delay for better UX
-        const timer = setTimeout(() => {
-          setShowNotificationPrompt(true);
-        }, 1000);
-        return () => clearTimeout(timer);
+      // Hide banner if already granted
+      if (currentPermission === 'granted') {
+        setShowNotificationBanner(false);
       }
     }
   }, []);
 
   const requestNotificationPermission = async () => {
     if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-      setShowNotificationPrompt(false);
-      
-      if (permission === 'granted') {
-        toast({
-          title: 'Notifications Enabled',
-          description: 'You will receive room updates.',
-        });
+      try {
+        const permission = await Notification.requestPermission();
+        setNotificationPermission(permission);
+        
+        if (permission === 'granted') {
+          setShowNotificationBanner(false);
+          toast({
+            title: 'Notifications Enabled',
+            description: 'You will receive room updates.',
+          });
+        } else if (permission === 'denied') {
+          toast({
+            title: 'Notifications Blocked',
+            description: 'Please enable notifications in your browser settings.',
+            variant: 'destructive',
+          });
+        }
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
       }
     }
   };
@@ -845,37 +851,6 @@ export const StudyRoomInterface: React.FC<{
             </AlertDialogContent>
           </AlertDialog>
           
-          {/* Notification Permission Prompt */}
-          <AlertDialog open={showNotificationPrompt} onOpenChange={setShowNotificationPrompt}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <Bell className="h-6 w-6 text-primary" />
-                  <AlertDialogTitle>Stay Updated with Notifications</AlertDialogTitle>
-                </div>
-                <AlertDialogDescription className="text-base space-y-3">
-                  <p>Enable notifications to receive real-time updates when:</p>
-                  <ul className="list-disc list-inside space-y-2 ml-2">
-                    <li>New members join the room</li>
-                    <li>Members send messages</li>
-                    <li>AI responds to questions</li>
-                  </ul>
-                  <p className="text-muted-foreground text-sm mt-3">
-                    You can change this anytime in your browser settings.
-                  </p>
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel onClick={() => setShowNotificationPrompt(false)}>
-                  Not Now
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={requestNotificationPermission}>
-                  Enable Notifications
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Users className="h-4 w-4" />
             {onlineUsers.size} online / {members.length} total
@@ -889,6 +864,38 @@ export const StudyRoomInterface: React.FC<{
           <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
           <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
         </TabsList>
+
+        {/* Notification Permission Banner */}
+        {showNotificationBanner && notificationPermission !== 'granted' && (
+          <div className="mx-4 mt-4 bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 flex-1">
+                <Bell className="h-5 w-5 text-primary mt-0.5" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-sm mb-1">Enable Notifications</h4>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Get real-time updates when members send messages, AI responds, or new members join the room.
+                  </p>
+                  <Button 
+                    size="sm" 
+                    onClick={requestNotificationPermission}
+                    className="h-8"
+                  >
+                    Enable Notifications
+                  </Button>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setShowNotificationBanner(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4">
           <ScrollArea className="flex-1 pr-4">
