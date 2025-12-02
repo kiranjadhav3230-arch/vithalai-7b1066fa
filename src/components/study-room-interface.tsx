@@ -10,9 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface Message {
   id: string;
@@ -89,97 +90,52 @@ export const StudyRoomInterface: React.FC<{
   // Leave confirmation state
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   
-  // Notification permission state
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
+  // Push notifications hook
+  const { 
+    isSupported: pushSupported, 
+    isSubscribed: pushSubscribed, 
+    permission: pushPermission,
+    subscribe: subscribeToPush,
+    sendLocalNotification 
+  } = usePushNotifications(user?.id);
+  
   const [showNotificationBanner, setShowNotificationBanner] = useState(true);
-  const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
 
-  // Register Service Worker for notifications
+  // Hide notification banner if already subscribed
   useEffect(() => {
-    const registerServiceWorker = async () => {
-      if ('serviceWorker' in navigator && 'Notification' in window) {
-        try {
-          const registration = await navigator.serviceWorker.register('/sw.js');
-          console.log('Service Worker registered:', registration);
-          setServiceWorkerReady(true);
-          
-          // Check notification permission
-          const currentPermission = Notification.permission;
-          setNotificationPermission(currentPermission);
-          
-          // Hide banner if already granted
-          if (currentPermission === 'granted') {
-            setShowNotificationBanner(false);
-          }
-        } catch (error) {
-          console.error('Service Worker registration failed:', error);
-        }
-      }
-    };
+    if (pushSubscribed || pushPermission === 'granted') {
+      setShowNotificationBanner(false);
+    }
+  }, [pushSubscribed, pushPermission]);
 
-    registerServiceWorker();
+  // Register service worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => 
+        console.error('Service Worker registration failed:', err)
+      );
+    }
   }, []);
 
   const requestNotificationPermission = async () => {
-    if (!('Notification' in window)) {
+    if (!pushSupported) {
       toast({
         title: 'Not Supported',
-        description: 'Notifications are not supported in this browser.',
+        description: 'Push notifications are not supported in this browser.',
         variant: 'destructive',
       });
       return;
     }
 
-    if (!serviceWorkerReady) {
-      toast({
-        title: 'Please Wait',
-        description: 'Setting up notifications...',
-      });
-      return;
-    }
-
-    try {
-      // This triggers the browser's native permission popup
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-      
-      if (permission === 'granted') {
-        setShowNotificationBanner(false);
-        toast({
-          title: 'Notifications Enabled',
-          description: 'You will receive room updates even when the app is in background.',
-        });
-        
-        // Send a test notification through service worker
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SHOW_NOTIFICATION',
-            title: 'Vithal AI Study Room',
-            body: 'Notifications are now enabled! You will receive updates in your notification bar.',
-            tag: 'test-notification',
-          });
-        }
-      } else if (permission === 'denied') {
-        setShowNotificationBanner(false);
-        toast({
-          title: 'Notifications Blocked',
-          description: 'Please enable notifications in your browser settings.',
-          variant: 'destructive',
-        });
-      } else {
-        // User dismissed the popup without choosing
-        toast({
-          title: 'Permission Required',
-          description: 'Please allow notifications to receive updates.',
-        });
-      }
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to request notification permission.',
-        variant: 'destructive',
-      });
+    const success = await subscribeToPush();
+    if (success) {
+      setShowNotificationBanner(false);
+      // Send test notification
+      sendLocalNotification(
+        'Vithal AI Study Room',
+        'Notifications are now enabled! You will receive updates even when the browser is closed.',
+        'test-notification'
+      );
     }
   };
 
@@ -230,8 +186,8 @@ export const StudyRoomInterface: React.FC<{
           const newMessage = payload.new as Message;
           setMessages((prev) => [...prev, newMessage]);
           
-          // Show notification through service worker if user didn't send the message
-          if (newMessage.user_id !== user.id && 'Notification' in window && Notification.permission === 'granted') {
+          // Show local notification if user didn't send the message
+          if (newMessage.user_id !== user.id && pushPermission === 'granted') {
             const notificationTitle = newMessage.is_ai_response 
               ? '🤖 AI Assistant in ' + room.name
               : (newMessage.sender_name || 'Someone') + ' in ' + room.name;
@@ -239,19 +195,7 @@ export const StudyRoomInterface: React.FC<{
               ? newMessage.message.substring(0, 100) + '...' 
               : newMessage.message;
             
-            try {
-              // Use service worker to show notification so it persists even when app is in background
-              if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                  type: 'SHOW_NOTIFICATION',
-                  title: notificationTitle,
-                  body: notificationBody,
-                  tag: 'room-message-' + newMessage.id,
-                });
-              }
-            } catch (error) {
-              console.error('Failed to show notification:', error);
-            }
+            sendLocalNotification(notificationTitle, notificationBody, 'room-message-' + newMessage.id);
           }
         }
       )
@@ -286,8 +230,8 @@ export const StudyRoomInterface: React.FC<{
         async (payload) => {
           loadMembers();
           
-          // Show notification when someone joins through service worker
-          if ('Notification' in window && Notification.permission === 'granted' && payload.new.user_id !== user.id) {
+          // Show notification when someone joins
+          if (pushPermission === 'granted' && payload.new.user_id !== user.id) {
             // Fetch the user's profile to get display name
             const { data: profile } = await supabase
               .from('profiles')
@@ -296,19 +240,7 @@ export const StudyRoomInterface: React.FC<{
               .single();
             
             const memberName = profile?.display_name || 'Someone';
-            try {
-              // Use service worker for persistent notifications
-              if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                  type: 'SHOW_NOTIFICATION',
-                  title: 'New Member Joined',
-                  body: `${memberName} joined ${room.name}`,
-                  tag: 'room-member-joined-' + payload.new.id,
-                });
-              }
-            } catch (error) {
-              console.error('Failed to show notification:', error);
-            }
+            sendLocalNotification('New Member Joined', `${memberName} joined ${room.name}`, 'room-member-joined-' + payload.new.id);
           }
         }
       )
@@ -531,18 +463,30 @@ export const StudyRoomInterface: React.FC<{
         .eq('user_id', user.id)
         .single();
 
+      const senderName = profile?.display_name || 'User';
+
       // Save user message
       const { error } = await supabase.from('room_messages').insert({
         room_id: room.id,
         user_id: user.id,
         message: messageText || (imageData ? 'Sent an image' : ''),
         image_data: imageData,
-        sender_name: profile?.display_name || 'User',
+        sender_name: senderName,
         is_ai_response: false,
         reply_to: replyToMessage?.id || null,
       });
 
       if (error) throw error;
+
+      // Send push notification to other room members (for when they're offline)
+      supabase.functions.invoke('send-push-notification', {
+        body: {
+          roomId: room.id,
+          message: messageText || 'Sent an image',
+          senderName: senderName,
+          excludeUserId: user.id,
+        },
+      }).catch(err => console.log('Push notification skipped:', err));
 
       // Get AI response if there's text and AI mode is enabled
       if ((messageText.trim() || imageData) && aiMode) {
@@ -934,21 +878,22 @@ export const StudyRoomInterface: React.FC<{
         </TabsList>
 
         {/* Notification Permission Banner */}
-        {showNotificationBanner && notificationPermission !== 'granted' && (
+        {showNotificationBanner && pushPermission !== 'granted' && !pushSubscribed && (
           <div className="mx-4 mt-4 bg-primary/10 border border-primary/20 rounded-lg p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 flex-1">
                 <Bell className="h-5 w-5 text-primary mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="font-semibold text-sm mb-1">Enable Notifications</h4>
+                  <h4 className="font-semibold text-sm mb-1">Enable Push Notifications</h4>
                   <p className="text-xs text-muted-foreground mb-3">
-                    Get real-time updates when members send messages, AI responds, or new members join the room.
+                    Get real-time updates even when the browser is closed! Messages and member joins will appear in your notification bar.
                   </p>
                   <Button 
                     size="sm" 
                     onClick={requestNotificationPermission}
                     className="h-8"
                   >
+                    <Bell className="h-4 w-4 mr-2" />
                     Enable Notifications
                   </Button>
                 </div>
