@@ -1,4 +1,6 @@
 // Service Worker for Push Notifications
+const CACHE_NAME = 'vithal-ai-v1';
+
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing...');
   self.skipWaiting();
@@ -9,7 +11,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
-// Handle push notifications
+// Handle push notifications from server
 self.addEventListener('push', (event) => {
   console.log('Push notification received:', event);
   
@@ -19,8 +21,13 @@ self.addEventListener('push', (event) => {
     icon: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
     badge: '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png',
     tag: 'room-notification',
-    requireInteraction: false,
+    requireInteraction: true,
     silent: false,
+    vibrate: [200, 100, 200],
+    actions: [
+      { action: 'open', title: 'Open Room' },
+      { action: 'dismiss', title: 'Dismiss' }
+    ],
   };
 
   if (event.data) {
@@ -35,6 +42,12 @@ self.addEventListener('push', (event) => {
       };
     } catch (e) {
       console.error('Error parsing push data:', e);
+      // Try as text
+      try {
+        notificationData.body = event.data.text();
+      } catch (e2) {
+        console.error('Error reading push data as text:', e2);
+      }
     }
   }
 
@@ -48,6 +61,11 @@ self.addEventListener('notificationclick', (event) => {
   console.log('Notification clicked:', event);
   event.notification.close();
 
+  if (event.action === 'dismiss') {
+    return;
+  }
+
+  // Open or focus the app
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       // Check if there's already a window open
@@ -64,7 +82,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Handle messages from the main app
+// Handle messages from the main app (for local notifications when app is open)
 self.addEventListener('message', (event) => {
   console.log('Service Worker received message:', event.data);
   
@@ -81,4 +99,28 @@ self.addEventListener('message', (event) => {
       vibrate: [200, 100, 200],
     });
   }
+  
+  // Handle push subscription request
+  if (event.data && event.data.type === 'GET_PUSH_SUBSCRIPTION') {
+    event.waitUntil(
+      self.registration.pushManager.getSubscription().then((subscription) => {
+        event.ports[0].postMessage({ subscription });
+      })
+    );
+  }
+});
+
+// Handle push subscription change
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('Push subscription changed:', event);
+  // The subscription was changed externally, notify the app
+  event.waitUntil(
+    clients.matchAll().then((clients) => {
+      clients.forEach((client) => {
+        client.postMessage({
+          type: 'PUSH_SUBSCRIPTION_CHANGED',
+        });
+      });
+    })
+  );
 });
