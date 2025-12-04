@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, Sparkles, MoreVertical, Download, Volume2, Square, Users, Leaf } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -177,12 +177,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       console.error('Error loading messages:', error);
     }
   };
-  const createNewSession = async (sessionType: 'chat' | 'code' | 'imageGen' = 'chat') => {
+  const createNewSession = async (sessionType: 'chat' | 'code' = 'chat') => {
     try {
       const titles = {
         chat: 'New Chat',
-        code: '💻 New Code Session',
-        imageGen: '🎨 New Image Session'
+        code: '💻 New Code Session'
       };
       const {
         data,
@@ -197,7 +196,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setChatSessions(prev => [newSession, ...prev]);
       setCurrentSession(newSession);
       setMessages([]);
-      setCurrentView(sessionType === 'chat' ? 'chat' : sessionType === 'code' ? 'code' : 'imageGen');
+      setCurrentView(sessionType === 'chat' ? 'chat' : 'code');
     } catch (error) {
       console.error('Error creating new session:', error);
       toast({
@@ -248,7 +247,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
-  const toggleTab = (type: 'chat' | 'code' | 'imageGen') => {
+  const toggleTab = (type: 'chat' | 'code') => {
     setCollapsedTabs(prev => ({
       ...prev,
       [type]: !prev[type]
@@ -793,10 +792,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <Code className="h-4 w-4 mr-2 text-orange-400" />
                 New Code Session
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => createNewSession('imageGen')} className="cursor-pointer hover:bg-orange-500/10">
-                <ImageIcon className="h-4 w-4 mr-2 text-orange-400" />
-                New Image Session
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -1294,11 +1289,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-sm py-2.5">
                       <Camera className="h-4 w-4 mr-3 text-primary" />
                       <span>Take Photo</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setCurrentView('imageGen')} className="cursor-pointer text-sm py-2.5">
-                      <Sparkles className="h-4 w-4 mr-3 text-purple-500" />
-                      <span>Generate Image</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
