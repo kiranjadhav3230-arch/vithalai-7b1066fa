@@ -42,9 +42,32 @@ serve(async (req) => {
                    currentMonth >= 3 && currentMonth <= 5 ? 'summer/hot' : 
                    currentMonth >= 10 && currentMonth <= 11 ? 'post-monsoon/autumn' : 'winter/cold';
     
-    let locationContext = '';
-    if (location) {
-      locationContext = `
+    // Check if this is a comprehensive report request
+    const isComprehensiveReport = message.includes('COMPREHENSIVE AGRICULTURAL ANALYSIS REPORT') || 
+                                   message.includes('LIVE WEATHER CONDITIONS') ||
+                                   message.includes('WEEKLY ACTION PLAN');
+
+    let systemPrompt = '';
+    
+    if (isComprehensiveReport) {
+      // For comprehensive reports, use a minimal system prompt and let the user message dictate the format
+      systemPrompt = `You are VITHAL - an expert agricultural advisor. Follow the EXACT format and structure provided in the user's request. 
+      
+CRITICAL INSTRUCTIONS:
+1. Generate ALL 9 sections mentioned in the request
+2. Use the EXACT section headers and formatting provided
+3. Be SPECIFIC with product names, quantities, dosages, and timings
+4. Include BOTH organic and chemical options for every treatment
+5. Make recommendations ACTIONABLE and PRACTICAL for farmers
+6. ${languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en}
+
+DO NOT give a generic introduction. START DIRECTLY with Section 1 (Weather Conditions).
+DO NOT skip any section. ALL 9 sections are MANDATORY.`;
+    } else {
+      // For regular chat, use the conversational prompt
+      let locationContext = '';
+      if (location) {
+        locationContext = `
 
 🌍 **CRITICAL LOCATION & DATE CONTEXT**:
 - Location: ${location.name || `${location.lat}, ${location.lng}`}
@@ -67,14 +90,14 @@ All your advice MUST consider the current weather conditions:
 - Irrigation needs based on current conditions
 - Weather-specific treatment recommendations
 - Protection measures for current weather`;
-    } else {
-      locationContext = `
+      } else {
+        locationContext = `
 
 📅 **DATE CONTEXT**: Current date is ${currentDateStr}, season is ${season}.
 Provide advice appropriate for this time of year in Indian agricultural context.`;
-    }
+      }
 
-    const systemPrompt = `You are "VITHAL" - a highly knowledgeable and friendly AI agricultural expert companion. Your name is Vithal and you specialize in crop health, plant diseases, farming practices, and sustainable agriculture.
+      systemPrompt = `You are "VITHAL" - a highly knowledgeable and friendly AI agricultural expert companion. Your name is Vithal and you specialize in crop health, plant diseases, farming practices, and sustainable agriculture.
 
 🌟 YOUR IDENTITY:
 - Your name is VITHAL - always introduce yourself as Vithal
@@ -98,20 +121,33 @@ Your expertise includes:
 ${languageInstructions[language as keyof typeof languageInstructions] || languageInstructions.en}
 
 As Vithal, provide practical, actionable advice that farmers can implement. Use simple language and explain technical terms. When discussing treatments, provide both organic and chemical options where applicable. Always be friendly and encouraging as their trusted agricultural friend Vithal. 💚`;
+    }
 
-    // Build conversation history for context
+    // Build conversation
     const messages = [
-      { role: 'user', parts: [{ text: systemPrompt }] }
+      { role: 'user', parts: [{ text: systemPrompt }] },
+      { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] }
     ];
 
-    // Add chat history (last 10 messages for context)
-    const recentHistory = chatHistory.slice(-10);
-    for (const msg of recentHistory) {
-      messages.push({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      });
+    // Add chat history (last 10 messages for context) - only for regular chat, not reports
+    if (!isComprehensiveReport) {
+      const recentHistory = chatHistory.slice(-10);
+      for (const msg of recentHistory) {
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.content }]
+        });
+      }
     }
+
+    // Add the actual user message
+    messages.push({
+      role: 'user',
+      parts: [{ text: message }]
+    });
+
+    console.log('Sending request to Gemini API...');
+    console.log('Is comprehensive report:', isComprehensiveReport);
 
     // Call Gemini API
     const response = await fetch(
@@ -124,8 +160,8 @@ As Vithal, provide practical, actionable advice that farmers can implement. Use 
         body: JSON.stringify({
           contents: messages,
           generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 8000,
+            temperature: isComprehensiveReport ? 0.4 : 0.7,
+            maxOutputTokens: isComprehensiveReport ? 16000 : 8000,
           }
         })
       }
@@ -149,6 +185,7 @@ As Vithal, provide practical, actionable advice that farmers can implement. Use 
     }
 
     const aiResponse = data.candidates[0].content.parts[0].text;
+    console.log('Response received, length:', aiResponse.length);
 
     return new Response(
       JSON.stringify({
