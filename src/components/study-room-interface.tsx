@@ -10,10 +10,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 interface Message {
   id: string;
@@ -100,6 +101,9 @@ export const StudyRoomInterface: React.FC<{
   } = usePushNotifications(user?.id);
   
   const [showNotificationBanner, setShowNotificationBanner] = useState(true);
+  
+  // Text-to-speech hook
+  const { speak, stop, isPlaying } = useTextToSpeech('en');
 
   // Hide notification banner if already subscribed
   useEffect(() => {
@@ -997,6 +1001,14 @@ export const StudyRoomInterface: React.FC<{
                       onClick={() => setReplyingTo(msg)}
                     >
                       <Reply className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 px-2"
+                      onClick={() => isPlaying(msg.id) ? stop() : speak(msg.message, msg.id)}
+                    >
+                      {isPlaying(msg.id) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
                     </Button>
                     {!msg.is_ai_response && (
                       <>
