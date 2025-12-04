@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+import { LanguageSelector } from '@/components/ui/language-selector';
 
 interface Message {
   id: string;
@@ -91,6 +92,9 @@ export const StudyRoomInterface: React.FC<{
   // Leave confirmation state
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   
+  // Language state for TTS
+  const [language, setLanguage] = useState('en');
+  
   // Push notifications hook
   const { 
     isSupported: pushSupported, 
@@ -102,8 +106,8 @@ export const StudyRoomInterface: React.FC<{
   
   const [showNotificationBanner, setShowNotificationBanner] = useState(true);
   
-  // Text-to-speech hook
-  const { speak, stop, isPlaying } = useTextToSpeech('en');
+  // Text-to-speech hook with language support
+  const { speak, stop, isPlaying } = useTextToSpeech(language);
 
   // Hide notification banner if already subscribed
   useEffect(() => {
@@ -729,7 +733,8 @@ export const StudyRoomInterface: React.FC<{
             )}
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          <LanguageSelector language={language} onLanguageChange={setLanguage} />
           <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
