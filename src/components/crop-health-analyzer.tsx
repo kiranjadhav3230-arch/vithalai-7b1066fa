@@ -28,7 +28,7 @@ const cropTranslations = {
     setButton: "Set",
     analyzeLocation: "Analyze Location",
     analyzingLocation: "Analyzing Location...",
-    regionalAlerts: "Regional Pest & Disease Alerts",
+    regionalAlerts: "Comprehensive Agricultural Report",
     imageAnalyzer: "Image Analyzer",
     chatWithAI: "Chat with AI",
     uploadTitle: "Upload Plant Image",
@@ -54,7 +54,7 @@ const cropTranslations = {
     setButton: "सेट करें",
     analyzeLocation: "स्थान का विश्लेषण करें",
     analyzingLocation: "स्थान का विश्लेषण हो रहा है...",
-    regionalAlerts: "क्षेत्रीय कीट और रोग अलर्ट",
+    regionalAlerts: "व्यापक कृषि रिपोर्ट",
     imageAnalyzer: "चित्र विश्लेषक",
     chatWithAI: "AI से चैट करें",
     uploadTitle: "पौधे की छवि अपलोड करें",
@@ -80,7 +80,7 @@ const cropTranslations = {
     setButton: "सेट करा",
     analyzeLocation: "स्थान विश्लेषण करा",
     analyzingLocation: "स्थान विश्लेषण करत आहे...",
-    regionalAlerts: "प्रादेशिक कीटक आणि रोग इशारे",
+    regionalAlerts: "व्यापक कृषी अहवाल",
     imageAnalyzer: "प्रतिमा विश्लेषक",
     chatWithAI: "AI शी चॅट करा",
     uploadTitle: "वनस्पती प्रतिमा अपलोड करा",
@@ -251,20 +251,103 @@ export const CropHealthAnalyzer: React.FC = () => {
     setIsAnalyzingLocation(true);
 
     try {
-      const currentMonth = new Date().getMonth() + 1;
-      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
-                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentDay = currentDate.getDate();
+      const currentYear = currentDate.getFullYear();
+      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon/rainy' : 
+                     currentMonth >= 3 && currentMonth <= 5 ? 'summer/hot' : 
+                     currentMonth >= 10 && currentMonth <= 11 ? 'post-monsoon/autumn' : 'winter/cold';
       
-      const prompt = `For ${location?.name || 'this region'} during ${season} season, provide detailed information about:
+      const langText = language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English';
+      
+      const prompt = `You are VITHAL - an expert agricultural advisor. Generate a COMPREHENSIVE AGRICULTURAL ANALYSIS REPORT for ${location?.name || 'this region'}.
 
-**Regional Pest & Disease Alerts**:
-- List major crop pests and diseases prevalent in this area during this season
-- Include current weather conditions and how they affect pest/disease spread
-- Provide specific symptoms to watch for
-- Recommend preventive measures and treatment options
-- Include organic and chemical control methods
+📅 **CURRENT DATE**: ${currentDay}/${currentMonth}/${currentYear}
+🌍 **LOCATION**: ${location?.name || 'India'}
+🍂 **CURRENT SEASON**: ${season}
 
-Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language === 'mr' ? 'Marathi' : 'English'}.`;
+Generate a detailed report with the following sections. Use proper formatting with headers and bullet points:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌤️ **1. LIVE WEATHER CONDITIONS** (Infer based on location and date)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Current Temperature Range
+- Humidity Levels
+- Recent/Expected Rainfall
+- Weather Forecast for next 7 days
+- Weather Alerts (if any)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌱 **2. BEST CROPS FOR THIS SEASON**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Top 5 recommended crops for sowing NOW
+- Expected yield and growth period
+- Water requirements
+- Profit potential
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌾 **3. SOIL HEALTH & PREPARATION**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Soil type common in this region
+- Recommended soil treatments
+- pH levels to maintain
+- Pre-sowing preparation steps
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧪 **4. FERTILIZER RECOMMENDATIONS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**A) ORGANIC FERTILIZERS** (जैविक खाद):
+- Vermicompost, Cow dung manure, Neem cake
+- Application rates and timing
+- Benefits and preparation methods
+
+**B) INORGANIC/CHEMICAL FERTILIZERS** (रासायनिक खाद):
+- NPK ratios recommended
+- Urea, DAP, MOP quantities
+- Application schedule
+- Safety precautions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 **5. PEST & DISEASE ALERTS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Major pests active in ${season} season
+- Common diseases in this weather
+- Early warning signs
+- Affected crops
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🦠 **6. MICROBES & PATHOGENS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Fungi causing diseases (names and symptoms)
+- Bacteria threats
+- Viral infections to watch
+- Beneficial microorganisms to introduce
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠️ **7. PROBLEMS & SOLUTIONS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For each problem provide:
+- Problem description
+- Organic solution (home remedies)
+- Chemical solution (pesticides/fungicides)
+- Prevention methods
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💊 **8. TREATMENT RECOMMENDATIONS**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- Pesticide spray schedule
+- Fungicide recommendations
+- Bio-pesticides (Trichoderma, Pseudomonas)
+- When to apply (morning/evening, weather conditions)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 **9. WEEKLY ACTION PLAN**
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Day-by-day activities for optimal crop management
+
+Provide ALL information in ${langText}. Be specific with product names, quantities, and timings. Make it practical and actionable for farmers.`;
       
       const { data, error } = await supabase.functions.invoke('crop-chat', {
         body: { 
@@ -280,7 +363,7 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
       setRegionalAlerts(data.response);
       toast({
         title: "✅ Analysis Complete",
-        description: "Regional pest & disease alerts loaded!"
+        description: "Comprehensive agricultural report generated!"
       });
     } catch (error: any) {
       console.error('Error analyzing location:', error);
@@ -501,26 +584,73 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
         </CardContent>
       </Card>
 
-      {/* Regional Alerts */}
+      {/* Regional Alerts - Comprehensive Agricultural Report */}
       {regionalAlerts && (
-        <Card className="border-green-500/20 bg-green-50/50 dark:bg-green-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                <Leaf className="h-5 w-5 text-green-600" />
-                {t.regionalAlerts}
-              </h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => isPlaying('regional-alerts') ? stop() : speak(regionalAlerts, 'regional-alerts')}
-              >
-                {isPlaying('regional-alerts') ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              </Button>
+        <Card className="border-green-600/30 bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-lime-950/20 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-t-lg pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-3 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif] text-xl">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Leaf className="h-6 w-6" />
+                </div>
+                {language === 'hi' ? '🌾 कृषि विश्लेषण रिपोर्ट' : 
+                 language === 'mr' ? '🌾 कृषी विश्लेषण अहवाल' : 
+                 '🌾 Agricultural Analysis Report'}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="bg-white/20 text-white border-0">
+                  📍 {location?.name || manualLocation}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-white hover:bg-white/20"
+                  onClick={() => isPlaying('regional-alerts') ? stop() : speak(regionalAlerts, 'regional-alerts')}
+                >
+                  {isPlaying('regional-alerts') ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
-            <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{regionalAlerts}</p>
+            <p className="text-white/80 text-sm mt-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+              {language === 'hi' ? '📅 विठ्ठल AI द्वारा तैयार - आपके क्षेत्र के लिए व्यापक कृषि मार्गदर्शन' : 
+               language === 'mr' ? '📅 विठ्ठल AI द्वारे तयार - तुमच्या क्षेत्रासाठी व्यापक कृषी मार्गदर्शन' : 
+               '📅 Prepared by Vithal AI - Comprehensive agricultural guidance for your region'}
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ScrollArea className="h-[500px]">
+              <div className="p-6">
+                <div 
+                  className="prose prose-green dark:prose-invert max-w-none 
+                    prose-headings:text-green-800 dark:prose-headings:text-green-300
+                    prose-h2:text-lg prose-h2:font-bold prose-h2:border-b prose-h2:border-green-300 prose-h2:pb-2 prose-h2:mb-4
+                    prose-h3:text-base prose-h3:font-semibold prose-h3:text-green-700 dark:prose-h3:text-green-400
+                    prose-strong:text-green-900 dark:prose-strong:text-green-200
+                    prose-li:text-green-900 dark:prose-li:text-green-100
+                    prose-p:text-green-800 dark:prose-p:text-green-200
+                    [&_ul]:space-y-1 [&_ol]:space-y-1"
+                >
+                  <div 
+                    className="whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif] leading-relaxed text-[15px] text-green-900 dark:text-green-100"
+                    style={{ 
+                      lineHeight: '1.8',
+                      letterSpacing: '0.01em'
+                    }}
+                  >
+                    {regionalAlerts}
+                  </div>
+                </div>
+              </div>
+            </ScrollArea>
           </CardContent>
+          <div className="border-t border-green-200 dark:border-green-800 bg-green-100/50 dark:bg-green-900/30 px-6 py-3 rounded-b-lg">
+            <p className="text-xs text-green-700 dark:text-green-400 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif] flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              {language === 'hi' ? '💚 विठ्ठल AI - आपका कृषि मित्र | हमेशा आपके साथ' : 
+               language === 'mr' ? '💚 विठ्ठल AI - तुमचा कृषी मित्र | नेहमी तुमच्या सोबत' : 
+               '💚 Vithal AI - Your Agricultural Friend | Always with you'}
+            </p>
+          </div>
         </Card>
       )}
 
