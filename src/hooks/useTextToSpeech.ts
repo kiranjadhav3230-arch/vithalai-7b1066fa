@@ -1,17 +1,17 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export const useTextToSpeech = (language: string = 'en') => {
   const [playingId, setPlayingId] = useState<string | null>(null);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const voicesLoadedRef = useRef(false);
   const { toast } = useToast();
 
-  // Load voices when available
+  // Preload voices on mount
   useEffect(() => {
     const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      if (availableVoices.length > 0) {
-        setVoices(availableVoices);
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0) {
+        voicesLoadedRef.current = true;
       }
     };
 
@@ -29,7 +29,7 @@ export const useTextToSpeech = (language: string = 'en') => {
       window.speechSynthesis.cancel();
       setPlayingId(id);
 
-      // Clean the text for TTS
+      // Clean the text for TTS (same as main chat)
       const cleanText = text
         .replace(/```[\s\S]*?```/g, '') // Remove code blocks
         .replace(/`[^`]*`/g, '') // Remove inline code
@@ -40,7 +40,7 @@ export const useTextToSpeech = (language: string = 'en') => {
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
 
-      // Set language based on current selection
+      // Set language based on current selection (same as main chat)
       if (language === 'hi') {
         utterance.lang = 'hi-IN';
       } else if (language === 'mr') {
@@ -49,30 +49,30 @@ export const useTextToSpeech = (language: string = 'en') => {
         utterance.lang = 'en-US';
       }
 
-      // Get available voices and select male voice
-      const availableVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
+      // Get available voices and select male voice (same logic as main chat)
+      const voices = window.speechSynthesis.getVoices();
       let selectedVoice = null;
 
-      // Find male voice for the selected language
+      // Find male voice for the selected language (exact same logic as main chat)
       if (language === 'hi') {
-        selectedVoice = availableVoices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
-          availableVoices.find(v => v.lang.includes('hi'));
+        selectedVoice = voices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
+          voices.find(v => v.lang.includes('hi'));
       } else if (language === 'mr') {
-        selectedVoice = availableVoices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
-          availableVoices.find(v => v.lang.includes('mr')) ||
-          availableVoices.find(v => v.lang.includes('hi')); // Fallback to Hindi
+        selectedVoice = voices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
+          voices.find(v => v.lang.includes('mr')) ||
+          voices.find(v => v.lang.includes('hi')); // Fallback to Hindi
       } else {
-        // English - prefer Google US English Male or similar
-        selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
-          availableVoices.find(v => v.name.includes('Google US English')) ||
-          availableVoices.find(v => v.lang.includes('en-US'));
+        // English - prefer Google US English Male or similar (same as main chat)
+        selectedVoice = voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
+          voices.find(v => v.name.includes('Google US English')) ||
+          voices.find(v => v.lang.includes('en-US'));
       }
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       }
 
-      // Match exact settings from main chat
+      // Exact same settings as main chat
       utterance.rate = 1.0;
       utterance.pitch = 0.9; // Slightly lower pitch for male voice
       utterance.volume = 1.0;
@@ -86,7 +86,7 @@ export const useTextToSpeech = (language: string = 'en') => {
         setPlayingId(null);
         toast({
           variant: "destructive",
-          title: "Speech Error",
+          title: "❌ Speech Error",
           description: "Could not play speech"
         });
       };
@@ -97,11 +97,11 @@ export const useTextToSpeech = (language: string = 'en') => {
       setPlayingId(null);
       toast({
         variant: "destructive",
-        title: "Speech Failed",
+        title: "❌ Speech Generation Failed",
         description: error.message || "Could not generate speech"
       });
     }
-  }, [language, voices, toast]);
+  }, [language, toast]);
 
   const stop = useCallback(() => {
     window.speechSynthesis.cancel();
