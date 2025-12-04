@@ -55,9 +55,10 @@ interface Message {
 interface CodeGeneratorChatProps {
   user: User;
   sessionId?: string | null;
+  onSessionTitleUpdate?: (sessionId: string, newTitle: string) => void;
 }
 
-export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sessionId }) => {
+export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sessionId, onSessionTitleUpdate }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [selectedLanguage, setSelectedLanguage] = useState('javascript');
@@ -78,13 +79,12 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     if (sessionId) {
       setCurrentSessionId(sessionId);
       loadMessages(sessionId);
+    } else {
+      // New session - reset first message flag
+      setIsFirstMessage(true);
+      setMessages([]);
     }
   }, [sessionId]);
-
-  // Check if this is first message when messages load
-  useEffect(() => {
-    setIsFirstMessage(messages.length === 0);
-  }, [messages]);
 
   // Generate smart title for code session based on prompt and language
   const generateSmartCodeTitle = async (sid: string, prompt: string, language: string, task: string) => {
@@ -122,6 +122,10 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
         .update({ title: smartTitle })
         .eq('id', sid);
 
+      // Notify parent to update sidebar
+      if (onSessionTitleUpdate) {
+        onSessionTitleUpdate(sid, smartTitle);
+      }
     } catch (error) {
       console.error('Error generating smart code title:', error);
     }
@@ -163,6 +167,9 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       .order('created_at');
     
     if (data) {
+      // Check if session has existing messages
+      setIsFirstMessage(data.length === 0);
+      
       const msgs: Message[] = [];
       data.forEach((m, msgIndex) => {
         // Add user message
@@ -183,6 +190,8 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
         }
       });
       setMessages(msgs);
+    } else {
+      setIsFirstMessage(true);
     }
   };
 
