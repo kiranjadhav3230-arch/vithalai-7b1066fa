@@ -1,9 +1,27 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 export const useTextToSpeech = (language: string = 'en') => {
   const [playingId, setPlayingId] = useState<string | null>(null);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const { toast } = useToast();
+
+  // Load voices when available
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      if (availableVoices.length > 0) {
+        setVoices(availableVoices);
+      }
+    };
+
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+
+    return () => {
+      window.speechSynthesis.onvoiceschanged = null;
+    };
+  }, []);
 
   const speak = useCallback((text: string, id: string) => {
     try {
@@ -32,28 +50,29 @@ export const useTextToSpeech = (language: string = 'en') => {
       }
 
       // Get available voices and select male voice
-      const voices = window.speechSynthesis.getVoices();
+      const availableVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
       let selectedVoice = null;
 
       // Find male voice for the selected language
       if (language === 'hi') {
-        selectedVoice = voices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
-          voices.find(v => v.lang.includes('hi'));
+        selectedVoice = availableVoices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
+          availableVoices.find(v => v.lang.includes('hi'));
       } else if (language === 'mr') {
-        selectedVoice = voices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
-          voices.find(v => v.lang.includes('mr')) ||
-          voices.find(v => v.lang.includes('hi')); // Fallback to Hindi
+        selectedVoice = availableVoices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
+          availableVoices.find(v => v.lang.includes('mr')) ||
+          availableVoices.find(v => v.lang.includes('hi')); // Fallback to Hindi
       } else {
         // English - prefer Google US English Male or similar
-        selectedVoice = voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
-          voices.find(v => v.name.includes('Google US English')) ||
-          voices.find(v => v.lang.includes('en-US'));
+        selectedVoice = availableVoices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
+          availableVoices.find(v => v.name.includes('Google US English')) ||
+          availableVoices.find(v => v.lang.includes('en-US'));
       }
 
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       }
 
+      // Match exact settings from main chat
       utterance.rate = 1.0;
       utterance.pitch = 0.9; // Slightly lower pitch for male voice
       utterance.volume = 1.0;
@@ -82,7 +101,7 @@ export const useTextToSpeech = (language: string = 'en') => {
         description: error.message || "Could not generate speech"
       });
     }
-  }, [language, toast]);
+  }, [language, voices, toast]);
 
   const stop = useCallback(() => {
     window.speechSynthesis.cancel();
