@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Volume2, VolumeX } from 'lucide-react';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Volume2, VolumeX, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -43,6 +43,7 @@ const cropTranslations = {
     clearImage: "Clear Image",
     analysisResult: "Analysis Results",
     suggestedQuestions: "Suggested Questions",
+    downloadReport: "Download PDF",
   },
   hi: {
     title: "🌱 फसल स्वास्थ्य सहायक",
@@ -69,6 +70,7 @@ const cropTranslations = {
     clearImage: "छवि हटाएं",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुझाए गए प्रश्न",
+    downloadReport: "PDF डाउनलोड करें",
   },
   mr: {
     title: "🌱 पीक आरोग्य सहाय्यक",
@@ -95,6 +97,7 @@ const cropTranslations = {
     clearImage: "प्रतिमा काढा",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुचवलेले प्रश्न",
+    downloadReport: "PDF डाउनलोड करा",
   }
 };
 
@@ -498,6 +501,136 @@ Provide ALL information in ${langText}. Be specific with product names, quantiti
   const t = cropTranslations[language as keyof typeof cropTranslations];
   const currentQuestions = suggestedQuestionsPool[language as keyof typeof suggestedQuestionsPool][currentQuestionSet];
 
+  const handleDownloadReport = () => {
+    const reportWindow = window.open('about:blank', '_blank');
+    if (!reportWindow) {
+      toast({
+        variant: "destructive",
+        title: "❌ Error",
+        description: "Please allow popups to download the report"
+      });
+      return;
+    }
+
+    const locationName = location?.name || manualLocation || 'Unknown Location';
+    const reportTitle = language === 'hi' ? 'कृषि विश्लेषण रिपोर्ट' : 
+                        language === 'mr' ? 'कृषी विश्लेषण अहवाल' : 
+                        'Agricultural Analysis Report';
+
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="${language}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${reportTitle} - ${locationName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans', 'Noto Sans Devanagari', sans-serif;
+      line-height: 1.8;
+      color: #14532d;
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 50%, #d9f99d 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .header .location {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    .header .date {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-top: 8px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .logo-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .content {
+      padding: 40px;
+      white-space: pre-wrap;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+    }
+    .footer {
+      background: #f0fdf4;
+      border-top: 1px solid #bbf7d0;
+      padding: 20px 40px;
+      text-align: center;
+      color: #15803d;
+      font-size: 13px;
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .container { box-shadow: none; }
+      .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🌱</div>
+        <span style="font-size: 24px; font-weight: 700;">Vithal AI</span>
+      </div>
+      <h1>🌾 ${reportTitle}</h1>
+      <div class="location">📍 ${locationName}</div>
+      <div class="date">📅 ${new Date().toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      })}</div>
+    </div>
+    <div class="content">${regionalAlerts}</div>
+    <div class="footer">
+      💚 Vithal AI - ${language === 'hi' ? 'आपका कृषि मित्र | हमेशा आपके साथ' : 
+                       language === 'mr' ? 'तुमचा कृषी मित्र | नेहमी तुमच्या सोबत' : 
+                       'Your Agricultural Friend | Always with you'}
+    </div>
+  </div>
+  <script>
+    window.onload = function() { window.print(); }
+  </script>
+</body>
+</html>`;
+
+    reportWindow.document.write(htmlContent);
+    reportWindow.document.close();
+  };
+
   return (
     <div className="h-full flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -601,6 +734,15 @@ Provide ALL information in ${langText}. Be specific with product names, quantiti
                 <Badge variant="secondary" className="bg-white/20 text-white border-0">
                   📍 {location?.name || manualLocation}
                 </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-white hover:bg-white/20"
+                  onClick={handleDownloadReport}
+                  title={t.downloadReport}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
