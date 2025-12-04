@@ -69,6 +69,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [targetLanguage, setTargetLanguage] = useState('python');
   const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [isFirstMessage, setIsFirstMessage] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -79,6 +80,52 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       loadMessages(sessionId);
     }
   }, [sessionId]);
+
+  // Check if this is first message when messages load
+  useEffect(() => {
+    setIsFirstMessage(messages.length === 0);
+  }, [messages]);
+
+  // Generate smart title for code session based on prompt and language
+  const generateSmartCodeTitle = async (sid: string, prompt: string, language: string, task: string) => {
+    try {
+      const langLabel = PROGRAMMING_LANGUAGES.find(l => l.value === language)?.label || language;
+      const taskLabel = CODE_TASKS.find(t => t.value === task)?.label || task;
+      
+      // Create smart title based on task and prompt
+      let smartTitle = '';
+      const shortPrompt = prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt;
+      
+      switch (task) {
+        case 'generate':
+          smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
+          break;
+        case 'explain':
+          smartTitle = `📖 Explain ${langLabel}: ${shortPrompt}`;
+          break;
+        case 'fix':
+          smartTitle = `🔧 Fix ${langLabel}: ${shortPrompt}`;
+          break;
+        case 'optimize':
+          smartTitle = `⚡ Optimize ${langLabel}: ${shortPrompt}`;
+          break;
+        case 'translate':
+          smartTitle = `🔄 Translate: ${shortPrompt}`;
+          break;
+        default:
+          smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
+      }
+
+      // Update session title in database
+      await supabase
+        .from('chat_sessions')
+        .update({ title: smartTitle })
+        .eq('id', sid);
+
+    } catch (error) {
+      console.error('Error generating smart code title:', error);
+    }
+  };
 
   const parseResponse = (text: string) => {
     const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
@@ -383,10 +430,17 @@ ${code}
         await supabase.from('chat_messages').insert({
           session_id: currentSessionId,
           user_id: user.id,
-          message: input,
+          message: currentInput,
           response: data.code,
           message_type: 'code'
         });
+
+        // Generate smart title for first code generation
+        if (isFirstMessage) {
+          const lang = selectedTask === 'translate' ? targetLanguage : selectedLanguage;
+          await generateSmartCodeTitle(currentSessionId, currentInput, lang, selectedTask);
+          setIsFirstMessage(false);
+        }
       }
 
       toast({ title: "Success", description: "Code generated!" });
