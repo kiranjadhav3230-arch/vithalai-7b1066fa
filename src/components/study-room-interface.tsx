@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, Camera, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff, Volume2, VolumeX } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -71,6 +71,7 @@ export const StudyRoomInterface: React.FC<{
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
@@ -197,7 +198,7 @@ export const StudyRoomInterface: React.FC<{
           // Show local notification if user didn't send the message
           if (newMessage.user_id !== user.id && pushPermission === 'granted') {
             const notificationTitle = newMessage.is_ai_response 
-              ? '🤖 AI Assistant in ' + room.name
+              ? '🤖 Vithal in ' + room.name
               : (newMessage.sender_name || 'Someone') + ' in ' + room.name;
             const notificationBody = newMessage.message.length > 100 
               ? newMessage.message.substring(0, 100) + '...' 
@@ -942,7 +943,7 @@ export const StudyRoomInterface: React.FC<{
                     }`}
                   >
                     {msg.is_ai_response && (
-                      <div className="text-xs font-semibold mb-1">AI Assistant</div>
+                      <div className="text-xs font-semibold mb-1 flex items-center gap-1">🤖 Vithal</div>
                     )}
                     {msg.user_id === user.id && (
                       <div className="text-xs opacity-70 mb-1">You</div>
@@ -957,7 +958,7 @@ export const StudyRoomInterface: React.FC<{
                       }`}>
                         <div className="font-semibold opacity-80">
                           {msg.replied_message.is_ai_response 
-                            ? '🤖 AI Assistant' 
+                            ? '🤖 Vithal' 
                             : msg.replied_message.sender_name || 'User'}
                         </div>
                         <div className="opacity-70 line-clamp-2">
@@ -1091,7 +1092,7 @@ export const StudyRoomInterface: React.FC<{
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="text-xs font-semibold text-muted-foreground mb-1">
-                      Replying to {replyingTo.is_ai_response ? '🤖 AI Assistant' : replyingTo.sender_name || 'User'}
+                      Replying to {replyingTo.is_ai_response ? '🤖 Vithal' : replyingTo.sender_name || 'User'}
                     </div>
                     <div className="text-sm line-clamp-2">
                       {replyingTo.message}
@@ -1134,13 +1135,31 @@ export const StudyRoomInterface: React.FC<{
                 accept="image/*"
                 onChange={handleImageSelect}
               />
+              <input
+                type="file"
+                ref={cameraInputRef}
+                className="hidden"
+                accept="image/*"
+                capture="environment"
+                onChange={handleImageSelect}
+              />
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoadingAI}
+                title="Upload Image"
               >
                 <Image className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={isLoadingAI}
+                title="Take Photo"
+              >
+                <Camera className="h-4 w-4" />
               </Button>
               <Input
                 placeholder="Type your message..."

@@ -742,6 +742,12 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
                             ? 'bg-green-500 text-white' 
                             : 'bg-muted'
                         }`}>
+                          {msg.role === 'assistant' && (
+                            <div className="text-xs font-semibold mb-1 flex items-center gap-1">🤖 Vithal</div>
+                          )}
+                          {msg.role === 'user' && (
+                            <div className="text-xs opacity-70 mb-1">You</div>
+                          )}
                           <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
                             {msg.content}
                           </p>
