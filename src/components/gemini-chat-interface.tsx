@@ -1088,7 +1088,15 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
           {/* Main Content Area */}
           {currentView === 'code' ? <div className="flex-1 overflow-auto">
-              <CodeGeneratorChat user={user} sessionId={currentSession?.id} />
+              <CodeGeneratorChat 
+                user={user} 
+                sessionId={currentSession?.id}
+                onSessionTitleUpdate={(sessionId, newTitle) => {
+                  setChatSessions(prev => prev.map(session => 
+                    session.id === sessionId ? { ...session, title: newTitle } : session
+                  ));
+                }}
+              />
             </div> : currentView === 'studyRooms' ? <div className="flex-1 overflow-auto">
               <StudyRooms user={user} />
             </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
