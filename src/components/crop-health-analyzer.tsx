@@ -6,10 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin } from 'lucide-react';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSelector } from '@/components/ui/language-selector';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -141,6 +142,7 @@ export const CropHealthAnalyzer: React.FC = () => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { speak, stop, isPlaying } = useTextToSpeech(language);
 
   // Rotate suggested questions every 10 seconds
   useEffect(() => {
@@ -503,10 +505,20 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
       {regionalAlerts && (
         <Card className="border-green-500/20 bg-green-50/50 dark:bg-green-950/20">
           <CardContent className="p-4">
-            <h3 className="font-semibold mb-2 flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-              <Leaf className="h-5 w-5 text-green-600" />
-              {t.regionalAlerts}
-            </h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold flex items-center gap-2 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                <Leaf className="h-5 w-5 text-green-600" />
+                {t.regionalAlerts}
+              </h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => isPlaying('regional-alerts') ? stop() : speak(regionalAlerts, 'regional-alerts')}
+              >
+                {isPlaying('regional-alerts') ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+            </div>
             <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{regionalAlerts}</p>
           </CardContent>
         </Card>
@@ -629,10 +641,20 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
       {analysis && (
         <Card className="flex-1 border-green-500/20 bg-gradient-to-br from-green-50/50 to-background dark:from-green-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-              <CheckCircle className="w-5 h-5" />
-              {t.analysisResult}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400 font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
+                <CheckCircle className="w-5 h-5" />
+                {t.analysisResult}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => isPlaying('analysis') ? stop() : speak(analysis, 'analysis')}
+              >
+                {isPlaying('analysis') ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px] pr-4">
@@ -723,6 +745,16 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
                           <p className="text-sm whitespace-pre-wrap font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
                             {msg.content}
                           </p>
+                          {msg.role === 'assistant' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 mt-1"
+                              onClick={() => isPlaying(`chat-${idx}`) ? stop() : speak(msg.content, `chat-${idx}`)}
+                            >
+                              {isPlaying(`chat-${idx}`) ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))}
