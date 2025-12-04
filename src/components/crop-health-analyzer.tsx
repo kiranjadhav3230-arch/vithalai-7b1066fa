@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Volume2, VolumeX, Cloud, Sun, Droplets, Thermometer } from 'lucide-react';
+import { Upload, Camera, Loader2, Leaf, AlertCircle, CheckCircle, X, MessageSquare, Send, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { LanguageSelector } from '@/components/ui/language-selector';
@@ -43,12 +43,6 @@ const cropTranslations = {
     clearImage: "Clear Image",
     analysisResult: "Analysis Results",
     suggestedQuestions: "Suggested Questions",
-    weatherSummary: "Current Weather (AI-Inferred)",
-    fetchingWeather: "Fetching weather...",
-    temperature: "Temperature",
-    humidity: "Humidity",
-    conditions: "Conditions",
-    rainfall: "Recent Rainfall",
   },
   hi: {
     title: "🌱 फसल स्वास्थ्य सहायक",
@@ -75,12 +69,6 @@ const cropTranslations = {
     clearImage: "छवि हटाएं",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुझाए गए प्रश्न",
-    weatherSummary: "वर्तमान मौसम (AI-अनुमानित)",
-    fetchingWeather: "मौसम प्राप्त हो रहा है...",
-    temperature: "तापमान",
-    humidity: "नमी",
-    conditions: "स्थितियाँ",
-    rainfall: "हालिया वर्षा",
   },
   mr: {
     title: "🌱 पीक आरोग्य सहाय्यक",
@@ -107,12 +95,6 @@ const cropTranslations = {
     clearImage: "प्रतिमा काढा",
     analysisResult: "विश्लेषण परिणाम",
     suggestedQuestions: "सुचवलेले प्रश्न",
-    weatherSummary: "सध्याचे हवामान (AI-अनुमानित)",
-    fetchingWeather: "हवामान मिळवत आहे...",
-    temperature: "तापमान",
-    humidity: "आर्द्रता",
-    conditions: "परिस्थिती",
-    rainfall: "अलीकडील पाऊस",
   }
 };
 
@@ -151,15 +133,6 @@ export const CropHealthAnalyzer: React.FC = () => {
   const [regionalAlerts, setRegionalAlerts] = useState<string>('');
   const [isAnalyzingLocation, setIsAnalyzingLocation] = useState(false);
   
-  // Weather summary state
-  const [weatherSummary, setWeatherSummary] = useState<{
-    temperature: string;
-    humidity: string;
-    conditions: string;
-    rainfall: string;
-  } | null>(null);
-  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
-  
   // Chat states
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -178,65 +151,6 @@ export const CropHealthAnalyzer: React.FC = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, [language]);
-
-  // Fetch AI-inferred weather when location changes
-  const fetchWeatherSummary = async (loc: { lat: number; lng: number; name?: string }) => {
-    setIsLoadingWeather(true);
-    try {
-      const currentDate = new Date();
-      const currentDateStr = currentDate.toISOString().split('T')[0];
-      const currentMonth = currentDate.getMonth() + 1;
-      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
-                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 
-                     currentMonth >= 10 && currentMonth <= 11 ? 'post-monsoon' : 'winter';
-
-      const prompt = `For location "${loc.name || 'this region'}" on date ${currentDateStr} (${season} season), provide ONLY a brief weather summary in this exact JSON format (no markdown, no explanation, just JSON):
-{
-  "temperature": "25-30°C",
-  "humidity": "65-75%",
-  "conditions": "Partly cloudy with light winds",
-  "rainfall": "Light rainfall expected in last week"
-}
-
-Infer the current live weather conditions based on:
-- Location: ${loc.name || `${loc.lat}, ${loc.lng}`}
-- Current date: ${currentDateStr}
-- Season: ${season}
-- Regional climate patterns for this time of year
-
-Respond ONLY with the JSON object, no other text.`;
-
-      const { data, error } = await supabase.functions.invoke('crop-chat', {
-        body: { 
-          message: prompt,
-          language: 'en',
-          location: loc,
-          chatHistory: []
-        }
-      });
-
-      if (error) throw error;
-      
-      // Parse the JSON response
-      const responseText = data.response;
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const weatherData = JSON.parse(jsonMatch[0]);
-        setWeatherSummary(weatherData);
-      }
-    } catch (error: any) {
-      console.error('Error fetching weather:', error);
-    } finally {
-      setIsLoadingWeather(false);
-    }
-  };
-
-  // Auto-fetch weather when location is set
-  useEffect(() => {
-    if (location && location.name) {
-      fetchWeatherSummary(location);
-    }
-  }, [location]);
 
   const reverseGeocode = async (lat: number, lng: number) => {
     try {
@@ -586,64 +500,6 @@ Be detailed and specific. Format in ${language === 'hi' ? 'Hindi' : language ===
           </div>
         </CardContent>
       </Card>
-
-      {/* Weather Summary Card */}
-      {location && (
-        <Card className="border-sky-500/20 bg-gradient-to-br from-sky-50/50 to-blue-50/50 dark:from-sky-950/20 dark:to-blue-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-gradient-to-br from-sky-400 to-blue-500 rounded-lg">
-                <Cloud className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="font-semibold font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                {t.weatherSummary}
-              </h3>
-            </div>
-            
-            {isLoadingWeather ? (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.fetchingWeather}</span>
-              </div>
-            ) : weatherSummary ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex items-center gap-2 p-2 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <Thermometer className="w-4 h-4 text-red-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.temperature}</p>
-                    <p className="text-sm font-medium font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{weatherSummary.temperature}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <Droplets className="w-4 h-4 text-blue-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.humidity}</p>
-                    <p className="text-sm font-medium font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{weatherSummary.humidity}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <Sun className="w-4 h-4 text-yellow-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.conditions}</p>
-                    <p className="text-sm font-medium font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{weatherSummary.conditions}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-white/50 dark:bg-black/20 rounded-lg">
-                  <Cloud className="w-4 h-4 text-gray-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{t.rainfall}</p>
-                    <p className="text-sm font-medium font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">{weatherSummary.rainfall}</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground font-['Noto_Sans',_'Noto_Sans_Devanagari',_sans-serif]">
-                Weather data will appear after location is set
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Regional Alerts */}
       {regionalAlerts && (
