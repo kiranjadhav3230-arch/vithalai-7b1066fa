@@ -5,10 +5,23 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 interface ModernHeroProps {
   onGetStarted: () => void;
+  onLearnMore?: () => void;
 }
 
-export const ModernHero: React.FC<ModernHeroProps> = ({ onGetStarted }) => {
+export const ModernHero: React.FC<ModernHeroProps> = ({ onGetStarted, onLearnMore }) => {
   const { t } = useLanguage();
+
+  const handleLearnMore = () => {
+    if (onLearnMore) {
+      onLearnMore();
+    } else {
+      // Default: scroll to features section
+      const featuresSection = document.getElementById('all-features');
+      if (featuresSection) {
+        featuresSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden py-12 md:py-20 px-4" style={{ perspective: '2000px' }}>
@@ -60,6 +73,7 @@ export const ModernHero: React.FC<ModernHeroProps> = ({ onGetStarted }) => {
             <Button
               variant="outline"
               size="lg"
+              onClick={handleLearnMore}
               className="w-full sm:w-auto text-base md:text-lg px-8 md:px-10 py-6 md:py-7 rounded-xl md:rounded-2xl liquid-glass-intense border-primary/30 hover:border-primary/50 font-display hover:scale-105 transition-all duration-500"
             >
               Learn More
