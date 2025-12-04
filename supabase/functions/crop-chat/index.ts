@@ -32,23 +32,46 @@ serve(async (req) => {
       mr: 'Respond in Marathi (मराठीत उत्तर द्या)'
     };
 
-    // Build location context
+    // Build location context with current date/time for live weather inference
+    const currentDate = new Date();
+    const currentDateStr = currentDate.toISOString().split('T')[0];
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentDay = currentDate.getDate();
+    const currentYear = currentDate.getFullYear();
+    const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon/rainy' : 
+                   currentMonth >= 3 && currentMonth <= 5 ? 'summer/hot' : 
+                   currentMonth >= 10 && currentMonth <= 11 ? 'post-monsoon/autumn' : 'winter/cold';
+    
     let locationContext = '';
     if (location) {
-      const currentMonth = new Date().getMonth() + 1;
-      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
-                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
-      
       locationContext = `
 
-Location Context: ${location.name || `${location.lat}, ${location.lng}`}
-Current Season: ${season}
+🌍 **CRITICAL LOCATION & DATE CONTEXT**:
+- Location: ${location.name || `${location.lat}, ${location.lng}`}
+- Current Date: ${currentDateStr} (${currentDay}/${currentMonth}/${currentYear})
+- Current Season: ${season}
+- Region: India (likely Maharashtra/agricultural region)
 
-When providing advice, consider:
-- Current weather conditions for this location and season (use your knowledge about typical weather patterns)
-- Regional pests and diseases common in this area during this season
-- Local weather patterns and their impact on crop health
-- Season-specific agricultural practices for this region considering weather conditions`;
+📡 **LIVE WEATHER INFERENCE (MUST DO FIRST)**:
+Before answering any agricultural question, you MUST first infer/search the current live weather conditions for "${location.name || 'this location'}" on ${currentDateStr}:
+- Current Temperature (approximate based on location + date)
+- Humidity levels
+- Recent rainfall patterns
+- Weather forecast considerations
+- Any seasonal weather patterns
+
+🌤️ **WEATHER-INFORMED ADVICE**:
+All your advice MUST consider the current weather conditions:
+- How weather affects pest/disease spread
+- Best timing for pesticide/fertilizer application
+- Irrigation needs based on current conditions
+- Weather-specific treatment recommendations
+- Protection measures for current weather`;
+    } else {
+      locationContext = `
+
+📅 **DATE CONTEXT**: Current date is ${currentDateStr}, season is ${season}.
+Provide advice appropriate for this time of year in Indian agricultural context.`;
     }
 
     const systemPrompt = `You are "VITHAL" - a highly knowledgeable and friendly AI agricultural expert companion. Your name is Vithal and you specialize in crop health, plant diseases, farming practices, and sustainable agriculture.
