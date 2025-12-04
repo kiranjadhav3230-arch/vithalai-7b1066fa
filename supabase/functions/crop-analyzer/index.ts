@@ -25,22 +25,48 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured');
     }
 
-    // Build location context
+    // Build location context with current date/time for live weather inference
+    const currentDate = new Date();
+    const currentDateStr = currentDate.toISOString().split('T')[0];
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentDay = currentDate.getDate();
+    const currentYear = currentDate.getFullYear();
+    const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon/rainy' : 
+                   currentMonth >= 3 && currentMonth <= 5 ? 'summer/hot' : 
+                   currentMonth >= 10 && currentMonth <= 11 ? 'post-monsoon/autumn' : 'winter/cold';
+    
     let locationContext = '';
     if (location) {
-      const currentMonth = new Date().getMonth() + 1;
-      const season = currentMonth >= 6 && currentMonth <= 9 ? 'monsoon' : 
-                     currentMonth >= 3 && currentMonth <= 5 ? 'summer' : 'winter';
-      
       locationContext = `
 
-Location Context: ${location.name || `${location.lat}, ${location.lng}`}
-Current Season: ${season}
+🌍 **CRITICAL LOCATION & WEATHER CONTEXT** (MUST ANALYZE FIRST):
+- Location: ${location.name || `${location.lat}, ${location.lng}`}
+- Current Date: ${currentDateStr} (${currentDay}/${currentMonth}/${currentYear})
+- Current Season: ${season}
+- Region: India (likely Maharashtra/agricultural region)
 
-Based on this location and season, also include:
-7. **Weather & Climate**: Provide current weather conditions and climate information for this region (use your knowledge about typical weather patterns for this location and season).
-8. **Regional Pest & Disease Alerts**: Mention common pests and diseases prevalent in this region during this season.
-9. **Seasonal Care Tips**: Provide season-specific advice for crop management in this area considering the weather conditions.`;
+📡 **STEP 1 - LIVE WEATHER INFERENCE (DO THIS FIRST)**:
+Based on the location "${location.name || 'this region'}" and current date ${currentDateStr}, you MUST first search/infer the current live weather conditions:
+- Current Temperature (approximate)
+- Humidity levels
+- Recent rainfall (last 7 days)
+- Weather forecast for next few days
+- Any extreme weather alerts
+
+Use your knowledge of typical weather patterns for this location during ${season} season in ${currentMonth}/${currentYear}.
+
+📋 **STEP 2 - WEATHER-INFORMED ANALYSIS**:
+After determining weather, include in your analysis:
+7. **🌤️ Current Weather Conditions**: Based on ${location.name || 'this location'} on ${currentDateStr}, provide inferred live weather (temperature, humidity, rainfall, conditions).
+8. **🐛 Regional Pest & Disease Alerts**: Based on current weather + location, list active pest/disease threats RIGHT NOW.
+9. **🌱 Weather-Based Care Tips**: Specific advice considering current weather conditions for disease prevention and treatment.
+10. **⚠️ Weather Impact on Treatment**: How current weather affects pesticide/fertilizer application timing.`;
+    } else {
+      // Even without location, include date context
+      locationContext = `
+
+📅 **DATE CONTEXT**: Current date is ${currentDateStr}, season is ${season}.
+Please provide general advice appropriate for this time of year in Indian agricultural context.`;
     }
 
     // Specialized agricultural analysis prompt
