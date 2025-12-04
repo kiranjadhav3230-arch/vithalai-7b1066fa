@@ -694,54 +694,71 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
   const playTextToSpeech = async (text: string, messageId: string) => {
     try {
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
+      // Stop any currently playing speech
+      window.speechSynthesis.cancel();
       setPlayingAudio(messageId);
 
       // Clean the text for TTS
       const cleanText = text.replace(/```[\s\S]*?```/g, '') // Remove code blocks
-      .replace(/`[^`]*`/g, '') // Remove inline code
-      .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
-      .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
-      .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
-      .substring(0, 4000); // Limit to 4000 chars for TTS
+        .replace(/`[^`]*`/g, '') // Remove inline code
+        .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
+        .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
+        .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
+        .substring(0, 4000); // Limit to 4000 chars for TTS
 
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('text-to-speech', {
-        body: {
-          text: cleanText,
-          language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
-        }
-      });
-      if (error) throw error;
-      if (data?.audioContent) {
-        // Convert base64 to audio
-        const audioBlob = new Blob([Uint8Array.from(atob(data.audioContent), c => c.charCodeAt(0))], {
-          type: 'audio/mpeg'
-        });
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audioRef.current = audio;
-        audio.onended = () => {
-          setPlayingAudio(null);
-          URL.revokeObjectURL(audioUrl);
-        };
-        audio.onerror = () => {
-          setPlayingAudio(null);
-          URL.revokeObjectURL(audioUrl);
-          toast({
-            variant: "destructive",
-            title: "❌ Playback Error",
-            description: "Could not play audio"
-          });
-        };
-        await audio.play();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      
+      // Set language based on current selection
+      if (language === 'hi') {
+        utterance.lang = 'hi-IN';
+      } else if (language === 'mr') {
+        utterance.lang = 'mr-IN';
+      } else {
+        utterance.lang = 'en-US';
       }
+
+      // Get available voices and select male voice
+      const voices = window.speechSynthesis.getVoices();
+      let selectedVoice = null;
+
+      // Find male voice for the selected language
+      if (language === 'hi') {
+        selectedVoice = voices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
+                        voices.find(v => v.lang.includes('hi'));
+      } else if (language === 'mr') {
+        selectedVoice = voices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
+                        voices.find(v => v.lang.includes('mr')) ||
+                        voices.find(v => v.lang.includes('hi')); // Fallback to Hindi
+      } else {
+        // English - prefer Google US English Male or similar
+        selectedVoice = voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
+                        voices.find(v => v.name.includes('Google US English')) ||
+                        voices.find(v => v.lang.includes('en-US'));
+      }
+
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+
+      utterance.rate = 1.0;
+      utterance.pitch = 0.9; // Slightly lower pitch for male voice
+      utterance.volume = 1.0;
+
+      utterance.onend = () => {
+        setPlayingAudio(null);
+      };
+
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        setPlayingAudio(null);
+        toast({
+          variant: "destructive",
+          title: "❌ Speech Error",
+          description: "Could not play speech"
+        });
+      };
+
+      window.speechSynthesis.speak(utterance);
     } catch (error: any) {
       console.error('Text-to-speech error:', error);
       setPlayingAudio(null);
@@ -753,10 +770,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const stopTextToSpeech = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    window.speechSynthesis.cancel();
     setPlayingAudio(null);
   };
   const AppSidebar = () => {
