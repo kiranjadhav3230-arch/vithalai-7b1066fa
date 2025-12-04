@@ -222,28 +222,53 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       console.error('Error deleting session:', error);
     }
   };
-  const clearAllChats = async () => {
-    if (!confirm('Are you sure you want to delete all chat sessions? This cannot be undone.')) {
+  const clearChats = async (type: 'chat' | 'code' | 'all') => {
+    const typeLabels = {
+      chat: 'chat',
+      code: 'code',
+      all: 'all'
+    };
+    
+    if (!confirm(`Are you sure you want to delete ${type === 'all' ? 'all' : `all ${typeLabels[type]}`} sessions? This cannot be undone.`)) {
       return;
     }
+    
     try {
-      const {
-        error
-      } = await supabase.from('chat_sessions').delete().eq('user_id', user.id);
+      let query = supabase.from('chat_sessions').delete().eq('user_id', user.id);
+      
+      if (type !== 'all') {
+        query = query.eq('session_type', type);
+      }
+      
+      const { error } = await query;
       if (error) throw error;
-      setChatSessions([]);
-      setCurrentSession(null);
-      setMessages([]);
+      
+      // Update local state
+      if (type === 'all') {
+        setChatSessions([]);
+        setCurrentSession(null);
+        setMessages([]);
+      } else {
+        const remaining = chatSessions.filter(s => (s.session_type || 'chat') !== type);
+        setChatSessions(remaining);
+        
+        // If current session was deleted, switch to first remaining
+        if (currentSession && (currentSession.session_type || 'chat') === type) {
+          setCurrentSession(remaining.length > 0 ? remaining[0] : null);
+          setMessages([]);
+        }
+      }
+      
       toast({
         title: "Success",
-        description: "All chats cleared successfully"
+        description: `${type === 'all' ? 'All chats' : type === 'chat' ? 'Chat history' : 'Code history'} cleared successfully`
       });
     } catch (error) {
-      console.error('Error clearing all chats:', error);
+      console.error('Error clearing chats:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to clear all chats"
+        description: "Failed to clear chats"
       });
     }
   };
@@ -796,12 +821,40 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           </DropdownMenu>
         </div>
         
-        {/* Clear All Button */}
+        {/* Clear Chats Dropdown */}
         {chatSessions.length > 0 && <div className="px-3 py-2 border-b border-orange-500/10">
-            <Button onClick={clearAllChats} variant="ghost" size="sm" className="w-full justify-start text-xs hover:bg-destructive/10 hover:text-destructive">
-              <Trash2 className="h-3 w-3 mr-2" />
-              Clear All Chats
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-start text-xs hover:bg-destructive/10 hover:text-destructive">
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  Clear History
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-sm border-orange-500/20">
+                <DropdownMenuItem 
+                  onClick={() => clearChats('chat')} 
+                  className="cursor-pointer text-xs hover:bg-orange-500/10"
+                >
+                  <MessageSquare className="h-3 w-3 mr-2" />
+                  Delete Chats Only
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => clearChats('code')} 
+                  className="cursor-pointer text-xs hover:bg-orange-500/10"
+                >
+                  <Code className="h-3 w-3 mr-2" />
+                  Delete Codes Only
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => clearChats('all')} 
+                  className="cursor-pointer text-xs text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  Delete All
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>}
         
         <ScrollArea className="flex-1">
