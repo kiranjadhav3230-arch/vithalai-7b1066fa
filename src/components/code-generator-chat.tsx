@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, Image as ImageIcon, FileText, Code2, FolderDown, BookOpen, Monitor } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { CodeSnippetLibrary } from './code-snippet-library';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -50,6 +50,8 @@ interface Message {
   language?: string;
   isCode: boolean;
   attachments?: Array<{ type: 'image' | 'document'; data: string; name: string }>;
+  validation?: { score: number; isValid: boolean; issues: string[] };
+  isStreaming?: boolean;
 }
 
 interface CodeGeneratorChatProps {
@@ -71,6 +73,8 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isFirstMessage, setIsFirstMessage] = useState(true);
+  const [previewCode, setPreviewCode] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState<{ [key: string]: boolean }>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -80,52 +84,38 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       setCurrentSessionId(sessionId);
       loadMessages(sessionId);
     } else {
-      // New session - reset first message flag
       setIsFirstMessage(true);
       setMessages([]);
     }
   }, [sessionId]);
 
-  // Generate smart title for code session based on prompt and language
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollRef.current) {
+      const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
+    }
+  }, [messages]);
+
   const generateSmartCodeTitle = async (sid: string, prompt: string, language: string, task: string) => {
     try {
       const langLabel = PROGRAMMING_LANGUAGES.find(l => l.value === language)?.label || language;
-      const taskLabel = CODE_TASKS.find(t => t.value === task)?.label || task;
-      
-      // Create smart title based on task and prompt
-      let smartTitle = '';
       const shortPrompt = prompt.length > 25 ? prompt.substring(0, 25) + '...' : prompt;
       
+      let smartTitle = '';
       switch (task) {
-        case 'generate':
-          smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
-          break;
-        case 'explain':
-          smartTitle = `📖 Explain ${langLabel}: ${shortPrompt}`;
-          break;
-        case 'fix':
-          smartTitle = `🔧 Fix ${langLabel}: ${shortPrompt}`;
-          break;
-        case 'optimize':
-          smartTitle = `⚡ Optimize ${langLabel}: ${shortPrompt}`;
-          break;
-        case 'translate':
-          smartTitle = `🔄 Translate: ${shortPrompt}`;
-          break;
-        default:
-          smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
+        case 'generate': smartTitle = `💻 ${langLabel}: ${shortPrompt}`; break;
+        case 'explain': smartTitle = `📖 Explain ${langLabel}: ${shortPrompt}`; break;
+        case 'fix': smartTitle = `🔧 Fix ${langLabel}: ${shortPrompt}`; break;
+        case 'optimize': smartTitle = `⚡ Optimize ${langLabel}: ${shortPrompt}`; break;
+        case 'translate': smartTitle = `🔄 Translate: ${shortPrompt}`; break;
+        default: smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
       }
 
-      // Update session title in database
-      await supabase
-        .from('chat_sessions')
-        .update({ title: smartTitle })
-        .eq('id', sid);
-
-      // Notify parent to update sidebar
-      if (onSessionTitleUpdate) {
-        onSessionTitleUpdate(sid, smartTitle);
-      }
+      await supabase.from('chat_sessions').update({ title: smartTitle }).eq('id', sid);
+      if (onSessionTitleUpdate) onSessionTitleUpdate(sid, smartTitle);
     } catch (error) {
       console.error('Error generating smart code title:', error);
     }
@@ -142,7 +132,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
         const textContent = text.substring(lastIndex, match.index).trim();
         if (textContent) parts.push({ type: 'text', content: textContent });
       }
-      const langMatch = text.substring(match.index, match.index + 10).match(/```(\w+)/);
+      const langMatch = text.substring(match.index, match.index + 20).match(/```(\w+)/);
       parts.push({ 
         type: 'code', 
         content: match[1], 
@@ -167,15 +157,12 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
       .order('created_at');
     
     if (data) {
-      // Check if session has existing messages
       setIsFirstMessage(data.length === 0);
       
       const msgs: Message[] = [];
-      data.forEach((m, msgIndex) => {
-        // Add user message
+      data.forEach((m) => {
         msgs.push({ id: m.id, role: 'user', content: m.message, isCode: false });
         
-        // Parse and add AI response
         if (m.response) {
           const parsedParts = parseResponse(m.response);
           parsedParts.forEach((part, partIndex) => {
@@ -223,24 +210,10 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
 
   const getFileExtension = (language: string): string => {
     const extensions: Record<string, string> = {
-      javascript: 'js',
-      typescript: 'ts',
-      python: 'py',
-      java: 'java',
-      cpp: 'cpp',
-      csharp: 'cs',
-      php: 'php',
-      ruby: 'rb',
-      go: 'go',
-      rust: 'rs',
-      swift: 'swift',
-      kotlin: 'kt',
-      r: 'r',
-      scala: 'scala',
-      dart: 'dart',
-      sql: 'sql',
-      html: 'html',
-      css: 'css',
+      javascript: 'js', typescript: 'ts', python: 'py', java: 'java',
+      cpp: 'cpp', csharp: 'cs', php: 'php', ruby: 'rb', go: 'go',
+      rust: 'rs', swift: 'swift', kotlin: 'kt', r: 'r', scala: 'scala',
+      dart: 'dart', sql: 'sql', html: 'html', css: 'css',
     };
     return extensions[language] || 'txt';
   };
@@ -248,7 +221,6 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const downloadVSCodeFile = (code: string, language: string) => {
     const extension = getFileExtension(language);
     const fileName = `generated-code.${extension}`;
-    
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -258,28 +230,13 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Downloaded",
-      description: `${fileName} saved successfully`,
-    });
+    toast({ title: "Downloaded", description: `${fileName} saved successfully` });
   };
 
   const downloadHTMLFile = (code: string) => {
-    // If it's a complete HTML document, download as is
-    if (code.toLowerCase().includes('<!doctype') || code.toLowerCase().includes('<html')) {
-      const blob = new Blob([code], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'index.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else {
-      // Wrap in a complete HTML structure
-      const htmlContent = `<!DOCTYPE html>
+    let htmlContent = code;
+    if (!code.toLowerCase().includes('<!doctype') && !code.toLowerCase().includes('<html')) {
+      htmlContent = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -290,26 +247,91 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
 ${code}
 </body>
 </html>`;
-      
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'index.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
     
-    toast({
-      title: "HTML Downloaded",
-      description: "index.html saved successfully",
-    });
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'index.html';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast({ title: "HTML Downloaded", description: "index.html saved successfully" });
   };
 
-  const isHTMLLikeLanguage = (language: string) => {
-    return ['html', 'css', 'jsx', 'tsx', 'vue', 'svelte'].includes(language.toLowerCase());
+  const isPreviewableLanguage = (language: string) => {
+    return ['html', 'css', 'javascript', 'jsx', 'tsx'].includes(language?.toLowerCase());
+  };
+
+  const openPreviewInNewTab = (code: string, language: string) => {
+    let htmlContent = '';
+    
+    if (language === 'html' || code.toLowerCase().includes('<html') || code.toLowerCase().includes('<!doctype')) {
+      htmlContent = code;
+    } else if (language === 'css') {
+      htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Preview</title>
+    <style>${code}</style>
+</head>
+<body>
+    <div class="preview-container">
+        <h1>CSS Preview</h1>
+        <p>Your CSS styles are applied to this page.</p>
+        <button>Sample Button</button>
+        <div class="box">Sample Box</div>
+    </div>
+</body>
+</html>`;
+    } else if (language === 'javascript' || language === 'jsx' || language === 'tsx') {
+      htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Preview</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+        #output { background: #16213e; padding: 15px; border-radius: 8px; white-space: pre-wrap; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h2>JavaScript Output</h2>
+    <div id="output"></div>
+    <script>
+        const originalLog = console.log;
+        console.log = (...args) => {
+            document.getElementById('output').innerHTML += args.map(a => 
+                typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)
+            ).join(' ') + '\\n';
+            originalLog.apply(console, args);
+        };
+        try {
+            ${code}
+        } catch (e) {
+            document.getElementById('output').innerHTML += 'Error: ' + e.message;
+        }
+    </script>
+</body>
+</html>`;
+    } else {
+      htmlContent = `<!DOCTYPE html><html><body><pre>${code}</pre></body></html>`;
+    }
+
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.document.write(htmlContent);
+      newWindow.document.close();
+    }
+  };
+
+  const toggleInlinePreview = (messageId: string) => {
+    setShowPreview(prev => ({ ...prev, [messageId]: !prev[messageId] }));
   };
 
   const saveSnippet = async (code: string, language: string) => {
@@ -320,22 +342,15 @@ ${code}
     const tagsInput = prompt("Enter tags separated by commas (optional):");
     const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
 
-    const { error } = await supabase
-      .from('code_snippets')
-      .insert({
-        user_id: user.id,
-        title,
-        description: description || null,
-        generated_code: code,
-        language,
-        tags: tags.length > 0 ? tags : null,
-      });
+    const { error } = await supabase.from('code_snippets').insert({
+      user_id: user.id, title, description: description || null,
+      generated_code: code, language, tags: tags.length > 0 ? tags : null,
+    });
 
     if (error) {
       toast({ title: "Error", description: "Failed to save snippet", variant: "destructive" });
       return;
     }
-
     toast({ title: "Success", description: "Snippet saved to library!" });
   };
 
@@ -346,12 +361,9 @@ ${code}
     if (language === 'javascript' || language === 'typescript') {
       zip.file(`src/index.${extension}`, code);
       zip.file('package.json', JSON.stringify({
-        name: 'generated-project',
-        version: '1.0.0',
+        name: 'generated-project', version: '1.0.0',
         main: `src/index.${extension}`,
-        scripts: {
-          start: `node src/index.${extension}`
-        }
+        scripts: { start: `node src/index.${extension}` }
       }, null, 2));
     } else if (language === 'python') {
       zip.file('main.py', code);
@@ -364,12 +376,8 @@ ${code}
       zip.file(`main.${extension}`, code);
     }
     
-    zip.file('.vscode/settings.json', JSON.stringify({
-      'editor.formatOnSave': true,
-      'editor.tabSize': 2,
-    }, null, 2));
-    
-    zip.file('README.md', `# Generated Project\n\nGenerated by Vithal AI Code Generator\n\n## Usage\n\nOpen this folder in VS Code to start developing.`);
+    zip.file('.vscode/settings.json', JSON.stringify({ 'editor.formatOnSave': true, 'editor.tabSize': 2 }, null, 2));
+    zip.file('README.md', `# Generated Project\n\nGenerated by Vithal AI Code Generator`);
     
     const content = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(content);
@@ -378,13 +386,103 @@ ${code}
     a.download = 'generated-project.zip';
     a.click();
     URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Project Downloaded",
-      description: "Extract the ZIP and open in VS Code",
-    });
+    toast({ title: "Project Downloaded", description: "Extract the ZIP and open in VS Code" });
   };
 
+  // Build chat history for context
+  const buildChatHistory = useCallback(() => {
+    return messages
+      .filter(m => !m.isStreaming)
+      .slice(-10)
+      .map(m => ({
+        role: m.role,
+        content: m.content.substring(0, 500)
+      }));
+  }, [messages]);
+
+  // Handle streaming response
+  const handleStreamingResponse = async (
+    requestBody: any,
+    userMsgId: string
+  ): Promise<{ code: string; validation?: any }> => {
+    const streamingMsgId = `${userMsgId}-streaming`;
+    
+    // Add placeholder for streaming message
+    setMessages(prev => [...prev, {
+      id: streamingMsgId,
+      role: 'assistant',
+      content: '',
+      isCode: true,
+      language: requestBody.language || requestBody.targetLanguage || 'javascript',
+      isStreaming: true
+    }]);
+
+    const response = await fetch(
+      `https://rwqteupkdkkmigvajdrv.supabase.co/functions/v1/code-generator-gemini`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3cXRldXBrZGtrbWlndmFqZHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NzU4MjksImV4cCI6MjA2ODE1MTgyOX0.3HXdgQ3qcFgEEjnghcCx0Lcdt0UYP9FdiWZI9Bk_LIg`
+        },
+        body: JSON.stringify({ ...requestBody, stream: true })
+      }
+    );
+
+    if (!response.ok || !response.body) {
+      throw new Error('Failed to start streaming');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullContent = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === '[DONE]') continue;
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) {
+            fullContent += text;
+            setMessages(prev => prev.map(m => 
+              m.id === streamingMsgId ? { ...m, content: fullContent } : m
+            ));
+          }
+        } catch {
+          // Ignore parsing errors for incomplete chunks
+        }
+      }
+    }
+
+    // Mark streaming as complete
+    setMessages(prev => prev.map(m => 
+      m.id === streamingMsgId ? { ...m, isStreaming: false } : m
+    ));
+
+    return { code: fullContent };
+  };
+
+  // Retry handler
+  const handleRetry = async (messageIndex: number) => {
+    const userMessage = messages.find((m, i) => i < messageIndex && m.role === 'user');
+    if (userMessage) {
+      // Remove failed messages and retry
+      setMessages(prev => prev.filter((_, i) => i <= messages.indexOf(userMessage)));
+      setInput(userMessage.content);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() && attachments.length === 0) return;
@@ -405,13 +503,30 @@ ${code}
     setIsGenerating(true);
     setProgress(0);
 
-    const interval = setInterval(() => setProgress(p => Math.min(p + 10, 90)), 200);
+    const interval = setInterval(() => setProgress(p => Math.min(p + 5, 90)), 300);
 
     try {
-      const requestBody = selectedTask === 'translate' 
-        ? { prompt: currentInput, task: selectedTask, sourceLanguage, targetLanguage, attachments: currentAttachments }
-        : { prompt: currentInput, language: selectedLanguage, task: selectedTask, attachments: currentAttachments };
+      // Build chat history for context
+      const chatHistory = buildChatHistory();
 
+      const requestBody = selectedTask === 'translate' 
+        ? { 
+            prompt: currentInput, 
+            task: selectedTask, 
+            sourceLanguage, 
+            targetLanguage, 
+            attachments: currentAttachments,
+            chatHistory 
+          }
+        : { 
+            prompt: currentInput, 
+            language: selectedLanguage, 
+            task: selectedTask, 
+            attachments: currentAttachments,
+            chatHistory 
+          };
+
+      // Use non-streaming for now (more reliable)
       const { data, error } = await supabase.functions.invoke('code-generator-gemini', {
         body: requestBody
       });
@@ -422,6 +537,7 @@ ${code}
       if (error) throw error;
 
       const responseText = data.code || data.translation;
+      const validation = data.validation;
       const parsedParts = parseResponse(responseText);
       
       parsedParts.forEach((part, index) => {
@@ -430,7 +546,8 @@ ${code}
           role: 'assistant', 
           content: part.content, 
           isCode: part.type === 'code', 
-          language: part.language || selectedLanguage 
+          language: part.language || selectedLanguage,
+          validation: index === 0 ? validation : undefined
         };
         setMessages(prev => [...prev, aiMsg]);
       });
@@ -444,7 +561,6 @@ ${code}
           message_type: 'code'
         });
 
-        // Generate smart title for first code generation
         if (isFirstMessage) {
           const lang = selectedTask === 'translate' ? targetLanguage : selectedLanguage;
           await generateSmartCodeTitle(currentSessionId, currentInput, lang, selectedTask);
@@ -452,10 +568,46 @@ ${code}
         }
       }
 
-      toast({ title: "Success", description: "Code generated!" });
+      // Show validation result
+      if (validation) {
+        if (validation.isValid && validation.score >= 90) {
+          toast({ 
+            title: "✓ High Quality Code", 
+            description: `Quality score: ${validation.score}%` 
+          });
+        } else if (validation.isValid) {
+          toast({ 
+            title: "Code Generated", 
+            description: `Quality score: ${validation.score}%${validation.issues.length > 0 ? ' - ' + validation.issues[0] : ''}` 
+          });
+        } else {
+          toast({ 
+            title: "Code Generated with Warnings", 
+            description: validation.issues.join(', '),
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({ title: "Success", description: "Code generated!" });
+      }
     } catch (error: any) {
       clearInterval(interval);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Code generation error:', error);
+      
+      // Add error message
+      setMessages(prev => [...prev, {
+        id: `${Date.now()}-error`,
+        role: 'assistant',
+        content: `Error: ${error.message}. Click retry to try again.`,
+        isCode: false,
+        validation: { score: 0, isValid: false, issues: [error.message] }
+      }]);
+      
+      toast({ 
+        title: "Generation Failed", 
+        description: error.message || "Please try again", 
+        variant: "destructive" 
+      });
     } finally {
       setTimeout(() => { setIsGenerating(false); setProgress(0); }, 500);
     }
@@ -466,19 +618,44 @@ ${code}
     toast({ title: "Copied!", description: "Code copied to clipboard" });
   };
 
+  const renderInlinePreview = (code: string, language: string) => {
+    let srcDoc = '';
+    
+    if (language === 'html' || code.toLowerCase().includes('<html')) {
+      srcDoc = code;
+    } else if (language === 'css') {
+      srcDoc = `<style>${code}</style><div class="preview"><h1>CSS Preview</h1><p>Sample text</p><button>Button</button></div>`;
+    } else if (language === 'javascript') {
+      srcDoc = `<div id="output" style="font-family:monospace;"></div><script>
+        const log = console.log;
+        console.log = (...a) => { document.getElementById('output').innerHTML += a.join(' ') + '<br>'; log(...a); };
+        try { ${code} } catch(e) { document.getElementById('output').innerHTML = 'Error: ' + e.message; }
+      </script>`;
+    }
+
+    return (
+      <div className="border rounded-lg overflow-hidden mt-2 bg-white">
+        <iframe
+          srcDoc={srcDoc}
+          className="w-full h-[300px] border-0"
+          sandbox="allow-scripts"
+          title="Code Preview"
+        />
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="border-b p-3 flex items-center justify-between">
+      <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Code className="w-5 h-5 text-primary" />
           <h2 className="font-semibold">Code Assistant</h2>
+          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
+            v2.0 Enhanced
+          </Badge>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowLibrary(true)}
-          className="gap-2"
-        >
+        <Button variant="outline" size="sm" onClick={() => setShowLibrary(true)} className="gap-2">
           <BookOpen className="h-4 w-4" />
           Library
         </Button>
@@ -522,79 +699,106 @@ ${code}
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
             <Code className="w-16 h-16 mb-4 opacity-20" />
             <p className="text-sm">Start coding with AI assistance</p>
+            <p className="text-xs mt-2 opacity-60">Enhanced with language-specific best practices & code validation</p>
           </div>
         ) : (
           <div className="space-y-3 max-w-4xl mx-auto">
-            {messages.map(msg => (
+            {messages.map((msg, idx) => (
               <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-lg p-3' : ''}`}>
+                <div className={`max-w-[90%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-lg p-3' : ''}`}>
                   {msg.isCode ? (
                     <div className="relative">
+                      {/* Validation Badge */}
+                      {msg.validation && (
+                        <div className={`flex items-center gap-2 mb-2 text-xs ${
+                          msg.validation.isValid ? 'text-green-500' : 'text-yellow-500'
+                        }`}>
+                          {msg.validation.isValid ? (
+                            <CheckCircle2 className="w-4 h-4" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4" />
+                          )}
+                          <span>Quality: {msg.validation.score}%</span>
+                          {msg.validation.issues.length > 0 && (
+                            <span className="text-muted-foreground">• {msg.validation.issues[0]}</span>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Action Buttons */}
                       <div className="flex flex-wrap gap-2 mb-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => copyCode(msg.content)}
-                        >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy
+                        <Button variant="ghost" size="sm" onClick={() => copyCode(msg.content)}>
+                          <Copy className="h-4 w-4 mr-2" />Copy
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => downloadVSCodeFile(msg.content, msg.language || 'javascript')}
-                        >
-                          <Code2 className="h-4 w-4 mr-2" />
-                          VS Code File
+                        <Button variant="ghost" size="sm" onClick={() => downloadVSCodeFile(msg.content, msg.language || 'javascript')}>
+                          <Code2 className="h-4 w-4 mr-2" />VS Code
                         </Button>
-                        {isHTMLLikeLanguage(msg.language || '') && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => downloadHTMLFile(msg.content)}
-                          >
-                            <Download className="h-4 w-4 mr-2" />
-                            Download HTML
+                        {isPreviewableLanguage(msg.language || '') && (
+                          <>
+                            <Button variant="ghost" size="sm" onClick={() => openPreviewInNewTab(msg.content, msg.language || 'html')}>
+                              <Monitor className="h-4 w-4 mr-2" />Preview
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => toggleInlinePreview(msg.id)}>
+                              {showPreview[msg.id] ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                              {showPreview[msg.id] ? 'Hide' : 'Inline'}
+                            </Button>
+                          </>
+                        )}
+                        {['html', 'css'].includes(msg.language?.toLowerCase() || '') && (
+                          <Button variant="ghost" size="sm" onClick={() => downloadHTMLFile(msg.content)}>
+                            <Download className="h-4 w-4 mr-2" />HTML
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => downloadAsProject(msg.content, msg.language || 'javascript')}
-                        >
-                          <FolderDown className="h-4 w-4 mr-2" />
-                          Project ZIP
+                        <Button variant="ghost" size="sm" onClick={() => downloadAsProject(msg.content, msg.language || 'javascript')}>
+                          <FolderDown className="h-4 w-4 mr-2" />ZIP
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => saveSnippet(msg.content, msg.language || 'javascript')}
-                        >
-                          <BookOpen className="h-4 w-4 mr-2" />
-                          Save to Library
+                        <Button variant="ghost" size="sm" onClick={() => saveSnippet(msg.content, msg.language || 'javascript')}>
+                          <BookOpen className="h-4 w-4 mr-2" />Save
                         </Button>
                       </div>
+                      
+                      {/* Code Block */}
                       <div className="rounded-lg overflow-hidden border">
-                        <div className="bg-muted px-3 py-1.5"><Badge variant="outline" className="text-xs">{msg.language}</Badge></div>
+                        <div className="bg-muted px-3 py-1.5 flex items-center justify-between">
+                          <Badge variant="outline" className="text-xs">{msg.language}</Badge>
+                          {msg.isStreaming && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                        </div>
                         <SyntaxHighlighter 
                           language={msg.language} 
                           style={vscDarkPlus} 
                           showLineNumbers={true}
-                          customStyle={{ margin: 0, fontSize: '15px', padding: '14px', lineHeight: '1.6' }}
+                          customStyle={{ margin: 0, fontSize: '14px', padding: '14px', lineHeight: '1.5' }}
                           codeTagProps={{
                             style: {
-                              fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace",
-                              fontSize: '15px',
+                              fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', monospace",
+                              fontSize: '14px',
                             }
                           }}
                         >
-                          {msg.content}
+                          {msg.content || ' '}
                         </SyntaxHighlighter>
                       </div>
+                      
+                      {/* Inline Preview */}
+                      {showPreview[msg.id] && isPreviewableLanguage(msg.language || '') && (
+                        renderInlinePreview(msg.content, msg.language || 'html')
+                      )}
                     </div>
                   ) : (
                     <>
-                      <div className="text-sm">{msg.content}</div>
+                      {/* Error with retry */}
+                      {msg.content.startsWith('Error:') && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleRetry(idx)}
+                          className="mb-2"
+                        >
+                          <RotateCcw className="w-4 h-4 mr-2" />
+                          Retry
+                        </Button>
+                      )}
+                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
                       {msg.attachments && msg.attachments.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {msg.attachments.map((att, i) => (
@@ -620,7 +824,15 @@ ${code}
         )}
       </ScrollArea>
 
-      {isGenerating && <div className="px-4 py-2"><Progress value={progress} className="h-1" /></div>}
+      {isGenerating && (
+        <div className="px-4 py-2">
+          <div className="flex items-center gap-2 mb-1">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span className="text-xs text-muted-foreground">Generating with enhanced AI...</span>
+          </div>
+          <Progress value={progress} className="h-1" />
+        </div>
+      )}
 
       <div className="border-t p-4">
         <div className="max-w-4xl mx-auto">
@@ -661,17 +873,17 @@ ${code}
               className="min-h-[80px]" 
               onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} 
             />
-            <Button onClick={handleSend} disabled={isGenerating} className="h-auto">{isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</Button>
+            <Button onClick={handleSend} disabled={isGenerating} className="h-auto">
+              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-1.5 text-center">Ctrl+Enter to send • Attach UI screenshots or designs (max 5 files, 10MB each)</p>
+          <p className="text-xs text-muted-foreground mt-1.5 text-center">
+            Ctrl+Enter to send • Chat history context enabled • Language-specific best practices applied
+          </p>
         </div>
       </div>
 
-      <CodeSnippetLibrary
-        open={showLibrary}
-        onOpenChange={setShowLibrary}
-        user={user}
-      />
+      <CodeSnippetLibrary open={showLibrary} onOpenChange={setShowLibrary} user={user} />
     </div>
   );
 };
