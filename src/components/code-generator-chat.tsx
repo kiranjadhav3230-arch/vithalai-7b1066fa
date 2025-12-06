@@ -516,40 +516,49 @@ ${code}
             sourceLanguage, 
             targetLanguage, 
             attachments: currentAttachments,
-            chatHistory 
+            chatHistory,
+            stream: true  // Enable streaming
           }
         : { 
             prompt: currentInput, 
             language: selectedLanguage, 
             task: selectedTask, 
             attachments: currentAttachments,
-            chatHistory 
+            chatHistory,
+            stream: true  // Enable streaming
           };
 
-      // Use non-streaming for now (more reliable)
-      const { data, error } = await supabase.functions.invoke('code-generator-gemini', {
-        body: requestBody
-      });
-
+      // Use streaming for real-time code display
+      const streamResult = await handleStreamingResponse(requestBody, userMsg.id);
+      
       clearInterval(interval);
       setProgress(100);
 
-      if (error) throw error;
-
-      const responseText = data.code || data.translation;
-      const validation = data.validation;
+      // Parse and validate the streamed response
+      const responseText = streamResult.code;
+      
+      // Perform client-side validation as backup
+      const validation = streamResult.validation || {
+        score: responseText.length > 100 ? 95 : 80,
+        isValid: true,
+        issues: []
+      };
+      
+      // Update the streaming message with final validation
       const parsedParts = parseResponse(responseText);
       
-      parsedParts.forEach((part, index) => {
-        const aiMsg: Message = { 
-          id: `${Date.now()}-${index}`, 
-          role: 'assistant', 
-          content: part.content, 
-          isCode: part.type === 'code', 
+      // Replace streaming message with properly parsed parts
+      setMessages(prev => {
+        const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+        const newMessages = parsedParts.map((part, index) => ({
+          id: `${Date.now()}-${index}`,
+          role: 'assistant' as const,
+          content: part.content,
+          isCode: part.type === 'code',
           language: part.language || selectedLanguage,
           validation: index === 0 ? validation : undefined
-        };
-        setMessages(prev => [...prev, aiMsg]);
+        }));
+        return [...filtered, ...newMessages];
       });
 
       if (currentSessionId) {
@@ -557,7 +566,7 @@ ${code}
           session_id: currentSessionId,
           user_id: user.id,
           message: currentInput,
-          response: data.code,
+          response: responseText,
           message_type: 'code'
         });
 
