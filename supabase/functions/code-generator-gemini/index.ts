@@ -98,93 +98,293 @@ const LANGUAGE_BEST_PRACTICES: Record<string, string> = {
 - Use match for exhaustive pattern matching`,
 };
 
-// Code validation patterns
-const CODE_VALIDATION_PATTERNS: Record<string, { patterns: RegExp[], checks: string[] }> = {
+// Code validation patterns - Extended for more languages
+const CODE_VALIDATION_PATTERNS: Record<string, { patterns: RegExp[], checks: string[], weight: number }> = {
   javascript: {
     patterns: [
-      /function\s+\w+\s*\(|const\s+\w+\s*=|let\s+\w+\s*=|class\s+\w+/,
-      /import\s+|export\s+|require\s*\(/,
+      /function\s+\w+\s*\(|const\s+\w+\s*=|let\s+\w+\s*=|class\s+\w+|=>\s*{/,
+      /import\s+|export\s+|require\s*\(|module\.exports/,
+      /return\s+|console\.|throw\s+/,
     ],
-    checks: ['Has function/variable declarations', 'Has module syntax']
+    checks: ['Has function/variable declarations', 'Has module syntax', 'Has control flow'],
+    weight: 1.0
   },
   typescript: {
     patterns: [
-      /interface\s+\w+|type\s+\w+\s*=|:\s*(string|number|boolean|any)/,
-      /function\s+\w+|const\s+\w+|class\s+\w+/,
+      /interface\s+\w+|type\s+\w+\s*=|:\s*(string|number|boolean|any|void)/,
+      /function\s+\w+|const\s+\w+|class\s+\w+|=>\s*{/,
+      /<\w+>|as\s+\w+|readonly\s+/,
     ],
-    checks: ['Has type definitions', 'Has proper declarations']
+    checks: ['Has type definitions', 'Has proper declarations', 'Has TypeScript features'],
+    weight: 1.0
   },
   python: {
     patterns: [
-      /def\s+\w+\s*\(|class\s+\w+/,
+      /def\s+\w+\s*\(|class\s+\w+:|async\s+def/,
       /import\s+\w+|from\s+\w+\s+import/,
+      /return\s+|if\s+.*:|for\s+.*:|while\s+.*:/,
     ],
-    checks: ['Has function/class definitions', 'Has imports']
+    checks: ['Has function/class definitions', 'Has imports', 'Has control structures'],
+    weight: 1.0
+  },
+  java: {
+    patterns: [
+      /public\s+class\s+\w+|private\s+|protected\s+/,
+      /void\s+\w+\s*\(|int\s+\w+|String\s+\w+|boolean\s+\w+/,
+      /import\s+java\.|package\s+\w+/,
+      /new\s+\w+\s*\(|return\s+|throw\s+new/,
+    ],
+    checks: ['Has class declaration', 'Has typed variables/methods', 'Has imports/package', 'Has instantiation/returns'],
+    weight: 1.0
+  },
+  cpp: {
+    patterns: [
+      /#include\s*<|using\s+namespace|int\s+main\s*\(/,
+      /class\s+\w+|struct\s+\w+|void\s+\w+\s*\(/,
+      /std::|cout|cin|nullptr|auto\s+\w+/,
+      /return\s+|new\s+|delete\s+/,
+    ],
+    checks: ['Has includes/namespace', 'Has class/function definitions', 'Has C++ features', 'Has memory/returns'],
+    weight: 1.0
+  },
+  csharp: {
+    patterns: [
+      /using\s+System|namespace\s+\w+|public\s+class/,
+      /void\s+\w+\s*\(|int\s+\w+|string\s+\w+|bool\s+\w+/,
+      /new\s+\w+\s*\(|return\s+|async\s+Task/,
+    ],
+    checks: ['Has namespace/using', 'Has typed members', 'Has C# features'],
+    weight: 1.0
+  },
+  go: {
+    patterns: [
+      /package\s+\w+|import\s+\(|func\s+\w+\s*\(/,
+      /var\s+\w+|const\s+\w+|type\s+\w+\s+struct/,
+      /return\s+|if\s+|for\s+|defer\s+|go\s+/,
+      /:=|make\(|append\(/,
+    ],
+    checks: ['Has package/imports/functions', 'Has declarations', 'Has control flow', 'Has Go idioms'],
+    weight: 1.0
+  },
+  rust: {
+    patterns: [
+      /fn\s+\w+\s*\(|impl\s+\w+|struct\s+\w+|enum\s+\w+/,
+      /let\s+(mut\s+)?\w+|const\s+\w+|use\s+\w+/,
+      /pub\s+|mod\s+|->|::\s*\w+/,
+      /match\s+|if\s+let|Result<|Option</,
+    ],
+    checks: ['Has function/struct definitions', 'Has variable declarations', 'Has Rust syntax', 'Has Rust patterns'],
+    weight: 1.0
+  },
+  php: {
+    patterns: [
+      /<\?php|function\s+\w+\s*\(|class\s+\w+/,
+      /\$\w+\s*=|public\s+|private\s+|protected\s+/,
+      /echo\s+|return\s+|new\s+\w+/,
+      /use\s+\w+|namespace\s+\w+|require|include/,
+    ],
+    checks: ['Has PHP declaration', 'Has variables/access modifiers', 'Has output/returns', 'Has includes/namespace'],
+    weight: 1.0
+  },
+  ruby: {
+    patterns: [
+      /def\s+\w+|class\s+\w+|module\s+\w+/,
+      /require\s+|attr_accessor|attr_reader/,
+      /end\s*$|do\s*\||\|.*\|/,
+      /puts\s+|return\s+|@\w+/,
+    ],
+    checks: ['Has method/class definitions', 'Has requires/attributes', 'Has Ruby syntax', 'Has output/instance vars'],
+    weight: 1.0
+  },
+  kotlin: {
+    patterns: [
+      /fun\s+\w+\s*\(|class\s+\w+|object\s+\w+/,
+      /val\s+\w+|var\s+\w+|import\s+\w+/,
+      /:\s*(Int|String|Boolean|List|Map)|->|suspend\s+fun/,
+      /return\s+|when\s*\{|if\s*\(/,
+    ],
+    checks: ['Has function/class definitions', 'Has variable declarations', 'Has Kotlin types', 'Has control flow'],
+    weight: 1.0
+  },
+  swift: {
+    patterns: [
+      /func\s+\w+\s*\(|class\s+\w+|struct\s+\w+|enum\s+\w+/,
+      /let\s+\w+|var\s+\w+|import\s+\w+/,
+      /:\s*(Int|String|Bool|Array|Dictionary)|->|guard\s+let/,
+      /return\s+|if\s+let|switch\s+\w+/,
+    ],
+    checks: ['Has function/type definitions', 'Has variable declarations', 'Has Swift types', 'Has control flow'],
+    weight: 1.0
   },
   html: {
     patterns: [
-      /<html|<body|<head|<div|<section/i,
+      /<html|<body|<head|<div|<section|<!DOCTYPE/i,
       /<\/\w+>/,
+      /<(script|style|link|meta)/i,
     ],
-    checks: ['Has HTML structure', 'Has closing tags']
+    checks: ['Has HTML structure', 'Has closing tags', 'Has resources/metadata'],
+    weight: 0.8
+  },
+  css: {
+    patterns: [
+      /\.\w+\s*\{|#\w+\s*\{|\w+\s*\{/,
+      /:\s*(#[0-9a-f]+|rgb|hsl|\d+px|\d+em|flex|grid)/i,
+      /@media|@keyframes|@import/,
+    ],
+    checks: ['Has selectors', 'Has property values', 'Has at-rules'],
+    weight: 0.8
   },
   sql: {
     patterns: [
       /SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER/i,
-      /FROM|WHERE|JOIN|GROUP BY|ORDER BY/i,
+      /FROM|WHERE|JOIN|GROUP BY|ORDER BY|HAVING/i,
+      /PRIMARY KEY|FOREIGN KEY|INDEX|CONSTRAINT/i,
     ],
-    checks: ['Has SQL keywords', 'Has query structure']
+    checks: ['Has SQL commands', 'Has query clauses', 'Has constraints'],
+    weight: 0.9
   },
 };
 
-// Validate generated code quality
+// Validate generated code quality with improved algorithm
 function validateCode(code: string, language: string): { isValid: boolean; score: number; issues: string[] } {
   const issues: string[] = [];
   let score = 100;
+  let bonusScore = 0;
   
-  // Check for truncation
-  if (code.endsWith('...') || code.endsWith('// ...') || code.endsWith('# ...')) {
-    issues.push('Code appears truncated');
-    score -= 20;
+  // Get language weight (some languages are harder to validate)
+  const validation = CODE_VALIDATION_PATTERNS[language];
+  const languageWeight = validation?.weight || 0.9;
+  
+  // Check for truncation patterns
+  const truncationPatterns = [
+    /\.\.\.$/,
+    /\/\/\s*\.\.\.$/,
+    /#\s*\.\.\.$/,
+    /\/\/\s*rest of code/i,
+    /\/\/\s*more code here/i,
+    /\/\/\s*TODO:/i,
+    /\/\*\s*\.\.\.\s*\*\/$/,
+  ];
+  
+  for (const pattern of truncationPatterns) {
+    if (pattern.test(code.trim())) {
+      issues.push('Code appears truncated');
+      score -= 20;
+      break;
+    }
   }
   
-  // Check for incomplete code blocks
-  const openBraces = (code.match(/{/g) || []).length;
-  const closeBraces = (code.match(/}/g) || []).length;
-  if (openBraces !== closeBraces && ['javascript', 'typescript', 'java', 'cpp', 'csharp', 'go', 'rust'].includes(language)) {
-    issues.push('Unbalanced braces detected');
-    score -= 15;
+  // Check for incomplete code blocks (brace-based languages)
+  const braceLanguages = ['javascript', 'typescript', 'java', 'cpp', 'csharp', 'go', 'rust', 'kotlin', 'swift', 'php'];
+  if (braceLanguages.includes(language)) {
+    const openBraces = (code.match(/{/g) || []).length;
+    const closeBraces = (code.match(/}/g) || []).length;
+    const braceDiff = Math.abs(openBraces - closeBraces);
+    
+    if (braceDiff > 0) {
+      issues.push(`Unbalanced braces (${braceDiff} missing)`);
+      score -= Math.min(braceDiff * 5, 15);
+    }
   }
   
   // Check for incomplete parentheses
   const openParens = (code.match(/\(/g) || []).length;
   const closeParens = (code.match(/\)/g) || []).length;
-  if (openParens !== closeParens) {
-    issues.push('Unbalanced parentheses detected');
-    score -= 10;
+  const parenDiff = Math.abs(openParens - closeParens);
+  
+  if (parenDiff > 0) {
+    issues.push(`Unbalanced parentheses (${parenDiff} missing)`);
+    score -= Math.min(parenDiff * 3, 10);
   }
   
-  // Language-specific validation
-  const validation = CODE_VALIDATION_PATTERNS[language];
+  // Check for incomplete brackets (arrays)
+  const openBrackets = (code.match(/\[/g) || []).length;
+  const closeBrackets = (code.match(/\]/g) || []).length;
+  const bracketDiff = Math.abs(openBrackets - closeBrackets);
+  
+  if (bracketDiff > 0) {
+    issues.push(`Unbalanced brackets (${bracketDiff} missing)`);
+    score -= Math.min(bracketDiff * 3, 10);
+  }
+  
+  // Language-specific validation with weighted scoring
   if (validation) {
+    const patternCount = validation.patterns.length;
+    let matchedPatterns = 0;
+    
     validation.patterns.forEach((pattern, index) => {
-      if (!pattern.test(code)) {
+      if (pattern.test(code)) {
+        matchedPatterns++;
+      } else {
         issues.push(`Missing: ${validation.checks[index]}`);
-        score -= 5;
       }
     });
+    
+    // Calculate pattern match percentage
+    const matchPercentage = matchedPatterns / patternCount;
+    if (matchPercentage < 1) {
+      score -= Math.round((1 - matchPercentage) * 15 * languageWeight);
+    }
+    
+    // Bonus for matching all patterns
+    if (matchPercentage === 1) {
+      bonusScore += 3;
+    }
   }
   
-  // Check minimum code length
-  if (code.length < 50) {
-    issues.push('Code is too short');
-    score -= 25;
+  // Check minimum code length based on language complexity
+  const minLengths: Record<string, number> = {
+    html: 100, css: 50, sql: 30,
+    javascript: 80, typescript: 100, python: 60,
+    java: 150, cpp: 120, csharp: 150,
+    go: 80, rust: 100, php: 80, ruby: 60,
+    kotlin: 100, swift: 100
+  };
+  
+  const minLength = minLengths[language] || 50;
+  if (code.length < minLength) {
+    issues.push(`Code is short (min ${minLength} chars)`);
+    score -= 15;
+  } else if (code.length > minLength * 3) {
+    // Bonus for comprehensive code
+    bonusScore += 2;
   }
+  
+  // Check for comments (bonus for well-documented code)
+  const commentPatterns = [/\/\//, /\/\*/, /#(?!\!)|"""/, /<!--/];
+  const hasComments = commentPatterns.some(p => p.test(code));
+  if (hasComments) {
+    bonusScore += 2;
+  }
+  
+  // Check for proper imports/dependencies
+  const importPatterns: Record<string, RegExp> = {
+    javascript: /import\s+|require\s*\(/,
+    typescript: /import\s+|require\s*\(/,
+    python: /import\s+|from\s+\w+\s+import/,
+    java: /import\s+java\.|import\s+\w+\./,
+    cpp: /#include\s*[<"]/,
+    csharp: /using\s+\w+;/,
+    go: /import\s+[\("]/,
+    rust: /use\s+\w+/,
+    php: /require|include|use\s+\w+/,
+    ruby: /require\s+['"]|require_relative/,
+    kotlin: /import\s+\w+/,
+    swift: /import\s+\w+/,
+  };
+  
+  const importPattern = importPatterns[language];
+  if (importPattern && importPattern.test(code)) {
+    bonusScore += 2;
+  }
+  
+  // Calculate final score with bonus (cap at 100)
+  const finalScore = Math.min(100, Math.max(0, score + bonusScore));
   
   return {
-    isValid: score >= 70,
-    score: Math.max(0, score),
-    issues
+    isValid: finalScore >= 70,
+    score: finalScore,
+    issues: issues.length > 0 ? issues : ['Code looks good']
   };
 }
 
