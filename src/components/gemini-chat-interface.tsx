@@ -1019,16 +1019,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   zIndex: 0
                 }} />
                   
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" onClick={async () => {
                   playChatSound();
                   setCurrentView('chat');
+                  // Create a new chat session if current session is not chat type
+                  if (!currentSession || currentSession.session_type === 'code') {
+                    await createNewSession('chat');
+                  }
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
                     <MessageSquare className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Chat</span>
                   </Button>
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" onClick={async () => {
                   playCodeSound();
                   setCurrentView('code');
+                  // Create a new code session if current session is not code type
+                  if (!currentSession || currentSession.session_type !== 'code') {
+                    await createNewSession('code');
+                  }
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
                     <Code className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">Code</span>
@@ -1063,15 +1071,23 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   zIndex: 0
                 }} />
                   
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" onClick={async () => {
                   playChatSound();
                   setCurrentView('chat');
+                  // Create a new chat session if current session is not chat type
+                  if (!currentSession || currentSession.session_type === 'code') {
+                    await createNewSession('chat');
+                  }
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}>
                     <MessageSquare className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" onClick={() => {
+                  <Button variant="ghost" onClick={async () => {
                   playCodeSound();
                   setCurrentView('code');
+                  // Create a new code session if current session is not code type
+                  if (!currentSession || currentSession.session_type !== 'code') {
+                    await createNewSession('code');
+                  }
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}>
                     <Code className="h-3.5 w-3.5" />
                   </Button>
