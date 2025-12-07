@@ -721,171 +721,60 @@ export const StudyRoomInterface: React.FC<{
   }
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="border-b p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack}>
+    <div className="h-screen flex flex-col bg-background">
+      {/* Clean Professional Header */}
+      <div className="border-b bg-card/50 backdrop-blur-sm">
+        <div className="p-3 sm:p-4 flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h2 className="text-xl font-bold">{room.name}</h2>
-            {room.description && (
-              <p className="text-sm text-muted-foreground">{room.description}</p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <LanguageSelector language={language} onLanguageChange={setLanguage} />
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Invite Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Invite Members</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Invite Code</Label>
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      value={room.invite_code || ''} 
-                      readOnly 
-                      className="flex-1"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={copyInviteCode}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Invite Link</Label>
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      value={`${window.location.origin}/?invite=${room.invite_code}`}
-                      readOnly 
-                      className="flex-1 text-sm"
-                    />
-                    <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={copyInviteLink}
-                    >
-                      <LinkIcon className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl font-bold truncate">{room.name}</h2>
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <span>{onlineUsers.size} online</span>
               </div>
-            </DialogContent>
-          </Dialog>
-          
-          {isRoomCreator && (
-            <Dialog open={isMemberManagementOpen} onOpenChange={setIsMemberManagementOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Manage Members
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Manage Members</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-3 mt-4">
-                  {members.map((member) => (
-                    <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Users className="h-5 w-5 text-primary" />
-                          </div>
-                          {onlineUsers.has(member.user_id) && (
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-medium">User {member.user_id.slice(0, 8)}</div>
-                          <div className="text-xs text-muted-foreground capitalize">
-                            {member.role}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Select
-                          value={member.role}
-                          onValueChange={(value) => handleRoleChange(member.id, value)}
-                          disabled={updatingMemberId === member.id || member.user_id === user?.id}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="moderator">Moderator</SelectItem>
-                            <SelectItem value="member">Member</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveMember(member.id, member.user_id)}
-                          disabled={updatingMemberId === member.id || member.user_id === user?.id}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
-          
-          <Button variant="destructive" size="sm" onClick={handleLeaveClick}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Leave Room
-          </Button>
-          
-          <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Leave Room?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to leave "{room.name}"? You'll need the invite code to rejoin.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={leaveRoom} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                  Leave Room
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            {onlineUsers.size} online / {members.length} total
+              <span>•</span>
+              <span>{members.length} members</span>
+            </div>
           </div>
+          <LanguageSelector language={language} onLanguageChange={setLanguage} />
         </div>
       </div>
 
+      {/* Leave Room Dialog - shared across components */}
+      <AlertDialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave Room?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave "{room.name}"? You'll need the invite code to rejoin.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={leaveRoom} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Leave Room
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-4">
-          <TabsTrigger value="chat">Chat</TabsTrigger>
-          <TabsTrigger value="notes">Notes ({notes.length})</TabsTrigger>
-          <TabsTrigger value="members">Members ({members.length})</TabsTrigger>
-        </TabsList>
+        <div className="px-3 sm:px-4 pt-3">
+          <TabsList className="w-full grid grid-cols-3 h-10">
+            <TabsTrigger value="chat" className="text-xs sm:text-sm">
+              💬 Chat
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="text-xs sm:text-sm">
+              📝 Notes ({notes.length})
+            </TabsTrigger>
+            <TabsTrigger value="members" className="text-xs sm:text-sm">
+              👥 Members ({members.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Notification Permission Banner */}
         {showNotificationBanner && pushPermission !== 'granted' && !pushSubscribed && (
@@ -1248,41 +1137,193 @@ export const StudyRoomInterface: React.FC<{
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="members" className="flex-1 p-4">
-          <h3 className="text-lg font-semibold mb-4">Room Members ({members.length})</h3>
-          <ScrollArea className="h-[calc(100vh-250px)]">
-            <div className="space-y-2">
-              {members.length === 0 ? (
-                <Card>
-                  <CardContent className="py-8 text-center">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground">No members found</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                members.map((member) => (
-                  <Card key={member.user_id}>
-                    <CardContent className="py-3">
-                      <div className="flex items-center justify-between">
+        <TabsContent value="members" className="flex-1 p-3 sm:p-4 overflow-hidden flex flex-col">
+          {/* Action Buttons - Professional Card */}
+          <Card className="mb-4 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+            <CardContent className="p-3 sm:p-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                {/* Invite Member Dialog */}
+                <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full gap-2 h-10 sm:h-11 text-xs sm:text-sm bg-background hover:bg-primary/10">
+                      <UserPlus className="h-4 w-4" />
+                      Invite Member
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md mx-4">
+                    <DialogHeader>
+                      <DialogTitle>Invite Members</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="space-y-2">
+                        <Label>Invite Code</Label>
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-gray-400'}`} />
-                          <div>
-                            <p className="font-medium">
-                              {member.display_name || 'User'}
-                              {member.user_id === user.id && ' (You)'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {onlineUsers.has(member.user_id) ? 'Online' : 'Offline'} • Joined {new Date(member.joined_at).toLocaleDateString()}
-                            </p>
-                          </div>
+                          <Input 
+                            value={room.invite_code || ''} 
+                            readOnly 
+                            className="flex-1 font-mono"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={copyInviteCode}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Invite Link</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            value={`${window.location.origin}/?invite=${room.invite_code}`}
+                            readOnly 
+                            className="flex-1 text-xs sm:text-sm"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={copyInviteLink}
+                          >
+                            <LinkIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Leave Room Button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2 h-10 sm:h-11 text-xs sm:text-sm bg-background hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50"
+                  onClick={handleLeaveClick}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Leave Room
+                </Button>
+              </div>
+
+              {/* Manage Members - Only for Creator */}
+              {isRoomCreator && (
+                <Dialog open={isMemberManagementOpen} onOpenChange={setIsMemberManagementOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="secondary" className="w-full mt-3 gap-2 h-10 sm:h-11 text-xs sm:text-sm">
+                      <Settings className="h-4 w-4" />
+                      Manage Members
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto mx-4">
+                    <DialogHeader>
+                      <DialogTitle>Manage Members</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 mt-4">
+                      {members.map((member) => (
+                        <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg gap-2">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="relative shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Users className="h-5 w-5 text-primary" />
+                              </div>
+                              {onlineUsers.has(member.user_id) && (
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{member.display_name || `User ${member.user_id.slice(0, 8)}`}</div>
+                              <div className="text-xs text-muted-foreground capitalize">
+                                {member.role}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Select
+                              value={member.role}
+                              onValueChange={(value) => handleRoleChange(member.id, value)}
+                              disabled={updatingMemberId === member.id || member.user_id === user?.id}
+                            >
+                              <SelectTrigger className="w-24 sm:w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="moderator">Moderator</SelectItem>
+                                <SelectItem value="member">Member</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleRemoveMember(member.id, member.user_id)}
+                              disabled={updatingMemberId === member.id || member.user_id === user?.id}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Members List */}
+          <div className="flex-1 overflow-hidden">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">
+              ALL MEMBERS
+            </h3>
+            <ScrollArea className="h-[calc(100vh-380px)]">
+              <div className="space-y-2">
+                {members.length === 0 ? (
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">No members found</p>
                     </CardContent>
                   </Card>
-                ))
-              )}
-            </div>
-          </ScrollArea>
+                ) : (
+                  members.map((member) => (
+                    <Card key={member.user_id} className="overflow-hidden">
+                      <CardContent className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                              <span className="text-sm font-semibold text-primary">
+                                {(member.display_name || 'U').charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${
+                              onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-muted-foreground/40'
+                            }`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">
+                              {member.display_name || 'User'}
+                              {member.user_id === user.id && (
+                                <span className="text-xs text-primary ml-1">(You)</span>
+                              )}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <span className={onlineUsers.has(member.user_id) ? 'text-green-500' : ''}>
+                                {onlineUsers.has(member.user_id) ? 'Online' : 'Offline'}
+                              </span>
+                              <span>•</span>
+                              <span className="capitalize">{member.role}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
