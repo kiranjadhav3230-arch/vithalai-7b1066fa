@@ -21,9 +21,10 @@ interface ModernHeaderProps {
 export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
-  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOS, isAndroid, hasPrompt, installApp } = usePWAInstall();
   const { toast } = useToast();
   const [showInstallDialog, setShowInstallDialog] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,12 +49,16 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
         description: "Vithal AI has been installed on your device."
       });
       setShowInstallDialog(false);
+      setShowInstructions(false);
+    } else if ((result as any).showInstructions) {
+      setShowInstructions(true);
     } else {
+      // Still try to show success message as user may have installed via browser prompt
       toast({
-        variant: "destructive",
-        title: "Installation",
-        description: result.message
+        title: "Install via Browser",
+        description: "Use your browser's menu to install the app"
       });
+      setShowInstructions(true);
     }
   };
 
@@ -145,31 +150,53 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
                       <Check className="h-5 w-5" />
                       <span>App is already installed on your device!</span>
                     </div>
-                  ) : isIOS ? (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium">To install on iOS:</p>
-                      <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
-                        <li>Tap the <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span> in Safari</li>
-                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                        <li>Tap <strong>"Add"</strong> to install Vithal AI</li>
-                      </ol>
-                    </div>
-                  ) : isInstallable ? (
-                    <Button 
-                      onClick={handleInstallApp}
-                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Install Vithal AI
-                    </Button>
                   ) : (
-                    <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
-                      <p className="font-medium mb-2">How to install:</p>
-                      <ul className="list-disc pl-5 space-y-1">
-                        <li>Open this site in <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Safari</strong></li>
-                        <li>Look for the install icon in the address bar</li>
-                        <li>Or use browser menu → "Install app" / "Add to Home Screen"</li>
-                      </ul>
+                    <div className="space-y-4">
+                      {/* Always show install button */}
+                      <Button 
+                        onClick={handleInstallApp}
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-6 text-lg"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Install Vithal AI App
+                      </Button>
+
+                      {/* Show instructions based on device */}
+                      {(showInstructions || isIOS) && (
+                        <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                          <p className="text-sm font-medium text-orange-400">
+                            {isIOS ? "iOS Installation:" : "If the button doesn't work:"}
+                          </p>
+                          {isIOS ? (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Tap the <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span> in Safari</li>
+                              <li>Scroll and tap <strong>"Add to Home Screen"</strong></li>
+                              <li>Tap <strong>"Add"</strong> to install</li>
+                            </ol>
+                          ) : isAndroid ? (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Tap the <strong>⋮ menu</strong> (three dots) in Chrome</li>
+                              <li>Tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong></li>
+                              <li>Confirm installation</li>
+                            </ol>
+                          ) : (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Look for the <strong>install icon</strong> in the address bar</li>
+                              <li>Or click browser menu → <strong>"Install Vithal AI"</strong></li>
+                              <li>Confirm installation</li>
+                            </ol>
+                          )}
+                        </div>
+                      )}
+
+                      {!showInstructions && !isIOS && (
+                        <button 
+                          onClick={() => setShowInstructions(true)}
+                          className="text-xs text-muted-foreground hover:text-orange-400 underline"
+                        >
+                          Show manual installation instructions
+                        </button>
+                      )}
                     </div>
                   )}
 

@@ -26,9 +26,10 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = React.useState(false);
   const [showInstallDialog, setShowInstallDialog] = React.useState(false);
+  const [showInstructions, setShowInstructions] = React.useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
-  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOS, isAndroid, hasPrompt, installApp } = usePWAInstall();
   const { toast } = useToast();
 
   // Swipe gesture handling
@@ -76,12 +77,15 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         description: "Vithal AI has been installed on your device."
       });
       setShowInstallDialog(false);
+      setShowInstructions(false);
+    } else if ((result as any).showInstructions) {
+      setShowInstructions(true);
     } else {
       toast({
-        variant: "destructive",
-        title: "Installation",
-        description: result.message
+        title: "Install via Browser",
+        description: "Use your browser's menu to install the app"
       });
+      setShowInstructions(true);
     }
   };
 
@@ -174,31 +178,52 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                       <Check className="h-5 w-5" />
                       <span>App is already installed!</span>
                     </div>
-                  ) : isIOS ? (
-                    <div className="space-y-3">
-                      <p className="text-sm font-medium">To install on iOS:</p>
-                      <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
-                        <li>Tap the <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span> in Safari</li>
-                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
-                        <li>Tap <strong>"Add"</strong> to install Vithal AI</li>
-                      </ol>
-                    </div>
-                  ) : isInstallable ? (
-                    <Button 
-                      onClick={handleInstallApp}
-                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Install Vithal AI
-                    </Button>
                   ) : (
-                    <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
-                      <p className="font-medium mb-2">How to install:</p>
-                      <ul className="list-disc pl-5 space-y-1">
-                        <li>Open in <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Safari</strong></li>
-                        <li>Look for the install icon in the address bar</li>
-                        <li>Or use browser menu → "Add to Home Screen"</li>
-                      </ul>
+                    <div className="space-y-4">
+                      {/* Always show install button */}
+                      <Button 
+                        onClick={handleInstallApp}
+                        className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white py-6 text-lg"
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Install Vithal AI App
+                      </Button>
+
+                      {/* Show instructions based on device */}
+                      {(showInstructions || isIOS) && (
+                        <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+                          <p className="text-sm font-medium text-orange-400">
+                            {isIOS ? "iOS Installation:" : "If the button doesn't work:"}
+                          </p>
+                          {isIOS ? (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Tap <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span></li>
+                              <li>Tap <strong>"Add to Home Screen"</strong></li>
+                              <li>Tap <strong>"Add"</strong></li>
+                            </ol>
+                          ) : isAndroid ? (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Tap <strong>⋮ menu</strong> in Chrome</li>
+                              <li>Tap <strong>"Install app"</strong></li>
+                              <li>Confirm installation</li>
+                            </ol>
+                          ) : (
+                            <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                              <li>Look for install icon in address bar</li>
+                              <li>Or use browser menu → <strong>"Install"</strong></li>
+                            </ol>
+                          )}
+                        </div>
+                      )}
+
+                      {!showInstructions && !isIOS && (
+                        <button 
+                          onClick={() => setShowInstructions(true)}
+                          className="text-xs text-muted-foreground hover:text-orange-400 underline"
+                        >
+                          Show manual instructions
+                        </button>
+                      )}
                     </div>
                   )}
 
