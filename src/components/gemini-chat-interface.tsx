@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
@@ -122,7 +123,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { isInstallable, isInstalled, installApp } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOS, isAndroid, hasPrompt, installApp } = usePWAInstall();
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
 
   const handleInstallApp = async () => {
     const result = await installApp();
@@ -131,11 +133,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         title: "Success!",
         description: "Vithal AI has been installed successfully!",
       });
+      setShowInstallDialog(false);
     } else if (result.showInstructions) {
-      toast({
-        title: "Install Instructions",
-        description: "Use your browser's menu (⋮) → 'Add to Home Screen' or 'Install App'",
-      });
+      // Show the dialog with instructions if direct install failed
+      setShowInstallDialog(true);
     }
   };
   useEffect(() => {
@@ -1419,6 +1420,63 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
         <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+        
+        {/* PWA Install Dialog */}
+        <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
+          <DialogContent className="sm:max-w-md bg-black/95 border-orange-500/30">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent flex items-center gap-2">
+                <Smartphone className="h-5 w-5 text-orange-500" />
+                Install Vithal AI App
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                Install Vithal AI on your device for the best experience
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {/* Install Button */}
+              <Button
+                onClick={handleInstallApp}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-orange-500/30"
+              >
+                <Smartphone className="h-5 w-5 mr-2" />
+                Install Vithal AI App
+              </Button>
+
+              {/* Platform-specific instructions */}
+              <div className="space-y-3 text-sm">
+                {isIOS ? (
+                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <p className="font-semibold text-orange-400 mb-2">iOS Installation:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                      <li>Tap the Share button <span className="inline-block px-1">⬆️</span></li>
+                      <li>Scroll down and tap "Add to Home Screen"</li>
+                      <li>Tap "Add" to confirm</li>
+                    </ol>
+                  </div>
+                ) : isAndroid ? (
+                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <p className="font-semibold text-orange-400 mb-2">Android Installation:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                      <li>Tap the menu button (⋮) in Chrome</li>
+                      <li>Select "Add to Home Screen" or "Install App"</li>
+                      <li>Tap "Install" to confirm</li>
+                    </ol>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                    <p className="font-semibold text-orange-400 mb-2">Desktop Installation:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+                      <li>Click the install icon in the address bar</li>
+                      <li>Or use browser menu → "Install Vithal AI"</li>
+                      <li>Click "Install" to confirm</li>
+                    </ol>
+                  </div>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </SidebarProvider>;
 };
