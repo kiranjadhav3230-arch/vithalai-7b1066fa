@@ -1,9 +1,18 @@
 import React, { useEffect, useRef } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Download, Smartphone, Check } from 'lucide-react';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface MobileNavDrawerProps {
   onAuthClick: () => void;
@@ -16,8 +25,11 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [showInstallDialog, setShowInstallDialog] = React.useState(false);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { toast } = useToast();
 
   // Swipe gesture handling
   useEffect(() => {
@@ -54,6 +66,23 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   const handleNavClick = (sectionId: string) => {
     scrollToSection(sectionId);
     setIsOpen(false);
+  };
+
+  const handleInstallApp = async () => {
+    const result = await installApp();
+    if (result.success) {
+      toast({
+        title: "App Installed!",
+        description: "Vithal AI has been installed on your device."
+      });
+      setShowInstallDialog(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Installation",
+        description: result.message
+      });
+    }
   };
 
   return (
@@ -109,6 +138,76 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             >
               {t('contact')}
             </button>
+
+            {/* Download App Button */}
+            <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
+              <DialogTrigger asChild>
+                <button
+                  className="w-full text-left px-4 py-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-amber-500/10 hover:from-orange-500/20 hover:to-amber-500/20 font-display font-medium transition-all duration-300 text-orange-400 border border-orange-500/30 flex items-center gap-3"
+                >
+                  <Download className="h-5 w-5" />
+                  Download App
+                </button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Smartphone className="h-5 w-5 text-orange-400" />
+                    Download Vithal AI App
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+                    <img 
+                      src="/pwa-192x192.png" 
+                      alt="Vithal AI" 
+                      className="h-16 w-16 rounded-xl"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">Vithal AI</h3>
+                      <p className="text-sm text-muted-foreground">AI Career Companion</p>
+                    </div>
+                  </div>
+
+                  {isInstalled ? (
+                    <div className="flex items-center gap-2 text-green-400 text-sm p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                      <Check className="h-5 w-5" />
+                      <span>App is already installed!</span>
+                    </div>
+                  ) : isIOS ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">To install on iOS:</p>
+                      <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                        <li>Tap the <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span> in Safari</li>
+                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+                        <li>Tap <strong>"Add"</strong> to install Vithal AI</li>
+                      </ol>
+                    </div>
+                  ) : isInstallable ? (
+                    <Button 
+                      onClick={handleInstallApp}
+                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Install Vithal AI
+                    </Button>
+                  ) : (
+                    <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                      <p className="font-medium mb-2">How to install:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Open in <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Safari</strong></li>
+                        <li>Look for the install icon in the address bar</li>
+                        <li>Or use browser menu → "Add to Home Screen"</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-muted-foreground pt-2 border-t">
+                    <p>✓ Works offline • ✓ Fast loading • ✓ No app store needed</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </nav>
 
           {/* Language Selector & Login Button */}
