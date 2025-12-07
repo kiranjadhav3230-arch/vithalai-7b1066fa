@@ -1000,6 +1000,26 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <h1 className="text-xs md:text-sm font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
                     {currentSession?.title || 'New Chat'}
                   </h1>
+                  {/* Session Type Indicator */}
+                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] md:text-[10px] font-medium ${
+                    currentSession?.session_type === 'code' 
+                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                      : 'bg-green-500/20 text-green-400 border border-green-500/30'
+                  }`}>
+                    {currentSession?.session_type === 'code' ? (
+                      <>
+                        <Code className="h-2.5 w-2.5" />
+                        <span className="hidden sm:inline">Code Session</span>
+                        <span className="sm:hidden">Code</span>
+                      </>
+                    ) : (
+                      <>
+                        <MessageSquare className="h-2.5 w-2.5" />
+                        <span className="hidden sm:inline">Chat Session</span>
+                        <span className="sm:hidden">Chat</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
