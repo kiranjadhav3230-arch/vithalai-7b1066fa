@@ -3,6 +3,16 @@ import { Button } from '@/components/ui/button';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { MobileNavDrawer } from '@/components/mobile-nav-drawer';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { Download, Smartphone, Check } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface ModernHeaderProps {
   onAuthClick: () => void;
@@ -11,6 +21,9 @@ interface ModernHeaderProps {
 export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
   const { language, setLanguage, t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { toast } = useToast();
+  const [showInstallDialog, setShowInstallDialog] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +37,23 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleInstallApp = async () => {
+    const result = await installApp();
+    if (result.success) {
+      toast({
+        title: "App Installed!",
+        description: "Vithal AI has been installed on your device."
+      });
+      setShowInstallDialog(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Installation",
+        description: result.message
+      });
     }
   };
 
@@ -78,6 +108,78 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({ onAuthClick }) => {
 
           {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-4">
+            {/* Download App Button */}
+            <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex items-center gap-2 border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300"
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden lg:inline">Download App</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Smartphone className="h-5 w-5 text-orange-400" />
+                    Download Vithal AI App
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+                    <img 
+                      src="/pwa-192x192.png" 
+                      alt="Vithal AI" 
+                      className="h-16 w-16 rounded-xl"
+                    />
+                    <div>
+                      <h3 className="font-semibold text-lg">Vithal AI</h3>
+                      <p className="text-sm text-muted-foreground">AI Career Companion</p>
+                    </div>
+                  </div>
+
+                  {isInstalled ? (
+                    <div className="flex items-center gap-2 text-green-400 text-sm p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                      <Check className="h-5 w-5" />
+                      <span>App is already installed on your device!</span>
+                    </div>
+                  ) : isIOS ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-medium">To install on iOS:</p>
+                      <ol className="text-sm text-muted-foreground list-decimal pl-5 space-y-2">
+                        <li>Tap the <strong>Share</strong> button <span className="inline-block px-2 py-0.5 bg-muted rounded text-xs">↑</span> in Safari</li>
+                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+                        <li>Tap <strong>"Add"</strong> to install Vithal AI</li>
+                      </ol>
+                    </div>
+                  ) : isInstallable ? (
+                    <Button 
+                      onClick={handleInstallApp}
+                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Install Vithal AI
+                    </Button>
+                  ) : (
+                    <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                      <p className="font-medium mb-2">How to install:</p>
+                      <ul className="list-disc pl-5 space-y-1">
+                        <li>Open this site in <strong>Chrome</strong>, <strong>Edge</strong>, or <strong>Safari</strong></li>
+                        <li>Look for the install icon in the address bar</li>
+                        <li>Or use browser menu → "Install app" / "Add to Home Screen"</li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="text-xs text-muted-foreground pt-2 border-t">
+                    <p>✓ Works offline • ✓ Fast loading • ✓ No app store needed</p>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <div className="hidden sm:block">
               <LanguageSelector 
                 language={language} 
