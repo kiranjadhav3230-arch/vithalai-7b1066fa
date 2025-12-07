@@ -310,6 +310,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
                     {loading ? 'Signing in...' : t('login')}
                   </Button>
 
+                  <p className="text-xs text-center text-muted-foreground">
+                    By continuing, you agree to the{' '}
+                    <a 
+                      href="https://vithalaitermscondition.lovable.app" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-orange-500 hover:text-orange-600 hover:underline"
+                    >
+                      Terms And Condition
+                    </a>
+                  </p>
+
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
                       <span className="w-full border-t" />
@@ -435,6 +447,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             >
               {loading ? 'Creating account...' : t('signup')}
             </Button>
+
+            <p className="text-xs text-center text-muted-foreground">
+              By continuing, you agree to the{' '}
+              <a 
+                href="https://vithalaitermscondition.lovable.app" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-orange-500 hover:text-orange-600 hover:underline"
+              >
+                Terms And Condition
+              </a>
+            </p>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
