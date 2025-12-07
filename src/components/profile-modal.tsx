@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User as UserIcon, Mail, GraduationCap, Brain, Heart, Edit2 } from 'lucide-react';
+import { User as UserIcon, Mail, GraduationCap, Brain, Heart, Edit2, Download, Smartphone, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import type { User } from '@supabase/supabase-js';
 
 interface ProfileModalProps {
@@ -21,6 +22,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
   const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
   
   const userMetadata = user.user_metadata || {};
   const skills = userMetadata.skills ? userMetadata.skills.split(',').map((s: string) => s.trim()) : [];
@@ -65,11 +67,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
     }
   };
 
+  const handleInstallApp = async () => {
+    const result = await installApp();
+    if (result.success) {
+      toast({
+        title: "App Installed!",
+        description: "Vithal AI has been installed on your device."
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Installation",
+        description: result.message
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-center">Profile</DialogTitle>
+          <DialogTitle className="text-center">Profile & Settings</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -91,6 +109,50 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 {user.email}
               </p>
             </div>
+          </div>
+
+          {/* Download as App Section */}
+          <div className="p-4 rounded-lg bg-gradient-to-r from-orange-500/10 to-amber-500/10 border border-orange-500/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-orange-500/20">
+                <Smartphone className="h-5 w-5 text-orange-400" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm">Download as App</h4>
+                <p className="text-xs text-muted-foreground">Install Vithal AI on your device</p>
+              </div>
+            </div>
+
+            {isInstalled ? (
+              <div className="flex items-center gap-2 text-green-400 text-sm">
+                <Check className="h-4 w-4" />
+                <span>App is already installed!</span>
+              </div>
+            ) : isIOS ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  To install on iOS:
+                </p>
+                <ol className="text-xs text-muted-foreground list-decimal pl-4 space-y-1">
+                  <li>Tap the Share button <span className="inline-block px-1 py-0.5 bg-muted rounded text-[10px]">↑</span> in Safari</li>
+                  <li>Scroll down and tap "Add to Home Screen"</li>
+                  <li>Tap "Add" to install Vithal AI</li>
+                </ol>
+              </div>
+            ) : isInstallable ? (
+              <Button 
+                onClick={handleInstallApp}
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white"
+                size="sm"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Install Vithal AI
+              </Button>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Open this app in a supported browser (Chrome, Edge, or Safari) to install it on your device.
+              </p>
+            )}
           </div>
 
           {/* User Details */}
