@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +21,7 @@ import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
 import type { User } from '@supabase/supabase-js';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 interface ChatSession {
   id: string;
   title: string;
@@ -121,6 +122,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { isInstallable, isInstalled, installApp } = usePWAInstall();
+
+  const handleInstallApp = async () => {
+    const result = await installApp();
+    if (result.success) {
+      toast({
+        title: "Success!",
+        description: "Vithal AI has been installed successfully!",
+      });
+    } else if (result.showInstructions) {
+      toast({
+        title: "Install Instructions",
+        description: "Use your browser's menu (⋮) → 'Add to Home Screen' or 'Install App'",
+      });
+    }
+  };
   useEffect(() => {
     loadChatSessions();
     loadUserProfile();
@@ -922,6 +939,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
+                  {!isInstalled && isInstallable && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={handleInstallApp} className="w-full hover:bg-orange-500/10 hover:text-orange-400 bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20">
+                        <div className="flex items-center gap-2">
+                          <Smartphone className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-400" />
+                          <span className="text-xs md:text-sm text-orange-400 font-medium">Install Vithal AI App</span>
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -1000,26 +1027,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   <h1 className="text-xs md:text-sm font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
                     {currentSession?.title || 'New Chat'}
                   </h1>
-                  {/* Session Type Indicator */}
-                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8px] md:text-[10px] font-medium ${
-                    currentSession?.session_type === 'code' 
-                      ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-                      : 'bg-green-500/20 text-green-400 border border-green-500/30'
-                  }`}>
-                    {currentSession?.session_type === 'code' ? (
-                      <>
-                        <Code className="h-2.5 w-2.5" />
-                        <span className="hidden sm:inline">Code Session</span>
-                        <span className="sm:hidden">Code</span>
-                      </>
-                    ) : (
-                      <>
-                        <MessageSquare className="h-2.5 w-2.5" />
-                        <span className="hidden sm:inline">Chat Session</span>
-                        <span className="sm:hidden">Chat</span>
-                      </>
-                    )}
-                  </div>
                 </div>
               </div>
 
