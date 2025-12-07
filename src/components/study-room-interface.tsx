@@ -1137,8 +1137,8 @@ export const StudyRoomInterface: React.FC<{
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="members" className="flex-1 p-3 sm:p-4 overflow-hidden flex flex-col">
-          {/* Action Buttons - Professional Card */}
+        <TabsContent value="members" className="flex-1 p-3 sm:p-4 overflow-auto">
+          {/* Action Buttons - Professional Card at TOP */}
           <Card className="mb-4 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
             <CardContent className="p-3 sm:p-4">
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -1272,57 +1272,55 @@ export const StudyRoomInterface: React.FC<{
             </CardContent>
           </Card>
 
-          {/* Members List */}
-          <div className="flex-1 overflow-hidden">
+          {/* Members List - Immediately below action buttons */}
+          <div>
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">
               ALL MEMBERS
             </h3>
-            <ScrollArea className="h-[calc(100vh-380px)]">
-              <div className="space-y-2">
-                {members.length === 0 ? (
-                  <Card>
-                    <CardContent className="py-8 text-center">
-                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No members found</p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  members.map((member) => (
-                    <Card key={member.user_id} className="overflow-hidden">
-                      <CardContent className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative shrink-0">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                              <span className="text-sm font-semibold text-primary">
-                                {(member.display_name || 'U').charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${
-                              onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-muted-foreground/40'
-                            }`} />
+            <div className="space-y-2">
+              {members.length === 0 ? (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                    <p className="text-muted-foreground">No members found</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                members.map((member) => (
+                  <Card key={member.user_id} className="overflow-hidden">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                            <span className="text-sm font-semibold text-primary">
+                              {(member.display_name || 'U').charAt(0).toUpperCase()}
+                            </span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm truncate">
-                              {member.display_name || 'User'}
-                              {member.user_id === user.id && (
-                                <span className="text-xs text-primary ml-1">(You)</span>
-                              )}
-                            </p>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                              <span className={onlineUsers.has(member.user_id) ? 'text-green-500' : ''}>
-                                {onlineUsers.has(member.user_id) ? 'Online' : 'Offline'}
-                              </span>
-                              <span>•</span>
-                              <span className="capitalize">{member.role}</span>
-                            </div>
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background ${
+                            onlineUsers.has(member.user_id) ? 'bg-green-500' : 'bg-muted-foreground/40'
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">
+                            {member.display_name || 'User'}
+                            {member.user_id === user.id && (
+                              <span className="text-xs text-primary ml-1">(You)</span>
+                            )}
+                          </p>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span className={onlineUsers.has(member.user_id) ? 'text-green-500' : ''}>
+                              {onlineUsers.has(member.user_id) ? 'Online' : 'Offline'}
+                            </span>
+                            <span>•</span>
+                            <span className="capitalize">{member.role}</span>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
