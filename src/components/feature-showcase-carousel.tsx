@@ -4,6 +4,13 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Code2, MessageSquare, Users, BookOpen, Sparkles, Leaf } from 'lucide-react';
 import type { CarouselApi } from '@/components/ui/carousel';
 
+// Import feature screenshots
+import featureChatImg from '@/assets/feature-chat.png';
+import featureCodeImg from '@/assets/feature-code.png';
+import featureStudyRoomsImg from '@/assets/feature-study-rooms.png';
+import featureCropImg from '@/assets/feature-crop.png';
+import featureCareerImg from '@/assets/feature-career.png';
+
 export const FeatureShowcaseCarousel: React.FC = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -14,35 +21,40 @@ export const FeatureShowcaseCarousel: React.FC = () => {
       title: 'AI Chat Assistant',
       description: 'Get instant answers to your questions with intelligent AI responses',
       gradient: 'from-orange-500 to-orange-600',
-      screenshot: 'Intelligent chat interface with multi-language support'
+      screenshot: featureChatImg,
+      highlights: ['Intelligent chat interface with multi-language support', 'Powered by Gemini AI', 'Available 24/7']
     },
     {
       icon: Code2,
       title: 'Code Generator',
       description: 'Generate, debug, and optimize code in 15+ programming languages',
       gradient: 'from-orange-600 to-red-500',
-      screenshot: 'Professional code editor with syntax highlighting'
+      screenshot: featureCodeImg,
+      highlights: ['Professional code editor with syntax highlighting', 'Powered by Gemini AI', 'Available 24/7']
     },
     {
       icon: Users,
       title: 'Study Rooms',
       description: 'Collaborate with peers in real-time AI-powered study spaces',
       gradient: 'from-orange-400 to-orange-500',
-      screenshot: 'Interactive study rooms with live chat and reactions'
+      screenshot: featureStudyRoomsImg,
+      highlights: ['Interactive study rooms with live chat and reactions', 'Powered by Gemini AI', 'Available 24/7']
     },
     {
       icon: Leaf,
       title: 'Crop Health Analyzer',
       description: 'AI-powered plant disease diagnosis and treatment recommendations for sustainable agriculture',
       gradient: 'from-green-500 to-green-600',
-      screenshot: 'Upload plant images for instant disease detection and remedies'
+      screenshot: featureCropImg,
+      highlights: ['Upload plant images for instant disease detection', 'Weather-based recommendations', 'PDF report generation']
     },
     {
       icon: BookOpen,
       title: 'Career Guidance',
       description: 'Personalized career advice tailored to Indian job market',
       gradient: 'from-orange-500 to-orange-700',
-      screenshot: 'Comprehensive career assessments and recommendations'
+      screenshot: featureCareerImg,
+      highlights: ['Comprehensive career assessments', 'Skill analysis and recommendations', 'Job market insights']
     }
   ];
 
@@ -51,7 +63,7 @@ export const FeatureShowcaseCarousel: React.FC = () => {
 
     const interval = setInterval(() => {
       api.scrollNext();
-    }, 5000); // Auto-scroll every 5 seconds
+    }, 5000);
 
     api.on('select', () => {
       setCurrent(api.selectedScrollSnap());
@@ -117,32 +129,23 @@ export const FeatureShowcaseCarousel: React.FC = () => {
 
                           {/* Feature Highlights */}
                           <div className="space-y-3">
-                            <div className="flex items-start gap-3">
-                              <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
-                              <p className="text-foreground/80 font-sans">{feature.screenshot}</p>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
-                              <p className="text-foreground/80 font-sans">Powered by Gemini AI</p>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
-                              <p className="text-foreground/80 font-sans">Available 24/7</p>
-                            </div>
+                            {feature.highlights.map((highlight, idx) => (
+                              <div key={idx} className="flex items-start gap-3">
+                                <div className="w-2 h-2 rounded-full bg-primary mt-2"></div>
+                                <p className="text-foreground/80 font-sans">{highlight}</p>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
-                        {/* Screenshot Placeholder */}
+                        {/* Feature Screenshot */}
                         <div className="relative">
-                          <div className={`aspect-[4/3] rounded-2xl bg-gradient-to-br ${feature.gradient} p-1 shadow-2xl shadow-orange-500/50`}>
-                            <div className="w-full h-full rounded-xl bg-black/40 backdrop-blur-sm flex items-center justify-center">
-                              <div className="text-center space-y-4 p-8">
-                                <feature.icon className="h-20 w-20 text-white/80 mx-auto animate-float" />
-                                <p className="text-white/70 font-display font-semibold text-lg">
-                                  {feature.title} Interface
-                                </p>
-                              </div>
-                            </div>
+                          <div className={`aspect-[4/3] rounded-2xl bg-gradient-to-br ${feature.gradient} p-1 shadow-2xl shadow-orange-500/50 overflow-hidden`}>
+                            <img 
+                              src={feature.screenshot} 
+                              alt={`${feature.title} Interface`}
+                              className="w-full h-full object-cover rounded-xl"
+                            />
                           </div>
                           
                           {/* Decorative Elements */}
