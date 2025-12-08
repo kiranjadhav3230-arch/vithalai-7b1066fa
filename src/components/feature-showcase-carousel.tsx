@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Code2, MessageSquare, Users, BookOpen, Sparkles } from 'lucide-react';
+import { Code2, MessageSquare, Users, BookOpen, Sparkles, Leaf } from 'lucide-react';
 import type { CarouselApi } from '@/components/ui/carousel';
 
 export const FeatureShowcaseCarousel: React.FC = () => {
@@ -29,6 +29,13 @@ export const FeatureShowcaseCarousel: React.FC = () => {
       description: 'Collaborate with peers in real-time AI-powered study spaces',
       gradient: 'from-orange-400 to-orange-500',
       screenshot: 'Interactive study rooms with live chat and reactions'
+    },
+    {
+      icon: Leaf,
+      title: 'Crop Health Analyzer',
+      description: 'AI-powered plant disease diagnosis and treatment recommendations for sustainable agriculture',
+      gradient: 'from-green-500 to-green-600',
+      screenshot: 'Upload plant images for instant disease detection and remedies'
     },
     {
       icon: BookOpen,
