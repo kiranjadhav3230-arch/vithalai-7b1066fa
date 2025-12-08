@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useGlobalLanguage } from '@/contexts/LanguageContext';
 
 const translations = {
   en: {
@@ -55,7 +55,31 @@ const translations = {
     logout: 'Logout',
     language: 'Language',
     settings: 'Settings',
-    copyright: '© 2024 Vithal AI Assistant. Empowering Indian Professionals with Advanced AI-Driven Career Intelligence.'
+    copyright: '© 2025 Vithal AI Assistant. Empowering Indian Professionals with Advanced AI-Driven Career Intelligence.',
+    // Chat interface
+    chat: 'Chat',
+    code: 'Code',
+    cropAnalyzer: 'Crop Analyzer',
+    studyRooms: 'Study Rooms',
+    typeMessage: 'Type your message...',
+    send: 'Send',
+    newChat: 'New Chat',
+    recentChats: 'Recent Chats',
+    deleteHistory: 'Delete History',
+    // Code generator
+    codeGenerator: 'Code Generator',
+    generateCode: 'Generate Code',
+    selectLanguage: 'Select Language',
+    codeLibrary: 'Code Library',
+    // Study rooms
+    createRoom: 'Create Room',
+    joinRoom: 'Join Room',
+    roomName: 'Room Name',
+    inviteCode: 'Invite Code',
+    members: 'Members',
+    notes: 'Notes',
+    leaveRoom: 'Leave Room',
+    inviteMember: 'Invite Member'
   },
   hi: {
     appName: 'विठल AI असिस्टेंट',
@@ -104,7 +128,31 @@ const translations = {
     logout: 'लॉगआउट',
     language: 'भाषा',
     settings: 'सेटिंग्स',
-    copyright: '© 2024 विठल AI असिस्टेंट। उन्नत AI-संचालित करियर इंटेलिजेंस के साथ भारतीय पेशेवरों को सशक्त बनाना।'
+    copyright: '© 2025 विठल AI असिस्टेंट। उन्नत AI-संचालित करियर इंटेलिजेंस के साथ भारतीय पेशेवरों को सशक्त बनाना।',
+    // Chat interface
+    chat: 'चैट',
+    code: 'कोड',
+    cropAnalyzer: 'फसल विश्लेषक',
+    studyRooms: 'स्टडी रूम्स',
+    typeMessage: 'अपना संदेश लिखें...',
+    send: 'भेजें',
+    newChat: 'नई चैट',
+    recentChats: 'हाल की चैट्स',
+    deleteHistory: 'इतिहास हटाएं',
+    // Code generator
+    codeGenerator: 'कोड जेनरेटर',
+    generateCode: 'कोड जेनरेट करें',
+    selectLanguage: 'भाषा चुनें',
+    codeLibrary: 'कोड लाइब्रेरी',
+    // Study rooms
+    createRoom: 'रूम बनाएं',
+    joinRoom: 'रूम में शामिल हों',
+    roomName: 'रूम का नाम',
+    inviteCode: 'आमंत्रण कोड',
+    members: 'सदस्य',
+    notes: 'नोट्स',
+    leaveRoom: 'रूम छोड़ें',
+    inviteMember: 'सदस्य आमंत्रित करें'
   },
   mr: {
     appName: 'विठल AI असिस्टंट',
@@ -153,12 +201,36 @@ const translations = {
     logout: 'लॉगआउट',
     language: 'भाषा',
     settings: 'सेटिंग्ज',
-    copyright: '© 2024 विठल AI असिस्टंट। प्रगत AI-चालित करिअर इंटेलिजेंससह भारतीय व्यावसायिकांना सशक्त बनवणे।'
+    copyright: '© 2025 विठल AI असिस्टंट। प्रगत AI-चालित करिअर इंटेलिजेंससह भारतीय व्यावसायिकांना सशक्त बनवणे।',
+    // Chat interface
+    chat: 'चॅट',
+    code: 'कोड',
+    cropAnalyzer: 'पीक विश्लेषक',
+    studyRooms: 'स्टडी रूम्स',
+    typeMessage: 'तुमचा संदेश लिहा...',
+    send: 'पाठवा',
+    newChat: 'नवीन चॅट',
+    recentChats: 'अलीकडील चॅट्स',
+    deleteHistory: 'इतिहास हटवा',
+    // Code generator
+    codeGenerator: 'कोड जनरेटर',
+    generateCode: 'कोड तयार करा',
+    selectLanguage: 'भाषा निवडा',
+    codeLibrary: 'कोड लायब्ररी',
+    // Study rooms
+    createRoom: 'रूम तयार करा',
+    joinRoom: 'रूममध्ये सामील व्हा',
+    roomName: 'रूमचे नाव',
+    inviteCode: 'आमंत्रण कोड',
+    members: 'सदस्य',
+    notes: 'नोट्स',
+    leaveRoom: 'रूम सोडा',
+    inviteMember: 'सदस्याला आमंत्रित करा'
   }
 };
 
 export const useLanguage = () => {
-  const [language, setLanguage] = useState<'en' | 'hi' | 'mr'>('en');
+  const { language, setLanguage } = useGlobalLanguage();
 
   const t = (key: string): string => {
     return translations[language][key as keyof typeof translations['en']] || key;

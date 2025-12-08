@@ -5,10 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User as UserIcon, Mail, GraduationCap, Brain, Heart, Edit2, Download, Smartphone, Check } from 'lucide-react';
+import { User as UserIcon, Mail, GraduationCap, Brain, Heart, Edit2, Download, Smartphone, Check, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useGlobalLanguage } from '@/contexts/LanguageContext';
 import type { User } from '@supabase/supabase-js';
 
 interface ProfileModalProps {
@@ -17,12 +18,19 @@ interface ProfileModalProps {
   user: User;
 }
 
+const languageOptions = [
+  { code: 'en' as const, name: 'English', native: 'English' },
+  { code: 'hi' as const, name: 'Hindi', native: 'हिंदी' },
+  { code: 'mr' as const, name: 'Marathi', native: 'मराठी' }
+];
+
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, user }) => {
   const { toast } = useToast();
   const [showChangeEmail, setShowChangeEmail] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const { isInstallable, isInstalled, isIOS, installApp } = usePWAInstall();
+  const { language, setLanguage } = useGlobalLanguage();
   
   const userMetadata = user.user_metadata || {};
   const skills = userMetadata.skills ? userMetadata.skills.split(',').map((s: string) => s.trim()) : [];
@@ -83,6 +91,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
     }
   };
 
+  const handleLanguageChange = (langCode: 'en' | 'hi' | 'mr') => {
+    setLanguage(langCode);
+    toast({
+      title: language === 'en' ? "Language Updated" : language === 'hi' ? "भाषा अपडेट" : "भाषा अपडेट",
+      description: langCode === 'en' 
+        ? "Language set to English" 
+        : langCode === 'hi' 
+          ? "भाषा हिंदी में सेट की गई" 
+          : "भाषा मराठीमध्ये सेट केली"
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
@@ -108,6 +128,38 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, use
                 <Mail className="h-3 w-3" />
                 {user.email}
               </p>
+            </div>
+          </div>
+
+          {/* Language Selection Section */}
+          <div className="p-4 rounded-lg bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-full bg-blue-500/20">
+                <Globe className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-sm">Website Language</h4>
+                <p className="text-xs text-muted-foreground">Set language for entire website</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              {languageOptions.map((lang) => (
+                <Button
+                  key={lang.code}
+                  variant={language === lang.code ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleLanguageChange(lang.code)}
+                  className={`flex flex-col items-center py-3 h-auto ${
+                    language === lang.code 
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white border-0' 
+                      : 'hover:bg-blue-500/10 hover:border-blue-500/50'
+                  }`}
+                >
+                  <span className="text-xs font-medium">{lang.native}</span>
+                  <span className="text-[10px] opacity-70">{lang.name}</span>
+                </Button>
+              ))}
             </div>
           </div>
 
