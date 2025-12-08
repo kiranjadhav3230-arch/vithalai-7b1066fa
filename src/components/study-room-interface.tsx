@@ -1137,7 +1137,7 @@ export const StudyRoomInterface: React.FC<{
           </ScrollArea>
         </TabsContent>
 
-        <TabsContent value="members" className="flex-1 p-3 sm:p-4 overflow-auto">
+        <TabsContent value="members" className="p-3 sm:p-4 overflow-auto h-full">
           {/* Action Buttons - Professional Card at TOP */}
           <Card className="mb-4 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
             <CardContent className="p-3 sm:p-4">
