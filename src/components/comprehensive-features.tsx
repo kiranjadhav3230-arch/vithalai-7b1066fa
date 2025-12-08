@@ -14,7 +14,8 @@ import {
   Brain,
   Calendar,
   GraduationCap,
-  Lightbulb
+  Lightbulb,
+  Leaf
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
@@ -56,6 +57,13 @@ export const ComprehensiveFeatures: React.FC = () => {
       description: 'Professional Monaco code editor with syntax highlighting, auto-save, and snippet library management',
       gradient: 'from-orange-600 to-orange-800',
       category: 'Developer'
+    },
+    {
+      icon: Leaf,
+      title: 'Crop Health Analyzer',
+      description: 'AI-powered plant disease diagnosis, nutrient deficiency detection, and treatment recommendations for farmers',
+      gradient: 'from-green-500 to-green-600',
+      category: 'Agriculture'
     },
     {
       icon: GraduationCap,
