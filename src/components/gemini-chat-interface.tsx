@@ -55,8 +55,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -656,14 +655,26 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
   const startVoiceRecording = async () => {
     try {
-      // Use Web Speech API for free speech-to-text
+      // Check if Web Speech API is available
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       
       if (!SpeechRecognition) {
         toast({
           variant: "destructive",
           title: "❌ Not Supported",
-          description: "Speech recognition is not supported in this browser"
+          description: "Speech recognition is not supported. Please use Chrome or Edge browser."
+        });
+        return;
+      }
+
+      // Request microphone permission first
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (permError) {
+        toast({
+          variant: "destructive",
+          title: "❌ Microphone Access Denied",
+          description: "Please allow microphone access to use speech recognition."
         });
         return;
       }
@@ -671,6 +682,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
       
       // Set language based on current selection
       if (language === 'hi') {
@@ -693,32 +705,44 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             interimTranscript += transcript;
           }
         }
-        // Update message with current transcription
         setMessage(finalTranscript + interimTranscript);
       };
 
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
+        setSpeechRecognition(null);
         setIsRecording(false);
+        
+        let errorMessage = 'Speech recognition failed';
+        if (event.error === 'no-speech') {
+          errorMessage = 'No speech detected. Please try again.';
+        } else if (event.error === 'audio-capture') {
+          errorMessage = 'No microphone found. Please check your device.';
+        } else if (event.error === 'not-allowed') {
+          errorMessage = 'Microphone access denied. Please allow in browser settings.';
+        } else if (event.error === 'network') {
+          errorMessage = 'Network error. Please check your internet connection.';
+        }
+        
         toast({
           variant: "destructive",
-          title: "❌ Recognition Error",
-          description: event.error === 'no-speech' ? 'No speech detected' : `Error: ${event.error}`
+          title: "❌ Speech Error",
+          description: errorMessage
         });
       };
 
       recognition.onend = () => {
+        setSpeechRecognition(null);
         setIsRecording(false);
         if (finalTranscript.trim()) {
           toast({
             title: "✅ Speech Recognized!",
-            description: "Text has been transcribed"
+            description: "Your speech has been transcribed"
           });
         }
       };
 
-      // Store recognition instance to stop later
-      (window as any).currentRecognition = recognition;
+      setSpeechRecognition(recognition);
       recognition.start();
       setIsRecording(true);
       toast({
@@ -726,23 +750,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         description: "Speak now, I'm listening!"
       });
     } catch (error: any) {
-      console.error('Microphone access error:', error);
+      console.error('Speech recognition error:', error);
       toast({
         variant: "destructive",
-        title: "❌ Microphone Error",
-        description: "Could not access microphone. Please check permissions."
+        title: "❌ Error",
+        description: "Could not start speech recognition. Please try again."
       });
     }
   };
+
   const stopVoiceRecording = () => {
-    if (isRecording) {
-      const recognition = (window as any).currentRecognition;
-      if (recognition) {
-        recognition.stop();
-        (window as any).currentRecognition = null;
-      }
-      setIsRecording(false);
+    if (speechRecognition) {
+      speechRecognition.stop();
+      setSpeechRecognition(null);
     }
+    setIsRecording(false);
   };
   const playTextToSpeech = async (text: string, messageId: string) => {
     try {
