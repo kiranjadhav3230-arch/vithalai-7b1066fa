@@ -48,14 +48,8 @@ export const FaqSection: React.FC = () => {
 
   return (
     <section id="faq" className="relative py-20 md:py-32 px-4 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-950/5 to-black"></div>
-      
-      {/* Glowing Orbs */}
-      <div className="absolute inset-0 overflow-hidden opacity-20">
-        <div className="absolute top-[20%] right-[10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-orange-500/30 to-transparent blur-[130px] animate-float-slow"></div>
-        <div className="absolute bottom-[20%] left-[10%] w-[700px] h-[700px] rounded-full bg-gradient-to-tl from-orange-600/25 to-transparent blur-[140px] animate-float" style={{ animationDelay: '2s' }}></div>
-      </div>
+      {/* Background - Clean solid gradient without animations */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background"></div>
 
       <div className="container mx-auto max-w-4xl relative z-10">
         {/* Section Header */}
