@@ -656,66 +656,73 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   };
   const startVoiceRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
-      const recorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
-      });
-      const chunks: Blob[] = [];
-      recorder.ondataavailable = e => {
-        if (e.data.size > 0) {
-          chunks.push(e.data);
+      // Use Web Speech API for free speech-to-text
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (!SpeechRecognition) {
+        toast({
+          variant: "destructive",
+          title: "❌ Not Supported",
+          description: "Speech recognition is not supported in this browser"
+        });
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      
+      // Set language based on current selection
+      if (language === 'hi') {
+        recognition.lang = 'hi-IN';
+      } else if (language === 'mr') {
+        recognition.lang = 'mr-IN';
+      } else {
+        recognition.lang = 'en-US';
+      }
+
+      let finalTranscript = '';
+
+      recognition.onresult = (event: any) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript + ' ';
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+        // Update message with current transcription
+        setMessage(finalTranscript + interimTranscript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+        toast({
+          variant: "destructive",
+          title: "❌ Recognition Error",
+          description: event.error === 'no-speech' ? 'No speech detected' : `Error: ${event.error}`
+        });
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        if (finalTranscript.trim()) {
+          toast({
+            title: "✅ Speech Recognized!",
+            description: "Text has been transcribed"
+          });
         }
       };
-      recorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, {
-          type: 'audio/webm'
-        });
 
-        // Convert to base64
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64Audio = (reader.result as string).split(',')[1];
-          try {
-            // Call voice-to-text edge function
-            const {
-              data,
-              error
-            } = await supabase.functions.invoke('voice-to-text', {
-              body: {
-                audio: base64Audio,
-                language: language === 'hi' ? 'hi' : language === 'mr' ? 'mr' : 'en'
-              }
-            });
-            if (error) throw error;
-            if (data?.text) {
-              setMessage(data.text);
-              toast({
-                title: "✅ Speech Recognized!",
-                description: "Text has been transcribed"
-              });
-            }
-          } catch (error: any) {
-            console.error('Transcription error:', error);
-            toast({
-              variant: "destructive",
-              title: "❌ Transcription Failed",
-              description: error.message || "Could not transcribe audio"
-            });
-          }
-        };
-        reader.readAsDataURL(audioBlob);
-
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
-      };
-      setMediaRecorder(recorder);
-      setAudioChunks([]);
-      recorder.start();
+      // Store recognition instance to stop later
+      (window as any).currentRecognition = recognition;
+      recognition.start();
       setIsRecording(true);
       toast({
-        title: "🎤 Recording...",
+        title: "🎤 Listening...",
         description: "Speak now, I'm listening!"
       });
     } catch (error: any) {
@@ -728,10 +735,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     }
   };
   const stopVoiceRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
+    if (isRecording) {
+      const recognition = (window as any).currentRecognition;
+      if (recognition) {
+        recognition.stop();
+        (window as any).currentRecognition = null;
+      }
       setIsRecording(false);
-      setMediaRecorder(null);
     }
   };
   const playTextToSpeech = async (text: string, messageId: string) => {
