@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Code2, MessageSquare, Users, Leaf, Library, ChevronRight, Sparkles } from 'lucide-react';
+import { Code2, MessageSquare, Users, Leaf, Library, FileCode, ChevronRight, Sparkles } from 'lucide-react';
 import type { CarouselApi } from '@/components/ui/carousel';
 
 // Import real screenshots
 import screenshotChat from '@/assets/screenshot-chat.png';
 import screenshotCode from '@/assets/screenshot-code.png';
 import screenshotLibrary from '@/assets/screenshot-library.png';
+import screenshotEditor from '@/assets/screenshot-editor.png';
 import screenshotRooms from '@/assets/screenshot-rooms.png';
 import screenshotCrop from '@/assets/screenshot-crop.png';
 
@@ -60,6 +61,21 @@ export const FeatureShowcaseCarousel: React.FC = () => {
       screenshot: screenshotLibrary,
       gradient: 'from-purple-500 to-pink-500',
       shadowColor: 'shadow-purple-500/30'
+    },
+    {
+      icon: FileCode,
+      title: 'Code Editor',
+      subtitle: 'Edit & Customize Code',
+      description: 'Full-featured code editor with syntax highlighting, keyboard shortcuts (Ctrl+S to save, Ctrl+Z to undo), and professional editing experience for all your saved code snippets.',
+      highlights: [
+        'Syntax highlighting for all languages',
+        'Keyboard shortcuts (Ctrl+S, Ctrl+Z)',
+        'Line numbers & code formatting',
+        'Save changes or revert to original'
+      ],
+      screenshot: screenshotEditor,
+      gradient: 'from-indigo-500 to-violet-500',
+      shadowColor: 'shadow-indigo-500/30'
     },
     {
       icon: Users,
@@ -196,9 +212,9 @@ export const FeatureShowcaseCarousel: React.FC = () => {
                                   <div className="w-3 h-3 rounded-full bg-green-500" />
                                 </div>
                                 <div className="flex-1 mx-4">
-                                  <div className="bg-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-400 text-center">
-                                    vithal-ai.lovable.app
-                                  </div>
+                                <div className="bg-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-400 text-center">
+                                  vithalai.lovable.app
+                                </div>
                                 </div>
                               </div>
                               {/* Screenshot */}
