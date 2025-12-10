@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_code_suggestions: {
+        Row: {
+          accepted: boolean | null
+          created_at: string | null
+          dismissed: boolean | null
+          explanation: string | null
+          id: string
+          line_number: number | null
+          original_code: string | null
+          session_id: string
+          suggested_code: string | null
+          suggestion_type: string
+          user_id: string | null
+        }
+        Insert: {
+          accepted?: boolean | null
+          created_at?: string | null
+          dismissed?: boolean | null
+          explanation?: string | null
+          id?: string
+          line_number?: number | null
+          original_code?: string | null
+          session_id: string
+          suggested_code?: string | null
+          suggestion_type: string
+          user_id?: string | null
+        }
+        Update: {
+          accepted?: boolean | null
+          created_at?: string | null
+          dismissed?: boolean | null
+          explanation?: string | null
+          id?: string
+          line_number?: number | null
+          original_code?: string | null
+          session_id?: string
+          suggested_code?: string | null
+          suggestion_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_code_suggestions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coding_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -193,6 +243,95 @@ export type Database = {
         }
         Relationships: []
       }
+      coding_session_participants: {
+        Row: {
+          cursor_color: string | null
+          cursor_column: number | null
+          cursor_line: number | null
+          cursor_position: number | null
+          display_name: string | null
+          id: string
+          is_online: boolean | null
+          joined_at: string | null
+          last_active: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          cursor_color?: string | null
+          cursor_column?: number | null
+          cursor_line?: number | null
+          cursor_position?: number | null
+          display_name?: string | null
+          id?: string
+          is_online?: boolean | null
+          joined_at?: string | null
+          last_active?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          cursor_color?: string | null
+          cursor_column?: number | null
+          cursor_line?: number | null
+          cursor_position?: number | null
+          display_name?: string | null
+          id?: string
+          is_online?: boolean | null
+          joined_at?: string | null
+          last_active?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coding_session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "coding_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coding_sessions: {
+        Row: {
+          code_content: string | null
+          created_at: string | null
+          created_by: string
+          id: string
+          invite_code: string | null
+          is_active: boolean | null
+          language: string | null
+          max_participants: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code_content?: string | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          invite_code?: string | null
+          is_active?: boolean | null
+          language?: string | null
+          max_participants?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code_content?: string | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          invite_code?: string | null
+          is_active?: boolean | null
+          language?: string | null
+          max_participants?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           analysis_result: Json | null
@@ -352,6 +491,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      learning_profiles: {
+        Row: {
+          created_at: string | null
+          explanation_depth: string | null
+          id: string
+          learning_style: string | null
+          preferred_examples: Json | null
+          style_scores: Json | null
+          subjects_strength: Json | null
+          total_interactions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          explanation_depth?: string | null
+          id?: string
+          learning_style?: string | null
+          preferred_examples?: Json | null
+          style_scores?: Json | null
+          subjects_strength?: Json | null
+          total_interactions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          explanation_depth?: string | null
+          id?: string
+          learning_style?: string | null
+          preferred_examples?: Json | null
+          style_scores?: Json | null
+          subjects_strength?: Json | null
+          total_interactions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       location_history: {
         Row: {
@@ -973,6 +1151,45 @@ export type Database = {
           },
         ]
       }
+      topic_interactions: {
+        Row: {
+          avg_response_time_seconds: number | null
+          created_at: string | null
+          id: string
+          last_interaction: string | null
+          subject: string | null
+          successful_attempts: number | null
+          topic: string
+          total_attempts: number | null
+          understanding_score: number | null
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          subject?: string | null
+          successful_attempts?: number | null
+          topic: string
+          total_attempts?: number | null
+          understanding_score?: number | null
+          user_id: string
+        }
+        Update: {
+          avg_response_time_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          last_interaction?: string | null
+          subject?: string | null
+          successful_attempts?: number | null
+          topic?: string
+          total_attempts?: number | null
+          understanding_score?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_name: string
@@ -1035,6 +1252,45 @@ export type Database = {
           id?: string
           unban_date?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      weak_topics: {
+        Row: {
+          created_at: string | null
+          difficulty_level: string | null
+          id: string
+          mastery_achieved: boolean | null
+          next_review_date: string | null
+          reason: string | null
+          subject: string | null
+          times_revisited: number | null
+          topic: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          mastery_achieved?: boolean | null
+          next_review_date?: string | null
+          reason?: string | null
+          subject?: string | null
+          times_revisited?: number | null
+          topic: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string
+          mastery_achieved?: boolean | null
+          next_review_date?: string | null
+          reason?: string | null
+          subject?: string | null
+          times_revisited?: number | null
+          topic?: string
           user_id?: string
         }
         Relationships: []
