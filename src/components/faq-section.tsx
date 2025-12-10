@@ -47,9 +47,9 @@ export const FaqSection: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="relative py-20 md:py-32 px-4 overflow-hidden">
-      {/* Background - Clean solid gradient without animations */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background"></div>
+    <section id="faq" className="relative py-20 md:py-32 px-4 overflow-hidden bg-black">
+      {/* Solid opaque background to block animations from other sections */}
+      <div className="absolute inset-0 bg-black"></div>
 
       <div className="container mx-auto max-w-4xl relative z-10">
         {/* Section Header */}
