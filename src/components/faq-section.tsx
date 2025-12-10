@@ -54,7 +54,7 @@ export const FaqSection: React.FC = () => {
       <div className="container mx-auto max-w-4xl relative z-10">
         {/* Section Header */}
         <div className="text-center mb-12 md:mb-16 animate-scaleIn">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full liquid-glass-intense border border-primary/30 mb-6 morph-shape">
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-background/50 backdrop-blur-sm border border-primary/30 mb-6">
             <HelpCircle className="h-5 w-5 text-primary animate-pulse" />
             <span className="text-sm font-display font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
               Frequently Asked Questions
@@ -70,13 +70,13 @@ export const FaqSection: React.FC = () => {
         </div>
 
         {/* FAQ Accordion */}
-        <div className="liquid-glass-intense rounded-2xl md:rounded-3xl p-6 md:p-8 morph-shape border border-orange-500/20">
+        <div className="bg-background/50 backdrop-blur-sm rounded-2xl md:rounded-3xl p-6 md:p-8 border border-orange-500/20">
           <Accordion type="single" collapsible className="w-full space-y-4">
             {faqs.map((faq, index) => (
               <AccordionItem 
                 key={index} 
                 value={`item-${index}`}
-                className="border border-orange-500/10 rounded-xl px-6 py-2 liquid-glass-subtle hover:border-orange-500/30 transition-all duration-300"
+                className="border border-orange-500/10 rounded-xl px-6 py-2 bg-background/30 hover:border-orange-500/30 transition-all duration-300"
               >
                 <AccordionTrigger className="text-left hover:no-underline group">
                   <div className="flex items-start gap-3 pr-4">
