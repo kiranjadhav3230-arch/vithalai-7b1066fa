@@ -8,9 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Users } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { CodeSnippetLibrary } from './code-snippet-library';
-import { CollaborativeCoding } from './collaborative-coding';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -74,7 +73,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [targetLanguage, setTargetLanguage] = useState('python');
   const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
   const [showLibrary, setShowLibrary] = useState(false);
-  const [activeTab, setActiveTab] = useState<'generator' | 'library' | 'collab'>('generator');
+  const [activeTab, setActiveTab] = useState<'generator' | 'library'>('generator');
   const [isFirstMessage, setIsFirstMessage] = useState(true);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState<{ [key: string]: boolean }>({});
@@ -661,8 +660,8 @@ ${code}
     <div className="flex flex-col h-full bg-background">
       {/* Tab Navigation */}
       <div className="border-b px-3 pt-2">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'generator' | 'library' | 'collab')} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-9">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'generator' | 'library')} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 h-9">
             <TabsTrigger value="generator" className="text-xs gap-1.5">
               <Code className="h-3.5 w-3.5" />
               Generator
@@ -670,10 +669,6 @@ ${code}
             <TabsTrigger value="library" className="text-xs gap-1.5">
               <BookOpen className="h-3.5 w-3.5" />
               Library
-            </TabsTrigger>
-            <TabsTrigger value="collab" className="text-xs gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" />
-              Live Collab
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -865,12 +860,6 @@ ${code}
         </div>
       )}
 
-      {/* Collab Tab Content */}
-      {activeTab === 'collab' && (
-        <div className="flex-1 overflow-auto">
-          <CollaborativeCoding user={user} />
-        </div>
-      )}
     </div>
   );
 };
