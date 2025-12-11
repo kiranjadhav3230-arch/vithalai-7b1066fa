@@ -658,62 +658,63 @@ ${code}
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Tab Navigation */}
-      <div className="border-b px-3 pt-2">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'generator' | 'library')} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 h-9">
-            <TabsTrigger value="generator" className="text-xs gap-1.5">
-              <Code className="h-3.5 w-3.5" />
-              Generator
-            </TabsTrigger>
-            <TabsTrigger value="library" className="text-xs gap-1.5">
-              <BookOpen className="h-3.5 w-3.5" />
-              Library
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Generator Tab Content */}
-      {activeTab === 'generator' && (
-        <div className="flex flex-col flex-1 overflow-hidden">
-          <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
-            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
-              v2.0 Enhanced
-            </Badge>
-            <div className="flex gap-2 flex-wrap">
-              <Select value={selectedTask} onValueChange={setSelectedTask}>
-                <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-background z-50">
-                  {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+      {/* Code Assistant Header */}
+      <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Code className="h-5 w-5 text-primary" />
+            <span className="font-semibold text-lg">Code Assistant</span>
+          </div>
+          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
+            v2.0 Enhanced
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant={activeTab === 'library' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setActiveTab(activeTab === 'library' ? 'generator' : 'library')}
+            className="gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            Library
+          </Button>
+          <Select value={selectedTask} onValueChange={setSelectedTask}>
+            <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+            <SelectContent className="bg-background z-50">
+              {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {selectedTask === 'translate' ? (
+            <>
+              <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+                <SelectTrigger className="w-28 h-8"><SelectValue placeholder="From" /></SelectTrigger>
+                <SelectContent className="bg-background z-50 max-h-[300px]">
+                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                 </SelectContent>
               </Select>
-              {selectedTask === 'translate' ? (
-                <>
-                  <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="From" /></SelectTrigger>
-                    <SelectContent className="bg-background z-50 max-h-[300px]">
-                      {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <span className="flex items-center text-muted-foreground">→</span>
-                  <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="To" /></SelectTrigger>
-                    <SelectContent className="bg-background z-50 max-h-[300px]">
-                      {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </>
-              ) : (
-                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-                  <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-background z-50 max-h-[300px]">
-                    {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
+              <span className="flex items-center text-muted-foreground text-sm">→</span>
+              <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+                <SelectTrigger className="w-28 h-8"><SelectValue placeholder="To" /></SelectTrigger>
+                <SelectContent className="bg-background z-50 max-h-[300px]">
+                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </>
+          ) : (
+            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+              <SelectTrigger className="w-28 h-8"><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-background z-50 max-h-[300px]">
+                {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
+      {/* Generator Content */}
+      {activeTab === 'generator' && (
+        <div className="flex flex-col flex-1 overflow-hidden">
 
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 ? (
