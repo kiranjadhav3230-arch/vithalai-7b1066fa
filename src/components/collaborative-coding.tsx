@@ -23,9 +23,11 @@ import {
   Check,
   X,
   Loader2,
-  RefreshCw,
   Settings,
-  Sparkles
+  Sparkles,
+  FolderOpen,
+  Eye,
+  ExternalLink
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -61,6 +63,13 @@ interface AISuggestion {
   dismissed: boolean;
 }
 
+interface CodeSnippet {
+  id: string;
+  title: string;
+  generated_code: string;
+  language: string;
+}
+
 const LANGUAGES = [
   { value: 'javascript', label: 'JavaScript' },
   { value: 'typescript', label: 'TypeScript' },
@@ -92,14 +101,21 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isJoinOpen, setIsJoinOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [newSessionName, setNewSessionName] = useState('');
   const [newSessionLanguage, setNewSessionLanguage] = useState('javascript');
   const [joinCode, setJoinCode] = useState('');
+  const [codeSnippets, setCodeSnippets] = useState<CodeSnippet[]>([]);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
   const editorRef = useRef<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     loadSessions();
+    if (user?.id) {
+      loadCodeSnippets();
+    }
   }, [user?.id]);
 
   useEffect(() => {
@@ -169,16 +185,28 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   }, [currentSession?.id, user?.id]);
 
   const loadSessions = async () => {
-    if (!user?.id) return;
-
+    // Load ALL active sessions (RLS disabled)
     const { data } = await supabase
       .from('coding_sessions')
       .select('*')
       .eq('is_active', true)
-      .or(`created_by.eq.${user.id},id.in.(select session_id from coding_session_participants where user_id = '${user.id}')`);
+      .order('created_at', { ascending: false });
 
     if (data) {
       setSessions(data);
+    }
+  };
+
+  const loadCodeSnippets = async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from('code_snippets')
+      .select('id, title, generated_code, language')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setCodeSnippets(data);
     }
   };
 
@@ -191,7 +219,6 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
       .eq('session_id', currentSession.id);
 
     if (participantData) {
-      // Get profile names
       const userIds = participantData.map(p => p.user_id);
       const { data: profiles } = await supabase
         .from('profiles')
@@ -226,7 +253,7 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   };
 
   const createSession = async () => {
-    if (!newSessionName.trim()) return;
+    if (!newSessionName.trim() || !user?.id) return;
 
     const { data, error } = await supabase
       .from('coding_sessions')
@@ -262,7 +289,7 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   };
 
   const joinSession = async () => {
-    if (!joinCode.trim()) return;
+    if (!joinCode.trim() || !user?.id) return;
 
     const { data: session } = await supabase
       .from('coding_sessions')
@@ -302,8 +329,32 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
     toast({ title: 'Joined!', description: `Welcome to ${session.name}` });
   };
 
+  const joinSessionDirectly = async (session: CodingSession) => {
+    if (!user?.id) return;
+
+    // Check if already a participant
+    const { data: existing } = await supabase
+      .from('coding_session_participants')
+      .select('id')
+      .eq('session_id', session.id)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!existing) {
+      const cursorColor = CURSOR_COLORS[Math.floor(Math.random() * CURSOR_COLORS.length)];
+      await supabase.from('coding_session_participants').insert({
+        session_id: session.id,
+        user_id: user.id,
+        cursor_color: cursorColor
+      });
+    }
+
+    setCurrentSession(session);
+    setCode(session.code_content || '// Start coding together!\n');
+  };
+
   const leaveSession = async () => {
-    if (!currentSession) return;
+    if (!currentSession || !user?.id) return;
 
     await supabase
       .from('coding_session_participants')
@@ -315,6 +366,7 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
     setCode('// Start coding together!\n');
     setParticipants([]);
     setSuggestions([]);
+    setPreviewHtml(null);
     loadSessions();
   };
 
@@ -328,6 +380,12 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
       event: 'code_change',
       payload: { code: value, user_id: user.id }
     });
+
+    // Save to database periodically
+    supabase
+      .from('coding_sessions')
+      .update({ code_content: value })
+      .eq('id', currentSession.id);
   }, [currentSession, user?.id]);
 
   const handleEditorMount = (editor: any) => {
@@ -346,6 +404,76 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
         }
       });
     });
+  };
+
+  const importFromLibrary = (snippet: CodeSnippet) => {
+    setCode(snippet.generated_code);
+    handleCodeChange(snippet.generated_code);
+    setIsImportOpen(false);
+    toast({ title: 'Imported!', description: `Code from "${snippet.title}" imported` });
+  };
+
+  const runCode = () => {
+    if (!currentSession) return;
+    setIsRunning(true);
+
+    const lang = currentSession.language;
+    
+    if (['html', 'javascript', 'css'].includes(lang)) {
+      let htmlContent = '';
+      
+      if (lang === 'html') {
+        htmlContent = code;
+      } else if (lang === 'javascript') {
+        htmlContent = `<!DOCTYPE html>
+<html>
+<head><title>Code Preview</title></head>
+<body>
+<div id="output"></div>
+<script>
+try {
+  ${code}
+} catch(e) {
+  document.getElementById('output').innerHTML = '<pre style="color:red">' + e.message + '</pre>';
+}
+</script>
+</body>
+</html>`;
+      } else if (lang === 'css') {
+        htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+<title>CSS Preview</title>
+<style>${code}</style>
+</head>
+<body>
+<div class="preview">
+  <h1>CSS Preview</h1>
+  <p>Your CSS styles are applied to this page.</p>
+  <button>Sample Button</button>
+  <div class="box">Sample Box</div>
+</div>
+</body>
+</html>`;
+      }
+
+      setPreviewHtml(htmlContent);
+    } else {
+      toast({ 
+        title: 'Preview not available', 
+        description: `Live preview is only available for HTML, CSS, and JavaScript. ${lang} requires a backend compiler.`,
+        variant: 'destructive'
+      });
+    }
+
+    setIsRunning(false);
+  };
+
+  const openPreviewInNewTab = () => {
+    if (!previewHtml) return;
+    const blob = new Blob([previewHtml], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
   };
 
   const requestAISuggestions = async () => {
@@ -379,13 +507,11 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   };
 
   const applySuggestion = async (suggestion: AISuggestion) => {
-    // Replace code if we have original and suggested
     if (suggestion.original_code && suggestion.suggested_code) {
       const newCode = code.replace(suggestion.original_code, suggestion.suggested_code);
       handleCodeChange(newCode);
     }
 
-    // Mark as accepted
     await supabase
       .from('ai_code_suggestions')
       .update({ accepted: true })
@@ -424,17 +550,17 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   if (!currentSession) {
     return (
       <div className="h-full flex flex-col p-4 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Sparkles className="h-6 w-6 text-primary" />
             Live Collaborative Coding
           </h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Dialog open={isJoinOpen} onOpenChange={setIsJoinOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" size="sm">
                   <LinkIcon className="h-4 w-4 mr-2" />
-                  Join Session
+                  Join
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -456,9 +582,9 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
 
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Session
+                  Create
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -492,38 +618,37 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
           </div>
         </div>
 
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sessions.length === 0 ? (
-            <Card className="col-span-full flex items-center justify-center h-64">
-              <div className="text-center space-y-2">
-                <Users className="h-12 w-12 mx-auto text-muted-foreground" />
-                <p className="text-muted-foreground">No active sessions</p>
-                <p className="text-sm text-muted-foreground">Create or join a session to start coding together!</p>
-              </div>
-            </Card>
-          ) : (
-            sessions.map(session => (
-              <Card 
-                key={session.id} 
-                className="cursor-pointer hover:border-primary/50 transition-colors"
-                onClick={() => {
-                  setCurrentSession(session);
-                  setCode(session.code_content);
-                }}
-              >
-                <CardHeader>
-                  <CardTitle className="text-lg">{session.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Badge>{session.language}</Badge>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Code: {session.invite_code}
-                  </p>
-                </CardContent>
+        <ScrollArea className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sessions.length === 0 ? (
+              <Card className="col-span-full flex items-center justify-center h-64">
+                <div className="text-center space-y-2">
+                  <Users className="h-12 w-12 mx-auto text-muted-foreground" />
+                  <p className="text-muted-foreground">No active sessions</p>
+                  <p className="text-sm text-muted-foreground">Create or join a session to start coding together!</p>
+                </div>
               </Card>
-            ))
-          )}
-        </div>
+            ) : (
+              sessions.map(session => (
+                <Card 
+                  key={session.id} 
+                  className="cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => joinSessionDirectly(session)}
+                >
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{session.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Badge>{session.language}</Badge>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Code: {session.invite_code}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </div>
     );
   }
@@ -532,128 +657,213 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-border/50 bg-card/50">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between p-2 border-b border-border/50 bg-card/50 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={leaveSession}>
-            <LogOut className="h-4 w-4 mr-2" />
+            <LogOut className="h-4 w-4 mr-1" />
             Leave
           </Button>
           <div>
-            <h3 className="font-semibold">{currentSession.name}</h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">{currentSession.language}</Badge>
+            <h3 className="font-semibold text-sm">{currentSession.name}</h3>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Badge variant="outline" className="text-xs">{currentSession.language}</Badge>
               <span>•</span>
               <span className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
-                {participants.length} online
+                {participants.length}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-wrap">
+          {/* Import from Library */}
+          <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <FolderOpen className="h-4 w-4 mr-1" />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[70vh]">
+              <DialogHeader>
+                <DialogTitle>Import from Library</DialogTitle>
+              </DialogHeader>
+              <ScrollArea className="h-96 mt-4">
+                {codeSnippets.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FolderOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                    <p>No saved code snippets</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {codeSnippets.map(snippet => (
+                      <Card 
+                        key={snippet.id} 
+                        className="p-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                        onClick={() => importFromLibrary(snippet)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{snippet.title}</p>
+                            <Badge variant="outline" className="mt-1">{snippet.language}</Badge>
+                          </div>
+                          <Button size="sm" variant="ghost">
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+
+          {/* Run Code */}
+          <Button variant="outline" size="sm" onClick={runCode} disabled={isRunning}>
+            {isRunning ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-1" />
+            )}
+            Run
+          </Button>
+
+          {/* Preview in new tab */}
+          {previewHtml && (
+            <Button variant="outline" size="sm" onClick={openPreviewInNewTab}>
+              <ExternalLink className="h-4 w-4 mr-1" />
+              New Tab
+            </Button>
+          )}
+
           <Button variant="outline" size="sm" onClick={copyInviteCode}>
-            <Copy className="h-4 w-4 mr-2" />
+            <Copy className="h-4 w-4 mr-1" />
             {currentSession.invite_code}
           </Button>
+          
           <Button 
             size="sm" 
             onClick={requestAISuggestions}
             disabled={isLoadingSuggestions}
           >
             {isLoadingSuggestions ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
             ) : (
-              <Sparkles className="h-4 w-4 mr-2" />
+              <Sparkles className="h-4 w-4 mr-1" />
             )}
-            AI Assist
+            AI
           </Button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex">
-        {/* Code Editor */}
-        <div className="flex-1 relative">
-          <Editor
-            height="100%"
-            language={currentSession.language}
-            value={code}
-            onChange={handleCodeChange}
-            onMount={handleEditorMount}
-            theme="vs-dark"
-            options={{
-              minimap: { enabled: false },
-              fontSize: 14,
-              wordWrap: 'on',
-              automaticLayout: true,
-            }}
-          />
+      <div className="flex-1 flex overflow-hidden">
+        {/* Code Editor + Preview */}
+        <div className="flex-1 flex flex-col">
+          <div className={`${previewHtml ? 'h-1/2' : 'h-full'} relative`}>
+            <Editor
+              height="100%"
+              language={currentSession.language}
+              value={code}
+              onChange={handleCodeChange}
+              onMount={handleEditorMount}
+              theme="vs-dark"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 14,
+                wordWrap: 'on',
+                automaticLayout: true,
+              }}
+            />
 
-          {/* Participant Cursors Overlay */}
-          <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
-            {participants.filter(p => p.user_id !== user.id).map(p => (
-              <div
-                key={p.id}
-                className="absolute text-xs px-1 rounded"
-                style={{
-                  backgroundColor: p.cursor_color,
-                  top: `${(p.cursor_line - 1) * 19}px`,
-                  left: `${p.cursor_column * 7.8 + 60}px`
-                }}
-              >
-                {p.display_name}
-              </div>
-            ))}
+            {/* Participant Cursors Overlay */}
+            <div className="absolute top-0 left-0 right-0 bottom-0 pointer-events-none">
+              {participants.filter(p => p.user_id !== user.id).map(p => (
+                <div
+                  key={p.id}
+                  className="absolute text-xs px-1 rounded"
+                  style={{
+                    backgroundColor: p.cursor_color,
+                    top: `${(p.cursor_line - 1) * 19}px`,
+                    left: `${p.cursor_column * 7.8 + 60}px`
+                  }}
+                >
+                  {p.display_name}
+                </div>
+              ))}
+            </div>
           </div>
+
+          {/* Live Preview */}
+          {previewHtml && (
+            <div className="h-1/2 border-t border-border/50">
+              <div className="flex items-center justify-between px-3 py-1 bg-muted/30 border-b border-border/30">
+                <span className="text-xs font-medium flex items-center gap-1">
+                  <Eye className="h-3 w-3" />
+                  Live Preview
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setPreviewHtml(null)} className="h-6 px-2">
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+              <iframe
+                srcDoc={previewHtml}
+                className="w-full h-[calc(100%-28px)] bg-white"
+                sandbox="allow-scripts"
+                title="Code Preview"
+              />
+            </div>
+          )}
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-80 border-l border-border/50 flex flex-col">
+        <div className="w-72 border-l border-border/50 flex flex-col">
           <Tabs defaultValue="suggestions" className="flex-1 flex flex-col">
             <TabsList className="mx-2 mt-2">
-              <TabsTrigger value="suggestions" className="flex-1">
-                <Lightbulb className="h-4 w-4 mr-1" />
+              <TabsTrigger value="suggestions" className="flex-1 text-xs">
+                <Lightbulb className="h-3 w-3 mr-1" />
                 AI ({suggestions.length})
               </TabsTrigger>
-              <TabsTrigger value="participants" className="flex-1">
-                <Users className="h-4 w-4 mr-1" />
+              <TabsTrigger value="participants" className="flex-1 text-xs">
+                <Users className="h-3 w-3 mr-1" />
                 Team
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="suggestions" className="flex-1 m-0 p-2">
+            <TabsContent value="suggestions" className="flex-1 m-0 p-2 overflow-hidden">
               <ScrollArea className="h-full">
                 {suggestions.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Lightbulb className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Click "AI Assist" for suggestions</p>
+                    <p className="text-sm">Click "AI" for suggestions</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {suggestions.map(s => (
-                      <Card key={s.id} className="p-3 bg-card/50">
+                      <Card key={s.id} className="p-2 bg-card/50">
                         <div className="flex items-start gap-2">
                           {getSuggestionIcon(s.suggestion_type)}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium capitalize">
+                            <p className="text-xs font-medium capitalize">
                               {s.suggestion_type.replace('_', ' ')}
                             </p>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                               {s.explanation}
                             </p>
                             {s.line_number && (
-                              <Badge variant="outline" className="mt-2 text-xs">
+                              <Badge variant="outline" className="mt-1 text-xs">
                                 Line {s.line_number}
                               </Badge>
                             )}
                           </div>
                         </div>
-                        <div className="flex gap-2 mt-3">
+                        <div className="flex gap-1 mt-2">
                           <Button
                             size="sm"
                             variant="outline"
-                            className="flex-1"
+                            className="flex-1 h-7 text-xs"
                             onClick={() => applySuggestion(s)}
                           >
                             <Check className="h-3 w-3 mr-1" />
@@ -662,6 +872,7 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
                           <Button
                             size="sm"
                             variant="ghost"
+                            className="h-7 px-2"
                             onClick={() => dismissSuggestion(s.id)}
                           >
                             <X className="h-3 w-3" />
@@ -674,24 +885,24 @@ export const CollaborativeCoding: React.FC<CollaborativeCodingProps> = ({ user, 
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="participants" className="flex-1 m-0 p-2">
+            <TabsContent value="participants" className="flex-1 m-0 p-2 overflow-hidden">
               <ScrollArea className="h-full">
                 <div className="space-y-2">
                   {participants.map(p => (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 p-2 rounded-lg bg-card/50"
+                      className="flex items-center gap-2 p-2 rounded-lg bg-card/50"
                     >
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: p.cursor_color }}
                       />
-                      <span className="flex-1 truncate">
+                      <span className="flex-1 truncate text-sm">
                         {p.display_name}
                         {p.user_id === user.id && ' (You)'}
                       </span>
                       {p.is_online && (
-                        <Badge variant="outline" className="text-green-400 border-green-500/30">
+                        <Badge variant="outline" className="text-xs text-green-400 border-green-500/30">
                           Online
                         </Badge>
                       )}
