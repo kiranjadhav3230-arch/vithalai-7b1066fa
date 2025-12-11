@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.code-assistant]
 verify_jwt = true
+
+[functions.code-runner]
+verify_jwt = false
