@@ -5,10 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Users } from 'lucide-react';
 import { CodeSnippetLibrary } from './code-snippet-library';
+import { CollaborativeCoding } from './collaborative-coding';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -72,6 +74,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({ user, sess
   const [targetLanguage, setTargetLanguage] = useState('python');
   const [attachments, setAttachments] = useState<Array<{ type: 'image' | 'document'; data: string; name: string }>>([]);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [activeTab, setActiveTab] = useState<'generator' | 'library' | 'collab'>('generator');
   const [isFirstMessage, setIsFirstMessage] = useState(true);
   const [previewCode, setPreviewCode] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState<{ [key: string]: boolean }>({});
@@ -656,243 +659,218 @@ ${code}
 
   return (
     <div className="flex flex-col h-full bg-background">
-      <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Code className="w-5 h-5 text-primary" />
-          <h2 className="font-semibold">Code Assistant</h2>
-          <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
-            v2.0 Enhanced
-          </Badge>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => setShowLibrary(true)} className="gap-2">
-          <BookOpen className="h-4 w-4" />
-          Library
-        </Button>
-        <div className="flex gap-2 flex-wrap">
-          <Select value={selectedTask} onValueChange={setSelectedTask}>
-            <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
-            <SelectContent className="bg-background z-50">
-              {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          
-          {selectedTask === 'translate' ? (
-            <>
-              <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
-                <SelectTrigger className="w-32 h-8"><SelectValue placeholder="From" /></SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <span className="flex items-center text-muted-foreground">→</span>
-              <Select value={targetLanguage} onValueChange={setTargetLanguage}>
-                <SelectTrigger className="w-32 h-8"><SelectValue placeholder="To" /></SelectTrigger>
-                <SelectContent className="bg-background z-50 max-h-[300px]">
-                  {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </>
-          ) : (
-            <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-              <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-background z-50 max-h-[300px]">
-                {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+      {/* Tab Navigation */}
+      <div className="border-b px-3 pt-2">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'generator' | 'library' | 'collab')} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 h-9">
+            <TabsTrigger value="generator" className="text-xs gap-1.5">
+              <Code className="h-3.5 w-3.5" />
+              Generator
+            </TabsTrigger>
+            <TabsTrigger value="library" className="text-xs gap-1.5">
+              <BookOpen className="h-3.5 w-3.5" />
+              Library
+            </TabsTrigger>
+            <TabsTrigger value="collab" className="text-xs gap-1.5">
+              <Sparkles className="h-3.5 w-3.5" />
+              Live Collab
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-            <Code className="w-16 h-16 mb-4 opacity-20" />
-            <p className="text-sm">Start coding with AI assistance</p>
-            <p className="text-xs mt-2 opacity-60">Enhanced with language-specific best practices & code validation</p>
+      {/* Generator Tab Content */}
+      {activeTab === 'generator' && (
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
+            <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
+              v2.0 Enhanced
+            </Badge>
+            <div className="flex gap-2 flex-wrap">
+              <Select value={selectedTask} onValueChange={setSelectedTask}>
+                <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              {selectedTask === 'translate' ? (
+                <>
+                  <Select value={sourceLanguage} onValueChange={setSourceLanguage}>
+                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="From" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50 max-h-[300px]">
+                      {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <span className="flex items-center text-muted-foreground">→</span>
+                  <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="To" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50 max-h-[300px]">
+                      {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </>
+              ) : (
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                  <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-background z-50 max-h-[300px]">
+                    {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3 max-w-4xl mx-auto">
-            {messages.map((msg, idx) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[90%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-lg p-3' : ''}`}>
-                  {msg.isCode ? (
-                    <div className="relative">
-                      {/* Validation Badge */}
-                      {msg.validation && (
-                        <div className={`flex items-center gap-2 mb-2 text-xs ${
-                          msg.validation.isValid ? 'text-green-500' : 'text-yellow-500'
-                        }`}>
-                          {msg.validation.isValid ? (
-                            <CheckCircle2 className="w-4 h-4" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4" />
+
+          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                <Code className="w-16 h-16 mb-4 opacity-20" />
+                <p className="text-sm">Start coding with AI assistance</p>
+                <p className="text-xs mt-2 opacity-60">Enhanced with language-specific best practices & code validation</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-w-4xl mx-auto">
+                {messages.map((msg, idx) => (
+                  <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[90%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-lg p-3' : ''}`}>
+                      {msg.isCode ? (
+                        <div className="relative">
+                          {msg.validation && (
+                            <div className={`flex items-center gap-2 mb-2 text-xs ${msg.validation.isValid ? 'text-green-500' : 'text-yellow-500'}`}>
+                              {msg.validation.isValid ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                              <span>Quality: {msg.validation.score}%</span>
+                              {msg.validation.issues.length > 0 && <span className="text-muted-foreground">• {msg.validation.issues[0]}</span>}
+                            </div>
                           )}
-                          <span>Quality: {msg.validation.score}%</span>
-                          {msg.validation.issues.length > 0 && (
-                            <span className="text-muted-foreground">• {msg.validation.issues[0]}</span>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            <Button variant="ghost" size="sm" onClick={() => copyCode(msg.content)}><Copy className="h-4 w-4 mr-2" />Copy</Button>
+                            <Button variant="ghost" size="sm" onClick={() => downloadVSCodeFile(msg.content, msg.language || 'javascript')}><Code2 className="h-4 w-4 mr-2" />VS Code</Button>
+                            {isPreviewableLanguage(msg.language || '') && (
+                              <>
+                                <Button variant="ghost" size="sm" onClick={() => openPreviewInNewTab(msg.content, msg.language || 'html')}><Monitor className="h-4 w-4 mr-2" />Preview</Button>
+                                <Button variant="ghost" size="sm" onClick={() => toggleInlinePreview(msg.id)}>
+                                  {showPreview[msg.id] ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                                  {showPreview[msg.id] ? 'Hide' : 'Inline'}
+                                </Button>
+                              </>
+                            )}
+                            {['html', 'css'].includes(msg.language?.toLowerCase() || '') && (
+                              <Button variant="ghost" size="sm" onClick={() => downloadHTMLFile(msg.content)}><Download className="h-4 w-4 mr-2" />HTML</Button>
+                            )}
+                            <Button variant="ghost" size="sm" onClick={() => downloadAsProject(msg.content, msg.language || 'javascript')}><FolderDown className="h-4 w-4 mr-2" />ZIP</Button>
+                            <Button variant="ghost" size="sm" onClick={() => saveSnippet(msg.content, msg.language || 'javascript')}><BookOpen className="h-4 w-4 mr-2" />Save</Button>
+                          </div>
+                          <div className="rounded-lg overflow-hidden border">
+                            <div className="bg-muted px-3 py-1.5 flex items-center justify-between">
+                              <Badge variant="outline" className="text-xs">{msg.language}</Badge>
+                              {msg.isStreaming && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                            </div>
+                            <SyntaxHighlighter language={msg.language} style={vscDarkPlus} showLineNumbers={true}
+                              customStyle={{ margin: 0, fontSize: '14px', padding: '14px', lineHeight: '1.5' }}
+                              codeTagProps={{ style: { fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', monospace", fontSize: '14px' } }}>
+                              {msg.content || ' '}
+                            </SyntaxHighlighter>
+                          </div>
+                          {showPreview[msg.id] && isPreviewableLanguage(msg.language || '') && renderInlinePreview(msg.content, msg.language || 'html')}
+                        </div>
+                      ) : (
+                        <>
+                          {msg.content.startsWith('Error:') && (
+                            <Button variant="outline" size="sm" onClick={() => handleRetry(idx)} className="mb-2">
+                              <RotateCcw className="w-4 h-4 mr-2" />Retry
+                            </Button>
                           )}
-                        </div>
-                      )}
-                      
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        <Button variant="ghost" size="sm" onClick={() => copyCode(msg.content)}>
-                          <Copy className="h-4 w-4 mr-2" />Copy
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => downloadVSCodeFile(msg.content, msg.language || 'javascript')}>
-                          <Code2 className="h-4 w-4 mr-2" />VS Code
-                        </Button>
-                        {isPreviewableLanguage(msg.language || '') && (
-                          <>
-                            <Button variant="ghost" size="sm" onClick={() => openPreviewInNewTab(msg.content, msg.language || 'html')}>
-                              <Monitor className="h-4 w-4 mr-2" />Preview
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => toggleInlinePreview(msg.id)}>
-                              {showPreview[msg.id] ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                              {showPreview[msg.id] ? 'Hide' : 'Inline'}
-                            </Button>
-                          </>
-                        )}
-                        {['html', 'css'].includes(msg.language?.toLowerCase() || '') && (
-                          <Button variant="ghost" size="sm" onClick={() => downloadHTMLFile(msg.content)}>
-                            <Download className="h-4 w-4 mr-2" />HTML
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="sm" onClick={() => downloadAsProject(msg.content, msg.language || 'javascript')}>
-                          <FolderDown className="h-4 w-4 mr-2" />ZIP
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => saveSnippet(msg.content, msg.language || 'javascript')}>
-                          <BookOpen className="h-4 w-4 mr-2" />Save
-                        </Button>
-                      </div>
-                      
-                      {/* Code Block */}
-                      <div className="rounded-lg overflow-hidden border">
-                        <div className="bg-muted px-3 py-1.5 flex items-center justify-between">
-                          <Badge variant="outline" className="text-xs">{msg.language}</Badge>
-                          {msg.isStreaming && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
-                        </div>
-                        <SyntaxHighlighter 
-                          language={msg.language} 
-                          style={vscDarkPlus} 
-                          showLineNumbers={true}
-                          customStyle={{ margin: 0, fontSize: '14px', padding: '14px', lineHeight: '1.5' }}
-                          codeTagProps={{
-                            style: {
-                              fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', monospace",
-                              fontSize: '14px',
-                            }
-                          }}
-                        >
-                          {msg.content || ' '}
-                        </SyntaxHighlighter>
-                      </div>
-                      
-                      {/* Inline Preview */}
-                      {showPreview[msg.id] && isPreviewableLanguage(msg.language || '') && (
-                        renderInlinePreview(msg.content, msg.language || 'html')
+                          <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {msg.attachments.map((att, i) => (
+                                <div key={i} className="relative">
+                                  {att.type === 'image' ? (
+                                    <img src={att.data} alt={att.name} className="max-w-[200px] rounded border" />
+                                  ) : (
+                                    <div className="flex items-center gap-2 border rounded p-2 bg-background/50">
+                                      <FileText className="w-4 h-4" /><span className="text-xs">{att.name}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
-                  ) : (
-                    <>
-                      {/* Error with retry */}
-                      {msg.content.startsWith('Error:') && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleRetry(idx)}
-                          className="mb-2"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Retry
-                        </Button>
-                      )}
-                      <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {msg.attachments.map((att, i) => (
-                            <div key={i} className="relative">
-                              {att.type === 'image' ? (
-                                <img src={att.data} alt={att.name} className="max-w-[200px] rounded border" />
-                              ) : (
-                                <div className="flex items-center gap-2 border rounded p-2 bg-background/50">
-                                  <FileText className="w-4 h-4" />
-                                  <span className="text-xs">{att.name}</span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+
+          {isGenerating && (
+            <div className="px-4 py-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span className="text-xs text-muted-foreground">Generating with enhanced AI...</span>
+              </div>
+              <Progress value={progress} className="h-1" />
+            </div>
+          )}
+
+          <div className="border-t p-4">
+            <div className="max-w-4xl mx-auto">
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {attachments.map((att, i) => (
+                    <div key={i} className="relative group">
+                      {att.type === 'image' ? (
+                        <div className="relative">
+                          <img src={att.data} alt={att.name} className="max-w-[120px] h-[120px] object-cover rounded border" />
+                          <Button size="sm" variant="destructive" onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100">
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 border rounded p-2 pr-8 bg-muted relative">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-xs max-w-[150px] truncate">{att.name}</span>
+                          <Button size="sm" variant="ghost" onClick={() => removeAttachment(i)} className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100">
+                            <X className="w-3 h-3" />
+                          </Button>
                         </div>
                       )}
-                    </>
-                  )}
+                    </div>
+                  ))}
                 </div>
+              )}
+              <div className="flex gap-2">
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx" multiple className="hidden" />
+                <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isGenerating || attachments.length >= 5} className="h-auto">
+                  <Paperclip className="w-4 h-4" />
+                </Button>
+                <Textarea value={input} onChange={e => setInput(e.target.value)} placeholder={selectedTask === 'translate' ? "Paste code to translate..." : "Describe what you want or attach a UI screenshot..."} className="min-h-[80px]" onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} />
+                <Button onClick={handleSend} disabled={isGenerating} className="h-auto">
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </Button>
               </div>
-            ))}
+              <p className="text-xs text-muted-foreground mt-1.5 text-center">
+                Ctrl+Enter to send • Chat history context enabled • Language-specific best practices applied
+              </p>
+            </div>
           </div>
-        )}
-      </ScrollArea>
-
-      {isGenerating && (
-        <div className="px-4 py-2">
-          <div className="flex items-center gap-2 mb-1">
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
-            <span className="text-xs text-muted-foreground">Generating with enhanced AI...</span>
-          </div>
-          <Progress value={progress} className="h-1" />
         </div>
       )}
 
-      <div className="border-t p-4">
-        <div className="max-w-4xl mx-auto">
-          {attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {attachments.map((att, i) => (
-                <div key={i} className="relative group">
-                  {att.type === 'image' ? (
-                    <div className="relative">
-                      <img src={att.data} alt={att.name} className="max-w-[120px] h-[120px] object-cover rounded border" />
-                      <Button size="sm" variant="destructive" onClick={() => removeAttachment(i)} className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100">
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 border rounded p-2 pr-8 bg-muted relative">
-                      <FileText className="w-4 h-4" />
-                      <span className="text-xs max-w-[150px] truncate">{att.name}</span>
-                      <Button size="sm" variant="ghost" onClick={() => removeAttachment(i)} className="absolute -top-1 -right-1 h-5 w-5 p-0 rounded-full opacity-0 group-hover:opacity-100">
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          <div className="flex gap-2">
-            <input type="file" ref={fileInputRef} onChange={handleFileSelect} accept="image/*,.pdf,.doc,.docx" multiple className="hidden" />
-            <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()} disabled={isGenerating || attachments.length >= 5} className="h-auto">
-              <Paperclip className="w-4 h-4" />
-            </Button>
-            <Textarea 
-              value={input} 
-              onChange={e => setInput(e.target.value)} 
-              placeholder={selectedTask === 'translate' ? "Paste code to translate..." : "Describe what you want or attach a UI screenshot..."} 
-              className="min-h-[80px]" 
-              onKeyDown={e => { if (e.key === 'Enter' && e.ctrlKey) handleSend(); }} 
-            />
-            <Button onClick={handleSend} disabled={isGenerating} className="h-auto">
-              {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-1.5 text-center">
-            Ctrl+Enter to send • Chat history context enabled • Language-specific best practices applied
-          </p>
+      {/* Library Tab Content */}
+      {activeTab === 'library' && (
+        <div className="flex-1 overflow-hidden">
+          <CodeSnippetLibrary open={true} onOpenChange={(open) => !open && setActiveTab('generator')} user={user} />
         </div>
-      </div>
+      )}
 
-      <CodeSnippetLibrary open={showLibrary} onOpenChange={setShowLibrary} user={user} />
+      {/* Collab Tab Content */}
+      {activeTab === 'collab' && (
+        <div className="flex-1 overflow-auto">
+          <CollaborativeCoding user={user} />
+        </div>
+      )}
     </div>
   );
 };
