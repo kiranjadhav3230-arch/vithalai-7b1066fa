@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink, Play, Loader2, Terminal, CheckCircle, XCircle } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -31,35 +31,6 @@ interface CodeSnippetLibraryProps {
   user: User;
 }
 
-interface RunOutput {
-  language: string;
-  version: string;
-  compile?: {
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  };
-  run: {
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  };
-  success: boolean;
-}
-
-// Language detection helpers
-const isBrowserExecutable = (lang: string): boolean => {
-  return ['html', 'css', 'javascript', 'js'].includes(lang.toLowerCase());
-};
-
-const isPistonExecutable = (lang: string): boolean => {
-  return ['python', 'java', 'cpp', 'c', 'go', 'rust', 'ruby', 'php', 'kotlin', 'swift', 'csharp', 'typescript', 'bash'].includes(lang.toLowerCase());
-};
-
-const isExecutable = (lang: string): boolean => {
-  return isBrowserExecutable(lang) || isPistonExecutable(lang);
-};
-
 export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, onOpenChange, user }) => {
   const [snippets, setSnippets] = useState<CodeSnippet[]>([]);
   const [filteredSnippets, setFilteredSnippets] = useState<CodeSnippet[]>([]);
@@ -71,13 +42,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [editedCode, setEditedCode] = useState('');
   const [originalCode, setOriginalCode] = useState('');
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
-  
-  // Run code states
-  const [showRunPanel, setShowRunPanel] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [runOutput, setRunOutput] = useState<RunOutput | null>(null);
-  const [previewHtml, setPreviewHtml] = useState('');
-  
   const { toast } = useToast();
 
   useEffect(() => {
@@ -87,6 +51,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   }, [open]);
 
   useEffect(() => {
+    // Auto-select the first snippet when snippets are loaded
     if (snippets.length > 0 && !selectedSnippet) {
       setSelectedSnippet(snippets[0]);
     }
@@ -95,13 +60,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   useEffect(() => {
     filterSnippets();
   }, [searchQuery, selectedTags, snippets]);
-
-  // Close run panel when snippet changes
-  useEffect(() => {
-    setShowRunPanel(false);
-    setRunOutput(null);
-    setPreviewHtml('');
-  }, [selectedSnippet?.id]);
 
   const loadSnippets = async () => {
     const { data, error } = await supabase
@@ -117,6 +75,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 
     setSnippets(data || []);
     
+    // Extract all unique tags
     const tags = new Set<string>();
     data?.forEach(snippet => {
       snippet.tags?.forEach(tag => tags.add(tag));
@@ -127,6 +86,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const filterSnippets = () => {
     let filtered = snippets;
 
+    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(snippet =>
@@ -137,6 +97,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
       );
     }
 
+    // Filter by tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(snippet =>
         selectedTags.every(tag => snippet.tags?.includes(tag))
@@ -195,6 +156,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     setEditedCode(snippet.generated_code);
     setOriginalCode(snippet.generated_code);
     
+    // Show welcome animation for 5 seconds then switch to editor
     setTimeout(() => {
       setShowWelcomeAnimation(false);
       setIsEditing(true);
@@ -237,129 +199,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     if (e.ctrlKey && e.key === 's' && isEditing) {
       e.preventDefault();
       saveEdit();
-    }
-  };
-
-  // Generate preview HTML for browser-executable languages
-  const generatePreviewHtml = (code: string, language: string): string => {
-    const lang = language.toLowerCase();
-    
-    if (lang === 'html') {
-      return code;
-    }
-    
-    if (lang === 'css') {
-      return `<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; background: #f5f5f5; }
-    .demo-container { max-width: 600px; margin: 0 auto; }
-    ${code}
-  </style>
-</head>
-<body>
-  <div class="demo-container">
-    <h1>CSS Preview</h1>
-    <p>Your CSS styles are applied to this preview page.</p>
-    <button>Sample Button</button>
-    <input type="text" placeholder="Sample Input" />
-    <div class="card" style="padding: 16px; margin: 16px 0; border: 1px solid #ddd; border-radius: 8px;">
-      <h3>Sample Card</h3>
-      <p>This is sample content to preview your styles.</p>
-    </div>
-    <a href="#">Sample Link</a>
-  </div>
-</body>
-</html>`;
-    }
-    
-    if (lang === 'javascript' || lang === 'js') {
-      return `<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; background: #1a1a2e; color: #eee; }
-    #output { margin-top: 16px; padding: 16px; background: #16213e; border-radius: 8px; font-family: monospace; white-space: pre-wrap; min-height: 100px; }
-    .log { color: #4ade80; margin: 4px 0; }
-    .error { color: #f87171; margin: 4px 0; }
-    h1 { color: #818cf8; }
-  </style>
-</head>
-<body>
-  <h1>JavaScript Output</h1>
-  <div id="output"></div>
-  <script>
-    const outputEl = document.getElementById('output');
-    const originalLog = console.log;
-    const originalError = console.error;
-    
-    console.log = function(...args) {
-      const message = args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ');
-      outputEl.innerHTML += '<div class="log">' + message + '</div>';
-      originalLog.apply(console, args);
-    };
-    
-    console.error = function(...args) {
-      const message = args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ');
-      outputEl.innerHTML += '<div class="error">Error: ' + message + '</div>';
-      originalError.apply(console, args);
-    };
-    
-    try {
-      ${code}
-    } catch (error) {
-      outputEl.innerHTML += '<div class="error">Runtime Error: ' + error.message + '</div>';
-    }
-  </script>
-</body>
-</html>`;
-    }
-    
-    return code;
-  };
-
-  // Run code handler
-  const runCode = async (code: string, language: string) => {
-    setIsRunning(true);
-    setShowRunPanel(true);
-    setRunOutput(null);
-    setPreviewHtml('');
-
-    try {
-      if (isBrowserExecutable(language)) {
-        // Browser execution
-        const html = generatePreviewHtml(code, language);
-        setPreviewHtml(html);
-        sonnerToast.success('Code executed in browser preview');
-      } else if (isPistonExecutable(language)) {
-        // Piston API execution
-        const { data, error } = await supabase.functions.invoke('code-runner', {
-          body: { code, language }
-        });
-
-        if (error) {
-          throw new Error(error.message || 'Failed to execute code');
-        }
-
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        setRunOutput(data);
-        if (data.success) {
-          sonnerToast.success('Code executed successfully');
-        } else {
-          sonnerToast.error('Code execution completed with errors');
-        }
-      } else {
-        sonnerToast.error(`Language '${language}' is not supported for execution`);
-      }
-    } catch (error: any) {
-      console.error('Code execution error:', error);
-      sonnerToast.error(error.message || 'Failed to execute code');
-    } finally {
-      setIsRunning(false);
     }
   };
 
@@ -472,10 +311,12 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     });
   };
 
+  // Check if the language supports preview
   const isPreviewable = (language: string) => {
     return ['html', 'css', 'javascript'].includes(language.toLowerCase());
   };
 
+  // Open preview in new tab
   const handleOpenPreview = (code: string, language: string) => {
     if (!isPreviewable(language)) {
       sonnerToast.error(`Live preview is not available for ${language}. Use the code in your development environment.`);
@@ -526,6 +367,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 </html>`;
     }
 
+    // Create blob and open in new tab
     const blob = new Blob([content], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const newWindow = window.open(url, '_blank');
@@ -595,6 +437,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
             </div>
 
             <div className="flex-1 min-h-0 relative">
+              {/* Welcome Animation */}
               {showWelcomeAnimation && (
                 <div className="absolute inset-0 z-20 flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-primary/10 animate-fade-in">
                   <div className="text-center space-y-6 animate-scale-in">
@@ -800,22 +643,6 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {/* Run Code Button */}
-                    <Button
-                      variant={isExecutable(selectedSnippet.language) ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => runCode(selectedSnippet.generated_code, selectedSnippet.language)}
-                      disabled={!isExecutable(selectedSnippet.language) || isRunning}
-                      title={isExecutable(selectedSnippet.language) ? "Run Code" : `Execution not supported for ${selectedSnippet.language}`}
-                      className={isExecutable(selectedSnippet.language) ? "bg-green-600 hover:bg-green-700 text-white" : ""}
-                    >
-                      {isRunning ? (
-                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                      ) : (
-                        <Play className="h-4 w-4 mr-1" />
-                      )}
-                      Run
-                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -883,137 +710,22 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                   </div>
                 </div>
 
-                {/* Code and Run Panel */}
-                <div className={`flex-1 min-h-0 flex ${showRunPanel ? 'flex-col gap-4' : ''}`}>
-                  {/* Code Display */}
-                  <ScrollArea className={showRunPanel ? "h-1/2" : "h-full"}>
-                    <div className="rounded-lg overflow-hidden border">
-                      <SyntaxHighlighter
-                        language={selectedSnippet.language}
-                        style={vscDarkPlus}
-                        showLineNumbers
-                        customStyle={{
-                          margin: 0,
-                          borderRadius: 0,
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        {selectedSnippet.generated_code}
-                      </SyntaxHighlighter>
-                    </div>
-                  </ScrollArea>
-
-                  {/* Run Output Panel */}
-                  {showRunPanel && (
-                    <div className="h-1/2 border rounded-lg overflow-hidden bg-card">
-                      <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/50">
-                        <div className="flex items-center gap-2">
-                          <Terminal className="h-4 w-4" />
-                          <span className="text-sm font-medium">
-                            {isBrowserExecutable(selectedSnippet.language) ? '🖥️ Live Preview' : '📟 Execution Output'}
-                          </span>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setShowRunPanel(false);
-                            setRunOutput(null);
-                            setPreviewHtml('');
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      {/* Browser Preview (HTML/CSS/JS) */}
-                      {isBrowserExecutable(selectedSnippet.language) && previewHtml && (
-                        <iframe
-                          srcDoc={previewHtml}
-                          className="w-full h-[calc(100%-40px)] bg-white"
-                          sandbox="allow-scripts"
-                          title="Code Preview"
-                        />
-                      )}
-
-                      {/* Piston Output (Python/Java/C++ etc.) */}
-                      {isPistonExecutable(selectedSnippet.language) && runOutput && (
-                        <ScrollArea className="h-[calc(100%-40px)]">
-                          <div className="p-4 space-y-4">
-                            {/* Language Info */}
-                            <div className="flex items-center gap-4 text-sm">
-                              <Badge variant="secondary">
-                                {runOutput.language} {runOutput.version}
-                              </Badge>
-                              <div className="flex items-center gap-1">
-                                {runOutput.success ? (
-                                  <>
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                    <span className="text-green-500">Success</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <XCircle className="h-4 w-4 text-red-500" />
-                                    <span className="text-red-500">Failed</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Compile Output (for compiled languages) */}
-                            {runOutput.compile && (runOutput.compile.stdout || runOutput.compile.stderr) && (
-                              <div className="space-y-2">
-                                <div className="text-sm font-medium text-muted-foreground">Compilation:</div>
-                                {runOutput.compile.stdout && (
-                                  <pre className="p-3 rounded bg-muted text-sm font-mono whitespace-pre-wrap">
-                                    {runOutput.compile.stdout}
-                                  </pre>
-                                )}
-                                {runOutput.compile.stderr && (
-                                  <pre className="p-3 rounded bg-red-500/10 text-red-500 text-sm font-mono whitespace-pre-wrap">
-                                    {runOutput.compile.stderr}
-                                  </pre>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Run Output */}
-                            <div className="space-y-2">
-                              <div className="text-sm font-medium text-muted-foreground">Output:</div>
-                              {runOutput.run.stdout ? (
-                                <pre className="p-3 rounded bg-muted text-sm font-mono whitespace-pre-wrap text-green-400">
-                                  {runOutput.run.stdout}
-                                </pre>
-                              ) : (
-                                <p className="text-sm text-muted-foreground italic">No output</p>
-                              )}
-                              {runOutput.run.stderr && (
-                                <pre className="p-3 rounded bg-red-500/10 text-red-500 text-sm font-mono whitespace-pre-wrap">
-                                  {runOutput.run.stderr}
-                                </pre>
-                              )}
-                            </div>
-
-                            {/* Exit Code */}
-                            <div className="text-xs text-muted-foreground">
-                              Exit Code: {runOutput.run.exitCode}
-                            </div>
-                          </div>
-                        </ScrollArea>
-                      )}
-
-                      {/* Loading State */}
-                      {isRunning && (
-                        <div className="flex items-center justify-center h-[calc(100%-40px)]">
-                          <div className="text-center space-y-3">
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                            <p className="text-sm text-muted-foreground">Executing code...</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                <ScrollArea className="h-full">
+                  <div className="rounded-lg overflow-hidden border">
+                    <SyntaxHighlighter
+                      language={selectedSnippet.language}
+                      style={vscDarkPlus}
+                      showLineNumbers
+                      customStyle={{
+                        margin: 0,
+                        borderRadius: 0,
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {selectedSnippet.generated_code}
+                    </SyntaxHighlighter>
+                  </div>
+                </ScrollArea>
               </>
             ) : (
               <div className="flex items-center justify-center h-full text-muted-foreground">
