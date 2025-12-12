@@ -122,15 +122,21 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { isInstallable, isInstalled, isIOS, isAndroid, hasPrompt, installApp } = usePWAInstall();
+  const {
+    isInstallable,
+    isInstalled,
+    isIOS,
+    isAndroid,
+    hasPrompt,
+    installApp
+  } = usePWAInstall();
   const [showInstallDialog, setShowInstallDialog] = useState(false);
-
   const handleInstallApp = async () => {
     const result = await installApp();
     if (result.success) {
       toast({
         title: "Success!",
-        description: "Vithal AI has been installed successfully!",
+        description: "Vithal AI has been installed successfully!"
       });
       setShowInstallDialog(false);
     } else if (result.showInstructions) {
@@ -245,21 +251,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       code: 'code',
       all: 'all'
     };
-    
     if (!confirm(`Are you sure you want to delete ${type === 'all' ? 'all' : `all ${typeLabels[type]}`} sessions? This cannot be undone.`)) {
       return;
     }
-    
     try {
       let query = supabase.from('chat_sessions').delete().eq('user_id', user.id);
-      
       if (type !== 'all') {
         query = query.eq('session_type', type);
       }
-      
-      const { error } = await query;
+      const {
+        error
+      } = await query;
       if (error) throw error;
-      
+
       // Update local state
       if (type === 'all') {
         setChatSessions([]);
@@ -268,14 +272,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       } else {
         const remaining = chatSessions.filter(s => (s.session_type || 'chat') !== type);
         setChatSessions(remaining);
-        
+
         // If current session was deleted, switch to first remaining
         if (currentSession && (currentSession.session_type || 'chat') === type) {
           setCurrentSession(remaining.length > 0 ? remaining[0] : null);
           setMessages([]);
         }
       }
-      
       toast({
         title: "Success",
         description: `${type === 'all' ? 'All chats' : type === 'chat' ? 'Chat history' : 'Code history'} cleared successfully`
@@ -657,7 +660,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     try {
       // Check if Web Speech API is available
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      
       if (!SpeechRecognition) {
         toast({
           variant: "destructive",
@@ -669,7 +671,9 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       // Request microphone permission first
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
       } catch (permError) {
         toast({
           variant: "destructive",
@@ -678,12 +682,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         });
         return;
       }
-
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
-      
+
       // Set language based on current selection
       if (language === 'hi') {
         recognition.lang = 'hi-IN';
@@ -692,9 +695,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       } else {
         recognition.lang = 'en-US';
       }
-
       let finalTranscript = '';
-
       recognition.onresult = (event: any) => {
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -707,12 +708,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         }
         setMessage(finalTranscript + interimTranscript);
       };
-
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setSpeechRecognition(null);
         setIsRecording(false);
-        
         let errorMessage = 'Speech recognition failed';
         if (event.error === 'no-speech') {
           errorMessage = 'No speech detected. Please try again.';
@@ -723,14 +722,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         } else if (event.error === 'network') {
           errorMessage = 'Network error. Please check your internet connection.';
         }
-        
         toast({
           variant: "destructive",
           title: "❌ Speech Error",
           description: errorMessage
         });
       };
-
       recognition.onend = () => {
         setSpeechRecognition(null);
         setIsRecording(false);
@@ -741,7 +738,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           });
         }
       };
-
       setSpeechRecognition(recognition);
       recognition.start();
       setIsRecording(true);
@@ -758,7 +754,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       });
     }
   };
-
   const stopVoiceRecording = () => {
     if (speechRecognition) {
       speechRecognition.stop();
@@ -774,14 +769,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       // Clean the text for TTS
       const cleanText = text.replace(/```[\s\S]*?```/g, '') // Remove code blocks
-        .replace(/`[^`]*`/g, '') // Remove inline code
-        .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
-        .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
-        .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
-        .substring(0, 4000); // Limit to 4000 chars for TTS
+      .replace(/`[^`]*`/g, '') // Remove inline code
+      .replace(/\*\*([^\*]+)\*\*/g, '$1') // Remove bold
+      .replace(/\*([^\*]+)\*/g, '$1') // Remove italic
+      .replace(/!\[([^\]]*)\]\([^\)]+\)/g, '') // Remove images
+      .substring(0, 4000); // Limit to 4000 chars for TTS
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
-      
+
       // Set language based on current selection
       if (language === 'hi') {
         utterance.lang = 'hi-IN';
@@ -797,32 +792,23 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       // Find male voice for the selected language
       if (language === 'hi') {
-        selectedVoice = voices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) ||
-                        voices.find(v => v.lang.includes('hi'));
+        selectedVoice = voices.find(v => v.lang.includes('hi') && v.name.toLowerCase().includes('male')) || voices.find(v => v.lang.includes('hi'));
       } else if (language === 'mr') {
-        selectedVoice = voices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) ||
-                        voices.find(v => v.lang.includes('mr')) ||
-                        voices.find(v => v.lang.includes('hi')); // Fallback to Hindi
+        selectedVoice = voices.find(v => v.lang.includes('mr') && v.name.toLowerCase().includes('male')) || voices.find(v => v.lang.includes('mr')) || voices.find(v => v.lang.includes('hi')); // Fallback to Hindi
       } else {
         // English - prefer Google US English Male or similar
-        selectedVoice = voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) ||
-                        voices.find(v => v.name.includes('Google US English')) ||
-                        voices.find(v => v.lang.includes('en-US'));
+        selectedVoice = voices.find(v => v.lang.includes('en') && v.name.toLowerCase().includes('male')) || voices.find(v => v.name.includes('Google US English')) || voices.find(v => v.lang.includes('en-US'));
       }
-
       if (selectedVoice) {
         utterance.voice = selectedVoice;
       }
-
       utterance.rate = 1.0;
       utterance.pitch = 0.9; // Slightly lower pitch for male voice
       utterance.volume = 1.0;
-
       utterance.onend = () => {
         setPlayingAudio(null);
       };
-
-      utterance.onerror = (event) => {
+      utterance.onerror = event => {
         console.error('Speech synthesis error:', event);
         setPlayingAudio(null);
         toast({
@@ -831,7 +817,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           description: "Could not play speech"
         });
       };
-
       window.speechSynthesis.speak(utterance);
     } catch (error: any) {
       console.error('Text-to-speech error:', error);
@@ -881,25 +866,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-48 bg-background/95 backdrop-blur-sm border-orange-500/20">
-                <DropdownMenuItem 
-                  onClick={() => clearChats('chat')} 
-                  className="cursor-pointer text-xs hover:bg-orange-500/10"
-                >
+                <DropdownMenuItem onClick={() => clearChats('chat')} className="cursor-pointer text-xs hover:bg-orange-500/10">
                   <MessageSquare className="h-3 w-3 mr-2" />
                   Delete Chats Only
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => clearChats('code')} 
-                  className="cursor-pointer text-xs hover:bg-orange-500/10"
-                >
+                <DropdownMenuItem onClick={() => clearChats('code')} className="cursor-pointer text-xs hover:bg-orange-500/10">
                   <Code className="h-3 w-3 mr-2" />
                   Delete Codes Only
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => clearChats('all')} 
-                  className="cursor-pointer text-xs text-destructive hover:bg-destructive/10"
-                >
+                <DropdownMenuItem onClick={() => clearChats('all')} className="cursor-pointer text-xs text-destructive hover:bg-destructive/10">
                   <Trash2 className="h-3 w-3 mr-2" />
                   Delete All
                 </DropdownMenuItem>
@@ -972,16 +948,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                  {!isInstalled && isInstallable && (
-                    <SidebarMenuItem>
+                  {!isInstalled && isInstallable && <SidebarMenuItem>
                       <SidebarMenuButton onClick={handleInstallApp} className="w-full hover:bg-orange-500/10 hover:text-orange-400 bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20">
                         <div className="flex items-center gap-2">
                           <Smartphone className="h-3.5 w-3.5 md:h-4 md:w-4 text-orange-400" />
                           <span className="text-xs md:text-sm text-orange-400 font-medium">Install Vithal AI App</span>
                         </div>
                       </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
+                    </SidebarMenuItem>}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -1213,15 +1187,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
           {/* Main Content Area */}
           {currentView === 'code' ? <div className="flex-1 overflow-auto">
-              <CodeGeneratorChat 
-                user={user} 
-                sessionId={currentSession?.id}
-                onSessionTitleUpdate={(sessionId, newTitle) => {
-                  setChatSessions(prev => prev.map(session => 
-                    session.id === sessionId ? { ...session, title: newTitle } : session
-                  ));
-                }}
-              />
+              <CodeGeneratorChat user={user} sessionId={currentSession?.id} onSessionTitleUpdate={(sessionId, newTitle) => {
+            setChatSessions(prev => prev.map(session => session.id === sessionId ? {
+              ...session,
+              title: newTitle
+            } : session));
+          }} />
             </div> : currentView === 'studyRooms' ? <div className="flex-1 overflow-auto">
               <StudyRooms user={user} />
             </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
@@ -1248,10 +1219,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       {/* Feature Cards Grid - 2 cols mobile, 4 cols tablet/desktop */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-3 lg:gap-4 w-full max-w-xs sm:max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
                         {/* AI Chat Card */}
-                        <button
-                          onClick={() => setCurrentView('chat')}
-                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20 animate-fade-in"
-                        >
+                        <button onClick={() => setCurrentView('chat')} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20 animate-fade-in">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-orange-500/30 to-orange-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-orange-400" />
                           </div>
@@ -1260,16 +1228,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         </button>
 
                         {/* Code Generator Card */}
-                        <button
-                          onClick={async () => {
-                            playCodeSound();
-                            setCurrentView('code');
-                            if (!currentSession || currentSession.session_type !== 'code') {
-                              await createNewSession('code');
-                            }
-                          }}
-                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 animate-fade-in"
-                        >
+                        <button onClick={async () => {
+                        playCodeSound();
+                        setCurrentView('code');
+                        if (!currentSession || currentSession.session_type !== 'code') {
+                          await createNewSession('code');
+                        }
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 animate-fade-in">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-blue-400" />
                           </div>
@@ -1278,13 +1243,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         </button>
 
                         {/* Study Rooms Card */}
-                        <button
-                          onClick={() => {
-                            playChatSound();
-                            setCurrentView('studyRooms');
-                          }}
-                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 animate-fade-in"
-                        >
+                        <button onClick={() => {
+                        playChatSound();
+                        setCurrentView('studyRooms');
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 animate-fade-in">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-purple-400" />
                           </div>
@@ -1293,13 +1255,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         </button>
 
                         {/* Crop Health Analyzer Card */}
-                        <button
-                          onClick={() => {
-                            playChatSound();
-                            setCurrentView('crop');
-                          }}
-                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 animate-fade-in"
-                        >
+                        <button onClick={() => {
+                        playChatSound();
+                        setCurrentView('crop');
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 animate-fade-in">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/30 to-green-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Leaf className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-green-400" />
                           </div>
@@ -1309,7 +1268,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                       
                       <div className="text-[9px] sm:text-[10px] md:text-[10px] text-orange-400/50 mt-4 sm:mt-5 md:mt-6 text-center animate-fade-in">
-                        <p>Powered by <span className="font-semibold text-orange-500">Gemini AI</span> • By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
+                        <p>Powered by Gemini AI 
+ Developed By Kapil Kiran Jadhav<span className="font-semibold text-orange-500">Gemini AI</span> • By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
 
@@ -1513,44 +1473,35 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </DialogHeader>
             <div className="space-y-4 py-4">
               {/* Install Button */}
-              <Button
-                onClick={handleInstallApp}
-                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-orange-500/30"
-              >
+              <Button onClick={handleInstallApp} className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-orange-500/30">
                 <Smartphone className="h-5 w-5 mr-2" />
                 Install Vithal AI App
               </Button>
 
               {/* Platform-specific instructions */}
               <div className="space-y-3 text-sm">
-                {isIOS ? (
-                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                {isIOS ? <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
                     <p className="font-semibold text-orange-400 mb-2">iOS Installation:</p>
                     <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                       <li>Tap the Share button <span className="inline-block px-1">⬆️</span></li>
                       <li>Scroll down and tap "Add to Home Screen"</li>
                       <li>Tap "Add" to confirm</li>
                     </ol>
-                  </div>
-                ) : isAndroid ? (
-                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  </div> : isAndroid ? <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
                     <p className="font-semibold text-orange-400 mb-2">Android Installation:</p>
                     <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                       <li>Tap the menu button (⋮) in Chrome</li>
                       <li>Select "Add to Home Screen" or "Install App"</li>
                       <li>Tap "Install" to confirm</li>
                     </ol>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                  </div> : <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
                     <p className="font-semibold text-orange-400 mb-2">Desktop Installation:</p>
                     <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
                       <li>Click the install icon in the address bar</li>
                       <li>Or use browser menu → "Install Vithal AI"</li>
                       <li>Click "Install" to confirm</li>
                     </ol>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </DialogContent>
