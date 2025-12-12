@@ -1241,19 +1241,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       
                       {/* 2x2 grid on mobile, 4 columns on desktop for better fit */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 max-w-3xl mx-auto px-3 md:px-4 w-full">
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle animate-fade-in opacity-0" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
                           <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">📚 Study Help</h3>
                           <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Get explanations, solve problems</p>
                         </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle animate-fade-in opacity-0" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
                           <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🎯 Career Guidance</h3>
                           <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Explore career paths & advice</p>
                         </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle animate-fade-in opacity-0" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
                           <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">💻 Tech Learning</h3>
                           <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Programming & coding skills</p>
                         </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle animate-fade-in opacity-0" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
                           <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🔬 Science & Math</h3>
                           <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Calculations & concepts</p>
                         </div>
