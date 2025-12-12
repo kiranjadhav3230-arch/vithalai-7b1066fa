@@ -1233,34 +1233,89 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
                   {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[60vh] md:min-h-[50vh] py-4 md:py-8">
-                      <div className="w-14 h-14 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-7 h-7 md:w-10 md:h-10" />
+                      {/* Logo and Welcome */}
+                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-2xl md:rounded-3xl bg-gradient-to-br from-orange-500/40 to-orange-600/20 flex items-center justify-center shadow-2xl shadow-orange-500/50 animate-pulse-glow border border-orange-500/30">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-9 h-9 md:w-14 md:h-14" />
                       </div>
-                      <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4 text-center">Welcome to Vithal AI</h2>
-                      <p className="text-orange-400/70 text-xs md:text-sm mb-4 md:mb-6 max-w-md mx-auto px-4 text-center">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
+                      <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4 text-center">
+                        Welcome to Vithal AI
+                      </h2>
+                      <p className="text-orange-400/80 text-sm md:text-base mb-6 md:mb-8 max-w-lg mx-auto px-4 text-center leading-relaxed">
+                        Your AI-powered learning companion. Explore all features below.
+                      </p>
                       
-                      {/* 2x2 grid on mobile, 4 columns on desktop for better fit */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 max-w-3xl mx-auto px-3 md:px-4 w-full">
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">📚 Study Help</h3>
-                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Get explanations, solve problems</p>
-                        </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🎯 Career Guidance</h3>
-                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Explore career paths & advice</p>
-                        </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">💻 Tech Learning</h3>
-                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Programming & coding skills</p>
-                        </div>
-                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🔬 Science & Math</h3>
-                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Calculations & concepts</p>
-                        </div>
+                      {/* Feature Cards Grid - Clickable */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 max-w-4xl mx-auto px-4 w-full">
+                        {/* AI Chat Card */}
+                        <button
+                          onClick={() => setCurrentView('chat')}
+                          className="group p-4 md:p-5 rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-orange-500/20"
+                        >
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-orange-400" />
+                          </div>
+                          <h3 className="font-bold text-sm md:text-base mb-1 text-orange-400 group-hover:text-orange-300">AI Chat</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/60 leading-relaxed">Ask questions, get explanations & learn anything</p>
+                        </button>
+
+                        {/* Code Generator Card */}
+                        <button
+                          onClick={async () => {
+                            playCodeSound();
+                            setCurrentView('code');
+                            if (!currentSession || currentSession.session_type !== 'code') {
+                              await createNewSession('code');
+                            }
+                          }}
+                          className="group p-4 md:p-5 rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20"
+                        >
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Code className="w-5 h-5 md:w-6 md:h-6 text-blue-400" />
+                          </div>
+                          <h3 className="font-bold text-sm md:text-base mb-1 text-blue-400 group-hover:text-blue-300">Code Generator</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/60 leading-relaxed">Generate, explain & optimize code in 20+ languages</p>
+                        </button>
+
+                        {/* Study Rooms Card */}
+                        <button
+                          onClick={() => {
+                            playChatSound();
+                            setCurrentView('studyRooms');
+                          }}
+                          className="group p-4 md:p-5 rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20"
+                        >
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Users className="w-5 h-5 md:w-6 md:h-6 text-purple-400" />
+                          </div>
+                          <h3 className="font-bold text-sm md:text-base mb-1 text-purple-400 group-hover:text-purple-300">Study Rooms</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/60 leading-relaxed">Collaborate with friends & AI in real-time rooms</p>
+                        </button>
+
+                        {/* Crop Health Analyzer Card */}
+                        <button
+                          onClick={() => {
+                            playChatSound();
+                            setCurrentView('crop');
+                          }}
+                          className="group p-4 md:p-5 rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-green-500/20"
+                        >
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-green-500/30 to-green-600/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                            <Leaf className="w-5 h-5 md:w-6 md:h-6 text-green-400" />
+                          </div>
+                          <h3 className="font-bold text-sm md:text-base mb-1 text-green-400 group-hover:text-green-300">Crop Analyzer</h3>
+                          <p className="text-[10px] md:text-xs text-foreground/60 leading-relaxed">Diagnose plant health & get farming advice</p>
+                        </button>
+                      </div>
+
+                      {/* Quick Tips */}
+                      <div className="mt-6 md:mt-8 flex flex-wrap justify-center gap-2 px-4">
+                        <span className="px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] md:text-xs text-orange-400/80">💡 Click any card to get started</span>
+                        <span className="px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] md:text-xs text-orange-400/80">🌐 Multi-language support</span>
+                        <span className="px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-[10px] md:text-xs text-orange-400/80">🎙️ Voice input available</span>
                       </div>
                       
-                      <div className="text-[9px] md:text-[10px] text-orange-400/50 mt-3 md:mt-4 text-center">
-                        <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span> • Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
+                      <div className="text-[10px] md:text-xs text-orange-400/50 mt-4 md:mt-6 text-center">
+                        <p>Powered by <span className="font-semibold text-orange-500">Gemini AI</span> • Developed by <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
 
