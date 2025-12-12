@@ -1268,8 +1268,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       </div>
                       
                       <div className="text-[9px] sm:text-[10px] md:text-[10px] text-orange-400/50 mt-4 sm:mt-5 md:mt-6 text-center animate-fade-in">
-                        <p>Powered by Gemini AI 
- Developed By Kapil Kiran Jadhav<span className="font-semibold text-orange-500">Gemini AI</span> • By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
+                        <p>Powered by Gemini AI • By Kapil Kiran Jadhav<span className="font-semibold text-orange-500">Gemini AI</span> • Developd By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
 
