@@ -1232,31 +1232,31 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             <ScrollArea className="h-full">
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[55vh] md:min-h-[50vh] py-6 md:py-10 px-3 sm:px-4">
+                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[55vh] md:min-h-[40vh] lg:min-h-[45vh] py-6 md:py-8 lg:py-6 px-3 sm:px-4">
                       {/* Logo and Welcome - Responsive */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 mx-auto mb-3 sm:mb-4 md:mb-6 rounded-xl sm:rounded-2xl md:rounded-3xl bg-gradient-to-br from-orange-500/40 to-orange-600/20 flex items-center justify-center shadow-2xl shadow-orange-500/50 border border-orange-500/30 animate-fade-in">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8 sm:w-9 sm:h-9 md:w-12 md:h-12 lg:w-14 lg:h-14" />
+                      <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-16 md:h-16 lg:w-18 lg:h-18 mx-auto mb-3 sm:mb-4 md:mb-4 rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-500/40 to-orange-600/20 flex items-center justify-center shadow-2xl shadow-orange-500/50 border border-orange-500/30 animate-fade-in">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11" />
                       </div>
                       
-                      <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center animate-fade-in">
+                      <h2 className="text-lg sm:text-xl md:text-xl lg:text-2xl font-bold mb-1 sm:mb-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center animate-fade-in">
                         Welcome to Vithal AI
                       </h2>
-                      <p className="text-orange-400/70 text-xs sm:text-sm md:text-base mb-4 sm:mb-6 md:mb-8 max-w-md mx-auto text-center leading-relaxed animate-fade-in">
+                      <p className="text-orange-400/70 text-xs sm:text-sm md:text-sm mb-4 sm:mb-5 md:mb-6 max-w-md mx-auto text-center leading-relaxed animate-fade-in">
                         Your AI-powered learning companion
                       </p>
                       
-                      {/* Feature Cards Grid - Fully Responsive */}
-                      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 w-full max-w-xs sm:max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto">
+                      {/* Feature Cards Grid - 2 cols mobile, 4 cols tablet/desktop */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-3 lg:gap-4 w-full max-w-xs sm:max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
                         {/* AI Chat Card */}
                         <button
                           onClick={() => setCurrentView('chat')}
-                          className="group p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20 animate-fade-in"
+                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20 animate-fade-in"
                         >
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-orange-500/30 to-orange-600/20 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
-                            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-orange-400" />
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-orange-500/30 to-orange-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-orange-400" />
                           </div>
-                          <h3 className="font-bold text-xs sm:text-sm md:text-base mb-0.5 sm:mb-1 text-orange-400 group-hover:text-orange-300">AI Chat</h3>
-                          <p className="text-[9px] sm:text-[10px] md:text-xs text-foreground/60 leading-relaxed line-clamp-2">Ask questions & learn anything</p>
+                          <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-orange-400 group-hover:text-orange-300">AI Chat</h3>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Ask questions & learn</p>
                         </button>
 
                         {/* Code Generator Card */}
@@ -1268,13 +1268,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                               await createNewSession('code');
                             }
                           }}
-                          className="group p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 animate-fade-in"
+                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 animate-fade-in"
                         >
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
-                            <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-blue-400" />
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-blue-400" />
                           </div>
-                          <h3 className="font-bold text-xs sm:text-sm md:text-base mb-0.5 sm:mb-1 text-blue-400 group-hover:text-blue-300">Code Generator</h3>
-                          <p className="text-[9px] sm:text-[10px] md:text-xs text-foreground/60 leading-relaxed line-clamp-2">Generate code in 20+ languages</p>
+                          <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-blue-400 group-hover:text-blue-300">Code Generator</h3>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Generate in 20+ languages</p>
                         </button>
 
                         {/* Study Rooms Card */}
@@ -1283,13 +1283,13 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             playChatSound();
                             setCurrentView('studyRooms');
                           }}
-                          className="group p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 animate-fade-in"
+                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 animate-fade-in"
                         >
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
-                            <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-purple-400" />
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-purple-400" />
                           </div>
-                          <h3 className="font-bold text-xs sm:text-sm md:text-base mb-0.5 sm:mb-1 text-purple-400 group-hover:text-purple-300">Study Rooms</h3>
-                          <p className="text-[9px] sm:text-[10px] md:text-xs text-foreground/60 leading-relaxed line-clamp-2">Collaborate with friends & AI</p>
+                          <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-purple-400 group-hover:text-purple-300">Study Rooms</h3>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Collaborate with AI</p>
                         </button>
 
                         {/* Crop Health Analyzer Card */}
@@ -1298,17 +1298,17 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             playChatSound();
                             setCurrentView('crop');
                           }}
-                          className="group p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 animate-fade-in"
+                          className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 animate-fade-in"
                         >
-                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-green-500/30 to-green-600/20 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
-                            <Leaf className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-green-400" />
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/30 to-green-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <Leaf className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-green-400" />
                           </div>
-                          <h3 className="font-bold text-xs sm:text-sm md:text-base mb-0.5 sm:mb-1 text-green-400 group-hover:text-green-300">Crop Analyzer</h3>
-                          <p className="text-[9px] sm:text-[10px] md:text-xs text-foreground/60 leading-relaxed line-clamp-2">Diagnose plant health & advice</p>
+                          <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-green-400 group-hover:text-green-300">Crop Analyzer</h3>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Plant health & advice</p>
                         </button>
                       </div>
                       
-                      <div className="text-[9px] sm:text-[10px] md:text-xs text-orange-400/50 mt-4 sm:mt-6 md:mt-8 text-center animate-fade-in">
+                      <div className="text-[9px] sm:text-[10px] md:text-[10px] text-orange-400/50 mt-4 sm:mt-5 md:mt-6 text-center animate-fade-in">
                         <p>Powered by <span className="font-semibold text-orange-500">Gemini AI</span> • By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
