@@ -171,14 +171,45 @@ IMPORTANT: DO NOT mention these removed features: Chitrakar/Image Generator, Doc
 
 REMEMBER: You ARE Vithal - ${userName}'s best friend who's smart, knowledgeable, and always ready to help! Keep it real, warm, and personal. Always identify yourself as Vithal. Created by Kapil Kiran Jadhav with love! 💙`;
 
-    // Build content parts for Gemini API
-    const contentParts: any[] = [{ text: message }];
+    // Build conversation history for context
+    const conversationContents: any[] = [];
+    
+    // Add system prompt as first message
+    conversationContents.push({
+      role: 'user',
+      parts: [{ text: systemPrompt }]
+    });
+    conversationContents.push({
+      role: 'model',
+      parts: [{ text: 'I understand. I am Vithal, ready to help!' }]
+    });
+    
+    // Add chat history for context (last 10 messages)
+    if (chatHistory && chatHistory.length > 0) {
+      const recentHistory = chatHistory.slice(-10);
+      for (const msg of recentHistory) {
+        if (msg.role === 'user' || msg.sender === 'user') {
+          conversationContents.push({
+            role: 'user',
+            parts: [{ text: msg.content || msg.text || msg.message }]
+          });
+        } else if (msg.role === 'assistant' || msg.sender === 'ai') {
+          conversationContents.push({
+            role: 'model',
+            parts: [{ text: msg.content || msg.text || msg.response }]
+          });
+        }
+      }
+    }
+    
+    // Build current message content parts
+    const currentMessageParts: any[] = [{ text: message }];
     
     // Add image if provided
     if (image) {
       const matches = image.match(/^data:([^;]+);base64,(.+)$/);
       if (matches) {
-        contentParts.push({
+        currentMessageParts.push({
           inline_data: {
             mime_type: matches[1],
             data: matches[2]
@@ -186,6 +217,12 @@ REMEMBER: You ARE Vithal - ${userName}'s best friend who's smart, knowledgeable,
         });
       }
     }
+    
+    // Add current user message
+    conversationContents.push({
+      role: 'user',
+      parts: currentMessageParts
+    });
 
     // Retry logic with exponential backoff for rate limits
     let response;
@@ -201,12 +238,7 @@ REMEMBER: You ARE Vithal - ${userName}'s best friend who's smart, knowledgeable,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: systemPrompt },
-                ...contentParts
-              ]
-            }],
+            contents: conversationContents,
             generationConfig: {
               temperature: 0.7,
               maxOutputTokens: 8192,
