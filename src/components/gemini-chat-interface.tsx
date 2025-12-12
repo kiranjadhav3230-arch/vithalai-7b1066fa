@@ -1232,34 +1232,35 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             <ScrollArea className="h-full">
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                  {messages.length === 0 && !loading && <div className="text-center py-8 md:py-16">
-                      <div className="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
-                        <img src={vithalLogo} alt="Vithal AI" className="w-8 h-8 md:w-12 md:h-12" />
+                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[60vh] md:min-h-[50vh] py-4 md:py-8">
+                      <div className="w-14 h-14 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center shadow-2xl shadow-orange-500/40 animate-pulse-glow">
+                        <img src={vithalLogo} alt="Vithal AI" className="w-7 h-7 md:w-10 md:h-10" />
                       </div>
-                      <h2 className="text-xl md:text-3xl font-bold mb-2 md:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4">Welcome to Vithal AI </h2>
-                      <p className="text-orange-400/70 text-sm md:text-lg mb-6 md:mb-8 max-w-md mx-auto px-4">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 max-w-2xl mx-auto mb-6 md:mb-8 px-4">
-                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">📚 Study Help</h3>
-                          <p className="text-[10px] md:text-xs text-foreground/70">Get explanations, solve problems, and understand concepts</p>
+                      <h2 className="text-lg md:text-2xl font-bold mb-1 md:mb-2 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent px-4 text-center">Welcome to Vithal AI</h2>
+                      <p className="text-orange-400/70 text-xs md:text-sm mb-4 md:mb-6 max-w-md mx-auto px-4 text-center">Your intelligent study companion. Ask me anything about academics, career guidance, or learning resources.</p>
+                      
+                      {/* 2x2 grid on mobile, 4 columns on desktop for better fit */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 max-w-3xl mx-auto px-3 md:px-4 w-full">
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">📚 Study Help</h3>
+                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Get explanations, solve problems</p>
                         </div>
-                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">🎯 Career Guidance</h3>
-                          <p className="text-[10px] md:text-xs text-foreground/70">Explore career paths and get professional advice</p>
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🎯 Career Guidance</h3>
+                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Explore career paths & advice</p>
                         </div>
-                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">💻 Tech Learning</h3>
-                          <p className="text-[10px] md:text-xs text-foreground/70">Programming, coding, and technical skills. For Code Generator, check tabs above.</p>
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">💻 Tech Learning</h3>
+                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Programming & coding skills</p>
                         </div>
-                        <div className="p-3 md:p-4 rounded-lg md:rounded-xl border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
-                          <h3 className="font-semibold text-xs md:text-sm mb-1 md:mb-2 text-orange-400">🔬 Science & Math</h3>
-                          <p className="text-[10px] md:text-xs text-foreground/70">Complex calculations and scientific concepts</p>
+                        <div className="p-2.5 md:p-3 rounded-lg border border-orange-500/20 bg-black/50 hover:bg-orange-500/5 transition-all duration-300 group liquid-glass-subtle">
+                          <h3 className="font-semibold text-[11px] md:text-xs mb-0.5 md:mb-1 text-orange-400">🔬 Science & Math</h3>
+                          <p className="text-[9px] md:text-[10px] text-foreground/70 leading-tight">Calculations & concepts</p>
                         </div>
                       </div>
-                      <div className="text-[10px] md:text-xs text-orange-400/50 space-y-0.5 md:space-y-1 px-4">
-                        <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span></p>
-                        
-                        <p>Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
+                      
+                      <div className="text-[9px] md:text-[10px] text-orange-400/50 mt-3 md:mt-4 text-center">
+                        <p>Powered by <span className="font-medium text-orange-500">Gemini AI</span> • Developed by <span className="font-medium text-orange-400">Kapil Kiran Jadhav</span></p>
                       </div>
                     </div>}
 
