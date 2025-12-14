@@ -411,8 +411,19 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                   </p>
                 )}
               </div>
-              {isEditing && (
+                {isEditing && (
                 <div className="flex flex-wrap gap-2">
+                  {isPreviewable(selectedSnippet.language) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenPreview(editedCode, selectedSnippet.language)}
+                      className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Live Preview
+                    </Button>
+                  )}
                   <Button
                     variant="default"
                     size="sm"
@@ -643,14 +654,18 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleOpenPreview(selectedSnippet.generated_code, selectedSnippet.language)}
-                      title="Open preview in new tab"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
+                    {isPreviewable(selectedSnippet.language) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenPreview(selectedSnippet.generated_code, selectedSnippet.language)}
+                        title="Open live preview in new tab"
+                        className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Live Preview
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
