@@ -1239,7 +1239,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                             <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-blue-400" />
                           </div>
                           <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-blue-400 group-hover:text-blue-300">Code Generator</h3>
-                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Generate in 20+ languages</p>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Generate in 15+ languages</p>
                         </button>
 
                         {/* Study Rooms Card */}
