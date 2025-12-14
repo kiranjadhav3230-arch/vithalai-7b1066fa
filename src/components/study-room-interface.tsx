@@ -339,23 +339,42 @@ export const StudyRoomInterface: React.FC<{
   // Scroll to last seen message on first load, then to bottom for new messages
   useEffect(() => {
     if (messages.length > 0) {
-      if (!hasScrolledToLastSeen.current && lastSeenMessageId) {
-        // Scroll to last seen message on first load
-        const lastSeenElement = document.getElementById(`message-${lastSeenMessageId}`);
-        if (lastSeenElement) {
-          lastSeenElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+      // Small delay to ensure DOM is fully rendered
+      const scrollTimeout = setTimeout(() => {
+        if (!hasScrolledToLastSeen.current && lastSeenMessageId) {
+          // Find the index of last seen message
+          const lastSeenIndex = messages.findIndex(m => m.id === lastSeenMessageId);
+          
+          if (lastSeenIndex !== -1 && lastSeenIndex < messages.length - 1) {
+            // Scroll to the message AFTER the last seen (first unread)
+            const firstUnreadMessage = messages[lastSeenIndex + 1];
+            const firstUnreadElement = document.getElementById(`message-${firstUnreadMessage.id}`);
+            if (firstUnreadElement) {
+              firstUnreadElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+              hasScrolledToLastSeen.current = true;
+            }
+          } else {
+            // If last seen is the last message, scroll to bottom
+            scrollRef.current?.scrollIntoView({ behavior: 'auto' });
+            hasScrolledToLastSeen.current = true;
+          }
+        } else if (!hasScrolledToLastSeen.current && !lastSeenMessageId) {
+          // No last seen message - scroll to bottom (new user)
+          scrollRef.current?.scrollIntoView({ behavior: 'auto' });
           hasScrolledToLastSeen.current = true;
+        } else if (hasScrolledToLastSeen.current) {
+          // After initial scroll, scroll to bottom for new messages
+          scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-      } else if (hasScrolledToLastSeen.current || !lastSeenMessageId) {
-        // Scroll to bottom for new messages
-        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
+        
+        // Update last seen to the latest message
+        const latestMessage = messages[messages.length - 1];
+        if (latestMessage && latestMessage.id !== lastSeenMessageId) {
+          updateLastSeenMessage(latestMessage.id);
+        }
+      }, 100);
       
-      // Update last seen to the latest message
-      const latestMessage = messages[messages.length - 1];
-      if (latestMessage && latestMessage.id !== lastSeenMessageId) {
-        updateLastSeenMessage(latestMessage.id);
-      }
+      return () => clearTimeout(scrollTimeout);
     }
   }, [messages, lastSeenMessageId]);
 
