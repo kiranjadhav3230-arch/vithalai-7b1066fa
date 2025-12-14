@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, Camera, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, Send, Users, FileText, Plus, Loader2, Image, Camera, X, Heart, ThumbsUp, Smile, Bot, BotOff, UserPlus, Copy, Link as LinkIcon, Trash2, Settings, Reply, LogOut, Bell, BellOff, Volume2, VolumeX, ArrowDown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomWelcomeAnimation } from './study-room-welcome-animation';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -69,6 +69,7 @@ export const StudyRoomInterface: React.FC<{
   const [activeTab, setActiveTab] = useState('chat');
   const [aiMode, setAiMode] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -322,6 +323,31 @@ export const StudyRoomInterface: React.FC<{
       }
     }
   }, [messages]);
+
+  // Track scroll position to show/hide jump to bottom button
+  useEffect(() => {
+    if (!scrollAreaRef.current) return;
+    
+    const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
+      const isScrolledUp = scrollHeight - scrollTop - clientHeight > 100;
+      setShowScrollToBottom(isScrolledUp);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, [messages.length]);
+
+  const scrollToBottom = () => {
+    if (!scrollAreaRef.current) return;
+    const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
+    }
+  };
 
   // Update members when online users change
   useEffect(() => {
@@ -818,7 +844,7 @@ export const StudyRoomInterface: React.FC<{
           </div>
         )}
 
-        <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4">
+        <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4 relative">
           <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg) => (
@@ -970,6 +996,17 @@ export const StudyRoomInterface: React.FC<{
               <div ref={scrollRef} />
             </div>
           </ScrollArea>
+
+          {/* Jump to Bottom Button */}
+          {showScrollToBottom && (
+            <Button
+              onClick={scrollToBottom}
+              size="icon"
+              className="absolute bottom-32 right-8 rounded-full shadow-lg animate-fade-in z-10"
+            >
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          )}
 
           <div className="space-y-2 mt-4 flex-shrink-0">
             <div className="flex items-center justify-between">
