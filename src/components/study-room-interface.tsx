@@ -70,12 +70,14 @@ export const StudyRoomInterface: React.FC<{
   const [aiMode, setAiMode] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastSeenMessageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { toast } = useToast();
+  const hasScrolledToLastSeen = useRef(false);
+  const [lastSeenMessageId, setLastSeenMessageId] = useState<string | null>(null);
 
-  // Note form states
+  const { toast } = useToast();
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
@@ -148,7 +150,31 @@ export const StudyRoomInterface: React.FC<{
     }
   };
 
+  // Load last seen message ID
+  const loadLastSeenMessageId = async () => {
+    const { data } = await supabase
+      .from('room_members')
+      .select('last_seen_message_id')
+      .eq('room_id', room.id)
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data?.last_seen_message_id) {
+      setLastSeenMessageId(data.last_seen_message_id);
+    }
+  };
+
+  // Update last seen message when viewing messages
+  const updateLastSeenMessage = async (messageId: string) => {
+    await supabase
+      .from('room_members')
+      .update({ last_seen_message_id: messageId })
+      .eq('room_id', room.id)
+      .eq('user_id', user.id);
+  };
+
   useEffect(() => {
+    loadLastSeenMessageId();
     loadMessages();
     loadNotes();
     loadMembers();
@@ -310,9 +336,28 @@ export const StudyRoomInterface: React.FC<{
     };
   }, [room.id, user.id]);
 
+  // Scroll to last seen message on first load, then to bottom for new messages
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (messages.length > 0) {
+      if (!hasScrolledToLastSeen.current && lastSeenMessageId) {
+        // Scroll to last seen message on first load
+        const lastSeenElement = document.getElementById(`message-${lastSeenMessageId}`);
+        if (lastSeenElement) {
+          lastSeenElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+          hasScrolledToLastSeen.current = true;
+        }
+      } else if (hasScrolledToLastSeen.current || !lastSeenMessageId) {
+        // Scroll to bottom for new messages
+        scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+      
+      // Update last seen to the latest message
+      const latestMessage = messages[messages.length - 1];
+      if (latestMessage && latestMessage.id !== lastSeenMessageId) {
+        updateLastSeenMessage(latestMessage.id);
+      }
+    }
+  }, [messages, lastSeenMessageId]);
 
   // Update members when online users change
   useEffect(() => {
@@ -815,6 +860,7 @@ export const StudyRoomInterface: React.FC<{
               {messages.map((msg) => (
                 <div
                   key={msg.id}
+                  id={`message-${msg.id}`}
                   className={`flex flex-col ${msg.is_ai_response ? 'items-start' : msg.user_id === user.id ? 'items-end' : 'items-start'}`}
                 >
                   {!msg.is_ai_response && msg.user_id !== user.id && (
