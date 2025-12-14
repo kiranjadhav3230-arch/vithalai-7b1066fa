@@ -8,7 +8,7 @@ export const StudyRoomWelcomeAnimation: React.FC<{ onComplete: () => void }> = (
     const timer = setTimeout(() => {
       setIsVisible(false);
       setTimeout(() => onComplete(), 300); // Wait for fade out
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -76,7 +76,7 @@ export const StudyRoomWelcomeAnimation: React.FC<{ onComplete: () => void }> = (
             <div 
               className="h-full bg-gradient-to-r from-primary to-secondary animate-progress"
               style={{
-                animation: 'progress 5s linear forwards'
+                animation: 'progress 3s linear forwards'
               }}
             ></div>
           </div>
