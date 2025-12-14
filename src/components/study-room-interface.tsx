@@ -1001,10 +1001,11 @@ export const StudyRoomInterface: React.FC<{
           {showScrollToBottom && (
             <Button
               onClick={scrollToBottom}
-              size="icon"
-              className="absolute bottom-32 right-8 rounded-full shadow-lg animate-fade-in z-10"
+              size="sm"
+              className="absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full shadow-lg animate-fade-in z-20 gap-2 bg-primary hover:bg-primary/90"
             >
               <ArrowDown className="h-4 w-4" />
+              Jump to bottom
             </Button>
           )}
 
