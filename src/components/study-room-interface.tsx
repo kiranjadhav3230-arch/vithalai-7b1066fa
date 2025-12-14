@@ -338,38 +338,41 @@ export const StudyRoomInterface: React.FC<{
     };
   }, [room.id, user.id]);
 
-  // Scroll to last seen message on first load
+  // Scroll to new messages divider on first load
   useEffect(() => {
-    if (messages.length > 0 && !hasScrolledToLastSeen.current && initialLastSeenId) {
+    if (messages.length > 0 && !hasScrolledToLastSeen.current) {
       // Delay to ensure DOM is fully rendered
       const scrollTimeout = setTimeout(() => {
-        const lastSeenIndex = messages.findIndex(m => m.id === initialLastSeenId);
-        
-        if (lastSeenIndex !== -1 && lastSeenIndex < messages.length - 1) {
-          // Scroll to the first unread message (after last seen)
-          const firstUnreadMessage = messages[lastSeenIndex + 1];
-          const firstUnreadElement = document.getElementById(`message-${firstUnreadMessage.id}`);
-          if (firstUnreadElement) {
-            firstUnreadElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+        if (initialLastSeenId) {
+          // Try to scroll to the new messages divider
+          const dividerElement = document.getElementById('new-messages-divider');
+          if (dividerElement) {
+            dividerElement.scrollIntoView({ behavior: 'auto', block: 'start' });
+          } else {
+            // If no divider (all messages seen), scroll to bottom
+            scrollRef.current?.scrollIntoView({ behavior: 'auto' });
           }
         } else {
-          // If last seen is the last message, scroll to bottom
+          // No last seen message - scroll to bottom
           scrollRef.current?.scrollIntoView({ behavior: 'auto' });
         }
         hasScrolledToLastSeen.current = true;
-      }, 300);
+        
+        // Update last seen to the latest message after viewing
+        const latestMessage = messages[messages.length - 1];
+        if (latestMessage) {
+          updateLastSeenMessage(latestMessage.id);
+        }
+      }, 500);
       
       return () => clearTimeout(scrollTimeout);
-    } else if (messages.length > 0 && !hasScrolledToLastSeen.current && !initialLastSeenId) {
-      // No last seen message - scroll to bottom
-      scrollRef.current?.scrollIntoView({ behavior: 'auto' });
-      hasScrolledToLastSeen.current = true;
     }
   }, [messages, initialLastSeenId]);
 
-  // Scroll to bottom for new messages after initial load
+  // Scroll to bottom for new messages after initial load (only for truly new messages)
+  const prevMessagesLength = useRef(0);
   useEffect(() => {
-    if (messages.length > 0 && hasScrolledToLastSeen.current) {
+    if (messages.length > 0 && hasScrolledToLastSeen.current && messages.length > prevMessagesLength.current) {
       scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
       
       // Update last seen to the latest message
@@ -378,6 +381,7 @@ export const StudyRoomInterface: React.FC<{
         updateLastSeenMessage(latestMessage.id);
       }
     }
+    prevMessagesLength.current = messages.length;
   }, [messages.length]);
 
   // Update members when online users change
@@ -888,7 +892,7 @@ export const StudyRoomInterface: React.FC<{
                 return (
                   <React.Fragment key={msg.id}>
                     {showNewMessagesDivider && (
-                      <div className="flex items-center gap-3 py-2">
+                      <div id="new-messages-divider" className="flex items-center gap-3 py-2">
                         <div className="flex-1 h-px bg-primary/50" />
                         <span className="text-xs font-medium text-primary px-2 py-1 bg-primary/10 rounded-full">
                           New Messages
