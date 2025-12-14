@@ -70,6 +70,7 @@ export const StudyRoomInterface: React.FC<{
   const [aiMode, setAiMode] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -312,10 +313,13 @@ export const StudyRoomInterface: React.FC<{
 
   // Scroll to bottom when messages load or change
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: 'auto' });
-      }, 100);
+    if (messages.length > 0 && scrollAreaRef.current) {
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollContainer) {
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }, 100);
+      }
     }
   }, [messages]);
 
@@ -815,7 +819,7 @@ export const StudyRoomInterface: React.FC<{
         )}
 
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4">
-          <ScrollArea className="flex-1 pr-4">
+          <ScrollArea className="flex-1 pr-4" ref={scrollAreaRef}>
             <div className="space-y-4">
               {messages.map((msg) => (
                 <div
