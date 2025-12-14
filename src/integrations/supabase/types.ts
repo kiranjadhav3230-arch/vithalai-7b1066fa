@@ -732,7 +732,6 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
-          last_seen_message_id: string | null
           role: string
           room_id: string
           user_id: string
@@ -740,7 +739,6 @@ export type Database = {
         Insert: {
           id?: string
           joined_at?: string
-          last_seen_message_id?: string | null
           role?: string
           room_id: string
           user_id: string
@@ -748,19 +746,11 @@ export type Database = {
         Update: {
           id?: string
           joined_at?: string
-          last_seen_message_id?: string | null
           role?: string
           room_id?: string
           user_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "room_members_last_seen_message_id_fkey"
-            columns: ["last_seen_message_id"]
-            isOneToOne: false
-            referencedRelation: "room_messages"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "room_members_room_id_fkey"
             columns: ["room_id"]
@@ -1178,10 +1168,6 @@ export type Database = {
       get_room_by_invite_code: {
         Args: { _invite_code: string }
         Returns: string
-      }
-      get_unread_message_count: {
-        Args: { _room_id: string; _user_id: string }
-        Returns: number
       }
       is_public_room: { Args: { _room_id: string }; Returns: boolean }
       is_room_creator: {

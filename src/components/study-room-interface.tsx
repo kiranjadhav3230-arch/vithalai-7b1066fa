@@ -70,15 +70,12 @@ export const StudyRoomInterface: React.FC<{
   const [aiMode, setAiMode] = useState(true);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
-  const lastSeenMessageRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const hasScrolledToLastSeen = useRef(false);
-  const [lastSeenMessageId, setLastSeenMessageId] = useState<string | null>(null);
-  const [initialLastSeenId, setInitialLastSeenId] = useState<string | null>(null);
-
   const { toast } = useToast();
+
+  // Note form states
   const [isNoteOpen, setIsNoteOpen] = useState(false);
   const [noteTitle, setNoteTitle] = useState('');
   const [noteContent, setNoteContent] = useState('');
@@ -151,32 +148,7 @@ export const StudyRoomInterface: React.FC<{
     }
   };
 
-  // Load last seen message ID
-  const loadLastSeenMessageId = async () => {
-    const { data } = await supabase
-      .from('room_members')
-      .select('last_seen_message_id')
-      .eq('room_id', room.id)
-      .eq('user_id', user.id)
-      .single();
-    
-    if (data?.last_seen_message_id) {
-      setLastSeenMessageId(data.last_seen_message_id);
-      setInitialLastSeenId(data.last_seen_message_id); // Store initial for divider
-    }
-  };
-
-  // Update last seen message when viewing messages
-  const updateLastSeenMessage = async (messageId: string) => {
-    await supabase
-      .from('room_members')
-      .update({ last_seen_message_id: messageId })
-      .eq('room_id', room.id)
-      .eq('user_id', user.id);
-  };
-
   useEffect(() => {
-    loadLastSeenMessageId();
     loadMessages();
     loadNotes();
     loadMembers();
@@ -338,51 +310,9 @@ export const StudyRoomInterface: React.FC<{
     };
   }, [room.id, user.id]);
 
-  // Scroll to new messages divider on first load
   useEffect(() => {
-    if (messages.length > 0 && !hasScrolledToLastSeen.current) {
-      // Delay to ensure DOM is fully rendered
-      const scrollTimeout = setTimeout(() => {
-        if (initialLastSeenId) {
-          // Try to scroll to the new messages divider
-          const dividerElement = document.getElementById('new-messages-divider');
-          if (dividerElement) {
-            dividerElement.scrollIntoView({ behavior: 'auto', block: 'start' });
-          } else {
-            // If no divider (all messages seen), scroll to bottom
-            scrollRef.current?.scrollIntoView({ behavior: 'auto' });
-          }
-        } else {
-          // No last seen message - scroll to bottom
-          scrollRef.current?.scrollIntoView({ behavior: 'auto' });
-        }
-        hasScrolledToLastSeen.current = true;
-        
-        // Update last seen to the latest message after viewing
-        const latestMessage = messages[messages.length - 1];
-        if (latestMessage) {
-          updateLastSeenMessage(latestMessage.id);
-        }
-      }, 500);
-      
-      return () => clearTimeout(scrollTimeout);
-    }
-  }, [messages, initialLastSeenId]);
-
-  // Scroll to bottom for new messages after initial load (only for truly new messages)
-  const prevMessagesLength = useRef(0);
-  useEffect(() => {
-    if (messages.length > 0 && hasScrolledToLastSeen.current && messages.length > prevMessagesLength.current) {
-      scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
-      
-      // Update last seen to the latest message
-      const latestMessage = messages[messages.length - 1];
-      if (latestMessage) {
-        updateLastSeenMessage(latestMessage.id);
-      }
-    }
-    prevMessagesLength.current = messages.length;
-  }, [messages.length]);
+    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   // Update members when online users change
   useEffect(() => {
@@ -882,28 +812,11 @@ export const StudyRoomInterface: React.FC<{
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden p-4">
           <ScrollArea className="flex-1 pr-4">
             <div className="space-y-4">
-              {messages.map((msg, index) => {
-                // Check if we should show "New Messages" divider
-                const prevMessage = index > 0 ? messages[index - 1] : null;
-                const showNewMessagesDivider = initialLastSeenId && 
-                  prevMessage?.id === initialLastSeenId && 
-                  msg.id !== initialLastSeenId;
-
-                return (
-                  <React.Fragment key={msg.id}>
-                    {showNewMessagesDivider && (
-                      <div id="new-messages-divider" className="flex items-center gap-3 py-2">
-                        <div className="flex-1 h-px bg-primary/50" />
-                        <span className="text-xs font-medium text-primary px-2 py-1 bg-primary/10 rounded-full">
-                          New Messages
-                        </span>
-                        <div className="flex-1 h-px bg-primary/50" />
-                      </div>
-                    )}
-                    <div
-                      id={`message-${msg.id}`}
-                      className={`flex flex-col ${msg.is_ai_response ? 'items-start' : msg.user_id === user.id ? 'items-end' : 'items-start'}`}
-                    >
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${msg.is_ai_response ? 'items-start' : msg.user_id === user.id ? 'items-end' : 'items-start'}`}
+                >
                   {!msg.is_ai_response && msg.user_id !== user.id && (
                     <div className="text-xs text-muted-foreground mb-1 ml-2">
                       {msg.sender_name || 'User'}
@@ -1021,10 +934,8 @@ export const StudyRoomInterface: React.FC<{
                       </>
                     )}
                   </div>
-                    </div>
-                  </React.Fragment>
-                );
-              })}
+                </div>
+              ))}
               {isLoadingAI && (
                 <div className="flex justify-start">
                   <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">

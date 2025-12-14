@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Users, Plus, Lock, Copy, Check, Share2, Trash2, MessageCircle } from 'lucide-react';
+import { Users, Plus, Lock, Copy, Check, Share2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { StudyRoomInterface } from './study-room-interface';
 
@@ -18,9 +17,7 @@ interface Room {
   is_public: boolean;
   created_at: string;
   invite_code: string | null;
-  created_by?: string | null;
   member_count?: number;
-  unread_count?: number;
 }
 
 export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
@@ -32,8 +29,6 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [currentInviteCode, setCurrentInviteCode] = useState<string>('');
-  const [deleteConfirmRoom, setDeleteConfirmRoom] = useState<Room | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   // Form states
@@ -84,26 +79,14 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
 
       if (roomsError) throw roomsError;
 
-      // Get member counts and unread counts for each room
+      // Get member counts for each room
       const roomsWithCounts = await Promise.all(
         (roomsData || []).map(async (room) => {
           const { count } = await supabase
             .from('room_members')
             .select('*', { count: 'exact', head: true })
             .eq('room_id', room.id);
-          
-          // Get unread count using the function
-          const { data: unreadCount } = await supabase
-            .rpc('get_unread_message_count', { 
-              _room_id: room.id, 
-              _user_id: user.id 
-            });
-          
-          return { 
-            ...room, 
-            member_count: count || 0,
-            unread_count: unreadCount || 0
-          };
+          return { ...room, member_count: count || 0 };
         })
       );
 
@@ -304,60 +287,6 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
     });
   };
 
-  const deleteRoom = async (room: Room) => {
-    setIsDeleting(true);
-    try {
-      // Delete all messages in the room first
-      const { error: messagesError } = await supabase
-        .from('room_messages')
-        .delete()
-        .eq('room_id', room.id);
-      
-      if (messagesError) throw messagesError;
-
-      // Delete all notes in the room
-      const { error: notesError } = await supabase
-        .from('room_notes')
-        .delete()
-        .eq('room_id', room.id);
-      
-      if (notesError) throw notesError;
-
-      // Delete all members
-      const { error: membersError } = await supabase
-        .from('room_members')
-        .delete()
-        .eq('room_id', room.id);
-      
-      if (membersError) throw membersError;
-
-      // Delete the room itself
-      const { error: roomError } = await supabase
-        .from('study_rooms')
-        .delete()
-        .eq('id', room.id);
-      
-      if (roomError) throw roomError;
-
-      toast({
-        title: 'Success',
-        description: 'Room and all its content deleted successfully',
-      });
-
-      setDeleteConfirmRoom(null);
-      loadRooms();
-    } catch (error: any) {
-      console.error('Error deleting room:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete room',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   if (selectedRoom) {
     return (
       <StudyRoomInterface
@@ -523,51 +452,25 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room) => (
-            <Card key={room.id} className="hover:shadow-lg transition-shadow relative">
+            <Card key={room.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <CardTitle className="flex items-center gap-2">
                       <Lock className="h-4 w-4" />
                       {room.name}
-                      {(room.unread_count || 0) > 0 && (
-                        <span className="ml-2 px-2 py-0.5 text-xs font-bold bg-destructive text-destructive-foreground rounded-full">
-                          {room.unread_count}
-                        </span>
-                      )}
                     </CardTitle>
                     {room.description && (
                       <CardDescription className="mt-2">{room.description}</CardDescription>
                     )}
                   </div>
-                  {room.created_by === user.id && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteConfirmRoom(room);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
-                      {room.member_count || 0}
-                    </div>
-                    {(room.unread_count || 0) > 0 && (
-                      <div className="flex items-center text-primary">
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        {room.unread_count} new
-                      </div>
-                    )}
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Users className="h-4 w-4 mr-1" />
+                    {room.member_count || 0} members
                   </div>
                   <Button onClick={() => setSelectedRoom(room)} size="sm">
                     Enter
@@ -578,28 +481,6 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
           ))}
         </div>
       )}
-
-      {/* Delete Room Confirmation Dialog */}
-      <AlertDialog open={!!deleteConfirmRoom} onOpenChange={() => setDeleteConfirmRoom(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Room?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete "{deleteConfirmRoom?.name}" and all its messages, notes, and member data. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => deleteConfirmRoom && deleteRoom(deleteConfirmRoom)}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? 'Deleting...' : 'Delete Room'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
