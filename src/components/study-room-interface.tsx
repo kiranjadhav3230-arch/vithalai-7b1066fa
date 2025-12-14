@@ -310,8 +310,13 @@ export const StudyRoomInterface: React.FC<{
     };
   }, [room.id, user.id]);
 
+  // Scroll to bottom when messages load or change
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0) {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 100);
+    }
   }, [messages]);
 
   // Update members when online users change
