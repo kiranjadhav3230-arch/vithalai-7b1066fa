@@ -1219,7 +1219,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                       {/* Feature Cards Grid - 2 cols mobile, 4 cols tablet/desktop */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-3 lg:gap-4 w-full max-w-xs sm:max-w-lg md:max-w-3xl lg:max-w-4xl mx-auto">
                         {/* AI Chat Card */}
-                        <button onClick={() => setCurrentView('chat')} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20 opacity-0 animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'forwards' }}>
+                        <button onClick={() => setCurrentView('chat')} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-black/60 hover:from-orange-500/20 hover:to-orange-600/10 hover:border-orange-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-orange-500/20" style={{ animation: 'fadeInUp 0.5s ease-out 0.1s both' }}>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-orange-500/30 to-orange-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-orange-400" />
                           </div>
@@ -1234,7 +1234,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         if (!currentSession || currentSession.session_type !== 'code') {
                           await createNewSession('code');
                         }
-                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20 opacity-0 animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-black/60 hover:from-blue-500/20 hover:to-blue-600/10 hover:border-blue-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-blue-500/20" style={{ animation: 'fadeInUp 0.5s ease-out 0.2s both' }}>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-blue-500/30 to-blue-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-blue-400" />
                           </div>
@@ -1246,7 +1246,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button onClick={() => {
                         playChatSound();
                         setCurrentView('studyRooms');
-                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20 opacity-0 animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-black/60 hover:from-purple-500/20 hover:to-purple-600/10 hover:border-purple-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-purple-500/20" style={{ animation: 'fadeInUp 0.5s ease-out 0.3s both' }}>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-purple-500/30 to-purple-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Users className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-purple-400" />
                           </div>
@@ -1258,7 +1258,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         <button onClick={() => {
                         playChatSound();
                         setCurrentView('crop');
-                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20 opacity-0 animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-green-500/30 bg-gradient-to-br from-green-500/10 to-black/60 hover:from-green-500/20 hover:to-green-600/10 hover:border-green-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-green-500/20" style={{ animation: 'fadeInUp 0.5s ease-out 0.4s both' }}>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-green-500/30 to-green-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                             <Leaf className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-green-400" />
                           </div>
