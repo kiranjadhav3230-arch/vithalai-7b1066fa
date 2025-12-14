@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink, RefreshCw } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -42,6 +42,9 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [editedCode, setEditedCode] = useState('');
   const [originalCode, setOriginalCode] = useState('');
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
+  const previewWindowRef = useRef<Window | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -316,17 +319,10 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     return ['html', 'css', 'javascript'].includes(language.toLowerCase());
   };
 
-  // Open preview in new tab
-  const handleOpenPreview = (code: string, language: string) => {
-    if (!isPreviewable(language)) {
-      sonnerToast.error(`Live preview is not available for ${language}. Use the code in your development environment.`);
-      return;
-    }
-
-    let content = code;
-
+  // Generate preview HTML content
+  const generatePreviewContent = useCallback((code: string, language: string): string => {
     if (language.toLowerCase() === 'css') {
-      content = `<!DOCTYPE html>
+      return `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -345,7 +341,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   </body>
 </html>`;
     } else if (language.toLowerCase() === 'javascript') {
-      content = `<!DOCTYPE html>
+      return `<!DOCTYPE html>
 <html>
   <head>
     <style>
@@ -366,14 +362,75 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   </body>
 </html>`;
     }
+    return code;
+  }, []);
 
-    // Create blob and open in new tab
-    const blob = new Blob([content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const newWindow = window.open(url, '_blank');
+  // Update preview window content
+  const updatePreviewWindow = useCallback((code: string, language: string) => {
+    if (!previewWindowRef.current || previewWindowRef.current.closed) {
+      return;
+    }
+    
+    const content = generatePreviewContent(code, language);
+    previewWindowRef.current.document.open();
+    previewWindowRef.current.document.write(content);
+    previewWindowRef.current.document.close();
+  }, [generatePreviewContent]);
+
+  // Auto-refresh preview when code changes
+  useEffect(() => {
+    if (!isEditing || !autoRefreshEnabled || !selectedSnippet || !isPreviewable(selectedSnippet.language)) {
+      return;
+    }
+
+    if (!previewWindowRef.current || previewWindowRef.current.closed) {
+      return;
+    }
+
+    // Debounce the preview update
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(() => {
+      updatePreviewWindow(editedCode, selectedSnippet.language);
+    }, 500);
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [editedCode, isEditing, autoRefreshEnabled, selectedSnippet, updatePreviewWindow]);
+
+  // Open preview in new tab
+  const handleOpenPreview = (code: string, language: string) => {
+    if (!isPreviewable(language)) {
+      sonnerToast.error(`Live preview is not available for ${language}. Use the code in your development environment.`);
+      return;
+    }
+
+    const content = generatePreviewContent(code, language);
+
+    // If we already have an open preview window, just update it
+    if (previewWindowRef.current && !previewWindowRef.current.closed) {
+      updatePreviewWindow(code, language);
+      previewWindowRef.current.focus();
+      sonnerToast.success('Preview updated!');
+      return;
+    }
+
+    // Open a new preview window
+    const newWindow = window.open('', '_blank');
     
     if (newWindow) {
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      previewWindowRef.current = newWindow;
+      newWindow.document.write(content);
+      newWindow.document.close();
+      
+      if (autoRefreshEnabled) {
+        sonnerToast.success('Live preview opened! Auto-refresh is enabled.');
+      }
     } else {
       sonnerToast.error('Please allow pop-ups to open the preview.');
     }
@@ -414,15 +471,30 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                 {isEditing && (
                 <div className="flex flex-wrap gap-2">
                   {isPreviewable(selectedSnippet.language) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenPreview(editedCode, selectedSnippet.language)}
-                      className="bg-primary/10 hover:bg-primary/20 border-primary/30"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-1" />
-                      Live Preview
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenPreview(editedCode, selectedSnippet.language)}
+                        className="bg-primary/10 hover:bg-primary/20 border-primary/30"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-1" />
+                        Live Preview
+                      </Button>
+                      <Button
+                        variant={autoRefreshEnabled ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setAutoRefreshEnabled(!autoRefreshEnabled);
+                          sonnerToast.success(autoRefreshEnabled ? 'Auto-refresh disabled' : 'Auto-refresh enabled');
+                        }}
+                        title={autoRefreshEnabled ? "Disable auto-refresh" : "Enable auto-refresh"}
+                        className={autoRefreshEnabled ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
+                        <RefreshCw className={`h-4 w-4 mr-1 ${autoRefreshEnabled ? 'animate-spin' : ''}`} style={{ animationDuration: '3s' }} />
+                        Auto
+                      </Button>
+                    </>
                   )}
                   <Button
                     variant="default"
