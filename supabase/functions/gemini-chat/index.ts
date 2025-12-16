@@ -6,16 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     const { message, language = 'english', userProfile, image, isVoiceInput, chatHistory = [] } = await req.json();
@@ -171,58 +170,53 @@ IMPORTANT: DO NOT mention these removed features: Chitrakar/Image Generator, Doc
 
 REMEMBER: You ARE Vithal - ${userName}'s best friend who's smart, knowledgeable, and always ready to help! Keep it real, warm, and personal. Always identify yourself as Vithal. Created by Kapil Kiran Jadhav with love! 💙`;
 
-    // Build conversation history for context
-    const conversationContents: any[] = [];
-    
-    // Add system prompt as first message
-    conversationContents.push({
-      role: 'user',
-      parts: [{ text: systemPrompt }]
-    });
-    conversationContents.push({
-      role: 'model',
-      parts: [{ text: 'I understand. I am Vithal, ready to help!' }]
-    });
+    // Build conversation messages for Lovable AI
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt }
+    ];
     
     // Add chat history for context (last 10 messages)
     if (chatHistory && chatHistory.length > 0) {
       const recentHistory = chatHistory.slice(-10);
       for (const msg of recentHistory) {
         if (msg.role === 'user' || msg.sender === 'user') {
-          conversationContents.push({
+          messages.push({
             role: 'user',
-            parts: [{ text: msg.content || msg.text || msg.message }]
+            content: msg.content || msg.text || msg.message
           });
         } else if (msg.role === 'assistant' || msg.sender === 'ai') {
-          conversationContents.push({
-            role: 'model',
-            parts: [{ text: msg.content || msg.text || msg.response }]
+          messages.push({
+            role: 'assistant',
+            content: msg.content || msg.text || msg.response
           });
         }
       }
     }
     
-    // Build current message content parts
-    const currentMessageParts: any[] = [{ text: message }];
-    
-    // Add image if provided
+    // Build current message content
     if (image) {
       const matches = image.match(/^data:([^;]+);base64,(.+)$/);
       if (matches) {
-        currentMessageParts.push({
-          inline_data: {
-            mime_type: matches[1],
-            data: matches[2]
-          }
+        messages.push({
+          role: 'user',
+          content: [
+            { type: 'text', text: message },
+            {
+              type: 'image_url',
+              image_url: {
+                url: image
+              }
+            }
+          ]
         });
+      } else {
+        messages.push({ role: 'user', content: message });
       }
+    } else {
+      messages.push({ role: 'user', content: message });
     }
-    
-    // Add current user message
-    conversationContents.push({
-      role: 'user',
-      parts: currentMessageParts
-    });
+
+    console.log('Sending chat request to Lovable AI...');
 
     // Retry logic with exponential backoff for rate limits
     let response;
@@ -230,50 +224,56 @@ REMEMBER: You ARE Vithal - ${userName}'s best friend who's smart, knowledgeable,
     const maxRetries = 3;
     
     while (retries < maxRetries) {
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents: conversationContents,
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 8192,
-            }
-          }),
-        }
-      );
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages,
+          max_tokens: 8192,
+          temperature: 0.7,
+        }),
+      });
 
       if (response.ok) {
-        break; // Success, exit retry loop
+        break;
       }
 
       if (response.status === 429) {
         retries++;
         if (retries < maxRetries) {
-          const waitTime = Math.pow(2, retries) * 1000; // Exponential backoff: 2s, 4s, 8s
+          const waitTime = Math.pow(2, retries) * 1000;
           console.log(`Rate limited. Retry ${retries}/${maxRetries} after ${waitTime}ms`);
           await new Promise(resolve => setTimeout(resolve, waitTime));
           continue;
         } else {
           console.error('Max retries reached for rate limit');
-          throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please wait a moment and try again.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
       }
 
-      // Other errors
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('Lovable AI API error:', response.status, errorText);
+      throw new Error(`Lovable AI API error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, no response generated.';
+    const data = await response!.json();
+    const aiResponse = data.choices?.[0]?.message?.content || 'Sorry, no response generated.';
 
-    console.log('Gemini response generated successfully');
+    console.log('Chat response generated successfully');
 
     return new Response(
       JSON.stringify({ 
