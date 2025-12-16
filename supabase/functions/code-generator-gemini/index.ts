@@ -251,7 +251,6 @@ function validateCode(code: string, language: string): { isValid: boolean; score
   let score = 100;
   let bonusScore = 0;
   
-  // Get language weight (some languages are harder to validate)
   const validation = CODE_VALIDATION_PATTERNS[language];
   const languageWeight = validation?.weight || 0.9;
   
@@ -320,13 +319,11 @@ function validateCode(code: string, language: string): { isValid: boolean; score
       }
     });
     
-    // Calculate pattern match percentage
     const matchPercentage = matchedPatterns / patternCount;
     if (matchPercentage < 1) {
       score -= Math.round((1 - matchPercentage) * 15 * languageWeight);
     }
     
-    // Bonus for matching all patterns
     if (matchPercentage === 1) {
       bonusScore += 3;
     }
@@ -346,7 +343,6 @@ function validateCode(code: string, language: string): { isValid: boolean; score
     issues.push(`Code is short (min ${minLength} chars)`);
     score -= 15;
   } else if (code.length > minLength * 3) {
-    // Bonus for comprehensive code
     bonusScore += 2;
   }
   
@@ -378,7 +374,6 @@ function validateCode(code: string, language: string): { isValid: boolean; score
     bonusScore += 2;
   }
   
-  // Calculate final score with bonus (cap at 100)
   const finalScore = Math.min(100, Math.max(0, score + bonusScore));
   
   return {
@@ -405,7 +400,6 @@ async function fetchWithRetry(
       }
       
       if (response.status === 429) {
-        // Rate limit - wait with exponential backoff
         const waitTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
         console.log(`Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -413,14 +407,12 @@ async function fetchWithRetry(
       }
       
       if (response.status >= 500) {
-        // Server error - retry
         const waitTime = Math.pow(2, attempt) * 500;
         console.log(`Server error ${response.status}, waiting ${waitTime}ms before retry`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
       
-      // Client error - don't retry
       return response;
     } catch (error) {
       lastError = error as Error;
@@ -464,9 +456,9 @@ serve(async (req) => {
       stream 
     });
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // Get language-specific best practices
@@ -591,60 +583,82 @@ OUTPUT FORMAT:
     let contextPrompt = '';
     if (chatHistory && chatHistory.length > 0) {
       contextPrompt = '\n\nPREVIOUS CONVERSATION CONTEXT:\n';
-      const recentHistory = chatHistory.slice(-5); // Last 5 messages for context
+      const recentHistory = chatHistory.slice(-5);
       recentHistory.forEach((msg: { role: string; content: string }) => {
         contextPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 500)}\n`;
       });
       contextPrompt += '\nContinue based on this context.\n';
     }
 
-    // Build user message with attachments if provided
-    let contentParts: any[] = [];
-    
+    // Build messages for Lovable AI
     const userPrompt = prompt || (attachments?.length > 0 ? 'Generate code based on the attached image/design.' : '');
-    contentParts.push({ text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt });
     
-    // Add image attachments
+    // Build content with attachments
+    let userContent: any = systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt;
+    
     if (attachments && attachments.length > 0) {
+      const contentParts: any[] = [{ type: 'text', text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt }];
+      
       for (const att of attachments) {
         if (att.type === 'image') {
-          const matches = att.data.match(/^data:([^;]+);base64,(.+)$/);
-          if (matches) {
-            contentParts.push({
-              inline_data: {
-                mime_type: matches[1],
-                data: matches[2]
-              }
-            });
-          }
+          contentParts.push({
+            type: 'image_url',
+            image_url: {
+              url: att.data
+            }
+          });
         }
       }
+      userContent = contentParts;
     }
+
+    const messages = [
+      { role: 'user', content: userContent }
+    ];
+
+    console.log('Sending code generation request to Lovable AI...');
 
     // Handle streaming response
     if (stream) {
       const response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
+        'https://ai.gateway.lovable.dev/v1/chat/completions',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
-            contents: [{ parts: contentParts }],
-            generationConfig: {
-              temperature: 0.1,
-              maxOutputTokens: 16000,
-            }
+            model: 'google/gemini-2.5-flash',
+            messages,
+            max_tokens: 16000,
+            temperature: 0.1,
+            stream: true,
           }),
         }
       );
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Gemini streaming error:', response.status, errorText);
-        throw new Error(`Gemini API error: ${response.status}`);
+        console.error('Lovable AI streaming error:', response.status, errorText);
+        
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please wait and try again.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        throw new Error(`Lovable AI API error: ${response.status}`);
       }
 
-      // Return the streaming response directly
       return new Response(response.body, {
         headers: { 
           ...corsHeaders, 
@@ -657,38 +671,50 @@ OUTPUT FORMAT:
 
     // Non-streaming response
     const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          contents: [{ parts: contentParts }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 16000,
-          }
+          model: 'google/gemini-2.5-flash',
+          messages,
+          max_tokens: 16000,
+          temperature: 0.1,
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error('Lovable AI API error:', response.status, errorText);
       
       if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please try again in a few moments.');
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a few moments.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
-      throw new Error(`Gemini API error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`Lovable AI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Gemini response received');
+    console.log('Lovable AI response received');
 
-    const generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const generatedCode = data.choices?.[0]?.message?.content || '';
     
     if (!generatedCode) {
-      throw new Error('No code generated from Gemini API');
+      throw new Error('No code generated from Lovable AI API');
     }
 
     const cleanCode = generatedCode.trim();
@@ -703,7 +729,6 @@ OUTPUT FORMAT:
       codeLength: cleanCode.length 
     });
 
-    // If validation fails significantly, log a warning but still return
     if (!validation.isValid) {
       console.warn('Code validation warning:', validation.issues);
     }
