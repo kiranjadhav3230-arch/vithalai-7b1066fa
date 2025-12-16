@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -20,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Build language-specific prompt
@@ -50,7 +51,6 @@ serve(async (req) => {
     let systemPrompt = '';
     
     if (isComprehensiveReport) {
-      // For comprehensive reports, use a minimal system prompt and let the user message dictate the format
       systemPrompt = `You are VITHAL - an expert agricultural advisor. Follow the EXACT format and structure provided in the user's request. 
       
 CRITICAL INSTRUCTIONS:
@@ -64,7 +64,6 @@ CRITICAL INSTRUCTIONS:
 DO NOT give a generic introduction. START DIRECTLY with Section 1 (Weather Conditions).
 DO NOT skip any section. ALL 9 sections are MANDATORY.`;
     } else {
-      // For regular chat, use the conversational prompt
       let locationContext = '';
       if (location) {
         locationContext = `
@@ -123,10 +122,9 @@ ${languageInstructions[language as keyof typeof languageInstructions] || languag
 As Vithal, provide practical, actionable advice that farmers can implement. Use simple language and explain technical terms. When discussing treatments, provide both organic and chemical options where applicable. Always be friendly and encouraging as their trusted agricultural friend Vithal. 💚`;
     }
 
-    // Build conversation
-    const messages = [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      { role: 'model', parts: [{ text: 'Understood. I will follow these instructions.' }] }
+    // Build messages array for Lovable AI API
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt }
     ];
 
     // Add chat history (last 10 messages for context) - only for regular chat, not reports
@@ -134,57 +132,61 @@ As Vithal, provide practical, actionable advice that farmers can implement. Use 
       const recentHistory = chatHistory.slice(-10);
       for (const msg of recentHistory) {
         messages.push({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }]
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
         });
       }
     }
 
     // Add the actual user message
-    messages.push({
-      role: 'user',
-      parts: [{ text: message }]
-    });
+    messages.push({ role: 'user', content: message });
 
-    console.log('Sending request to Gemini API...');
+    console.log('Sending request to Lovable AI API...');
     console.log('Is comprehensive report:', isComprehensiveReport);
 
-    // Call Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: messages,
-          generationConfig: {
-            temperature: isComprehensiveReport ? 0.4 : 0.7,
-            maxOutputTokens: isComprehensiveReport ? 16000 : 8000,
-          }
-        })
-      }
-    );
+    // Call Lovable AI API
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+        max_tokens: isComprehensiveReport ? 16000 : 8000,
+        temperature: isComprehensiveReport ? 0.4 : 0.7,
+      })
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error('Lovable AI API error:', response.status, errorText);
       
       if (response.status === 429) {
-        throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+        return new Response(
+          JSON.stringify({ error: 'Rate limits exceeded, please try again later.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
       
-      throw new Error(`Gemini API error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
     
-    if (!data.candidates || !data.candidates[0]?.content?.parts?.[0]?.text) {
-      throw new Error('Invalid response from Gemini API');
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from AI API');
     }
 
-    const aiResponse = data.candidates[0].content.parts[0].text;
+    const aiResponse = data.choices[0].message.content;
     console.log('Response received, length:', aiResponse.length);
 
     return new Response(
