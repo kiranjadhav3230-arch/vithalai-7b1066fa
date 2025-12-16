@@ -251,6 +251,7 @@ function validateCode(code: string, language: string): { isValid: boolean; score
   let score = 100;
   let bonusScore = 0;
   
+  // Get language weight (some languages are harder to validate)
   const validation = CODE_VALIDATION_PATTERNS[language];
   const languageWeight = validation?.weight || 0.9;
   
@@ -319,11 +320,13 @@ function validateCode(code: string, language: string): { isValid: boolean; score
       }
     });
     
+    // Calculate pattern match percentage
     const matchPercentage = matchedPatterns / patternCount;
     if (matchPercentage < 1) {
       score -= Math.round((1 - matchPercentage) * 15 * languageWeight);
     }
     
+    // Bonus for matching all patterns
     if (matchPercentage === 1) {
       bonusScore += 3;
     }
@@ -343,6 +346,7 @@ function validateCode(code: string, language: string): { isValid: boolean; score
     issues.push(`Code is short (min ${minLength} chars)`);
     score -= 15;
   } else if (code.length > minLength * 3) {
+    // Bonus for comprehensive code
     bonusScore += 2;
   }
   
@@ -374,6 +378,7 @@ function validateCode(code: string, language: string): { isValid: boolean; score
     bonusScore += 2;
   }
   
+  // Calculate final score with bonus (cap at 100)
   const finalScore = Math.min(100, Math.max(0, score + bonusScore));
   
   return {
@@ -400,6 +405,7 @@ async function fetchWithRetry(
       }
       
       if (response.status === 429) {
+        // Rate limit - wait with exponential backoff
         const waitTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
         console.log(`Rate limited, waiting ${waitTime}ms before retry ${attempt + 1}/${maxRetries}`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
@@ -407,12 +413,14 @@ async function fetchWithRetry(
       }
       
       if (response.status >= 500) {
+        // Server error - retry
         const waitTime = Math.pow(2, attempt) * 500;
         console.log(`Server error ${response.status}, waiting ${waitTime}ms before retry`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
         continue;
       }
       
+      // Client error - don't retry
       return response;
     } catch (error) {
       lastError = error as Error;
@@ -583,123 +591,61 @@ OUTPUT FORMAT:
     let contextPrompt = '';
     if (chatHistory && chatHistory.length > 0) {
       contextPrompt = '\n\nPREVIOUS CONVERSATION CONTEXT:\n';
-      const recentHistory = chatHistory.slice(-5);
+      const recentHistory = chatHistory.slice(-5); // Last 5 messages for context
       recentHistory.forEach((msg: { role: string; content: string }) => {
         contextPrompt += `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 500)}\n`;
       });
       contextPrompt += '\nContinue based on this context.\n';
     }
 
-    // Build user prompt
+    // Build user message with attachments if provided
+    let contentParts: any[] = [];
+    
     const userPrompt = prompt || (attachments?.length > 0 ? 'Generate code based on the attached image/design.' : '');
-
-    // Build Gemini API request
-    const contents: any[] = [
-      {
-        role: 'user',
-        parts: [{ text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt }]
-      }
-    ];
-
-    // Add image attachments if present
+    contentParts.push({ text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt });
+    
+    // Add image attachments
     if (attachments && attachments.length > 0) {
       for (const att of attachments) {
-        if (att.type === 'image' && att.data) {
-          const base64Data = att.data.includes(',') ? att.data.split(',')[1] : att.data;
-          contents[0].parts.push({
-            inline_data: {
-              mime_type: 'image/jpeg',
-              data: base64Data
-            }
-          });
+        if (att.type === 'image') {
+          const matches = att.data.match(/^data:([^;]+);base64,(.+)$/);
+          if (matches) {
+            contentParts.push({
+              inline_data: {
+                mime_type: matches[1],
+                data: matches[2]
+              }
+            });
+          }
         }
       }
     }
 
-    console.log('Sending code generation request to Gemini API...');
-
     // Handle streaming response
     if (stream) {
       const response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents,
+            contents: [{ parts: contentParts }],
             generationConfig: {
               temperature: 0.1,
               maxOutputTokens: 16000,
-              topP: 0.95,
-              topK: 40,
-            },
+            }
           }),
         }
       );
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Gemini API streaming error:', response.status, errorText);
-        
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please wait and try again.' }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
+        console.error('Gemini streaming error:', response.status, errorText);
         throw new Error(`Gemini API error: ${response.status}`);
       }
 
-      // Transform Gemini streaming format to SSE format
-      const transformStream = new TransformStream({
-        transform(chunk, controller) {
-          const text = new TextDecoder().decode(chunk);
-          try {
-            // Parse Gemini response chunks
-            const lines = text.split('\n').filter(line => line.trim());
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                const jsonStr = line.slice(6);
-                if (jsonStr === '[DONE]') {
-                  controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
-                  return;
-                }
-                try {
-                  const parsed = JSON.parse(jsonStr);
-                  const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                  if (content) {
-                    const sseData = JSON.stringify({
-                      choices: [{ delta: { content } }]
-                    });
-                    controller.enqueue(new TextEncoder().encode(`data: ${sseData}\n\n`));
-                  }
-                } catch {}
-              } else if (line.trim().startsWith('{')) {
-                // Direct JSON response from Gemini
-                try {
-                  const parsed = JSON.parse(line);
-                  const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
-                  if (content) {
-                    const sseData = JSON.stringify({
-                      choices: [{ delta: { content } }]
-                    });
-                    controller.enqueue(new TextEncoder().encode(`data: ${sseData}\n\n`));
-                  }
-                } catch {}
-              }
-            }
-          } catch (e) {
-            console.error('Stream transform error:', e);
-          }
-        }
-      });
-
-      const readableStream = response.body?.pipeThrough(transformStream);
-
-      return new Response(readableStream, {
+      // Return the streaming response directly
+      return new Response(response.body, {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'text/event-stream',
@@ -714,17 +660,13 @@ OUTPUT FORMAT:
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents,
+          contents: [{ parts: contentParts }],
           generationConfig: {
             temperature: 0.1,
             maxOutputTokens: 16000,
-            topP: 0.95,
-            topK: 40,
-          },
+          }
         }),
       }
     );
@@ -734,17 +676,14 @@ OUTPUT FORMAT:
       console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a few moments.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        throw new Error('Rate limit exceeded. Please try again in a few moments.');
       }
       
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Gemini API response received');
+    console.log('Gemini response received');
 
     const generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
@@ -764,6 +703,7 @@ OUTPUT FORMAT:
       codeLength: cleanCode.length 
     });
 
+    // If validation fails significantly, log a warning but still return
     if (!validation.isValid) {
       console.warn('Code validation warning:', validation.issues);
     }
