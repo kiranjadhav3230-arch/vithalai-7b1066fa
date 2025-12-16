@@ -456,9 +456,9 @@ serve(async (req) => {
       stream 
     });
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
     }
 
     // Get language-specific best practices
@@ -590,57 +590,58 @@ OUTPUT FORMAT:
       contextPrompt += '\nContinue based on this context.\n';
     }
 
-    // Build messages for Lovable AI
+    // Build user prompt
     const userPrompt = prompt || (attachments?.length > 0 ? 'Generate code based on the attached image/design.' : '');
-    
-    // Build content with attachments
-    let userContent: any = systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt;
-    
+
+    // Build Gemini API request
+    const contents: any[] = [
+      {
+        role: 'user',
+        parts: [{ text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt }]
+      }
+    ];
+
+    // Add image attachments if present
     if (attachments && attachments.length > 0) {
-      const contentParts: any[] = [{ type: 'text', text: systemPrompt + contextPrompt + '\n\nUser Request: ' + userPrompt }];
-      
       for (const att of attachments) {
-        if (att.type === 'image') {
-          contentParts.push({
-            type: 'image_url',
-            image_url: {
-              url: att.data
+        if (att.type === 'image' && att.data) {
+          const base64Data = att.data.includes(',') ? att.data.split(',')[1] : att.data;
+          contents[0].parts.push({
+            inline_data: {
+              mime_type: 'image/jpeg',
+              data: base64Data
             }
           });
         }
       }
-      userContent = contentParts;
     }
 
-    const messages = [
-      { role: 'user', content: userContent }
-    ];
-
-    console.log('Sending code generation request to Lovable AI...');
+    console.log('Sending code generation request to Gemini API...');
 
     // Handle streaming response
     if (stream) {
       const response = await fetchWithRetry(
-        'https://ai.gateway.lovable.dev/v1/chat/completions',
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=${GEMINI_API_KEY}`,
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages,
-            max_tokens: 16000,
-            temperature: 0.1,
-            stream: true,
+            contents,
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 16000,
+              topP: 0.95,
+              topK: 40,
+            },
           }),
         }
       );
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Lovable AI streaming error:', response.status, errorText);
+        console.error('Gemini API streaming error:', response.status, errorText);
         
         if (response.status === 429) {
           return new Response(
@@ -649,17 +650,56 @@ OUTPUT FORMAT:
           );
         }
         
-        if (response.status === 402) {
-          return new Response(
-            JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-        
-        throw new Error(`Lovable AI API error: ${response.status}`);
+        throw new Error(`Gemini API error: ${response.status}`);
       }
 
-      return new Response(response.body, {
+      // Transform Gemini streaming format to SSE format
+      const transformStream = new TransformStream({
+        transform(chunk, controller) {
+          const text = new TextDecoder().decode(chunk);
+          try {
+            // Parse Gemini response chunks
+            const lines = text.split('\n').filter(line => line.trim());
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const jsonStr = line.slice(6);
+                if (jsonStr === '[DONE]') {
+                  controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+                  return;
+                }
+                try {
+                  const parsed = JSON.parse(jsonStr);
+                  const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (content) {
+                    const sseData = JSON.stringify({
+                      choices: [{ delta: { content } }]
+                    });
+                    controller.enqueue(new TextEncoder().encode(`data: ${sseData}\n\n`));
+                  }
+                } catch {}
+              } else if (line.trim().startsWith('{')) {
+                // Direct JSON response from Gemini
+                try {
+                  const parsed = JSON.parse(line);
+                  const content = parsed.candidates?.[0]?.content?.parts?.[0]?.text;
+                  if (content) {
+                    const sseData = JSON.stringify({
+                      choices: [{ delta: { content } }]
+                    });
+                    controller.enqueue(new TextEncoder().encode(`data: ${sseData}\n\n`));
+                  }
+                } catch {}
+              }
+            }
+          } catch (e) {
+            console.error('Stream transform error:', e);
+          }
+        }
+      });
+
+      const readableStream = response.body?.pipeThrough(transformStream);
+
+      return new Response(readableStream, {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'text/event-stream',
@@ -671,25 +711,27 @@ OUTPUT FORMAT:
 
     // Non-streaming response
     const response = await fetchWithRetry(
-      'https://ai.gateway.lovable.dev/v1/chat/completions',
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages,
-          max_tokens: 16000,
-          temperature: 0.1,
+          contents,
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 16000,
+            topP: 0.95,
+            topK: 40,
+          },
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -698,23 +740,16 @@ OUTPUT FORMAT:
         );
       }
       
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required. Please add credits to your Lovable AI workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`Lovable AI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('Lovable AI response received');
+    console.log('Gemini API response received');
 
-    const generatedCode = data.choices?.[0]?.message?.content || '';
+    const generatedCode = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
     
     if (!generatedCode) {
-      throw new Error('No code generated from Lovable AI API');
+      throw new Error('No code generated from Gemini API');
     }
 
     const cleanCode = generatedCode.trim();
