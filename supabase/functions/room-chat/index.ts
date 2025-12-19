@@ -89,9 +89,9 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     const { roomId, message, userId, imageData, replyTo } = await req.json();
@@ -217,10 +217,9 @@ serve(async (req) => {
       .limit(20);
 
     // Build context from recent messages
-    const conversationHistory = recentMessages?.reverse().map(msg => ({
-      role: msg.is_ai_response ? 'assistant' : 'user',
-      content: `${msg.sender_name ? `${msg.sender_name}: ` : ''}${msg.message}`
-    })) || [];
+    const conversationHistory = recentMessages?.reverse().map(msg => 
+      `${msg.is_ai_response ? 'Vithal' : (msg.sender_name || 'User')}: ${msg.message}`
+    ).join('\n') || '';
 
     // Create adaptive prompt based on learning style
     const learningStyleInstructions = {
@@ -304,49 +303,51 @@ RESPONSE STRUCTURE:
 
 Remember: You ARE Vithal - the students' best friend who's smart, knowledgeable, and always ready to help them succeed! 💙${replyTo ? `\n\nIMPORTANT: The current message is a REPLY to this previous message:\n"${replyTo.is_ai_response ? '🤖 Vithal' : replyTo.sender_name}: ${replyTo.message}"\n\nMake sure to acknowledge and reference this context in your response as Vithal.` : ''}`;
 
-    // Build messages array for Lovable AI API
-    const messages: any[] = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory
-    ];
+    // Build content parts for Gemini API
+    const contentParts: any[] = [];
+    
+    const fullPrompt = systemPrompt + 
+      (conversationHistory ? '\n\nRecent conversation:\n' + conversationHistory : '') + 
+      '\n\nUser: ' + message;
+    
+    contentParts.push({ text: fullPrompt });
 
-    // Add current message with optional image
+    // Add image if provided
     if (imageData) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: message },
-          { type: 'image_url', image_url: { url: imageData } }
-        ]
-      });
-    } else {
-      messages.push({ role: 'user', content: message });
+      const matches = imageData.match(/^data:([^;]+);base64,(.+)$/);
+      if (matches) {
+        contentParts.push({
+          inline_data: {
+            mime_type: matches[1],
+            data: matches[2]
+          }
+        });
+      }
     }
 
-    // Call Lovable AI API
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-        max_tokens: 8192,
-        temperature: 0.8,
-      }),
-    });
+    // Call Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: contentParts }],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 8192,
+          }
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       let fallbackMessage = "I'm having trouble connecting to my knowledge base right now. ";
       if (response.status === 429) {
         fallbackMessage += "The service is experiencing high demand. Please try again in a moment.";
-      } else if (response.status === 402) {
-        fallbackMessage += "Payment required. Please add funds to your workspace.";
       } else if (response.status >= 500) {
         fallbackMessage += "There's a temporary service issue. Your question has been noted, please try again shortly.";
       } else {
@@ -367,7 +368,7 @@ Remember: You ARE Vithal - the students' best friend who's smart, knowledgeable,
     }
 
     const data = await response.json();
-    let aiResponse = data.choices?.[0]?.message?.content;
+    let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (!aiResponse || aiResponse.trim().length === 0) {
       aiResponse = "I understand you have a question, but I'm having trouble formulating a complete response right now. Could you try:\n\n1. Rephrasing your question\n2. Breaking it into smaller parts\n3. Providing more context\n\nI'm here to help you learn and understand!";

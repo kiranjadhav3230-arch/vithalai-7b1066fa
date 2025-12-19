@@ -21,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     // Build location context with current date/time for live weather inference
@@ -89,32 +89,39 @@ Format your response in a clear, structured way. Use simple language that farmer
 
 Language: ${language}`;
 
-    // Call Lovable AI API with image
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: systemPrompt },
-              { type: 'image_url', image_url: { url: image } }
-            ]
+    // Build content parts for Gemini API
+    const contentParts: any[] = [{ text: systemPrompt }];
+    
+    // Add image
+    const matches = image.match(/^data:([^;]+);base64,(.+)$/);
+    if (matches) {
+      contentParts.push({
+        inline_data: {
+          mime_type: matches[1],
+          data: matches[2]
+        }
+      });
+    }
+
+    // Call Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: contentParts }],
+          generationConfig: {
+            temperature: 0.4,
+            maxOutputTokens: 8000,
           }
-        ],
-        max_tokens: 8000,
-        temperature: 0.4,
-      })
-    });
+        })
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI API error:', response.status, errorText);
+      console.error('Gemini API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -123,23 +130,16 @@ Language: ${language}`;
         );
       }
       
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'Payment required, please add funds to your Lovable AI workspace.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      
-      throw new Error(`AI API error: ${response.status}`);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
     
-    if (!data.choices?.[0]?.message?.content) {
-      throw new Error('Invalid response from AI API');
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      throw new Error('Invalid response from Gemini API');
     }
 
-    const analysisText = data.choices[0].message.content;
+    const analysisText = data.candidates[0].content.parts[0].text;
 
     return new Response(
       JSON.stringify({
