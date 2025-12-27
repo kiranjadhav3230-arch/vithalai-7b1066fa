@@ -21,10 +21,8 @@ import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
-import { OfflineModeIndicator } from './offline-mode-indicator';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
-import { useOfflineChat } from '@/hooks/useOfflineChat';
 interface ChatSession {
   id: string;
   title: string;
@@ -134,17 +132,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   } = usePWAInstall();
   const [showInstallDialog, setShowInstallDialog] = useState(false);
   
-  // Offline mode hook
-  const {
-    isOnline,
-    isOfflineMode,
-    toggleOfflineMode,
-    modelStatus,
-    downloadProgress,
-    downloadModel,
-    generateOfflineResponse,
-    forceOffline,
-  } = useOfflineChat();
   const handleInstallApp = async () => {
     const result = await installApp();
     if (result.success) {
@@ -465,44 +452,32 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       let responseText = '';
 
-      // Check if we should use offline mode
-      if (isOfflineMode && modelStatus === 'ready' && !imageToSend) {
-        // Use local AI model for offline mode (no image support)
-        responseText = await generateOfflineResponse(messageContent, chatHistory);
-      } else if (isOfflineMode && modelStatus !== 'ready') {
-        // Offline but no model - show error
-        throw new Error('Offline mode requires the AI model to be downloaded first. Please download the model while online.');
-      } else if (isOfflineMode && imageToSend) {
-        // Offline with image - not supported
-        throw new Error('Image analysis is not available in offline mode. Please switch to online mode.');
-      } else {
-        // Online mode - use Gemini API
-        const requestBody: any = {
-          message: messageContent,
-          profile: userProfile,
-          language: language,
-          chatHistory: chatHistory
-        };
+      // Use Gemini API
+      const requestBody: any = {
+        message: messageContent,
+        profile: userProfile,
+        language: language,
+        chatHistory: chatHistory
+      };
 
-        // Add image if present
-        if (imageToSend) {
-          requestBody.image = imageToSend;
-        }
-        const {
-          data,
-          error
-        } = await supabase.functions.invoke('gemini-chat', {
-          body: requestBody
-        });
-        if (error) throw error;
-
-        // Check if the response contains an error from the edge function
-        if (data?.error) {
-          throw new Error(data.response || data.error);
-        }
-        
-        responseText = data.response;
+      // Add image if present
+      if (imageToSend) {
+        requestBody.image = imageToSend;
       }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('gemini-chat', {
+        body: requestBody
+      });
+      if (error) throw error;
+
+      // Check if the response contains an error from the edge function
+      if (data?.error) {
+        throw new Error(data.response || data.error);
+      }
+      
+      responseText = data.response;
 
       // Update message with response
       const {
@@ -521,8 +496,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         await generateSmartSessionTitle(currentSession.id, userMessage, responseText);
       }
       toast({
-        title: isOfflineMode ? "⚡ Offline Response" : "✅ Response received!",
-        description: isOfflineMode ? "Using local AI model" : "AI has processed your message"
+        title: "✅ Response received!",
+        description: "AI has processed your message"
       });
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -1060,20 +1035,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0">
                   <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
-                <div className="min-w-0 flex-1 flex items-center gap-2">
+                <div className="min-w-0 flex-1">
                   <h1 className="text-xs md:text-sm font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
                     {currentSession?.title || 'New Chat'}
                   </h1>
-                  {/* Offline Mode Indicator */}
-                  <OfflineModeIndicator
-                    isOnline={isOnline}
-                    isOfflineMode={isOfflineMode}
-                    forceOffline={forceOffline}
-                    toggleOfflineMode={toggleOfflineMode}
-                    modelStatus={modelStatus}
-                    downloadProgress={downloadProgress}
-                    downloadModel={downloadModel}
-                  />
                 </div>
               </div>
 
@@ -1238,24 +1203,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
               <CropHealthAnalyzer />
             </div> : <>
-          {/* Offline Mode Status Bar - Above Messages */}
-          {isOfflineMode && (
-            <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-              <span className="text-xs font-medium text-amber-400">
-                {modelStatus === 'ready' ? '⚡ Local AI Mode - Faster & Private' : modelStatus === 'downloading' ? `📥 Downloading AI Model... ${downloadProgress}%` : '⚠️ Offline - Download AI model for local chat'}
-              </span>
-              {modelStatus === 'not-downloaded' && (
-                <button 
-                  onClick={downloadModel}
-                  className="ml-2 px-2 py-0.5 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-full border border-amber-500/30 transition-all"
-                >
-                  Download
-                </button>
-              )}
-            </div>
-          )}
-          
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
@@ -1444,11 +1391,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <button onClick={removeSelectedImage} className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110">
                       <X className="h-3.5 w-3.5" />
                     </button>
-                    {isOfflineMode && (
-                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-amber-500/80 text-black text-xs rounded-md font-medium">
-                        ⚠️ Images not supported offline
-                      </div>
-                    )}
                   </div>
                 </div>}
 
