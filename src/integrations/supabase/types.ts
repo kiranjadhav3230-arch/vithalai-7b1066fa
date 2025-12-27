@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_steps: {
+        Row: {
+          action_data: Json | null
+          action_text_en: string
+          action_text_hi: string
+          action_text_mr: string
+          action_type: Database["public"]["Enums"]["action_type"]
+          created_at: string | null
+          id: string
+          is_critical: boolean | null
+          situation_id: string
+          step_order: number
+        }
+        Insert: {
+          action_data?: Json | null
+          action_text_en: string
+          action_text_hi: string
+          action_text_mr: string
+          action_type?: Database["public"]["Enums"]["action_type"]
+          created_at?: string | null
+          id?: string
+          is_critical?: boolean | null
+          situation_id: string
+          step_order: number
+        }
+        Update: {
+          action_data?: Json | null
+          action_text_en?: string
+          action_text_hi?: string
+          action_text_mr?: string
+          action_type?: Database["public"]["Enums"]["action_type"]
+          created_at?: string | null
+          id?: string
+          is_critical?: boolean | null
+          situation_id?: string
+          step_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_steps_situation_id_fkey"
+            columns: ["situation_id"]
+            isOneToOne: false
+            referencedRelation: "legal_situations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -193,6 +240,59 @@ export type Database = {
         }
         Relationships: []
       }
+      document_templates: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          required_fields: Json | null
+          situation_id: string | null
+          template_content_en: string
+          template_content_hi: string
+          template_content_mr: string
+          template_name_en: string
+          template_name_hi: string
+          template_name_mr: string
+          template_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          required_fields?: Json | null
+          situation_id?: string | null
+          template_content_en: string
+          template_content_hi: string
+          template_content_mr: string
+          template_name_en: string
+          template_name_hi: string
+          template_name_mr: string
+          template_type: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          required_fields?: Json | null
+          situation_id?: string | null
+          template_content_en?: string
+          template_content_hi?: string
+          template_content_mr?: string
+          template_name_en?: string
+          template_name_hi?: string
+          template_name_mr?: string
+          template_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_templates_situation_id_fkey"
+            columns: ["situation_id"]
+            isOneToOne: false
+            referencedRelation: "legal_situations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           analysis_result: Json | null
@@ -234,6 +334,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      dos_and_donts: {
+        Row: {
+          content_en: string
+          content_hi: string
+          content_mr: string
+          created_at: string | null
+          icon: string | null
+          id: string
+          priority_order: number | null
+          situation_id: string
+          type: string
+        }
+        Insert: {
+          content_en: string
+          content_hi: string
+          content_mr: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          priority_order?: number | null
+          situation_id: string
+          type: string
+        }
+        Update: {
+          content_en?: string
+          content_hi?: string
+          content_mr?: string
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          priority_order?: number | null
+          situation_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dos_and_donts_situation_id_fkey"
+            columns: ["situation_id"]
+            isOneToOne: false
+            referencedRelation: "legal_situations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       enquiries: {
         Row: {
@@ -353,6 +497,54 @@ export type Database = {
           },
         ]
       }
+      helpline_directory: {
+        Row: {
+          category: Database["public"]["Enums"]["legal_category_type"] | null
+          created_at: string | null
+          description_en: string | null
+          description_hi: string | null
+          id: string
+          is_active: boolean | null
+          is_toll_free: boolean | null
+          name_en: string
+          name_hi: string
+          name_mr: string
+          phone_number: string
+          state: string | null
+          working_hours: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["legal_category_type"] | null
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_toll_free?: boolean | null
+          name_en: string
+          name_hi: string
+          name_mr: string
+          phone_number: string
+          state?: string | null
+          working_hours?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["legal_category_type"] | null
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_toll_free?: boolean | null
+          name_en?: string
+          name_hi?: string
+          name_mr?: string
+          phone_number?: string
+          state?: string | null
+          working_hours?: string | null
+        }
+        Relationships: []
+      }
       learning_profiles: {
         Row: {
           created_at: string | null
@@ -391,6 +583,166 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      legal_categories: {
+        Row: {
+          category_type: Database["public"]["Enums"]["legal_category_type"]
+          color: string
+          created_at: string | null
+          description_en: string | null
+          description_hi: string | null
+          description_mr: string | null
+          icon: string
+          id: string
+          is_active: boolean | null
+          name_en: string
+          name_hi: string
+          name_mr: string
+          sort_order: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category_type: Database["public"]["Enums"]["legal_category_type"]
+          color?: string
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          description_mr?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name_en: string
+          name_hi: string
+          name_mr: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category_type?: Database["public"]["Enums"]["legal_category_type"]
+          color?: string
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          description_mr?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          name_en?: string
+          name_hi?: string
+          name_mr?: string
+          sort_order?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      legal_rights: {
+        Row: {
+          act_name: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          legal_reference: string | null
+          priority_order: number | null
+          right_text_en: string
+          right_text_hi: string
+          right_text_mr: string
+          section_number: string | null
+          situation_id: string
+        }
+        Insert: {
+          act_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_reference?: string | null
+          priority_order?: number | null
+          right_text_en: string
+          right_text_hi: string
+          right_text_mr: string
+          section_number?: string | null
+          situation_id: string
+        }
+        Update: {
+          act_name?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_reference?: string | null
+          priority_order?: number | null
+          right_text_en?: string
+          right_text_hi?: string
+          right_text_mr?: string
+          section_number?: string | null
+          situation_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_rights_situation_id_fkey"
+            columns: ["situation_id"]
+            isOneToOne: false
+            referencedRelation: "legal_situations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_situations: {
+        Row: {
+          category_id: string
+          created_at: string | null
+          description_en: string | null
+          description_hi: string | null
+          description_mr: string | null
+          id: string
+          is_active: boolean | null
+          is_emergency: boolean | null
+          keywords: string[] | null
+          severity_level: number | null
+          title_en: string
+          title_hi: string
+          title_mr: string
+          updated_at: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          description_mr?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_emergency?: boolean | null
+          keywords?: string[] | null
+          severity_level?: number | null
+          title_en: string
+          title_hi: string
+          title_mr: string
+          updated_at?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string | null
+          description_en?: string | null
+          description_hi?: string | null
+          description_mr?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_emergency?: boolean | null
+          keywords?: string[] | null
+          severity_level?: number | null
+          title_en?: string
+          title_hi?: string
+          title_mr?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_situations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "legal_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       location_history: {
         Row: {
@@ -1127,6 +1479,94 @@ export type Database = {
         }
         Relationships: []
       }
+      user_evidence_locker: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          evidence_type: string
+          file_url: string
+          history_id: string | null
+          id: string
+          is_encrypted: boolean | null
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          evidence_type: string
+          file_url: string
+          history_id?: string | null
+          id?: string
+          is_encrypted?: boolean | null
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          evidence_type?: string
+          file_url?: string
+          history_id?: string | null
+          id?: string
+          is_encrypted?: boolean | null
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_evidence_locker_history_id_fkey"
+            columns: ["history_id"]
+            isOneToOne: false
+            referencedRelation: "user_rights_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_rights_history: {
+        Row: {
+          ai_response: string | null
+          created_at: string | null
+          evidence_recorded: boolean | null
+          id: string
+          is_emergency: boolean | null
+          language: string | null
+          query_text: string | null
+          situation_id: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_response?: string | null
+          created_at?: string | null
+          evidence_recorded?: boolean | null
+          id?: string
+          is_emergency?: boolean | null
+          language?: string | null
+          query_text?: string | null
+          situation_id?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_response?: string | null
+          created_at?: string | null
+          evidence_recorded?: boolean | null
+          id?: string
+          is_emergency?: boolean | null
+          language?: string | null
+          query_text?: string | null
+          situation_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rights_history_situation_id_fkey"
+            columns: ["situation_id"]
+            isOneToOne: false
+            referencedRelation: "legal_situations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weak_topics: {
         Row: {
           created_at: string | null
@@ -1194,7 +1634,22 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      action_type:
+        | "call"
+        | "record"
+        | "share_location"
+        | "generate_document"
+        | "navigate"
+        | "info"
+      legal_category_type:
+        | "police"
+        | "hospital"
+        | "workplace"
+        | "women_safety"
+        | "consumer"
+        | "traffic"
+        | "property"
+        | "government"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1321,6 +1776,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      action_type: [
+        "call",
+        "record",
+        "share_location",
+        "generate_document",
+        "navigate",
+        "info",
+      ],
+      legal_category_type: [
+        "police",
+        "hospital",
+        "workplace",
+        "women_safety",
+        "consumer",
+        "traffic",
+        "property",
+        "government",
+      ],
+    },
   },
 } as const
