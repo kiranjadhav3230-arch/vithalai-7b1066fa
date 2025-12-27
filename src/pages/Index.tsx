@@ -138,6 +138,7 @@ const Index = () => {
       
       <main className="relative">
         <ModernHero onGetStarted={handleGetStarted} />
+        <ModernHowItWorks />
         <ComprehensiveFeatures />
         <FaqSection />
           

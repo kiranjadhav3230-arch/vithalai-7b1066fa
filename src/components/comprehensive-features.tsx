@@ -96,7 +96,7 @@ export const ComprehensiveFeatures: React.FC = () => {
   ];
 
   return (
-    <section id="all-features" className="relative py-16 md:py-24 px-4 overflow-hidden">
+    <section id="features" className="relative py-16 md:py-24 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-950/5 to-black"></div>
       
