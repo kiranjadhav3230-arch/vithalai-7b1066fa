@@ -21,8 +21,10 @@ import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
+import { OfflineModeIndicator } from './offline-mode-indicator';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { useOfflineChat } from '@/hooks/useOfflineChat';
 interface ChatSession {
   id: string;
   title: string;
@@ -131,6 +133,18 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     installApp
   } = usePWAInstall();
   const [showInstallDialog, setShowInstallDialog] = useState(false);
+  
+  // Offline mode hook
+  const {
+    isOnline,
+    isOfflineMode,
+    toggleOfflineMode,
+    modelStatus,
+    downloadProgress,
+    downloadModel,
+    generateOfflineResponse,
+    forceOffline,
+  } = useOfflineChat();
   const handleInstallApp = async () => {
     const result = await installApp();
     if (result.success) {
@@ -449,37 +463,53 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         content: msg.message
       }));
 
-      // Call Gemini chat with image support
-      const requestBody: any = {
-        message: messageContent,
-        profile: userProfile,
-        language: language,
-        chatHistory: chatHistory
-      };
+      let responseText = '';
 
-      // Add image if present
-      if (imageToSend) {
-        requestBody.image = imageToSend;
-      }
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('gemini-chat', {
-        body: requestBody
-      });
-      if (error) throw error;
+      // Check if we should use offline mode
+      if (isOfflineMode && modelStatus === 'ready' && !imageToSend) {
+        // Use local AI model for offline mode (no image support)
+        responseText = await generateOfflineResponse(messageContent, chatHistory);
+      } else if (isOfflineMode && modelStatus !== 'ready') {
+        // Offline but no model - show error
+        throw new Error('Offline mode requires the AI model to be downloaded first. Please download the model while online.');
+      } else if (isOfflineMode && imageToSend) {
+        // Offline with image - not supported
+        throw new Error('Image analysis is not available in offline mode. Please switch to online mode.');
+      } else {
+        // Online mode - use Gemini API
+        const requestBody: any = {
+          message: messageContent,
+          profile: userProfile,
+          language: language,
+          chatHistory: chatHistory
+        };
 
-      // Check if the response contains an error from the edge function
-      if (data?.error) {
-        throw new Error(data.response || data.error);
+        // Add image if present
+        if (imageToSend) {
+          requestBody.image = imageToSend;
+        }
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('gemini-chat', {
+          body: requestBody
+        });
+        if (error) throw error;
+
+        // Check if the response contains an error from the edge function
+        if (data?.error) {
+          throw new Error(data.response || data.error);
+        }
+        
+        responseText = data.response;
       }
 
       // Update message with response
       const {
         error: updateError
       } = await supabase.from('chat_messages').update({
-        response: data.response,
-        youtube_courses: data.youtubeCourses || null
+        response: responseText,
+        youtube_courses: null
       }).eq('id', userMessageData.id);
       if (updateError) throw updateError;
 
@@ -488,11 +518,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
       // Generate smart title for first message
       if (messages.length === 0) {
-        await generateSmartSessionTitle(currentSession.id, userMessage, data.response);
+        await generateSmartSessionTitle(currentSession.id, userMessage, responseText);
       }
       toast({
-        title: "✅ Response received!",
-        description: "AI has processed your message"
+        title: isOfflineMode ? "⚡ Offline Response" : "✅ Response received!",
+        description: isOfflineMode ? "Using local AI model" : "AI has processed your message"
       });
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -1030,10 +1060,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0">
                   <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 flex items-center gap-2">
                   <h1 className="text-xs md:text-sm font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
                     {currentSession?.title || 'New Chat'}
                   </h1>
+                  {/* Offline Mode Indicator */}
+                  <OfflineModeIndicator
+                    isOnline={isOnline}
+                    isOfflineMode={isOfflineMode}
+                    forceOffline={forceOffline}
+                    toggleOfflineMode={toggleOfflineMode}
+                    modelStatus={modelStatus}
+                    downloadProgress={downloadProgress}
+                    downloadModel={downloadModel}
+                  />
                 </div>
               </div>
 
@@ -1379,6 +1419,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {/* Input Area - Professional Bottom Bar */}
           <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
             <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
+              {/* Offline Mode Badge */}
+              {isOfflineMode && (
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    {modelStatus === 'ready' ? '⚡ Local AI Mode' : '⚠️ Model not ready'}
+                  </div>
+                  {selectedImage && (
+                    <span className="text-xs text-amber-400/70">Image analysis not available offline</span>
+                  )}
+                </div>
+              )}
+              
               {/* Image Preview */}
               {selectedImage && <div className="mb-3">
                   <div className="relative inline-block rounded-xl overflow-hidden border border-border/50 shadow-lg">
