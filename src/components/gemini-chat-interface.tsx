@@ -10,7 +10,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale } from 'lucide-react';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -1269,6 +1269,19 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                           </div>
                           <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-green-400 group-hover:text-green-300">Crop Analyzer</h3>
                           <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Plant health & advice</p>
+                        </button>
+
+                        {/* Haq Jaano - Know Your Rights Card */}
+                        <button onClick={() => {
+                        playChatSound();
+                        window.location.href = '/haq-jaano';
+                      }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-red-500/30 bg-gradient-to-br from-red-500/10 to-black/60 hover:from-red-500/20 hover:to-red-600/10 hover:border-red-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 animate-fade-in relative">
+                          <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[8px] px-1.5 py-0.5 border-0">NEW</Badge>
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-red-500/30 to-red-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                            <Scale className="w-4 h-4 sm:w-5 sm:h-5 md:w-4 md:h-4 lg:w-5 lg:h-5 text-red-400" />
+                          </div>
+                          <h3 className="font-bold text-xs sm:text-sm md:text-xs lg:text-sm mb-0.5 text-red-400 group-hover:text-red-300">Haq Jaano</h3>
+                          <p className="text-[9px] sm:text-[10px] md:text-[9px] lg:text-[10px] text-foreground/60 leading-relaxed line-clamp-2">Know your legal rights</p>
                         </button>
                       </div>
                       
