@@ -50,3 +50,6 @@ verify_jwt = false
 
 [functions.code-assistant]
 verify_jwt = true
+
+[functions.haq-jaano-ai]
+verify_jwt = false
