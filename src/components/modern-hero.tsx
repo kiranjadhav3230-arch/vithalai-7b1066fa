@@ -17,7 +17,7 @@ export const ModernHero: React.FC<ModernHeroProps> = ({ onGetStarted, onLearnMor
     if (onLearnMore) {
       onLearnMore();
     } else {
-      const featuresSection = document.getElementById('all-features');
+      const featuresSection = document.getElementById('features');
       if (featuresSection) {
         featuresSection.scrollIntoView({ behavior: 'smooth' });
       }

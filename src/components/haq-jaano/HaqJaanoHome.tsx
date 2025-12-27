@@ -90,7 +90,7 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
               <Shield className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">{getTitle()}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{getTitle()}</h1>
               <p className="text-sm text-muted-foreground">{getSubtitle()}</p>
             </div>
           </div>
@@ -115,7 +115,7 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
                 placeholder={getSearchPlaceholder()}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-14 rounded-xl border-border/50 bg-card/50 pl-12 pr-4 text-lg backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20"
+                className="h-12 sm:h-14 rounded-xl border-border/50 bg-card/50 pl-12 pr-4 text-base sm:text-lg backdrop-blur-sm focus:border-primary/50 focus:ring-primary/20"
               />
             </div>
           </form>
@@ -150,6 +150,19 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
             ))}
           </div>
         )}
+      </div>
+
+      {/* Credits */}
+      <div className="container mx-auto px-4 pb-6">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-muted-foreground">
+          <span className="px-4 py-2 rounded-full bg-card/40 border border-border/40 backdrop-blur-sm">
+            Powered by Gemini AI
+          </span>
+          <span className="hidden sm:inline text-muted-foreground/40">•</span>
+          <span className="px-4 py-2 rounded-full bg-card/40 border border-border/40 backdrop-blur-sm">
+            Developed by Kapil Kiran Jadhav
+          </span>
+        </div>
       </div>
 
       {/* Quick Helpline Banner */}
