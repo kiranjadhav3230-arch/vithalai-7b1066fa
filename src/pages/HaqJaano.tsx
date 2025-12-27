@@ -3,11 +3,12 @@ import { HaqJaanoHome } from '@/components/haq-jaano/HaqJaanoHome';
 import { SituationSelector } from '@/components/haq-jaano/SituationSelector';
 import { RightsResponse } from '@/components/haq-jaano/RightsResponse';
 import { AIResponseView } from '@/components/haq-jaano/AIResponseView';
+import { DocumentGenerator } from '@/components/haq-jaano/DocumentGenerator';
 import { useHaqJaano, LegalCategory, LegalSituation } from '@/hooks/useHaqJaano';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 
-type ViewState = 'home' | 'category' | 'situation' | 'ai-response';
+type ViewState = 'home' | 'category' | 'situation' | 'ai-response' | 'document-generator';
 
 const HaqJaano: React.FC = () => {
   const { language } = useLanguage();
@@ -52,16 +53,18 @@ const HaqJaano: React.FC = () => {
         break;
       case 'situation':
         setViewState('category');
-        setSituationDetails(null);
         break;
       case 'ai-response':
         setViewState('home');
         setAiQuery('');
         break;
+      case 'document-generator':
+        setViewState('situation');
+        break;
       default:
         setViewState('home');
     }
-  }, [viewState, setSituationDetails]);
+  }, [viewState]);
 
   const handleRecordEvidence = useCallback(() => {
     toast({
@@ -74,14 +77,8 @@ const HaqJaano: React.FC = () => {
   }, [language, toast]);
 
   const handleGenerateDocument = useCallback(() => {
-    toast({
-      title: language === 'hi' ? 'जल्द आ रहा है' : 
-             language === 'mr' ? 'लवकरच येत आहे' : 'Coming Soon',
-      description: language === 'hi' ? 'दस्तावेज़ जनरेटर जल्द ही उपलब्ध होगा' : 
-                   language === 'mr' ? 'दस्तऐवज जनरेटर लवकरच उपलब्ध होईल' : 
-                   'Document generator will be available soon',
-    });
-  }, [language, toast]);
+    setViewState('document-generator');
+  }, []);
 
   // Render based on view state
   switch (viewState) {
@@ -119,6 +116,15 @@ const HaqJaano: React.FC = () => {
         <AIResponseView
           query={aiQuery}
           onBack={handleBack}
+        />
+      );
+
+    case 'document-generator':
+      return (
+        <DocumentGenerator
+          situationDetails={situationDetails}
+          onBack={handleBack}
+          getLocalizedText={getLocalizedText}
         />
       );
 
