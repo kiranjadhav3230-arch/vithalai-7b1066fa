@@ -4,6 +4,7 @@ import { HaqJaanoHome } from '@/components/haq-jaano/HaqJaanoHome';
 import { SituationSelector } from '@/components/haq-jaano/SituationSelector';
 import { RightsResponse } from '@/components/haq-jaano/RightsResponse';
 import { AIResponseView } from '@/components/haq-jaano/AIResponseView';
+import { FeatureNavBar } from '@/components/feature-nav-bar';
 import { useHaqJaano, LegalCategory, LegalSituation } from '@/hooks/useHaqJaano';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -64,9 +65,13 @@ const HaqJaano: React.FC = () => {
     }
   }, [viewState]);
 
-  const handleBackToHome = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+  const handleFeatureSelect = (feature: 'chat' | 'room' | 'haq-jaano') => {
+    if (feature === 'haq-jaano') {
+      setViewState('home');
+    } else {
+      navigate('/', { state: { openFeature: feature } });
+    }
+  };
 
   const handleRecordEvidence = useCallback(() => {
     toast({
@@ -78,54 +83,68 @@ const HaqJaano: React.FC = () => {
     });
   }, [language, toast]);
 
-  // Render based on view state
-  switch (viewState) {
-    case 'category':
-      if (!selectedCategory) {
-        setViewState('home');
-        return null;
-      }
-      return (
-        <SituationSelector
-          category={selectedCategory}
-          onBack={handleBack}
-          onSituationSelect={handleSituationSelect}
-          getLocalizedText={getLocalizedText}
-        />
-      );
+  // Render content based on view state
+  const renderContent = () => {
+    switch (viewState) {
+      case 'category':
+        if (!selectedCategory) {
+          setViewState('home');
+          return null;
+        }
+        return (
+          <SituationSelector
+            category={selectedCategory}
+            onBack={handleBack}
+            onSituationSelect={handleSituationSelect}
+            getLocalizedText={getLocalizedText}
+          />
+        );
 
-    case 'situation':
-      if (!situationDetails) {
-        setViewState('home');
-        return null;
-      }
-      return (
-        <RightsResponse
-          details={situationDetails}
-          onBack={handleBack}
-          onRecordEvidence={handleRecordEvidence}
-          getLocalizedText={getLocalizedText}
-        />
-      );
+      case 'situation':
+        if (!situationDetails) {
+          setViewState('home');
+          return null;
+        }
+        return (
+          <RightsResponse
+            details={situationDetails}
+            onBack={handleBack}
+            onRecordEvidence={handleRecordEvidence}
+            getLocalizedText={getLocalizedText}
+          />
+        );
 
-    case 'ai-response':
-      return (
-        <AIResponseView
-          query={aiQuery}
-          onBack={handleBack}
-        />
-      );
+      case 'ai-response':
+        return (
+          <AIResponseView
+            query={aiQuery}
+            onBack={handleBack}
+          />
+        );
 
-    default:
-      return (
-        <HaqJaanoHome
-          onCategorySelect={handleCategorySelect}
-          onSearch={handleSearch}
-          onVoiceInput={handleVoiceInput}
-          onBackToHome={handleBackToHome}
-        />
-      );
-  }
+      default:
+        return (
+          <HaqJaanoHome
+            onCategorySelect={handleCategorySelect}
+            onSearch={handleSearch}
+            onVoiceInput={handleVoiceInput}
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Feature Navigation Bar */}
+      <FeatureNavBar 
+        currentFeature="haq-jaano" 
+        onFeatureSelect={handleFeatureSelect}
+      />
+      
+      {/* Content */}
+      {renderContent()}
+    </div>
+  );
 };
 
 export default HaqJaano;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ModernHeader } from '@/components/modern-header';
 import { ModernHero } from '@/components/modern-hero';
@@ -14,16 +15,33 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/useLanguage';
 import type { User, Session } from '@supabase/supabase-js';
+
 const Index = () => {
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [initialView, setInitialView] = useState<'chat' | 'code' | 'studyRooms' | 'crop'>('chat');
   const {
     t
   } = useLanguage();
+
+  // Handle navigation from other pages
+  useEffect(() => {
+    const state = location.state as { openFeature?: 'chat' | 'room' } | null;
+    if (state?.openFeature) {
+      if (state.openFeature === 'room') {
+        setInitialView('studyRooms');
+      } else {
+        setInitialView('chat');
+      }
+      // Clear the state so it doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
   useEffect(() => {
     // Show initial loading briefly
     const minLoadingTime = setTimeout(() => {
@@ -106,12 +124,12 @@ const Index = () => {
 
   // Show chat interface if user is logged in
   if (user && showChat) {
-    return <ChatInterface user={user} onLogout={handleLogout} />;
+    return <ChatInterface user={user} onLogout={handleLogout} initialView={initialView} />;
   }
 
   // Show chat interface by default for logged in users
   if (user) {
-    return <ChatInterface user={user} onLogout={handleLogout} />;
+    return <ChatInterface user={user} onLogout={handleLogout} initialView={initialView} />;
   }
 
   // Show landing page
