@@ -61,10 +61,21 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
       console.log('Loading offline model...');
       
       // Dynamic import for better compatibility
-      const { pipeline } = await import('@huggingface/transformers');
+      const { pipeline, env } = await import('@huggingface/transformers');
+
+      // Force the most compatible execution path in browsers
+      try {
+        if (env?.backends?.onnx?.wasm) {
+          // Avoid multi-threaded WASM requirements (SharedArrayBuffer / COOP+COEP)
+          (env.backends.onnx.wasm as any).numThreads = 1;
+          (env.backends.onnx.wasm as any).proxy = false;
+        }
+      } catch {
+        // ignore
+      }
       
-      // Use a smaller, more compatible model
-      const MODEL_ID = 'Xenova/gpt2';
+      // Use a smaller, more compatible model (quantized)
+      const MODEL_ID = 'Xenova/distilgpt2';
       
       // Simulate progress since the model loading may not report progress
       const progressInterval = setInterval(() => {
@@ -75,6 +86,8 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
       }, 500);
 
       const generator = await pipeline('text-generation', MODEL_ID, {
+        device: 'wasm',
+        dtype: 'q4',
         progress_callback: (progress: any) => {
           if (progress.progress !== undefined) {
             setDownloadProgress(Math.round(progress.progress));
@@ -104,10 +117,22 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
 
     isLoadingRef.current = true;
     try {
-      const { pipeline } = await import('@huggingface/transformers');
-      const MODEL_ID = 'Xenova/gpt2';
+      const { pipeline, env } = await import('@huggingface/transformers');
+      const MODEL_ID = 'Xenova/distilgpt2';
 
-      const generator = await pipeline('text-generation', MODEL_ID);
+      try {
+        if (env?.backends?.onnx?.wasm) {
+          (env.backends.onnx.wasm as any).numThreads = 1;
+          (env.backends.onnx.wasm as any).proxy = false;
+        }
+      } catch {
+        // ignore
+      }
+
+      const generator = await pipeline('text-generation', MODEL_ID, {
+        device: 'wasm',
+        dtype: 'q4',
+      });
       generatorRef.current = generator;
       return true;
     } catch (error) {
