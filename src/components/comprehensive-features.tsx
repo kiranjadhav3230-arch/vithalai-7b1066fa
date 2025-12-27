@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   MessageSquare, 
@@ -15,14 +16,25 @@ import {
   Calendar,
   GraduationCap,
   Lightbulb,
-  Leaf
+  Leaf,
+  Shield
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
 export const ComprehensiveFeatures: React.FC = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const features = [
+    {
+      icon: Shield,
+      title: 'Haq Jaano - Know Your Rights',
+      description: 'India\'s first AI Legal Rights Assistant. Know your rights in any situation - police, hospital, workplace & more',
+      gradient: 'from-blue-500 to-blue-600',
+      category: 'Legal',
+      isNew: true,
+      link: '/haq-jaano'
+    },
     {
       icon: MessageSquare,
       title: 'AI Chat Assistant',
@@ -146,13 +158,19 @@ export const ComprehensiveFeatures: React.FC = () => {
               variant="glass"
               className="group morph-shape cursor-pointer hover:scale-105 transition-all duration-500"
               style={{ animationDelay: `${index * 0.05}s` }}
+              onClick={() => (feature as any).link && navigate((feature as any).link)}
             >
               <CardContent className="p-8">
                 {/* Category Badge */}
-                <div className="mb-4">
+                <div className="mb-4 flex items-center gap-2">
                   <span className="inline-block px-3 py-1 rounded-full text-xs font-display font-semibold bg-gradient-to-r from-orange-500/20 to-orange-600/20 border border-orange-500/30 text-orange-400">
                     {feature.category}
                   </span>
+                  {(feature as any).isNew && (
+                    <span className="inline-block px-2 py-0.5 rounded-full text-xs font-display font-bold bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
+                      NEW
+                    </span>
+                  )}
                 </div>
 
                 {/* Icon */}
@@ -169,6 +187,14 @@ export const ComprehensiveFeatures: React.FC = () => {
                 <p className="text-muted-foreground text-sm leading-relaxed font-sans">
                   {feature.description}
                 </p>
+
+                {/* Link indicator for clickable features */}
+                {(feature as any).link && (
+                  <div className="mt-4 flex items-center gap-1 text-primary text-sm font-medium">
+                    <span>Try Now</span>
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
+                )}
 
                 {/* Hover Glow Effect */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/0 to-orange-600/0 group-hover:from-orange-500/5 group-hover:to-orange-600/5 transition-all duration-500 pointer-events-none"></div>
