@@ -44,10 +44,12 @@ interface ChatMessage {
 interface GeminiChatInterfaceProps {
   user: User;
   onLogout: () => void;
+  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop';
 }
 export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   user,
-  onLogout
+  onLogout,
+  initialView
 }) => {
   const [message, setMessage] = useState('');
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
@@ -61,7 +63,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'code', 'studyRooms', 'crop'
+  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop'>(initialView || 'chat');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [collapsedTabs, setCollapsedTabs] = useState<{
     chat: boolean;
