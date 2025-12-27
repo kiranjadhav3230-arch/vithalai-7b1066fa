@@ -1,16 +1,17 @@
 import React, { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HaqJaanoHome } from '@/components/haq-jaano/HaqJaanoHome';
 import { SituationSelector } from '@/components/haq-jaano/SituationSelector';
 import { RightsResponse } from '@/components/haq-jaano/RightsResponse';
 import { AIResponseView } from '@/components/haq-jaano/AIResponseView';
-import { DocumentGenerator } from '@/components/haq-jaano/DocumentGenerator';
 import { useHaqJaano, LegalCategory, LegalSituation } from '@/hooks/useHaqJaano';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 
-type ViewState = 'home' | 'category' | 'situation' | 'ai-response' | 'document-generator';
+type ViewState = 'home' | 'category' | 'situation' | 'ai-response';
 
 const HaqJaano: React.FC = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const { toast } = useToast();
   const {
@@ -58,13 +59,14 @@ const HaqJaano: React.FC = () => {
         setViewState('home');
         setAiQuery('');
         break;
-      case 'document-generator':
-        setViewState('situation');
-        break;
       default:
         setViewState('home');
     }
   }, [viewState]);
+
+  const handleBackToHome = useCallback(() => {
+    navigate('/');
+  }, [navigate]);
 
   const handleRecordEvidence = useCallback(() => {
     toast({
@@ -75,10 +77,6 @@ const HaqJaano: React.FC = () => {
                    'Evidence recording feature will be available soon',
     });
   }, [language, toast]);
-
-  const handleGenerateDocument = useCallback(() => {
-    setViewState('document-generator');
-  }, []);
 
   // Render based on view state
   switch (viewState) {
@@ -106,7 +104,6 @@ const HaqJaano: React.FC = () => {
           details={situationDetails}
           onBack={handleBack}
           onRecordEvidence={handleRecordEvidence}
-          onGenerateDocument={handleGenerateDocument}
           getLocalizedText={getLocalizedText}
         />
       );
@@ -119,21 +116,13 @@ const HaqJaano: React.FC = () => {
         />
       );
 
-    case 'document-generator':
-      return (
-        <DocumentGenerator
-          situationDetails={situationDetails}
-          onBack={handleBack}
-          getLocalizedText={getLocalizedText}
-        />
-      );
-
     default:
       return (
         <HaqJaanoHome
           onCategorySelect={handleCategorySelect}
           onSearch={handleSearch}
           onVoiceInput={handleVoiceInput}
+          onBackToHome={handleBackToHome}
         />
       );
   }

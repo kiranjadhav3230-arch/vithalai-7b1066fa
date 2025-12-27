@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Mic, Search, AlertTriangle, Phone } from 'lucide-react';
+import { Shield, Search, Phone, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -7,18 +7,19 @@ import { useHaqJaano, LegalCategory } from '@/hooks/useHaqJaano';
 import { CategoryCard } from './CategoryCard';
 import { EmergencySOS } from './EmergencySOS';
 import { VoiceInputButton } from './VoiceInputButton';
-import { cn } from '@/lib/utils';
 
 interface HaqJaanoHomeProps {
   onCategorySelect: (category: LegalCategory) => void;
   onSearch: (query: string) => void;
   onVoiceInput: (text: string) => void;
+  onBackToHome: () => void;
 }
 
 export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
   onCategorySelect,
   onSearch,
   onVoiceInput,
+  onBackToHome,
 }) => {
   const { language } = useLanguage();
   const { categories, fetchCategories, isLoading, getLocalizedText } = useHaqJaano();
@@ -75,6 +76,14 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
     }
   };
 
+  const getBackToHome = () => {
+    switch (language) {
+      case 'hi': return 'होम पेज पर वापस जाएं';
+      case 'mr': return 'मुख्यपृष्ठावर परत जा';
+      default: return 'Back to Home';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -82,6 +91,16 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_50%)]" />
         
         <div className="container relative mx-auto px-4">
+          {/* Back to Home Button */}
+          <Button
+            variant="ghost"
+            onClick={onBackToHome}
+            className="mb-4 gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <Home className="h-4 w-4" />
+            {getBackToHome()}
+          </Button>
+
           {/* Logo and Title */}
           <div className="mb-6 flex items-center justify-center gap-3">
             <div className="rounded-full bg-primary/20 p-3">
