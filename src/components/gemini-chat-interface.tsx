@@ -10,7 +10,8 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -51,6 +52,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   onLogout,
   initialView
 }) => {
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
@@ -65,6 +67,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [userProfile, setUserProfile] = useState<any>(null);
   const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop'>(initialView || 'chat');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [collapsedTabs, setCollapsedTabs] = useState<{
     chat: boolean;
     code: boolean;
@@ -1046,20 +1049,22 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
 
               {/* Right: Mode Toggle + Actions */}
               <div className="flex items-center gap-1.5 md:gap-2">
-                {/* View Mode Toggle */}
+                {/* View Mode Toggle - Desktop */}
                 <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
                   width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'studyRooms' ? 2 : 3})`,
-                  background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : 2})`,
+                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                   backdropFilter: 'blur(20px)',
-                  boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
-                  zIndex: 0
+                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(29, 78, 216, 0.3)',
+                  zIndex: 0,
+                  opacity: showAllFeatures ? 0 : 1
                 }} />
                   
+                  {/* Chats */}
                   <Button variant="ghost" onClick={async () => {
                   playChatSound();
                   setCurrentView('chat');
@@ -1068,31 +1073,31 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   }
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
                     <MessageSquare className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">Chat</span>
+                    <span className="hidden md:inline">{language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats'}</span>
                   </Button>
-                  <Button variant="ghost" onClick={async () => {
-                  playCodeSound();
-                  setCurrentView('code');
-                  if (!currentSession || currentSession.session_type !== 'code') {
-                    await createNewSession('code');
-                  }
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
-                    <Code className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">Code</span>
-                  </Button>
+                  
+                  {/* Room */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
                   setCurrentView('studyRooms');
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
                     <Users className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">Rooms</span>
+                    <span className="hidden md:inline">{language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room'}</span>
                   </Button>
+                  
+                  {/* Haq Jaano */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
-                  setCurrentView('crop');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'crop' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
-                    <Leaf className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">Crop</span>
+                  navigate('/haq-jaano');
+                }} size="sm" className="relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 text-blue-400/70 hover:text-blue-400">
+                    <Scale className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">{language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano'}</span>
+                  </Button>
+                  
+                  {/* All Features */}
+                  <Button variant="ghost" onClick={() => setShowAllFeatures(true)} size="sm" className="relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 text-orange-400/70 hover:text-orange-400">
+                    <Grid3X3 className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
                   </Button>
                 </div>
 
@@ -1101,15 +1106,16 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
                   width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'code' ? 1 : currentView === 'studyRooms' ? 2 : 3})`,
-                  background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : 2})`,
+                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'transparent',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                   backdropFilter: 'blur(20px)',
-                  boxShadow: '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)',
+                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
                   zIndex: 0
                 }} />
                   
+                  {/* Chats */}
                   <Button variant="ghost" onClick={async () => {
                   playChatSound();
                   setCurrentView('chat');
@@ -1119,26 +1125,26 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}>
                     <MessageSquare className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" onClick={async () => {
-                  playCodeSound();
-                  setCurrentView('code');
-                  if (!currentSession || currentSession.session_type !== 'code') {
-                    await createNewSession('code');
-                  }
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'code' ? 'text-white' : 'text-orange-400/50'}`}>
-                    <Code className="h-3.5 w-3.5" />
-                  </Button>
+                  
+                  {/* Room */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
                   setCurrentView('studyRooms');
                 }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}>
                     <Users className="h-3.5 w-3.5" />
                   </Button>
+                  
+                  {/* Haq Jaano */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
-                  setCurrentView('crop');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'crop' ? 'text-white' : 'text-orange-400/50'}`}>
-                    <Leaf className="h-3.5 w-3.5" />
+                  navigate('/haq-jaano');
+                }} size="sm" className="relative h-7 w-7 p-0 z-10 text-blue-400/50">
+                    <Scale className="h-3.5 w-3.5" />
+                  </Button>
+                  
+                  {/* All */}
+                  <Button variant="ghost" onClick={() => setShowAllFeatures(true)} size="sm" className="relative h-7 w-7 p-0 z-10 text-orange-400/50">
+                    <Grid3X3 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
 
@@ -1148,7 +1154,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                 createNewSession(sessionType);
               }} size="sm" variant="ghost" className="h-7 w-7 md:w-auto md:px-2 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20">
                   <Plus className="h-3.5 w-3.5" />
-                  <span className="hidden md:inline ml-1 text-xs">New</span>
+                  <span className="hidden md:inline ml-1 text-xs">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
                 </Button>
 
                 {/* User Menu */}
@@ -1522,6 +1528,140 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     </ol>
                   </div>}
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* All Features Dialog */}
+        <Dialog open={showAllFeatures} onOpenChange={setShowAllFeatures}>
+          <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <Grid3X3 className="h-5 w-5 text-primary" />
+                {language === 'hi' ? 'सभी सुविधाएं' : language === 'mr' ? 'सर्व वैशिष्ट्ये' : 'All Features'}
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-3 py-4">
+              {/* AI Chat */}
+              <button
+                onClick={() => {
+                  setCurrentView('chat');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg">
+                    <MessageSquare className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground group-hover:text-orange-400 transition-colors">
+                      {language === 'hi' ? 'AI चैट सहायक' : language === 'mr' ? 'AI चॅट सहाय्यक' : 'AI Chat Assistant'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'Gemini द्वारा संचालित बुद्धिमान AI चैटबॉट' : language === 'mr' ? 'Gemini द्वारे समर्थित बुद्धिमान AI चॅटबॉट' : 'Intelligent AI chatbot powered by Gemini'}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Code Generator */}
+              <button
+                onClick={() => {
+                  setCurrentView('code');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-600 to-red-500 shadow-lg">
+                    <Code className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground group-hover:text-orange-400 transition-colors">
+                      {language === 'hi' ? 'कोड जेनरेटर' : language === 'mr' ? 'कोड जनरेटर' : 'Code Generator'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? '18+ प्रोग्रामिंग भाषाओं में कोड जनरेट करें' : language === 'mr' ? '18+ प्रोग्रामिंग भाषांमध्ये कोड तयार करा' : 'Generate code in 18+ programming languages'}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Study Rooms */}
+              <button
+                onClick={() => {
+                  setCurrentView('studyRooms');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-orange-500/50 hover:bg-orange-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground group-hover:text-orange-400 transition-colors">
+                      {language === 'hi' ? 'स्टडी रूम' : language === 'mr' ? 'स्टडी रूम' : 'Study Rooms'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'AI सहायता के साथ सहयोगी अध्ययन स्थान' : language === 'mr' ? 'AI सहाय्यासह सहयोगी अभ्यास जागा' : 'Collaborative study spaces with AI assistance'}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Crop Health Analyzer */}
+              <button
+                onClick={() => {
+                  setCurrentView('crop');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-green-500/50 hover:bg-green-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
+                    <Leaf className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground group-hover:text-green-400 transition-colors">
+                      {language === 'hi' ? 'फसल स्वास्थ्य विश्लेषक' : language === 'mr' ? 'पीक आरोग्य विश्लेषक' : 'Crop Health Analyzer'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'AI-संचालित पौधों की बीमारी का निदान' : language === 'mr' ? 'AI-संचालित वनस्पती रोग निदान' : 'AI-powered plant disease diagnosis'}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Haq Jaano */}
+              <button
+                onClick={() => {
+                  navigate('/haq-jaano');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                    <Scale className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-blue-400 transition-colors">
+                        {language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano'}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-green-600 text-white animate-pulse">
+                        NEW
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'भारत का पहला AI कानूनी अधिकार सहायक' : language === 'mr' ? 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक' : "India's first AI Legal Rights Assistant"}
+                    </p>
+                  </div>
+                </div>
+              </button>
             </div>
           </DialogContent>
         </Dialog>
