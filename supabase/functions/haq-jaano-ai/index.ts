@@ -87,38 +87,45 @@ EMERGENCY NUMBERS:
 - चाइल्ड हेल्पलाइन: 1098`,
 };
 
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, language = 'en' } = await req.json();
+    const { messages, language = 'en' } = await req.json();
 
-    if (!query) {
-      throw new Error('Query is required');
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      throw new Error('Messages array is required');
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
+    if (!OPENROUTER_API_KEY) {
+      throw new Error('OPENROUTER_API_KEY is not configured');
     }
 
     const systemPrompt = systemPrompts[language] || systemPrompts.en;
 
-    console.log(`Processing Haq Jaano query in ${language}:`, query.substring(0, 100));
+    console.log(`Processing Haq Jaano chat in ${language}, messages count: ${messages.length}`);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://vithalai.lovable.app',
+        'X-Title': 'Haq Jaano - Know Your Rights',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'google/gemini-2.5-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: query },
+          ...messages,
         ],
         temperature: 0.7,
         max_tokens: 2000,
@@ -127,7 +134,7 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('OpenRouter API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -142,7 +149,7 @@ serve(async (req) => {
         );
       }
       
-      throw new Error(`AI Gateway error: ${response.status}`);
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
     const data = await response.json();

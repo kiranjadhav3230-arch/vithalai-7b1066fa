@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Sparkles, Loader2, Copy, Volume2, VolumeX } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Sparkles, Loader2, Copy, Volume2, VolumeX, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useHaqJaano } from '@/hooks/useHaqJaano';
 import { useTextToSpeech } from '@/hooks/useTextToSpeech';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 interface AIResponseViewProps {
   query: string;
@@ -17,32 +23,82 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
   onBack,
 }) => {
   const { language } = useLanguage();
-  const { askAI, isAiLoading, aiResponse } = useHaqJaano();
   const { speak, stop, isPlaying } = useTextToSpeech(language);
   const { toast } = useToast();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (!hasFetched && query) {
-      askAI(query);
+      sendMessage(query);
       setHasFetched(true);
     }
-  }, [query, askAI, hasFetched]);
+  }, [query, hasFetched]);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(aiResponse);
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading) return;
+
+    const userMessage: ChatMessage = { role: 'user', content: messageText };
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await supabase.functions.invoke('haq-jaano-ai', {
+        body: { messages: updatedMessages, language },
+      });
+
+      if (response.error) throw response.error;
+
+      const assistantMessage: ChatMessage = {
+        role: 'assistant',
+        content: response.data.response || '',
+      };
+      setMessages([...updatedMessages, assistantMessage]);
+    } catch (error) {
+      console.error('Error asking AI:', error);
+      toast({
+        title: language === 'hi' ? 'त्रुटि' : language === 'mr' ? 'त्रुटी' : 'Error',
+        description: language === 'hi' ? 'AI से उत्तर नहीं मिल सका' :
+          language === 'mr' ? 'AI कडून उत्तर मिळू शकले नाही' : 'Could not get AI response',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(inputValue);
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
     toast({
       title: language === 'hi' ? 'कॉपी हुआ' : language === 'mr' ? 'कॉपी झाले' : 'Copied',
-      description: language === 'hi' ? 'जवाब क्लिपबोर्ड पर कॉपी हुआ' : 
+      description: language === 'hi' ? 'जवाब क्लिपबोर्ड पर कॉपी हुआ' :
         language === 'mr' ? 'उत्तर क्लिपबोर्डवर कॉपी झाले' : 'Response copied to clipboard',
     });
   };
 
-  const handleSpeak = () => {
-    if (isPlaying('ai-response')) {
+  const handleSpeak = (text: string, id: string) => {
+    if (isPlaying(id)) {
       stop();
     } else {
-      speak(aiResponse, 'ai-response');
+      speak(text, id);
     }
   };
 
@@ -54,24 +110,24 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
     }
   };
 
-  const getYourQuery = () => {
+  const getInputPlaceholder = () => {
     switch (language) {
-      case 'hi': return 'आपका सवाल';
-      case 'mr': return 'तुमचा प्रश्न';
-      default: return 'Your Question';
+      case 'hi': return 'अपना सवाल लिखें...';
+      case 'mr': return 'तुमचा प्रश्न लिहा...';
+      default: return 'Type your question...';
     }
   };
 
-  const getAIResponse = () => {
+  const getSendText = () => {
     switch (language) {
-      case 'hi': return 'AI का जवाब';
-      case 'mr': return 'AI चे उत्तर';
-      default: return 'AI Response';
+      case 'hi': return 'भेजें';
+      case 'mr': return 'पाठवा';
+      default: return 'Send';
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 border-b border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto flex items-center gap-4 px-4 py-4">
@@ -90,62 +146,96 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* User Query */}
-        <div className="rounded-xl border border-border/50 bg-card/50 p-4">
-          <p className="text-sm font-medium text-muted-foreground">{getYourQuery()}</p>
-          <p className="mt-2 text-foreground">{query}</p>
-        </div>
-
-        {/* AI Response */}
-        <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">{getAIResponse()}</span>
-            </div>
-            {aiResponse && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSpeak}
-                  className="h-8 w-8"
-                >
-                  {isPlaying('ai-response') ? (
-                    <VolumeX className="h-4 w-4" />
-                  ) : (
-                    <Volume2 className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCopy}
-                  className="h-8 w-8"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={cn(
+              "flex",
+              message.role === 'user' ? 'justify-end' : 'justify-start'
             )}
+          >
+            <div
+              className={cn(
+                "max-w-[85%] rounded-2xl px-4 py-3",
+                message.role === 'user'
+                  ? 'bg-primary text-primary-foreground rounded-br-md'
+                  : 'bg-card border border-border/50 rounded-bl-md'
+              )}
+            >
+              {message.role === 'assistant' && (
+                <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/30">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">Haq Jaano AI</span>
+                  <div className="ml-auto flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleSpeak(message.content, `msg-${index}`)}
+                      className="h-7 w-7"
+                    >
+                      {isPlaying(`msg-${index}`) ? (
+                        <VolumeX className="h-3.5 w-3.5" />
+                      ) : (
+                        <Volume2 className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopy(message.content)}
+                      className="h-7 w-7"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {message.content}
+              </p>
+            </div>
           </div>
+        ))}
 
-          {isAiLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                <span className="text-sm text-muted-foreground">
+                  {language === 'hi' ? 'सोच रहा हूं...' :
+                    language === 'mr' ? 'विचार करत आहे...' : 'Thinking...'}
+                </span>
+              </div>
             </div>
-          ) : aiResponse ? (
-            <div className="prose prose-invert max-w-none">
-              <p className="whitespace-pre-wrap text-foreground">{aiResponse}</p>
-            </div>
-          ) : (
-            <p className="text-muted-foreground">
-              {language === 'hi' ? 'कोई जवाब नहीं मिला' : 
-               language === 'mr' ? 'कोणतेही उत्तर सापडले नाही' : 
-               'No response received'}
-            </p>
-          )}
-        </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div className="border-t border-border/50 bg-background/95 backdrop-blur-sm p-4">
+        <form onSubmit={handleSubmit} className="container mx-auto flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={getInputPlaceholder()}
+            disabled={isLoading}
+            className="flex-1 h-12 rounded-xl"
+          />
+          <Button
+            type="submit"
+            disabled={isLoading || !inputValue.trim()}
+            className="h-12 px-6 rounded-xl gap-2"
+          >
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">{getSendText()}</span>
+          </Button>
+        </form>
       </div>
     </div>
   );
