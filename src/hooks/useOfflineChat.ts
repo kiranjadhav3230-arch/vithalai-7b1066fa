@@ -69,6 +69,14 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
           // Avoid multi-threaded WASM requirements (SharedArrayBuffer / COOP+COEP)
           (env.backends.onnx.wasm as any).numThreads = 1;
           (env.backends.onnx.wasm as any).proxy = false;
+
+          // Ensure ONNX runtime loads WASM assets from our app (not blocked CDNs)
+          const baseUrl = import.meta.env.BASE_URL ?? '/';
+          const onnxBase = `${window.location.origin}${baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`}onnx/`;
+          (env.backends.onnx.wasm as any).wasmPaths = {
+            mjs: `${onnxBase}ort-wasm-simd-threaded.jsep.mjs`,
+            wasm: `${onnxBase}ort-wasm-simd-threaded.jsep.wasm`,
+          };
         }
       } catch {
         // ignore
@@ -124,6 +132,13 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
         if (env?.backends?.onnx?.wasm) {
           (env.backends.onnx.wasm as any).numThreads = 1;
           (env.backends.onnx.wasm as any).proxy = false;
+
+          const baseUrl = import.meta.env.BASE_URL ?? '/';
+          const onnxBase = `${window.location.origin}${baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`}onnx/`;
+          (env.backends.onnx.wasm as any).wasmPaths = {
+            mjs: `${onnxBase}ort-wasm-simd-threaded.jsep.mjs`,
+            wasm: `${onnxBase}ort-wasm-simd-threaded.jsep.wasm`,
+          };
         }
       } catch {
         // ignore
