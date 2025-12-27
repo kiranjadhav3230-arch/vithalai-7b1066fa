@@ -1238,6 +1238,24 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
               <CropHealthAnalyzer />
             </div> : <>
+          {/* Offline Mode Status Bar - Above Messages */}
+          {isOfflineMode && (
+            <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="text-xs font-medium text-amber-400">
+                {modelStatus === 'ready' ? '⚡ Local AI Mode - Faster & Private' : modelStatus === 'downloading' ? `📥 Downloading AI Model... ${downloadProgress}%` : '⚠️ Offline - Download AI model for local chat'}
+              </span>
+              {modelStatus === 'not-downloaded' && (
+                <button 
+                  onClick={downloadModel}
+                  className="ml-2 px-2 py-0.5 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-full border border-amber-500/30 transition-all"
+                >
+                  Download
+                </button>
+              )}
+            </div>
+          )}
+          
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full">
@@ -1419,19 +1437,6 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
           {/* Input Area - Professional Bottom Bar */}
           <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
             <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
-              {/* Offline Mode Badge */}
-              {isOfflineMode && (
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    {modelStatus === 'ready' ? '⚡ Local AI Mode' : '⚠️ Model not ready'}
-                  </div>
-                  {selectedImage && (
-                    <span className="text-xs text-amber-400/70">Image analysis not available offline</span>
-                  )}
-                </div>
-              )}
-              
               {/* Image Preview */}
               {selectedImage && <div className="mb-3">
                   <div className="relative inline-block rounded-xl overflow-hidden border border-border/50 shadow-lg">
@@ -1439,6 +1444,11 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                     <button onClick={removeSelectedImage} className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110">
                       <X className="h-3.5 w-3.5" />
                     </button>
+                    {isOfflineMode && (
+                      <div className="absolute bottom-2 left-2 px-2 py-1 bg-amber-500/80 text-black text-xs rounded-md font-medium">
+                        ⚠️ Images not supported offline
+                      </div>
+                    )}
                   </div>
                 </div>}
 
