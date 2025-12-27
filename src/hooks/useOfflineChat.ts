@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { pipeline, TextGenerationPipeline } from '@huggingface/transformers';
 
 interface UseOfflineChatReturn {
   isOnline: boolean;
@@ -13,7 +12,6 @@ interface UseOfflineChatReturn {
   setForceOffline: (value: boolean) => void;
 }
 
-const MODEL_ID = 'Xenova/Qwen2.5-0.5B-Instruct';
 const MODEL_CACHE_KEY = 'vithal-offline-model-ready';
 
 export const useOfflineChat = (): UseOfflineChatReturn => {
@@ -21,7 +19,7 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
   const [forceOffline, setForceOffline] = useState(false);
   const [modelStatus, setModelStatus] = useState<'not-downloaded' | 'downloading' | 'ready' | 'error'>('not-downloaded');
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const generatorRef = useRef<TextGenerationPipeline | null>(null);
+  const generatorRef = useRef<any>(null);
   const isLoadingRef = useRef(false);
 
   // Check if model was previously downloaded
@@ -60,14 +58,23 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
     setDownloadProgress(0);
 
     try {
-      // Check WebGPU support
-      const hasWebGPU = 'gpu' in navigator;
-      const device = hasWebGPU ? 'webgpu' : 'wasm';
+      console.log('Loading offline model...');
       
-      console.log(`Loading offline model with ${device}...`);
+      // Dynamic import for better compatibility
+      const { pipeline } = await import('@huggingface/transformers');
+      
+      // Use a smaller, more compatible model
+      const MODEL_ID = 'Xenova/gpt2';
+      
+      // Simulate progress since the model loading may not report progress
+      const progressInterval = setInterval(() => {
+        setDownloadProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 500);
 
       const generator = await pipeline('text-generation', MODEL_ID, {
-        device: device as 'webgpu' | 'wasm',
         progress_callback: (progress: any) => {
           if (progress.progress !== undefined) {
             setDownloadProgress(Math.round(progress.progress));
@@ -75,6 +82,7 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
         },
       });
 
+      clearInterval(progressInterval);
       generatorRef.current = generator;
       setModelStatus('ready');
       setDownloadProgress(100);
@@ -96,13 +104,10 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
 
     isLoadingRef.current = true;
     try {
-      const hasWebGPU = 'gpu' in navigator;
-      const device = hasWebGPU ? 'webgpu' : 'wasm';
+      const { pipeline } = await import('@huggingface/transformers');
+      const MODEL_ID = 'Xenova/gpt2';
 
-      const generator = await pipeline('text-generation', MODEL_ID, {
-        device: device as 'webgpu' | 'wasm',
-      });
-
+      const generator = await pipeline('text-generation', MODEL_ID);
       generatorRef.current = generator;
       return true;
     } catch (error) {
@@ -124,24 +129,11 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
     }
 
     try {
-      // Build conversation with system prompt
-      const systemPrompt = `You are Vithal AI, a helpful assistant running in offline mode. Keep responses concise and helpful. You're a friendly AI tutor.`;
-      
-      let conversationText = `<|im_start|>system\n${systemPrompt}<|im_end|>\n`;
-      
-      // Add chat history (last 4 messages for context)
-      if (chatHistory && chatHistory.length > 0) {
-        const recentHistory = chatHistory.slice(-4);
-        for (const msg of recentHistory) {
-          const role = msg.role === 'user' ? 'user' : 'assistant';
-          conversationText += `<|im_start|>${role}\n${msg.content}<|im_end|>\n`;
-        }
-      }
-      
-      conversationText += `<|im_start|>user\n${message}<|im_end|>\n<|im_start|>assistant\n`;
+      // Simple prompt for GPT-2
+      const prompt = `Question: ${message}\nAnswer:`;
 
-      const result = await generatorRef.current(conversationText, {
-        max_new_tokens: 256,
+      const result = await generatorRef.current(prompt, {
+        max_new_tokens: 100,
         temperature: 0.7,
         top_p: 0.9,
         do_sample: true,
@@ -152,8 +144,8 @@ export const useOfflineChat = (): UseOfflineChatReturn => {
       let response = (generated as any)?.generated_text || '';
       
       // Clean up the response
-      response = response.split('<|im_end|>')[0].trim();
-      response = response.split('<|im_start|>')[0].trim();
+      response = response.split('\n\n')[0].trim();
+      response = response.split('Question:')[0].trim();
 
       if (!response) {
         response = "I'm running in offline mode with limited capabilities. How can I help you?";
