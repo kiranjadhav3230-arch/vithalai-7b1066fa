@@ -53,6 +53,3 @@ verify_jwt = true
 
 [functions.haq-jaano-ai]
 verify_jwt = false
-
-[functions.document-generator]
-verify_jwt = false

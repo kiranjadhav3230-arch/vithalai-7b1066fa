@@ -2,30 +2,22 @@ import React from 'react';
 import { 
   ArrowLeft, 
   Shield, 
-  CheckCircle2, 
-  XCircle, 
   Phone, 
   Mic, 
-  FileText,
-  AlertTriangle,
-  ExternalLink,
-  BookOpen
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { SituationDetails } from '@/hooks/useHaqJaano';
 import { RightsCard } from './RightsCard';
 import { DosAndDonts } from './DosAndDonts';
 import { ActionSteps } from './ActionSteps';
 import { HelplineList } from './HelplineList';
-import { cn } from '@/lib/utils';
 
 interface RightsResponseProps {
   details: SituationDetails;
   onBack: () => void;
   onRecordEvidence: () => void;
-  onGenerateDocument: () => void;
   getLocalizedText: (item: Record<string, unknown>, field: string) => string;
 }
 
@@ -33,7 +25,6 @@ export const RightsResponse: React.FC<RightsResponseProps> = ({
   details,
   onBack,
   onRecordEvidence,
-  onGenerateDocument,
   getLocalizedText,
 }) => {
   const { language } = useLanguage();
@@ -87,14 +78,6 @@ export const RightsResponse: React.FC<RightsResponseProps> = ({
       case 'hi': return 'साक्ष्य रिकॉर्ड करें';
       case 'mr': return 'पुरावा रेकॉर्ड करा';
       default: return 'Record Evidence';
-    }
-  };
-
-  const getGenerateComplaint = () => {
-    switch (language) {
-      case 'hi': return 'शिकायत पत्र बनाएं';
-      case 'mr': return 'तक्रार पत्र तयार करा';
-      default: return 'Generate Complaint';
     }
   };
 
@@ -217,21 +200,14 @@ export const RightsResponse: React.FC<RightsResponseProps> = ({
 
       {/* Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-border/50 bg-background/95 p-4 backdrop-blur-sm">
-        <div className="container mx-auto flex gap-3">
+        <div className="container mx-auto">
           <Button
             variant="outline"
-            className="flex-1 gap-2"
+            className="w-full gap-2"
             onClick={onRecordEvidence}
           >
             <Mic className="h-4 w-4" />
             {getRecordEvidence()}
-          </Button>
-          <Button
-            className="flex-1 gap-2"
-            onClick={onGenerateDocument}
-          >
-            <FileText className="h-4 w-4" />
-            {getGenerateComplaint()}
           </Button>
         </div>
       </div>
