@@ -24,6 +24,7 @@ const HaqJaano: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('home');
   const [selectedCategory, setSelectedCategory] = useState<LegalCategory | null>(null);
   const [aiQuery, setAiQuery] = useState('');
+  const [documentType, setDocumentType] = useState<'complaint' | 'rti' | 'legal_notice'>('complaint');
 
   const handleCategorySelect = useCallback((category: LegalCategory) => {
     setSelectedCategory(category);
