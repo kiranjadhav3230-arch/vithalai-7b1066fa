@@ -122,7 +122,7 @@ serve(async (req) => {
         'X-Title': 'Haq Jaano - Know Your Rights',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash-preview',
+        model: 'meta-llama/llama-3.1-8b-instruct:free',
         messages: [
           { role: 'system', content: systemPrompt },
           ...messages,
