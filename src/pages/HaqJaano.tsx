@@ -3,12 +3,11 @@ import { HaqJaanoHome } from '@/components/haq-jaano/HaqJaanoHome';
 import { SituationSelector } from '@/components/haq-jaano/SituationSelector';
 import { RightsResponse } from '@/components/haq-jaano/RightsResponse';
 import { AIResponseView } from '@/components/haq-jaano/AIResponseView';
-import { DocumentGenerator } from '@/components/haq-jaano/DocumentGenerator';
 import { useHaqJaano, LegalCategory, LegalSituation } from '@/hooks/useHaqJaano';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/useLanguage';
 
-type ViewState = 'home' | 'category' | 'situation' | 'ai-response' | 'document-generator';
+type ViewState = 'home' | 'category' | 'situation' | 'ai-response';
 
 const HaqJaano: React.FC = () => {
   const { language } = useLanguage();
@@ -24,7 +23,6 @@ const HaqJaano: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('home');
   const [selectedCategory, setSelectedCategory] = useState<LegalCategory | null>(null);
   const [aiQuery, setAiQuery] = useState('');
-  const [documentType, setDocumentType] = useState<'complaint' | 'rti' | 'legal_notice'>('complaint');
 
   const handleCategorySelect = useCallback((category: LegalCategory) => {
     setSelectedCategory(category);
@@ -60,13 +58,6 @@ const HaqJaano: React.FC = () => {
         setViewState('home');
         setAiQuery('');
         break;
-      case 'document-generator':
-        if (situationDetails) {
-          setViewState('situation');
-        } else {
-          setViewState('home');
-        }
-        break;
       default:
         setViewState('home');
     }
@@ -83,9 +74,14 @@ const HaqJaano: React.FC = () => {
   }, [language, toast]);
 
   const handleGenerateDocument = useCallback(() => {
-    setDocumentType('complaint');
-    setViewState('document-generator');
-  }, []);
+    toast({
+      title: language === 'hi' ? 'जल्द आ रहा है' : 
+             language === 'mr' ? 'लवकरच येत आहे' : 'Coming Soon',
+      description: language === 'hi' ? 'दस्तावेज़ जनरेटर जल्द ही उपलब्ध होगा' : 
+                   language === 'mr' ? 'दस्तऐवज जनरेटर लवकरच उपलब्ध होईल' : 
+                   'Document generator will be available soon',
+    });
+  }, [language, toast]);
 
   // Render based on view state
   switch (viewState) {
@@ -122,15 +118,6 @@ const HaqJaano: React.FC = () => {
       return (
         <AIResponseView
           query={aiQuery}
-          onBack={handleBack}
-        />
-      );
-
-    case 'document-generator':
-      return (
-        <DocumentGenerator
-          situationTitle={situationDetails ? getLocalizedText(situationDetails.situation as unknown as Record<string, unknown>, 'title') : undefined}
-          documentType={documentType}
           onBack={handleBack}
         />
       );
