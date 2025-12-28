@@ -1219,83 +1219,34 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             <ScrollArea className="h-full">
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[40vh] py-6 px-4">
-                      {/* Welcome Title - Compact */}
-                      <h2 className="text-xl sm:text-2xl font-bold mb-1 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center">
-                        Welcome to Vithal AI
-                      </h2>
-                      <p className="text-foreground/50 text-xs sm:text-sm mb-5 text-center">
-                        Your AI-powered learning companion
-                      </p>
-                      
-                      {/* Compact Feature Cards - 4 cols desktop, 2 cols mobile */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
-                        {/* AI Chat */}
-                        <button onClick={() => setCurrentView('chat')} className="group p-3 rounded-lg border border-orange-500/20 bg-black/40 hover:bg-orange-500/10 hover:border-orange-400/40 transition-all duration-200 text-left">
-                          <div className="w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                            <MessageSquare className="w-4 h-4 text-orange-400" />
-                          </div>
-                          <h3 className="font-semibold text-xs text-orange-400">AI Chat</h3>
-                          <p className="text-[10px] text-foreground/40">Ask questions & learn</p>
-                        </button>
-
-                        {/* Code Generator */}
-                        <button onClick={async () => {
-                        playCodeSound();
-                        setCurrentView('code');
-                        if (!currentSession || currentSession.session_type !== 'code') {
-                          await createNewSession('code');
-                        }
-                      }} className="group p-3 rounded-lg border border-purple-500/20 bg-black/40 hover:bg-purple-500/10 hover:border-purple-400/40 transition-all duration-200 text-left">
-                          <div className="w-9 h-9 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                            <Code className="w-4 h-4 text-purple-400" />
-                          </div>
-                          <h3 className="font-semibold text-xs text-purple-400">Code Generator</h3>
-                          <p className="text-[10px] text-foreground/40">Generate in 15+ languages</p>
-                        </button>
-
-                        {/* Study Rooms */}
-                        <button onClick={() => {
-                        playChatSound();
-                        setCurrentView('studyRooms');
-                      }} className="group p-3 rounded-lg border border-blue-500/20 bg-black/40 hover:bg-blue-500/10 hover:border-blue-400/40 transition-all duration-200 text-left">
-                          <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                            <Users className="w-4 h-4 text-blue-400" />
-                          </div>
-                          <h3 className="font-semibold text-xs text-blue-400">Study Rooms</h3>
-                          <p className="text-[10px] text-foreground/40">Collaborate with AI</p>
-                        </button>
-
-                        {/* Crop Analyzer */}
-                        <button onClick={() => {
-                        playChatSound();
-                        setCurrentView('crop');
-                      }} className="group p-3 rounded-lg border border-green-500/20 bg-black/40 hover:bg-green-500/10 hover:border-green-400/40 transition-all duration-200 text-left">
-                          <div className="w-9 h-9 rounded-lg bg-green-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                            <Leaf className="w-4 h-4 text-green-400" />
-                          </div>
-                          <h3 className="font-semibold text-xs text-green-400">Crop Analyzer</h3>
-                          <p className="text-[10px] text-foreground/40">Plant health & advice</p>
-                        </button>
-
-                        {/* Haq Jaano */}
-                        <button onClick={() => {
-                        playChatSound();
-                        setCurrentView('haq-jaano');
-                      }} className="group p-3 rounded-lg border border-red-500/20 bg-black/40 hover:bg-red-500/10 hover:border-red-400/40 transition-all duration-200 text-left relative col-span-2 sm:col-span-1">
-                          <Badge className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[7px] px-1.5 py-0 border-0">NEW</Badge>
-                          <div className="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
-                            <Scale className="w-4 h-4 text-red-400" />
-                          </div>
-                          <h3 className="font-semibold text-xs text-red-400">Haq Jaano</h3>
-                          <p className="text-[10px] text-foreground/40">Know your legal rights</p>
-                        </button>
+                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 px-4">
+                      {/* Logo */}
+                      <div className="w-20 h-20 sm:w-24 sm:h-24 mb-6 animate-fade-in">
+                        <img 
+                          src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
+                          alt="Vithal AI" 
+                          className="w-full h-full object-contain drop-shadow-2xl"
+                        />
                       </div>
                       
-                      {/* Credits - Compact */}
-                      <p className="text-[10px] text-foreground/30 mt-5 text-center">
-                        Powered by <span className="text-orange-500">Gemini AI</span> • Developed By <span className="text-orange-400">Kapil Kiran Jadhav</span>
+                      {/* Welcome Title */}
+                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center animate-fade-in">
+                        Welcome to Vithal AI
+                      </h2>
+                      
+                      <p className="text-foreground/50 text-sm sm:text-base mb-8 text-center max-w-md animate-fade-in">
+                        {language === 'hi' ? 'अपना सवाल नीचे टाइप करें' : language === 'mr' ? 'तुमचा प्रश्न खाली टाइप करा' : 'Type your question below to get started'}
                       </p>
+                      
+                      {/* Credits */}
+                      <div className="flex flex-col items-center gap-1 animate-fade-in">
+                        <p className="text-xs text-foreground/40 text-center">
+                          Powered by <span className="text-orange-500 font-medium">Gemini AI</span>
+                        </p>
+                        <p className="text-xs text-foreground/40 text-center">
+                          Developed By <span className="text-orange-400 font-medium">Kapil Kiran Jadhav</span>
+                        </p>
+                      </div>
                     </div>}
 
                   {messages.map(msg => <div key={msg.id} className="space-y-4">
@@ -1402,79 +1353,80 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             </ScrollArea>
           </div>
 
-          {/* Input Area - Professional Bottom Bar */}
-          <div className="border-t border-border/50 bg-background/80 backdrop-blur-2xl flex-shrink-0">
-            <div className="max-w-5xl mx-auto px-4 py-4 md:py-5">
+          {/* Input Area - Sticker Style Bottom Bar */}
+          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
+            <div className="max-w-4xl mx-auto px-3 py-3">
               {/* Image Preview */}
-              {selectedImage && <div className="mb-3">
-                  <div className="relative inline-block rounded-xl overflow-hidden border border-border/50 shadow-lg">
-                    <img src={selectedImage} alt="Selected" className="max-h-32 md:max-h-40 object-contain bg-muted/50" />
-                    <button onClick={removeSelectedImage} className="absolute top-2 right-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full p-1.5 shadow-lg transition-all hover:scale-110">
-                      <X className="h-3.5 w-3.5" />
+              {selectedImage && <div className="mb-2">
+                  <div className="relative inline-block rounded-lg overflow-hidden border border-orange-500/30">
+                    <img src={selectedImage} alt="Selected" className="max-h-24 object-contain bg-black/50" />
+                    <button onClick={removeSelectedImage} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-all">
+                      <X className="h-3 w-3" />
                     </button>
                   </div>
                 </div>}
 
-              {/* Input Container */}
-              <div className="relative flex items-end gap-2 md:gap-3 rounded-3xl bg-muted/50 border border-border/50 px-3 md:px-4 py-2 focus-within:border-primary/50 focus-within:bg-muted/70 transition-all duration-200 shadow-sm hover:shadow-md">
+              {/* Input Container - Simple Sticker Bar */}
+              <div className="flex items-center gap-2 rounded-full bg-black/60 border border-orange-500/30 px-3 py-1.5">
                 {/* Hidden File Inputs */}
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
 
-                {/* Textarea */}
-                <Textarea ref={textareaRef} value={message} onChange={e => {
-                  setMessage(e.target.value);
-                  // Auto-resize textarea
-                  if (textareaRef.current) {
-                    textareaRef.current.style.height = 'auto';
-                    textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-                  }
-                }} onKeyPress={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                    if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                  }
-                }} placeholder={t('typeYourMessage') || "Message Vithal AI..."} className="flex-1 bg-transparent border-0 outline-none text-sm md:text-base text-foreground placeholder:text-muted-foreground resize-none min-h-[40px] max-h-[160px] py-2 focus-visible:ring-0 focus-visible:ring-offset-0" disabled={loading} rows={1} />
-
-                {/* Mic Button */}
-                <Button onClick={isRecording ? stopVoiceRecording : startVoiceRecording} variant="ghost" size="icon" className={`h-9 w-9 rounded-full transition-all flex-shrink-0 ${isRecording ? 'bg-destructive/20 text-destructive hover:bg-destructive/30 animate-pulse' : 'hover:bg-accent text-muted-foreground hover:text-foreground'}`} disabled={loading}>
-                  <Mic className="h-5 w-5" />
-                </Button>
-
-                {/* Three Dot Menu */}
+                {/* Attach Button */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-accent text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" disabled={loading}>
-                      <MoreVertical className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 flex-shrink-0" disabled={loading}>
+                      <Plus className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 bg-popover/95 backdrop-blur-xl border-border/50">
-                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer text-sm py-2.5">
-                      <ImageIcon className="h-4 w-4 mr-3 text-primary" />
-                      <span>Upload Image</span>
+                  <DropdownMenuContent align="start" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Upload Image
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-sm py-2.5">
-                      <Camera className="h-4 w-4 mr-3 text-primary" />
-                      <span>Take Photo</span>
+                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
+                      <Camera className="h-4 w-4 mr-2" />
+                      Take Photo
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Send Button */}
-                <Button onClick={() => {
-                  sendMessage();
-                  if (textareaRef.current) textareaRef.current.style.height = 'auto';
-                }} size="icon" className="h-9 w-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:scale-105 flex-shrink-0" disabled={loading || !message.trim() && !selectedImage}>
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-                </Button>
-              </div>
+                {/* Input Field */}
+                <input 
+                  type="text"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  onKeyPress={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : language === 'mr' ? 'तुमचा प्रश्न येथे टाइप करा...' : 'Type your message...'}
+                  className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-orange-400/40 py-2"
+                  disabled={loading}
+                />
 
-              {/* Helper Text */}
-              <div className="mt-2 text-center">
-                <p className="text-xs text-muted-foreground">
-                  Vithal AI can make mistakes. Verify important information.
-                </p>
+                {/* Mic Button */}
+                <Button 
+                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
+                  variant="ghost" 
+                  size="icon" 
+                  className={`h-8 w-8 rounded-full flex-shrink-0 ${isRecording ? 'bg-red-500/20 text-red-400 animate-pulse' : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10'}`} 
+                  disabled={loading}
+                >
+                  <Mic className="h-4 w-4" />
+                </Button>
+
+                {/* Send Button */}
+                <Button 
+                  onClick={sendMessage} 
+                  size="icon" 
+                  className="h-8 w-8 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 disabled:opacity-50 flex-shrink-0" 
+                  disabled={loading || (!message.trim() && !selectedImage)}
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                </Button>
               </div>
             </div>
           </div>
