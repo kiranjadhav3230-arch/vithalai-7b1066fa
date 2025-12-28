@@ -9,11 +9,13 @@ import { LanguageSelector } from '@/components/ui/language-selector';
 interface FeatureNavBarProps {
   onFeatureSelect?: (feature: 'chat' | 'room' | 'haq-jaano') => void;
   currentFeature?: 'chat' | 'room' | 'haq-jaano';
+  hideLanguageSelector?: boolean;
 }
 
 export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
   onFeatureSelect,
-  currentFeature
+  currentFeature,
+  hideLanguageSelector = false
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -150,13 +152,15 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
               </Button>
             </div>
 
-            {/* Language Selector */}
-            <div className="shrink-0">
-              <LanguageSelector 
-                language={language} 
-                onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
-              />
-            </div>
+            {/* Language Selector - conditionally rendered */}
+            {!hideLanguageSelector && (
+              <div className="shrink-0">
+                <LanguageSelector 
+                  language={language} 
+                  onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
