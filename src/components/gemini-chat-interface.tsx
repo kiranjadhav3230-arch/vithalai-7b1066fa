@@ -1219,83 +1219,83 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             <ScrollArea className="h-full">
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[55vh] md:min-h-[50vh] lg:min-h-[55vh] py-8 md:py-12 lg:py-10 px-4 sm:px-6">
-                      {/* Welcome Title */}
-                      <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center animate-fade-in">
+                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[40vh] py-6 px-4">
+                      {/* Welcome Title - Compact */}
+                      <h2 className="text-xl sm:text-2xl font-bold mb-1 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center">
                         Welcome to Vithal AI
                       </h2>
-                      <p className="text-foreground/60 text-sm sm:text-base md:text-base mb-8 sm:mb-10 md:mb-12 max-w-md mx-auto text-center leading-relaxed animate-fade-in">
+                      <p className="text-foreground/50 text-xs sm:text-sm mb-5 text-center">
                         Your AI-powered learning companion
                       </p>
                       
-                      {/* Feature Cards Grid - Professional Layout */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5 w-full max-w-xs sm:max-w-2xl md:max-w-3xl lg:max-w-4xl mx-auto">
-                        {/* AI Chat Card */}
-                        <button onClick={() => setCurrentView('chat')} className="group p-4 sm:p-5 md:p-6 rounded-xl border border-orange-500/20 bg-gradient-to-b from-orange-500/5 to-black/40 hover:from-orange-500/15 hover:to-orange-600/5 hover:border-orange-400/40 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-orange-500/10 animate-fade-in">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-orange-500/25 to-orange-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform border border-orange-500/20">
-                            <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
+                      {/* Compact Feature Cards - 4 cols desktop, 2 cols mobile */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 w-full max-w-2xl mx-auto">
+                        {/* AI Chat */}
+                        <button onClick={() => setCurrentView('chat')} className="group p-3 rounded-lg border border-orange-500/20 bg-black/40 hover:bg-orange-500/10 hover:border-orange-400/40 transition-all duration-200 text-left">
+                          <div className="w-9 h-9 rounded-lg bg-orange-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <MessageSquare className="w-4 h-4 text-orange-400" />
                           </div>
-                          <h3 className="font-bold text-sm sm:text-base mb-1 text-orange-400 group-hover:text-orange-300">AI Chat</h3>
-                          <p className="text-xs sm:text-sm text-foreground/50 leading-relaxed">Ask questions & learn</p>
+                          <h3 className="font-semibold text-xs text-orange-400">AI Chat</h3>
+                          <p className="text-[10px] text-foreground/40">Ask questions & learn</p>
                         </button>
 
-                        {/* Code Generator Card */}
+                        {/* Code Generator */}
                         <button onClick={async () => {
                         playCodeSound();
                         setCurrentView('code');
                         if (!currentSession || currentSession.session_type !== 'code') {
                           await createNewSession('code');
                         }
-                      }} className="group p-4 sm:p-5 md:p-6 rounded-xl border border-purple-500/20 bg-gradient-to-b from-purple-500/5 to-black/40 hover:from-purple-500/15 hover:to-purple-600/5 hover:border-purple-400/40 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-purple-500/10 animate-fade-in">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-500/25 to-purple-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform border border-purple-500/20">
-                            <Code className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                      }} className="group p-3 rounded-lg border border-purple-500/20 bg-black/40 hover:bg-purple-500/10 hover:border-purple-400/40 transition-all duration-200 text-left">
+                          <div className="w-9 h-9 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <Code className="w-4 h-4 text-purple-400" />
                           </div>
-                          <h3 className="font-bold text-sm sm:text-base mb-1 text-purple-400 group-hover:text-purple-300">Code Generator</h3>
-                          <p className="text-xs sm:text-sm text-foreground/50 leading-relaxed">Generate in 15+ languages</p>
+                          <h3 className="font-semibold text-xs text-purple-400">Code Generator</h3>
+                          <p className="text-[10px] text-foreground/40">Generate in 15+ languages</p>
                         </button>
 
-                        {/* Study Rooms Card */}
+                        {/* Study Rooms */}
                         <button onClick={() => {
                         playChatSound();
                         setCurrentView('studyRooms');
-                      }} className="group p-4 sm:p-5 md:p-6 rounded-xl border border-blue-500/20 bg-gradient-to-b from-blue-500/5 to-black/40 hover:from-blue-500/15 hover:to-blue-600/5 hover:border-blue-400/40 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-blue-500/10 animate-fade-in">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500/25 to-blue-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform border border-blue-500/20">
-                            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+                      }} className="group p-3 rounded-lg border border-blue-500/20 bg-black/40 hover:bg-blue-500/10 hover:border-blue-400/40 transition-all duration-200 text-left">
+                          <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <Users className="w-4 h-4 text-blue-400" />
                           </div>
-                          <h3 className="font-bold text-sm sm:text-base mb-1 text-blue-400 group-hover:text-blue-300">Study Rooms</h3>
-                          <p className="text-xs sm:text-sm text-foreground/50 leading-relaxed">Collaborate with AI</p>
+                          <h3 className="font-semibold text-xs text-blue-400">Study Rooms</h3>
+                          <p className="text-[10px] text-foreground/40">Collaborate with AI</p>
                         </button>
 
-                        {/* Crop Health Analyzer Card */}
+                        {/* Crop Analyzer */}
                         <button onClick={() => {
                         playChatSound();
                         setCurrentView('crop');
-                      }} className="group p-4 sm:p-5 md:p-6 rounded-xl border border-green-500/20 bg-gradient-to-b from-green-500/5 to-black/40 hover:from-green-500/15 hover:to-green-600/5 hover:border-green-400/40 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-green-500/10 animate-fade-in">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-green-500/25 to-green-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform border border-green-500/20">
-                            <Leaf className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+                      }} className="group p-3 rounded-lg border border-green-500/20 bg-black/40 hover:bg-green-500/10 hover:border-green-400/40 transition-all duration-200 text-left">
+                          <div className="w-9 h-9 rounded-lg bg-green-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <Leaf className="w-4 h-4 text-green-400" />
                           </div>
-                          <h3 className="font-bold text-sm sm:text-base mb-1 text-green-400 group-hover:text-green-300">Crop Analyzer</h3>
-                          <p className="text-xs sm:text-sm text-foreground/50 leading-relaxed">Plant health & advice</p>
+                          <h3 className="font-semibold text-xs text-green-400">Crop Analyzer</h3>
+                          <p className="text-[10px] text-foreground/40">Plant health & advice</p>
                         </button>
 
-                        {/* Haq Jaano - Know Your Rights Card */}
+                        {/* Haq Jaano */}
                         <button onClick={() => {
                         playChatSound();
                         setCurrentView('haq-jaano');
-                      }} className="group p-4 sm:p-5 md:p-6 rounded-xl border border-red-500/20 bg-gradient-to-b from-red-500/5 to-black/40 hover:from-red-500/15 hover:to-red-600/5 hover:border-red-400/40 transition-all duration-300 text-left hover:scale-105 hover:shadow-xl hover:shadow-red-500/10 animate-fade-in relative col-span-2 sm:col-span-1">
-                          <Badge className="absolute top-2 right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[8px] sm:text-[9px] px-2 py-0.5 border-0 font-semibold">NEW</Badge>
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-red-500/25 to-red-600/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform border border-red-500/20">
-                            <Scale className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
+                      }} className="group p-3 rounded-lg border border-red-500/20 bg-black/40 hover:bg-red-500/10 hover:border-red-400/40 transition-all duration-200 text-left relative col-span-2 sm:col-span-1">
+                          <Badge className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[7px] px-1.5 py-0 border-0">NEW</Badge>
+                          <div className="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                            <Scale className="w-4 h-4 text-red-400" />
                           </div>
-                          <h3 className="font-bold text-sm sm:text-base mb-1 text-red-400 group-hover:text-red-300">Haq Jaano</h3>
-                          <p className="text-xs sm:text-sm text-foreground/50 leading-relaxed">Know your legal rights</p>
+                          <h3 className="font-semibold text-xs text-red-400">Haq Jaano</h3>
+                          <p className="text-[10px] text-foreground/40">Know your legal rights</p>
                         </button>
                       </div>
                       
-                      {/* Credits Footer */}
-                      <div className="text-xs sm:text-sm text-foreground/40 mt-8 sm:mt-10 md:mt-12 text-center animate-fade-in">
-                        <p>Powered by <span className="font-semibold text-orange-500">Gemini AI</span> • Developed By <span className="font-semibold text-orange-400">Kapil Kiran Jadhav</span></p>
-                      </div>
+                      {/* Credits - Compact */}
+                      <p className="text-[10px] text-foreground/30 mt-5 text-center">
+                        Powered by <span className="text-orange-500">Gemini AI</span> • Developed By <span className="text-orange-400">Kapil Kiran Jadhav</span>
+                      </p>
                     </div>}
 
                   {messages.map(msg => <div key={msg.id} className="space-y-4">
