@@ -7,7 +7,7 @@ import { useHaqJaano, LegalCategory } from '@/hooks/useHaqJaano';
 import { CategoryCard } from './CategoryCard';
 import { EmergencySOS } from './EmergencySOS';
 import { VoiceInputButton } from './VoiceInputButton';
-
+import vithalLogo from '@/assets/vithal-pin-logo.png';
 interface HaqJaanoHomeProps {
   onCategorySelect: (category: LegalCategory) => void;
   onSearch: (query: string) => void;
@@ -86,8 +86,13 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
 
           {/* Logo and Title */}
           <div className="mb-6 flex items-center justify-center gap-3">
-            <div className="rounded-full bg-primary/20 p-3">
-              <Shield className="h-8 w-8 text-primary" />
+            <img 
+              src={vithalLogo} 
+              alt="Vithal AI" 
+              className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/30"
+            />
+            <div className="rounded-full bg-primary/20 p-2.5">
+              <Shield className="h-6 w-6 text-primary" />
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{getTitle()}</h1>
