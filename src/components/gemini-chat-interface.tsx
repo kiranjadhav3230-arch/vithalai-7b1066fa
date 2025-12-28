@@ -25,6 +25,7 @@ import { CropHealthAnalyzer } from './crop-health-analyzer';
 import { HaqJaanoIntegrated } from './haq-jaano-integrated';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { WelcomeSection } from './welcome-section';
 interface ChatSession {
   id: string;
   title: string;
@@ -1219,35 +1220,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
             <ScrollArea className="h-full">
               <div className="p-3 md:p-6">
                 <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
-                  {messages.length === 0 && !loading && <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 px-4">
-                      {/* Logo */}
-                      <div className="w-20 h-20 sm:w-24 sm:h-24 mb-6 animate-fade-in">
-                        <img 
-                          src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
-                          alt="Vithal AI" 
-                          className="w-full h-full object-contain drop-shadow-2xl"
-                        />
-                      </div>
-                      
-                      {/* Welcome Title */}
-                      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center animate-fade-in">
-                        Welcome to Vithal AI
-                      </h2>
-                      
-                      <p className="text-foreground/50 text-sm sm:text-base mb-8 text-center max-w-md animate-fade-in">
-                        {language === 'hi' ? 'अपना सवाल नीचे टाइप करें' : language === 'mr' ? 'तुमचा प्रश्न खाली टाइप करा' : 'Type your question below to get started'}
-                      </p>
-                      
-                      {/* Credits */}
-                      <div className="flex flex-col items-center gap-1 animate-fade-in">
-                        <p className="text-xs text-foreground/40 text-center">
-                          Powered by <span className="text-orange-500 font-medium">Gemini AI</span>
-                        </p>
-                        <p className="text-xs text-foreground/40 text-center">
-                          Developed By <span className="text-orange-400 font-medium">Kapil Kiran Jadhav</span>
-                        </p>
-                      </div>
-                    </div>}
+                  {messages.length === 0 && !loading && <WelcomeSection language={language} onSuggestionClick={(suggestion) => {
+                      setMessage(suggestion);
+                      triggerHaptic();
+                    }} />}
 
                   {messages.map(msg => <div key={msg.id} className="space-y-4">
                       {/* User Message */}
