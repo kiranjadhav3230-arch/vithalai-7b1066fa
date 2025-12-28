@@ -24,17 +24,19 @@ const Index = () => {
   const [showChat, setShowChat] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [initialView, setInitialView] = useState<'chat' | 'code' | 'studyRooms' | 'crop'>('chat');
+  const [initialView, setInitialView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano'>('chat');
   const {
     t
   } = useLanguage();
 
   // Handle navigation from other pages
   useEffect(() => {
-    const state = location.state as { openFeature?: 'chat' | 'room' } | null;
+    const state = location.state as { openFeature?: 'chat' | 'room' | 'haq-jaano' } | null;
     if (state?.openFeature) {
       if (state.openFeature === 'room') {
         setInitialView('studyRooms');
+      } else if (state.openFeature === 'haq-jaano') {
+        setInitialView('haq-jaano');
       } else {
         setInitialView('chat');
       }
