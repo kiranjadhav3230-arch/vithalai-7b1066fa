@@ -139,6 +139,7 @@ const HaqJaano: React.FC = () => {
       <FeatureNavBar 
         currentFeature="haq-jaano" 
         onFeatureSelect={handleFeatureSelect}
+        hideLanguageSelector={true}
       />
       
       {/* Content */}
