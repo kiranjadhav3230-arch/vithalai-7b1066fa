@@ -22,6 +22,7 @@ import { CodeGeneratorChat } from './code-generator-chat';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
+import { HaqJaanoIntegrated } from './haq-jaano-integrated';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 interface ChatSession {
@@ -45,7 +46,7 @@ interface ChatMessage {
 interface GeminiChatInterfaceProps {
   user: User;
   onLogout: () => void;
-  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop';
+  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano';
 }
 export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   user,
@@ -65,7 +66,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop'>(initialView || 'chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano'>(initialView || 'chat');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [collapsedTabs, setCollapsedTabs] = useState<{
@@ -1054,14 +1055,14 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
                   width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : 2})`,
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : 3})`,
                   background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                   backdropFilter: 'blur(20px)',
                   boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(29, 78, 216, 0.3)',
                   zIndex: 0,
-                  opacity: showAllFeatures ? 0 : 1
+                  opacity: showAllFeatures ? 0 : (currentView === 'code' || currentView === 'crop' ? 0 : 1)
                 }} />
                   
                   {/* Chats */}
@@ -1088,8 +1089,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Haq Jaano */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
-                  navigate('/haq-jaano');
-                }} size="sm" className="relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 text-blue-400/70 hover:text-blue-400">
+                  setCurrentView('haq-jaano');
+                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'haq-jaano' ? 'text-white' : 'text-blue-400/70 hover:text-blue-400'}`}>
                     <Scale className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">{language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano'}</span>
                   </Button>
@@ -1106,12 +1107,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
                   width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : 2})`,
-                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'transparent',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : 3})`,
+                  background: currentView === 'chat' || currentView === 'studyRooms' || currentView === 'haq-jaano' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'transparent',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                   backdropFilter: 'blur(20px)',
-                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
+                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' || currentView === 'haq-jaano' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
                   zIndex: 0
                 }} />
                   
@@ -1137,8 +1138,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                   {/* Haq Jaano */}
                   <Button variant="ghost" onClick={() => {
                   playChatSound();
-                  navigate('/haq-jaano');
-                }} size="sm" className="relative h-7 w-7 p-0 z-10 text-blue-400/50">
+                  setCurrentView('haq-jaano');
+                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'haq-jaano' ? 'text-white' : 'text-blue-400/50'}`}>
                     <Scale className="h-3.5 w-3.5" />
                   </Button>
                   
@@ -1210,6 +1211,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               <StudyRooms user={user} />
             </div> : currentView === 'crop' ? <div className="flex-1 overflow-auto">
               <CropHealthAnalyzer />
+            </div> : currentView === 'haq-jaano' ? <div className="flex-1 overflow-auto">
+              <HaqJaanoIntegrated onBackToHome={() => setCurrentView('chat')} />
             </div> : <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
@@ -1282,7 +1285,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
                         {/* Haq Jaano - Know Your Rights Card */}
                         <button onClick={() => {
                         playChatSound();
-                        window.location.href = '/haq-jaano';
+                        setCurrentView('haq-jaano');
                       }} className="group p-3 sm:p-4 md:p-3 lg:p-4 rounded-lg sm:rounded-xl border border-red-500/30 bg-gradient-to-br from-red-500/10 to-black/60 hover:from-red-500/20 hover:to-red-600/10 hover:border-red-400/50 transition-all duration-300 text-left hover:scale-[1.02] md:hover:scale-105 hover:shadow-lg hover:shadow-red-500/20 animate-fade-in relative">
                           <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[8px] px-1.5 py-0.5 border-0">NEW</Badge>
                           <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg bg-gradient-to-br from-red-500/30 to-red-600/20 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
@@ -1638,7 +1641,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
               {/* Haq Jaano */}
               <button
                 onClick={() => {
-                  navigate('/haq-jaano');
+                  setCurrentView('haq-jaano');
                   setShowAllFeatures(false);
                 }}
                 className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all duration-300 text-left group"
