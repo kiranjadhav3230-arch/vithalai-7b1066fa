@@ -104,9 +104,9 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
 
   const getTitle = () => {
     switch (language) {
-      case 'hi': return 'AI सहायक';
-      case 'mr': return 'AI सहाय्यक';
-      default: return 'AI Assistant';
+      case 'hi': return 'विठ्ठल AI';
+      case 'mr': return 'विठ्ठल AI';
+      default: return 'Vithal AI';
     }
   };
 
@@ -166,8 +166,12 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
             >
               {message.role === 'assistant' && (
                 <div className="flex items-center gap-2 mb-2 pb-2 border-b border-border/30">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">Haq Jaano AI</span>
+                  <img 
+                    src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
+                    alt="Vithal" 
+                    className="h-5 w-5 object-contain"
+                  />
+                  <span className="text-sm font-medium text-primary">Vithal</span>
                   <div className="ml-auto flex items-center gap-1">
                     <Button
                       variant="ghost"
@@ -203,11 +207,15 @@ export const AIResponseView: React.FC<AIResponseViewProps> = ({
           <div className="flex justify-start">
             <div className="bg-card border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
+                <img 
+                  src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
+                  alt="Vithal" 
+                  className="h-4 w-4 object-contain"
+                />
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="text-sm text-muted-foreground">
-                  {language === 'hi' ? 'सोच रहा हूं...' :
-                    language === 'mr' ? 'विचार करत आहे...' : 'Thinking...'}
+                  {language === 'hi' ? 'विठ्ठल सोच रहा है...' :
+                    language === 'mr' ? 'विठ्ठल विचार करत आहे...' : 'Vithal is thinking...'}
                 </span>
               </div>
             </div>
