@@ -1,0 +1,140 @@
+import React, { useState, useEffect, useMemo } from 'react';
+
+interface WelcomeSectionProps {
+  language: string;
+  onSuggestionClick: (suggestion: string) => void;
+}
+
+const allSuggestions = {
+  en: [
+    { icon: '📚', text: 'Help me study for my exams' },
+    { icon: '🎯', text: 'Give me career guidance' },
+    { icon: '💻', text: 'Teach me programming' },
+    { icon: '📝', text: 'Help me write an essay' },
+    { icon: '🧮', text: 'Solve a math problem' },
+    { icon: '🔬', text: 'Explain a science concept' },
+    { icon: '📊', text: 'Help me with data analysis' },
+    { icon: '🎨', text: 'Give me creative ideas' },
+    { icon: '💼', text: 'Prepare me for an interview' },
+    { icon: '🌐', text: 'Help me learn English' },
+  ],
+  hi: [
+    { icon: '📚', text: 'परीक्षा की तैयारी में मदद करो' },
+    { icon: '🎯', text: 'करियर गाइडेंस दो' },
+    { icon: '💻', text: 'प्रोग्रामिंग सिखाओ' },
+    { icon: '📝', text: 'निबंध लिखने में मदद करो' },
+    { icon: '🧮', text: 'गणित का सवाल हल करो' },
+    { icon: '🔬', text: 'विज्ञान समझाओ' },
+    { icon: '📊', text: 'डेटा एनालिसिस में मदद करो' },
+    { icon: '🎨', text: 'क्रिएटिव आइडियाज दो' },
+    { icon: '💼', text: 'इंटरव्यू की तैयारी कराओ' },
+    { icon: '🌐', text: 'अंग्रेजी सीखने में मदद करो' },
+  ],
+  mr: [
+    { icon: '📚', text: 'परीक्षेची तयारी करायला मदत करा' },
+    { icon: '🎯', text: 'करिअर मार्गदर्शन द्या' },
+    { icon: '💻', text: 'प्रोग्रामिंग शिकवा' },
+    { icon: '📝', text: 'निबंध लिहायला मदत करा' },
+    { icon: '🧮', text: 'गणिताचा प्रश्न सोडवा' },
+    { icon: '🔬', text: 'विज्ञान समजावून सांगा' },
+    { icon: '📊', text: 'डेटा एनालिसिसमध्ये मदत करा' },
+    { icon: '🎨', text: 'क्रिएटिव्ह आयडियाज द्या' },
+    { icon: '💼', text: 'मुलाखतीची तयारी करा' },
+    { icon: '🌐', text: 'इंग्रजी शिकायला मदत करा' },
+  ],
+};
+
+export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSuggestionClick }) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Trigger animations after mount
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Get random suggestions - memoized to stay consistent during session
+  const suggestions = useMemo(() => {
+    const langSuggestions = allSuggestions[language as keyof typeof allSuggestions] || allSuggestions.en;
+    // Shuffle and pick 4 random suggestions
+    const shuffled = [...langSuggestions].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 4);
+  }, [language]);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 px-4">
+      {/* Logo with staggered animation */}
+      <div 
+        className={`w-20 h-20 sm:w-24 sm:h-24 mb-6 transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'
+        }`}
+        style={{ transitionDelay: '0ms' }}
+      >
+        <img 
+          src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
+          alt="Vithal AI" 
+          className="w-full h-full object-contain drop-shadow-2xl"
+        />
+      </div>
+      
+      {/* Welcome Title with staggered animation */}
+      <h2 
+        className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{ transitionDelay: '150ms' }}
+      >
+        Welcome to Vithal AI
+      </h2>
+      
+      {/* Subtitle with staggered animation */}
+      <p 
+        className={`text-foreground/50 text-sm sm:text-base mb-6 text-center max-w-md transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{ transitionDelay: '300ms' }}
+      >
+        {language === 'hi' ? 'अपना सवाल नीचे टाइप करें या सुझाव चुनें' : 
+         language === 'mr' ? 'तुमचा प्रश्न खाली टाइप करा किंवा सूचना निवडा' : 
+         'Type your question below or pick a suggestion'}
+      </p>
+
+      {/* Suggestion Chips with staggered animation */}
+      <div 
+        className={`flex flex-wrap justify-center gap-2 mb-8 max-w-lg transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{ transitionDelay: '450ms' }}
+      >
+        {suggestions.map((suggestion, index) => (
+          <button
+            key={index}
+            onClick={() => onSuggestionClick(suggestion.text)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/15 hover:border-orange-500/50 text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
+              isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+            style={{ transitionDelay: `${500 + index * 80}ms` }}
+          >
+            <span>{suggestion.icon}</span>
+            <span>{suggestion.text}</span>
+          </button>
+        ))}
+      </div>
+      
+      {/* Credits with staggered animation */}
+      <div 
+        className={`flex flex-col items-center gap-1 transition-all duration-700 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}
+        style={{ transitionDelay: '800ms' }}
+      >
+        <p className="text-xs text-foreground/40 text-center">
+          Powered by <span className="text-orange-500 font-medium">Gemini AI</span>
+        </p>
+        <p className="text-xs text-foreground/40 text-center">
+          Developed By <span className="text-orange-400 font-medium">Kapil Kiran Jadhav</span>
+        </p>
+      </div>
+    </div>
+  );
+};
