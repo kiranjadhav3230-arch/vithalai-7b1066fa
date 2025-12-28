@@ -32,32 +32,45 @@ export const EmergencySOS: React.FC = () => {
     }
   };
 
+  const triggerCall = () => {
+    // Create a temporary anchor element to trigger the tel: link
+    const link = document.createElement('a');
+    link.href = 'tel:112';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSOSActivate = () => {
-    // Get current location
+    // Show toast first
+    toast({
+      title: language === 'hi' ? 'SOS सक्रिय' : 
+             language === 'mr' ? 'SOS सक्रिय' : 'SOS Activated',
+      description: language === 'hi' 
+        ? 'आपातकालीन नंबर 112 पर कॉल कर रहे हैं...'
+        : language === 'mr'
+        ? 'आपत्कालीन क्रमांक 112 वर कॉल करत आहे...'
+        : 'Calling emergency number 112...',
+      variant: 'destructive',
+    });
+
+    // Get current location and trigger call
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          
-          // Call emergency number
-          window.location.href = 'tel:112';
-          
-          toast({
-            title: language === 'hi' ? 'SOS सक्रिय' : 
-                   language === 'mr' ? 'SOS सक्रिय' : 'SOS Activated',
-            description: language === 'hi' 
-              ? `स्थान साझा किया गया: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-              : language === 'mr'
-              ? `स्थान शेअर केले: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
-              : `Location shared: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-          });
+          console.log(`Emergency location: ${latitude}, ${longitude}`);
+          triggerCall();
         },
-        () => {
-          window.location.href = 'tel:112';
-        }
+        (error) => {
+          console.log('Location error:', error.message);
+          triggerCall();
+        },
+        { timeout: 3000, enableHighAccuracy: false }
       );
     } else {
-      window.location.href = 'tel:112';
+      triggerCall();
     }
   };
 
