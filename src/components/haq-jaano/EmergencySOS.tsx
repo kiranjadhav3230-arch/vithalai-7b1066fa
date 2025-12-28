@@ -43,7 +43,13 @@ export const EmergencySOS: React.FC = () => {
   };
 
   const handleSOSActivate = () => {
-    // Show toast first
+    // Trigger haptic feedback (vibration) for mobile devices
+    if ('vibrate' in navigator) {
+      // Vibrate pattern: 200ms vibrate, 100ms pause, 200ms vibrate, 100ms pause, 400ms vibrate
+      navigator.vibrate([200, 100, 200, 100, 400]);
+    }
+
+    // Show toast
     toast({
       title: language === 'hi' ? 'SOS सक्रिय' : 
              language === 'mr' ? 'SOS सक्रिय' : 'SOS Activated',
