@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import vithalLogo from '@/assets/vithal-pin-logo.png';
 
 interface RightsCertificateProps {
@@ -33,6 +34,7 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
     month: 'long',
     year: 'numeric'
   });
+  const isMr = language === 'mr';
 
   const getTopicName = () => {
     const topics = {
@@ -76,20 +78,33 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
 
   const handleDownload = async () => {
     if (!certificateRef.current) return;
-    
+
     try {
-      // Create a canvas from the certificate
       const html2canvas = (await import('html2canvas')).default;
+
+      // Wait for fonts to be ready so Marathi text renders reliably in the PNG
+      await document.fonts.ready;
+
       const canvas = await html2canvas(certificateRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
       });
-      
+
+      const blob: Blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to create image blob'))), 'image/png');
+      });
+
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.download = `Vithal_AI_Certificate_${userName.replace(/\s+/g, '_')}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = url;
+      document.body.appendChild(link);
       link.click();
-      
+      link.remove();
+      URL.revokeObjectURL(url);
+
       toast({
         title: language === 'hi' ? 'डाउनलोड हो गया!' : language === 'mr' ? 'डाउनलोड झाले!' : 'Downloaded!',
         description: language === 'hi' ? 'प्रमाणपत्र सहेजा गया' : language === 'mr' ? 'प्रमाणपत्र जतन झाले' : 'Certificate saved'
@@ -104,11 +119,43 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
   };
 
   const handleShare = async () => {
-    const shareText = language === 'hi' 
+    const shareText = language === 'hi'
       ? `मैंने Vithal AI पर ${getTopicName()} की परीक्षा ${percentage}% अंकों के साथ पास की! 🎓`
       : language === 'mr'
-      ? `मी Vithal AI वर ${getTopicName()} परीक्षा ${percentage}% गुणांसह उत्तीर्ण झालो! 🎓`
-      : `I passed the ${getTopicName()} exam with ${percentage}% on Vithal AI! 🎓`;
+        ? `मी Vithal AI वर ${getTopicName()} परीक्षा ${percentage}% गुणांसह उत्तीर्ण झालो! 🎓`
+        : `I passed the ${getTopicName()} exam with ${percentage}% on Vithal AI! 🎓`;
+
+    const copyFallback = async () => {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        toast({
+          title: language === 'hi' ? 'कॉपी हो गया!' : language === 'mr' ? 'कॉपी झाले!' : 'Copied!',
+          description: language === 'hi' ? 'शेयर टेक्स्ट कॉपी हुआ' : language === 'mr' ? 'शेअर टेक्स्ट कॉपी झाला' : 'Share text copied'
+        });
+        return;
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = shareText;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
+
+        toast({
+          title: ok
+            ? (language === 'hi' ? 'कॉपी हो गया!' : language === 'mr' ? 'कॉपी झाले!' : 'Copied!')
+            : (language === 'hi' ? 'त्रुटि' : language === 'mr' ? 'त्रुटी' : 'Error'),
+          description: ok
+            ? (language === 'hi' ? 'शेयर टेक्स्ट कॉपी हुआ' : language === 'mr' ? 'शेअर टेक्स्ट कॉपी झाला' : 'Share text copied')
+            : (language === 'hi' ? 'कॉपी नहीं हो सका' : language === 'mr' ? 'कॉपी अयशस्वी' : 'Could not copy'),
+          variant: ok ? undefined : 'destructive'
+        });
+      }
+    };
 
     if (navigator.share) {
       try {
@@ -116,16 +163,19 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
           title: 'Vithal AI Certificate',
           text: shareText
         });
+        toast({
+          title: language === 'hi' ? 'शेयर हो गया!' : language === 'mr' ? 'शेअर झाले!' : 'Shared!',
+          description: language === 'hi' ? 'प्रमाणपत्र संदेश शेयर हुआ' : language === 'mr' ? 'प्रमाणपत्र संदेश शेअर झाला' : 'Certificate message shared'
+        });
+        return;
       } catch (error) {
-        // User cancelled or error
+        if ((error as DOMException)?.name === 'AbortError') return;
+        await copyFallback();
+        return;
       }
-    } else {
-      await navigator.clipboard.writeText(shareText);
-      toast({
-        title: language === 'hi' ? 'कॉपी हो गया!' : language === 'mr' ? 'कॉपी झाले!' : 'Copied!',
-        description: language === 'hi' ? 'शेयर टेक्स्ट कॉपी हुआ' : language === 'mr' ? 'शेअर टेक्स्ट कॉपी झाला' : 'Share text copied'
-      });
     }
+
+    await copyFallback();
   };
 
   if (!passed) {
@@ -168,9 +218,12 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
       </Button>
 
       {/* Certificate */}
-      <div 
+      <div
         ref={certificateRef}
-        className="bg-white rounded-xl border-4 border-double border-amber-500 p-6 sm:p-8 shadow-2xl max-w-2xl mx-auto"
+        className={cn(
+          "bg-white rounded-xl border-4 border-double border-amber-500 p-6 sm:p-8 shadow-2xl max-w-2xl mx-auto",
+          isMr && "font-cert-mr-body"
+        )}
       >
         {/* Header */}
         <div className="text-center mb-6">
@@ -188,7 +241,7 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
           
           <div className="border-b-2 border-amber-400 pb-4 mb-4">
             <Award className="h-12 w-12 text-amber-500 mx-auto mb-2" />
-            <h2 className="text-3xl font-serif font-bold text-gray-800">
+            <h2 className={cn("text-3xl font-bold text-gray-800", isMr ? "font-cert-mr" : "font-serif")}>
               {getCertificateTitle()}
             </h2>
           </div>
@@ -202,7 +255,10 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
              'This certificate is presented to'}
           </p>
           
-          <h3 className="text-4xl font-serif font-bold text-amber-700 py-2 border-b border-amber-300 inline-block px-8">
+          <h3 className={cn(
+            "text-4xl font-bold text-amber-700 py-2 border-b border-amber-300 inline-block px-8",
+            isMr ? "font-cert-mr" : "font-serif"
+          )}>
             {userName}
           </h3>
           
@@ -219,23 +275,14 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-end pt-6 border-t border-amber-200">
+        <div className="flex justify-between items-end pt-6 border-t border-amber-200 gap-4">
           <div className="text-left">
             <p className="text-xs text-gray-500">
               {language === 'hi' ? 'जारी तिथि' : language === 'mr' ? 'जारी तारीख' : 'Date of Issue'}
             </p>
             <p className="font-medium text-gray-700">{date}</p>
           </div>
-          
-          <div className="text-center">
-            <div className="border-t-2 border-gray-400 pt-2 px-8">
-              <p className="text-sm font-medium text-gray-700">Vithal AI</p>
-              <p className="text-xs text-gray-500">
-                {language === 'hi' ? 'डिजिटल हस्ताक्षर' : language === 'mr' ? 'डिजिटल स्वाक्षरी' : 'Digital Signature'}
-              </p>
-            </div>
-          </div>
-          
+
           <div className="text-right">
             <p className="text-xs text-gray-500">
               {language === 'hi' ? 'प्रमाणपत्र आईडी' : language === 'mr' ? 'प्रमाणपत्र आयडी' : 'Certificate ID'}
