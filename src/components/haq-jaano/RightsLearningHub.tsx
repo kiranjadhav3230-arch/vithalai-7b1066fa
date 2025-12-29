@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronLeft, BookOpen, Trophy, Award, GraduationCap, Scale, ShoppingBag, Shield, Users } from 'lucide-react';
+import { ChevronLeft, BookOpen, Trophy, Award, GraduationCap, Scale, ShoppingBag, Shield, Users, Medal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -7,9 +7,10 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { RightsLearningGame } from './RightsLearningGame';
 import { RightsQuizExam } from './RightsQuizExam';
 import { RightsCertificate } from './RightsCertificate';
+import { RightsLeaderboard } from './RightsLeaderboard';
 
 type TopicType = 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
-type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate';
+type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate' | 'leaderboard';
 
 interface RightsLearningHubProps {
   onBack: () => void;
@@ -104,6 +105,14 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
     setSelectedTopic(null);
     setUserName('');
   };
+
+  if (mode === 'leaderboard') {
+    return (
+      <RightsLeaderboard
+        onBack={() => setMode('select')}
+      />
+    );
+  }
 
   if (mode === 'learn' && selectedTopic) {
     return (
@@ -215,10 +224,23 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
 
   return (
     <div className="min-h-screen bg-background p-4">
-      <Button variant="ghost" onClick={onBack} className="mb-6">
-        <ChevronLeft className="mr-2 h-4 w-4" />
-        {language === 'hi' ? 'वापस' : language === 'mr' ? 'मागे' : 'Back'}
-      </Button>
+      <div className="flex items-center justify-between mb-6">
+        <Button variant="ghost" onClick={onBack}>
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          {language === 'hi' ? 'वापस' : language === 'mr' ? 'मागे' : 'Back'}
+        </Button>
+        
+        {/* Leaderboard Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => setMode('leaderboard')}
+          className="gap-2"
+        >
+          <Trophy className="h-4 w-4 text-yellow-500" />
+          {language === 'hi' ? 'लीडरबोर्ड' : language === 'mr' ? 'लीडरबोर्ड' : 'Leaderboard'}
+        </Button>
+      </div>
 
       <div className="text-center mb-8">
         <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">

@@ -913,6 +913,7 @@ export type Database = {
           interests: string[] | null
           phone: string | null
           skills: string[] | null
+          state: string | null
           updated_at: string
           user_id: string
         }
@@ -927,6 +928,7 @@ export type Database = {
           interests?: string[] | null
           phone?: string | null
           skills?: string[] | null
+          state?: string | null
           updated_at?: string
           user_id: string
         }
@@ -941,6 +943,7 @@ export type Database = {
           interests?: string[] | null
           phone?: string | null
           skills?: string[] | null
+          state?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1034,6 +1037,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quiz_leaderboard_entries: {
+        Row: {
+          avatar_url: string | null
+          completed_at: string
+          created_at: string
+          id: string
+          percentage: number
+          quiz_session_id: string | null
+          score: number
+          state: string
+          topic: string
+          total_questions: number
+          user_id: string
+          user_name: string
+          week_number: number
+          year: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          percentage: number
+          quiz_session_id?: string | null
+          score: number
+          state?: string
+          topic: string
+          total_questions: number
+          user_id: string
+          user_name: string
+          week_number: number
+          year: number
+        }
+        Update: {
+          avatar_url?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          percentage?: number
+          quiz_session_id?: string | null
+          score?: number
+          state?: string
+          topic?: string
+          total_questions?: number
+          user_id?: string
+          user_name?: string
+          week_number?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_leaderboard_entries_quiz_session_id_fkey"
+            columns: ["quiz_session_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_sessions: {
         Row: {
