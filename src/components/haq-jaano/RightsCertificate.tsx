@@ -266,9 +266,9 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
             {getCertificateText()}
           </p>
 
-          <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4 inline-block">
-            <div className="text-5xl font-bold text-amber-600">{percentage}%</div>
-            <div className="text-sm text-amber-700">
+          <div style={{ backgroundColor: '#fef3c7', borderRadius: '8px', padding: '16px', display: 'inline-block' }}>
+            <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#d97706' }}>{percentage}%</div>
+            <div style={{ fontSize: '14px', color: '#b45309' }}>
               {score}/{totalQuestions} {language === 'hi' ? 'सही उत्तर' : language === 'mr' ? 'बरोबर उत्तरे' : 'Correct Answers'}
             </div>
           </div>
