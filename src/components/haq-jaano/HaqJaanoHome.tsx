@@ -7,6 +7,7 @@ import { useHaqJaano, LegalCategory } from '@/hooks/useHaqJaano';
 import { CategoryCard } from './CategoryCard';
 import { EmergencySOS } from './EmergencySOS';
 import { VoiceInputButton } from './VoiceInputButton';
+import { FundamentalRightsSection } from './FundamentalRightsSection';
 import vithalLogo from '@/assets/vithal-pin-logo.png';
 interface HaqJaanoHomeProps {
   onCategorySelect: (category: LegalCategory) => void;
@@ -156,6 +157,9 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
           </div>
         )}
       </div>
+
+      {/* Know Your Constitution Section */}
+      <FundamentalRightsSection />
 
       {/* Credits */}
       <div className="container mx-auto px-4 pb-6">
