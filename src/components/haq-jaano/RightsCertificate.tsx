@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { Award, Download, Share2, ChevronLeft } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Award, Download, Share2, ChevronLeft, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import vithalLogo from '@/assets/vithal-pin-logo.png';
 import confetti from 'canvas-confetti';
+import { LeaderboardSubmitModal } from './LeaderboardSubmitModal';
 
 interface RightsCertificateProps {
   userName: string;
@@ -27,6 +28,7 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
 }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [showLeaderboardModal, setShowLeaderboardModal] = useState(false);
 
   const certificateIdRef = useRef(`VIT-${Date.now().toString(36).toUpperCase()}`);
 
@@ -649,20 +651,32 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-3 max-w-2xl mx-auto mt-6">
-        <Button variant="outline" onClick={handleShare} className="flex-1 gap-2">
-          <Share2 className="h-4 w-4" />
-          {language === 'hi' ? 'शेयर करें' : language === 'mr' ? 'शेअर करा' : 'Share'}
+      <div className="flex flex-col gap-3 max-w-2xl mx-auto mt-6">
+        <Button onClick={() => setShowLeaderboardModal(true)} variant="default" className="w-full gap-2 bg-yellow-500 hover:bg-yellow-600 text-black">
+          <Trophy className="h-4 w-4" />
+          {language === 'hi' ? 'लीडरबोर्ड में जोड़ें' : language === 'mr' ? 'लीडरबोर्डवर जोडा' : 'Join Leaderboard'}
         </Button>
-        <Button onClick={handleDownloadPdf} className="flex-1 gap-2">
-          <Download className="h-4 w-4" />
-          {language === 'hi'
-            ? 'PDF डाउनलोड करें'
-            : language === 'mr'
-              ? 'PDF डाउनलोड करा'
-              : 'Download PDF'}
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleShare} className="flex-1 gap-2">
+            <Share2 className="h-4 w-4" />
+            {language === 'hi' ? 'शेयर करें' : language === 'mr' ? 'शेअर करा' : 'Share'}
+          </Button>
+          <Button onClick={handleDownloadPdf} className="flex-1 gap-2">
+            <Download className="h-4 w-4" />
+            {language === 'hi' ? 'PDF डाउनलोड करें' : language === 'mr' ? 'PDF डाउनलोड करा' : 'Download PDF'}
+          </Button>
+        </div>
       </div>
+
+      {/* Leaderboard Submit Modal */}
+      <LeaderboardSubmitModal
+        isOpen={showLeaderboardModal}
+        onClose={() => setShowLeaderboardModal(false)}
+        topic={topic}
+        score={safeScore}
+        totalQuestions={safeTotalQuestions}
+        defaultName={userName}
+      />
     </div>
   );
 };
