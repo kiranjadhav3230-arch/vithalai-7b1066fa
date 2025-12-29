@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Search, Phone } from 'lucide-react';
+import { Shield, Search, Phone, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -8,6 +8,7 @@ import { CategoryCard } from './CategoryCard';
 import { EmergencySOS } from './EmergencySOS';
 import { VoiceInputButton } from './VoiceInputButton';
 import { FundamentalRightsSection } from './FundamentalRightsSection';
+import { RightsLearningHub } from './RightsLearningHub';
 import vithalLogo from '@/assets/vithal-pin-logo.png';
 interface HaqJaanoHomeProps {
   onCategorySelect: (category: LegalCategory) => void;
@@ -24,6 +25,7 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
   const { language } = useLanguage();
   const { categories, fetchCategories, isLoading, getLocalizedText } = useHaqJaano();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLearningHub, setShowLearningHub] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -76,6 +78,10 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
     }
   };
 
+
+  if (showLearningHub) {
+    return <RightsLearningHub onBack={() => setShowLearningHub(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,6 +162,19 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
             ))}
           </div>
         )}
+      </div>
+
+      {/* Learn & Get Certified Section */}
+      <div className="container mx-auto px-4 py-6">
+        <Button 
+          onClick={() => setShowLearningHub(true)}
+          className="w-full gap-3 h-14 text-lg bg-gradient-to-r from-primary to-primary/80"
+        >
+          <GraduationCap className="h-6 w-6" />
+          {language === 'hi' ? '📚 सीखें और प्रमाणपत्र पाएं' : 
+           language === 'mr' ? '📚 शिका आणि प्रमाणपत्र मिळवा' : 
+           '📚 Learn Rights & Get Certificate'}
+        </Button>
       </div>
 
       {/* Know Your Constitution Section */}
