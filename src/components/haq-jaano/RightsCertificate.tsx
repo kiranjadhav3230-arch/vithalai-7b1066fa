@@ -26,14 +26,26 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
 }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const certificateRef = useRef<HTMLDivElement>(null);
-  const passed = score >= Math.ceil(totalQuestions * 0.6);
-  const percentage = Math.round((score / totalQuestions) * 100);
-  const date = new Date().toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+
+  const certificateIdRef = useRef(`VIT-${Date.now().toString(36).toUpperCase()}`);
+
+  const safeScore = Number.isFinite(score) ? score : 0;
+  const safeTotalQuestions = Number.isFinite(totalQuestions) ? totalQuestions : 0;
+
+  const percentage =
+    safeTotalQuestions > 0 ? Math.round((safeScore / safeTotalQuestions) * 100) : 0;
+
+  const passed =
+    safeTotalQuestions > 0 && safeScore >= Math.ceil(safeTotalQuestions * 0.6);
+
+  const date = new Date().toLocaleDateString(
+    language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN',
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }
+  );
   const isMr = language === 'mr';
 
   const getTopicName = () => {
@@ -76,44 +88,339 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
     }
   };
 
-  const handleDownload = async () => {
-    if (!certificateRef.current) return;
+  const escapeHtml = (value: string) =>
+    value.replace(/[&<>"']/g, (c) =>
+      ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      } as const)[c] ?? c
+    );
+
+  const buildCertificatePrintHtml = () => {
+    const safeUserName = escapeHtml(userName);
+    const safeTopicName = escapeHtml(getTopicName());
+    const safeTitle = escapeHtml(getCertificateTitle());
+    const safeText = escapeHtml(getCertificateText());
+
+    const correctLabel =
+      language === 'hi'
+        ? 'सही उत्तर'
+        : language === 'mr'
+          ? 'बरोबर उत्तरे'
+          : 'Correct Answers';
+
+    const dateLabel =
+      language === 'hi'
+        ? 'जारी तिथि'
+        : language === 'mr'
+          ? 'जारी तारीख'
+          : 'Date of Issue';
+
+    const idLabel =
+      language === 'hi'
+        ? 'प्रमाणपत्र आईडी'
+        : language === 'mr'
+          ? 'प्रमाणपत्र आयडी'
+          : 'Certificate ID';
+
+    const certificateIntro =
+      language === 'hi'
+        ? 'यह प्रमाणपत्र प्रदान किया जाता है'
+        : language === 'mr'
+          ? 'हे प्रमाणपत्र प्रदान केले जाते'
+          : 'This certificate is presented to';
+
+    // Use HSL values only (matches our design-system format)
+    const css = `
+      :root {
+        --cert-paper: 0 0% 100%;
+        --cert-ink: 0 0% 10%;
+        --cert-muted: 0 0% 42%;
+        --cert-accent: 25 95% 53%;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+
+      body {
+        margin: 0;
+        padding: 24px;
+        background: hsl(var(--cert-paper));
+        color: hsl(var(--cert-ink));
+        font-family: 'Mukta','Noto Sans Devanagari','Noto Sans',system-ui,sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+
+      .sheet {
+        max-width: 980px;
+        margin: 0 auto;
+        border: 4px double hsl(var(--cert-accent));
+        border-radius: 16px;
+        padding: 32px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 999px;
+        object-fit: cover;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: hsl(var(--cert-accent));
+      }
+
+      .brand p {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: hsl(var(--cert-muted));
+      }
+
+      .titleWrap {
+        padding-bottom: 16px;
+        border-bottom: 2px solid hsl(var(--cert-accent) / 0.5);
+      }
+
+      .title {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 700;
+        font-family: 'Tiro Devanagari Marathi','Mukta','Noto Sans Devanagari',serif;
+        letter-spacing: 0.2px;
+      }
+
+      .content {
+        text-align: center;
+        margin: 24px 0;
+      }
+
+      .intro {
+        margin: 0 0 10px;
+        color: hsl(var(--cert-muted));
+        font-size: 15px;
+      }
+
+      .name {
+        margin: 0 auto 14px;
+        display: inline-block;
+        font-family: 'Tiro Devanagari Marathi','Mukta','Noto Sans Devanagari',serif;
+        font-size: 40px;
+        font-weight: 700;
+        color: hsl(var(--cert-accent));
+        padding: 6px 22px 8px;
+        border-bottom: 1px solid hsl(var(--cert-accent) / 0.5);
+      }
+
+      .text {
+        max-width: 760px;
+        margin: 0 auto 18px;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+
+      .scoreBox {
+        display: inline-block;
+        background: hsl(var(--cert-accent) / 0.12);
+        border: 1px solid hsl(var(--cert-accent) / 0.28);
+        border-radius: 12px;
+        padding: 14px 18px;
+      }
+
+      .percent {
+        font-size: 56px;
+        font-weight: 800;
+        line-height: 1;
+        color: hsl(var(--cert-accent));
+      }
+
+      .correct {
+        margin-top: 6px;
+        font-size: 14px;
+        color: hsl(var(--cert-ink));
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        border-top: 1px solid hsl(var(--cert-accent) / 0.25);
+        padding-top: 18px;
+        margin-top: 26px;
+        font-size: 14px;
+      }
+
+      .label {
+        font-size: 12px;
+        color: hsl(var(--cert-muted));
+        margin-bottom: 4px;
+      }
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-size: 12px;
+      }
+
+      .topic {
+        margin-top: 10px;
+        font-size: 12px;
+        color: hsl(var(--cert-muted));
+      }
+    `;
+
+    const certificateId = escapeHtml(certificateIdRef.current);
+
+    return `<!DOCTYPE html>
+<html lang="${language}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${safeTitle} - ${safeUserName}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Tiro+Devanagari+Marathi:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>${css}</style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="header">
+      <div class="brand">
+        <img class="logo" src="${vithalLogo}" alt="Vithal AI logo" />
+        <div>
+          <h1>Vithal AI</h1>
+          <p>Rights Awareness Platform</p>
+        </div>
+      </div>
+
+      <div class="titleWrap">
+        <h2 class="title">${safeTitle}</h2>
+        <div class="topic">${safeTopicName}</div>
+      </div>
+    </header>
+
+    <section class="content">
+      <p class="intro">${certificateIntro}</p>
+      <div class="name">${safeUserName}</div>
+      <p class="text">${safeText}</p>
+
+      <div class="scoreBox">
+        <div class="percent">${percentage}%</div>
+        <div class="correct">${safeScore}/${safeTotalQuestions} ${correctLabel}</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <div class="label">${dateLabel}</div>
+        <div>${escapeHtml(date)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">${idLabel}</div>
+        <div class="mono">${certificateId}</div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    window.addEventListener('afterprint', () => window.close());
+  </script>
+</body>
+</html>`;
+  };
+
+  const handleDownloadPdf = async () => {
+    const printWindow = window.open('about:blank', '_blank');
+    if (!printWindow) {
+      toast({
+        variant: 'destructive',
+        title: language === 'hi' ? 'त्रुटि' : language === 'mr' ? 'त्रुटी' : 'Error',
+        description:
+          language === 'hi'
+            ? 'PDF डाउनलोड के लिए पॉप-अप अनुमति दें'
+            : language === 'mr'
+              ? 'PDF डाउनलोडसाठी पॉप-अप परवानगी द्या'
+              : 'Please allow popups to download the PDF',
+      });
+      return;
+    }
 
     try {
-      const html2canvas = (await import('html2canvas')).default;
+      const htmlContent = buildCertificatePrintHtml();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
 
-      // Wait for fonts to be ready so Marathi text renders reliably in the PNG
-      await document.fonts.ready;
+      // Wait for fonts & images in the new window before printing
+      const waitForAssets = async () => {
+        // Fonts
+        try {
+          // @ts-expect-error - fonts exists in modern browsers
+          await printWindow.document.fonts?.ready;
+        } catch {
+          // ignore
+        }
 
-      const canvas = await html2canvas(certificateRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-      });
+        // Images
+        const imgs = Array.from(printWindow.document.images || []);
+        await Promise.all(
+          imgs.map(
+            (img) =>
+              img.complete
+                ? Promise.resolve()
+                : new Promise<void>((resolve) => {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
+                  })
+          )
+        );
+      };
 
-      const blob: Blob = await new Promise((resolve, reject) => {
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Failed to create image blob'))), 'image/png');
-      });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.download = `Vithal_AI_Certificate_${userName.replace(/\s+/g, '_')}.png`;
-      link.href = url;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(async () => {
+        try {
+          await waitForAssets();
+        } finally {
+          printWindow.focus();
+          printWindow.print();
+        }
+      }, 250);
 
       toast({
-        title: language === 'hi' ? 'डाउनलोड हो गया!' : language === 'mr' ? 'डाउनलोड झाले!' : 'Downloaded!',
-        description: language === 'hi' ? 'प्रमाणपत्र सहेजा गया' : language === 'mr' ? 'प्रमाणपत्र जतन झाले' : 'Certificate saved'
+        title: language === 'hi' ? 'PDF तैयार है' : language === 'mr' ? 'PDF तयार आहे' : 'PDF ready',
+        description:
+          language === 'hi'
+            ? 'प्रिंट डायलॉग में “Save as PDF” चुनें'
+            : language === 'mr'
+              ? 'प्रिंट डायलॉगमध्ये “Save as PDF” निवडा'
+              : 'In the print dialog, choose “Save as PDF”',
       });
-    } catch (error) {
+    } catch {
       toast({
+        variant: 'destructive',
         title: language === 'hi' ? 'त्रुटि' : language === 'mr' ? 'त्रुटी' : 'Error',
-        description: language === 'hi' ? 'डाउनलोड विफल' : language === 'mr' ? 'डाउनलोड अयशस्वी' : 'Download failed',
-        variant: 'destructive'
+        description: language === 'hi' ? 'PDF बन नहीं सका' : language === 'mr' ? 'PDF बनू शकले नाही' : 'Could not create PDF',
       });
     }
   };
@@ -193,7 +500,7 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
           </div>
 
           <div className="text-4xl font-bold text-destructive mb-6">
-            {score}/{totalQuestions}
+            {safeScore}/{safeTotalQuestions}
           </div>
 
           <div className="flex gap-3">
@@ -219,7 +526,6 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
 
       {/* Certificate */}
       <div
-        ref={certificateRef}
         className={cn(
           "bg-white rounded-xl border-4 border-double border-amber-500 p-6 sm:p-8 shadow-2xl max-w-2xl mx-auto",
           isMr && "font-cert-mr-body"
@@ -266,10 +572,15 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
             {getCertificateText()}
           </p>
 
-          <div style={{ backgroundColor: '#fef3c7', borderRadius: '8px', padding: '16px', display: 'inline-block' }}>
-            <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#d97706' }}>{percentage}%</div>
-            <div style={{ fontSize: '14px', color: '#b45309' }}>
-              {score}/{totalQuestions} {language === 'hi' ? 'सही उत्तर' : language === 'mr' ? 'बरोबर उत्तरे' : 'Correct Answers'}
+          <div className="bg-primary/10 rounded-lg p-4 inline-block">
+            <div className="text-5xl font-bold text-primary">{percentage}%</div>
+            <div className="text-sm text-primary/80">
+              {safeScore}/{safeTotalQuestions}{' '}
+              {language === 'hi'
+                ? 'सही उत्तर'
+                : language === 'mr'
+                  ? 'बरोबर उत्तरे'
+                  : 'Correct Answers'}
             </div>
           </div>
         </div>
@@ -300,9 +611,13 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
           <Share2 className="h-4 w-4" />
           {language === 'hi' ? 'शेयर करें' : language === 'mr' ? 'शेअर करा' : 'Share'}
         </Button>
-        <Button onClick={handleDownload} className="flex-1 gap-2">
+        <Button onClick={handleDownloadPdf} className="flex-1 gap-2">
           <Download className="h-4 w-4" />
-          {language === 'hi' ? 'डाउनलोड करें' : language === 'mr' ? 'डाउनलोड करा' : 'Download'}
+          {language === 'hi'
+            ? 'PDF डाउनलोड करें'
+            : language === 'mr'
+              ? 'PDF डाउनलोड करा'
+              : 'Download PDF'}
         </Button>
       </div>
     </div>
