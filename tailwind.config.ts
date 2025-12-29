@@ -17,11 +17,13 @@ export default {
 				'2xl': '1400px'
 			}
 		},
-		extend: {
+			extend: {
 			fontFamily: {
 				'sans': ['Inter', 'system-ui', 'sans-serif'],
 				'display': ['Space Grotesk', 'Inter', 'sans-serif'],
 				'chat': ['Noto Sans', 'Noto Sans Devanagari', 'Inter', 'system-ui', 'sans-serif'],
+				'cert-mr': ['Tiro Devanagari Marathi', 'Noto Sans Devanagari', 'serif'],
+				'cert-mr-body': ['Mukta', 'Noto Sans Devanagari', 'system-ui', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
