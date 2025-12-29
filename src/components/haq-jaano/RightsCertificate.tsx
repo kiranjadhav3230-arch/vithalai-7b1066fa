@@ -377,7 +377,6 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
       const waitForAssets = async () => {
         // Fonts
         try {
-          // @ts-expect-error - fonts exists in modern browsers
           await printWindow.document.fonts?.ready;
         } catch {
           // ignore
