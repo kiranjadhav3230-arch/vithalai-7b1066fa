@@ -259,6 +259,11 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
         </p>
       </div>
 
+      {/* Weekly Challenge Banner */}
+      <div className="max-w-lg mx-auto mb-6">
+        <WeeklyChallenge onStartChallenge={(topic) => handleTopicSelect(topic as TopicType)} />
+      </div>
+
       <div className="grid gap-4 max-w-lg mx-auto">
         {topics.map((topic) => (
           <Card
@@ -288,10 +293,10 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
       <div className="mt-8 text-center text-sm text-muted-foreground max-w-md mx-auto">
         <p>
           {language === 'hi' 
-            ? '⏱️ हर परीक्षा 5 मिनट की है | 📝 5 प्रश्न | 🎯 60% पास मार्क्स'
+            ? '⏱️ हर परीक्षा 10 मिनट की है | 📝 10 प्रश्न | 🎯 60% पास मार्क्स'
             : language === 'mr'
-            ? '⏱️ प्रत्येक परीक्षा 5 मिनिटांची | 📝 5 प्रश्न | 🎯 60% उत्तीर्ण गुण'
-            : '⏱️ Each exam is 5 minutes | 📝 5 questions | 🎯 60% to pass'}
+            ? '⏱️ प्रत्येक परीक्षा 10 मिनिटांची | 📝 10 प्रश्न | 🎯 60% उत्तीर्ण गुण'
+            : '⏱️ Each exam is 10 minutes | 📝 10 questions | 🎯 60% to pass'}
         </p>
       </div>
     </div>
