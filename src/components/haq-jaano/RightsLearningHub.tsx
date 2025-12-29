@@ -8,6 +8,7 @@ import { RightsLearningGame } from './RightsLearningGame';
 import { RightsQuizExam } from './RightsQuizExam';
 import { RightsCertificate } from './RightsCertificate';
 import { RightsLeaderboard } from './RightsLeaderboard';
+import { WeeklyChallenge } from './WeeklyChallenge';
 
 type TopicType = 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
 type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate' | 'leaderboard';
