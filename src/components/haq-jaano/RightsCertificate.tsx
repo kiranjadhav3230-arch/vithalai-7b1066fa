@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Award, Download, Share2, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -6,6 +6,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import vithalLogo from '@/assets/vithal-pin-logo.png';
+import confetti from 'canvas-confetti';
 
 interface RightsCertificateProps {
   userName: string;
@@ -37,6 +38,49 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
 
   const passed =
     safeTotalQuestions > 0 && safeScore >= Math.ceil(safeTotalQuestions * 0.6);
+
+  // Confetti animation when certificate is displayed (passed)
+  useEffect(() => {
+    if (passed) {
+      // Fire confetti from both sides
+      const duration = 3000;
+      const end = Date.now() + duration;
+
+      const frame = () => {
+        // Left side confetti
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0, y: 0.6 },
+          colors: ['#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7']
+        });
+        // Right side confetti
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1, y: 0.6 },
+          colors: ['#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7']
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+
+      // Center burst after a delay
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { x: 0.5, y: 0.5 },
+          colors: ['#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#ec4899']
+        });
+      }, 500);
+    }
+  }, [passed]);
 
   const date = new Date().toLocaleDateString(
     language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN',
