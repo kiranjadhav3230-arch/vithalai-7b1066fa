@@ -1555,5 +1555,713 @@ export const quizQuestions: Record<string, QuizQuestion[]> = {
         mr: 'जामीनपात्र गुन्ह्यांमध्ये जामीन अधिकाराची बाब आहे.'
       }
     }
+  ],
+  rti_rights: [
+    {
+      id: 'rti1',
+      question: { en: 'In which year was the RTI Act enacted?', hi: 'RTI अधिनियम किस वर्ष लागू हुआ?', mr: 'RTI कायदा कोणत्या वर्षी लागू झाला?' },
+      options: { en: ['2000', '2005', '2010', '2015'], hi: ['2000', '2005', '2010', '2015'], mr: ['2000', '2005', '2010', '2015'] },
+      correctIndex: 1,
+      explanation: { en: 'RTI Act was enacted in 2005 to promote transparency.', hi: 'RTI अधिनियम 2005 में पारदर्शिता को बढ़ावा देने के लिए लागू हुआ।', mr: 'RTI कायदा 2005 मध्ये पारदर्शकता वाढवण्यासाठी लागू झाला.' }
+    },
+    {
+      id: 'rti2',
+      question: { en: 'What is the fee for filing an RTI application?', hi: 'RTI आवेदन दाखिल करने की फीस क्या है?', mr: 'RTI अर्ज दाखल करण्याचे शुल्क किती आहे?' },
+      options: { en: ['Rs 5', 'Rs 10', 'Rs 50', 'Rs 100'], hi: ['Rs 5', 'Rs 10', 'Rs 50', 'Rs 100'], mr: ['Rs 5', 'Rs 10', 'Rs 50', 'Rs 100'] },
+      correctIndex: 1,
+      explanation: { en: 'RTI application fee is Rs 10 for central government departments.', hi: 'केंद्र सरकार विभागों के लिए RTI आवेदन शुल्क Rs 10 है।', mr: 'केंद्र सरकार विभागांसाठी RTI अर्ज शुल्क Rs 10 आहे.' }
+    },
+    {
+      id: 'rti3',
+      question: { en: 'Within how many days must PIO respond to RTI?', hi: 'PIO को कितने दिनों में RTI का जवाब देना होगा?', mr: 'PIO ला किती दिवसांत RTI ला उत्तर द्यावे लागते?' },
+      options: { en: ['15 days', '30 days', '45 days', '60 days'], hi: ['15 दिन', '30 दिन', '45 दिन', '60 दिन'], mr: ['15 दिवस', '30 दिवस', '45 दिवस', '60 दिवस'] },
+      correctIndex: 1,
+      explanation: { en: 'PIO must respond within 30 days of receiving the application.', hi: 'PIO को आवेदन मिलने के 30 दिनों के भीतर जवाब देना होगा।', mr: 'PIO ला अर्ज मिळाल्यापासून 30 दिवसांच्या आत उत्तर द्यावे लागते.' }
+    },
+    {
+      id: 'rti4',
+      question: { en: 'Who is exempt from RTI application fee?', hi: 'RTI आवेदन शुल्क से कौन मुक्त है?', mr: 'RTI अर्ज शुल्कातून कोण मुक्त आहे?' },
+      options: { en: ['Senior citizens', 'BPL card holders', 'Students', 'Women'], hi: ['वरिष्ठ नागरिक', 'BPL कार्ड धारक', 'छात्र', 'महिलाएं'], mr: ['ज्येष्ठ नागरिक', 'BPL कार्डधारक', 'विद्यार्थी', 'महिला'] },
+      correctIndex: 1,
+      explanation: { en: 'BPL card holders are exempt from paying RTI fee.', hi: 'BPL कार्ड धारक RTI शुल्क से मुक्त हैं।', mr: 'BPL कार्डधारक RTI शुल्कातून मुक्त आहेत.' }
+    },
+    {
+      id: 'rti5',
+      question: { en: 'What does PIO stand for?', hi: 'PIO का पूर्ण रूप क्या है?', mr: 'PIO चा पूर्ण अर्थ काय आहे?' },
+      options: { en: ['Public Information Officer', 'Private Information Officer', 'Primary Information Officer', 'Principal Information Officer'], hi: ['जन सूचना अधिकारी', 'निजी सूचना अधिकारी', 'प्राथमिक सूचना अधिकारी', 'प्रधान सूचना अधिकारी'], mr: ['जन माहिती अधिकारी', 'खाजगी माहिती अधिकारी', 'प्राथमिक माहिती अधिकारी', 'प्रमुख माहिती अधिकारी'] },
+      correctIndex: 0,
+      explanation: { en: 'PIO stands for Public Information Officer.', hi: 'PIO का अर्थ जन सूचना अधिकारी है।', mr: 'PIO म्हणजे जन माहिती अधिकारी.' }
+    },
+    {
+      id: 'rti6',
+      question: { en: 'Within how many days can you file first appeal?', hi: 'पहली अपील कितने दिनों में दायर कर सकते हैं?', mr: 'पहिली अपील किती दिवसांत दाखल करता येते?' },
+      options: { en: ['15 days', '30 days', '45 days', '60 days'], hi: ['15 दिन', '30 दिन', '45 दिन', '60 दिन'], mr: ['15 दिवस', '30 दिवस', '45 दिवस', '60 दिवस'] },
+      correctIndex: 1,
+      explanation: { en: 'First appeal can be filed within 30 days of receiving response.', hi: 'जवाब मिलने के 30 दिनों के भीतर पहली अपील दायर कर सकते हैं।', mr: 'उत्तर मिळाल्यापासून 30 दिवसांच्या आत पहिली अपील दाखल करता येते.' }
+    },
+    {
+      id: 'rti7',
+      question: { en: 'What is CIC in RTI context?', hi: 'RTI संदर्भ में CIC क्या है?', mr: 'RTI संदर्भात CIC म्हणजे काय?' },
+      options: { en: ['Central Information Commission', 'Central Investigation Committee', 'Chief Information Controller', 'Central Inquiry Court'], hi: ['केंद्रीय सूचना आयोग', 'केंद्रीय जांच समिति', 'मुख्य सूचना नियंत्रक', 'केंद्रीय जांच न्यायालय'], mr: ['केंद्रीय माहिती आयोग', 'केंद्रीय तपास समिती', 'मुख्य माहिती नियंत्रक', 'केंद्रीय तपास न्यायालय'] },
+      correctIndex: 0,
+      explanation: { en: 'CIC is Central Information Commission for second appeals.', hi: 'CIC केंद्रीय सूचना आयोग है दूसरी अपील के लिए।', mr: 'CIC म्हणजे दुसऱ्या अपीलसाठी केंद्रीय माहिती आयोग.' }
+    },
+    {
+      id: 'rti8',
+      question: { en: 'What penalty can be imposed on PIO for delay?', hi: 'देरी के लिए PIO पर क्या जुर्माना लगाया जा सकता है?', mr: 'विलंबासाठी PIO वर कोणता दंड आकारला जाऊ शकतो?' },
+      options: { en: ['Rs 100/day', 'Rs 250/day', 'Rs 500/day', 'Rs 1000/day'], hi: ['Rs 100/दिन', 'Rs 250/दिन', 'Rs 500/दिन', 'Rs 1000/दिन'], mr: ['Rs 100/दिवस', 'Rs 250/दिवस', 'Rs 500/दिवस', 'Rs 1000/दिवस'] },
+      correctIndex: 1,
+      explanation: { en: 'PIO can be fined Rs 250 per day for delay, up to Rs 25,000.', hi: 'देरी के लिए PIO पर Rs 250 प्रति दिन, अधिकतम Rs 25,000 जुर्माना।', mr: 'विलंबासाठी PIO वर Rs 250 प्रति दिवस, कमाल Rs 25,000 दंड.' }
+    },
+    {
+      id: 'rti9',
+      question: { en: 'Which information is exempt from RTI?', hi: 'कौन सी जानकारी RTI से मुक्त है?', mr: 'कोणती माहिती RTI मधून मुक्त आहे?' },
+      options: { en: ['Salary details', 'National security matters', 'Government expenses', 'Project costs'], hi: ['वेतन विवरण', 'राष्ट्रीय सुरक्षा मामले', 'सरकारी खर्च', 'परियोजना लागत'], mr: ['वेतन तपशील', 'राष्ट्रीय सुरक्षा बाबी', 'सरकारी खर्च', 'प्रकल्प खर्च'] },
+      correctIndex: 1,
+      explanation: { en: 'National security related information is exempt under Section 8.', hi: 'राष्ट्रीय सुरक्षा संबंधी जानकारी धारा 8 के तहत मुक्त है।', mr: 'राष्ट्रीय सुरक्षा संबंधित माहिती कलम 8 अंतर्गत मुक्त आहे.' }
+    },
+    {
+      id: 'rti10',
+      question: { en: 'Can RTI be filed online?', hi: 'क्या RTI ऑनलाइन दाखिल हो सकता है?', mr: 'RTI ऑनलाइन दाखल करता येतो का?' },
+      options: { en: ['No, only offline', 'Yes, at rtionline.gov.in', 'Only for central govt', 'Only for state govt'], hi: ['नहीं, केवल ऑफलाइन', 'हां, rtionline.gov.in पर', 'केवल केंद्र सरकार के लिए', 'केवल राज्य सरकार के लिए'], mr: ['नाही, फक्त ऑफलाइन', 'हो, rtionline.gov.in वर', 'फक्त केंद्र सरकारसाठी', 'फक्त राज्य सरकारसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'RTI can be filed online at rtionline.gov.in for central ministries.', hi: 'केंद्रीय मंत्रालयों के लिए RTI rtionline.gov.in पर ऑनलाइन दाखिल हो सकता है।', mr: 'केंद्रीय मंत्रालयांसाठी RTI rtionline.gov.in वर ऑनलाइन दाखल करता येतो.' }
+    },
+    {
+      id: 'rti11',
+      question: { en: 'Life-threatening info must be given within?', hi: 'जीवन के लिए खतरनाक जानकारी कितने समय में देनी होगी?', mr: 'जीवघेणी माहिती किती वेळात द्यावी लागते?' },
+      options: { en: ['24 hours', '48 hours', '72 hours', '7 days'], hi: ['24 घंटे', '48 घंटे', '72 घंटे', '7 दिन'], mr: ['24 तास', '48 तास', '72 तास', '7 दिवस'] },
+      correctIndex: 1,
+      explanation: { en: 'Information concerning life/liberty must be provided within 48 hours.', hi: 'जीवन/स्वतंत्रता से संबंधित जानकारी 48 घंटे में देनी होगी।', mr: 'जीवन/स्वातंत्र्य संबंधित माहिती 48 तासांत द्यावी लागते.' }
+    },
+    {
+      id: 'rti12',
+      question: { en: 'What is the maximum penalty on PIO?', hi: 'PIO पर अधिकतम जुर्माना क्या है?', mr: 'PIO वर कमाल दंड किती आहे?' },
+      options: { en: ['Rs 10,000', 'Rs 25,000', 'Rs 50,000', 'Rs 1,00,000'], hi: ['Rs 10,000', 'Rs 25,000', 'Rs 50,000', 'Rs 1,00,000'], mr: ['Rs 10,000', 'Rs 25,000', 'Rs 50,000', 'Rs 1,00,000'] },
+      correctIndex: 1,
+      explanation: { en: 'Maximum penalty on PIO is Rs 25,000.', hi: 'PIO पर अधिकतम जुर्माना Rs 25,000 है।', mr: 'PIO वर कमाल दंड Rs 25,000 आहे.' }
+    },
+    {
+      id: 'rti13',
+      question: { en: 'Who appoints Chief Information Commissioner?', hi: 'मुख्य सूचना आयुक्त की नियुक्ति कौन करता है?', mr: 'मुख्य माहिती आयुक्तांची नियुक्ती कोण करते?' },
+      options: { en: ['Prime Minister', 'President', 'Parliament', 'Supreme Court'], hi: ['प्रधानमंत्री', 'राष्ट्रपति', 'संसद', 'सुप्रीम कोर्ट'], mr: ['पंतप्रधान', 'राष्ट्रपती', 'संसद', 'सर्वोच्च न्यायालय'] },
+      correctIndex: 1,
+      explanation: { en: 'President appoints CIC on recommendation of committee.', hi: 'राष्ट्रपति समिति की सिफारिश पर CIC की नियुक्ति करते हैं।', mr: 'राष्ट्रपती समितीच्या शिफारशीवरून CIC ची नियुक्ती करतात.' }
+    },
+    {
+      id: 'rti14',
+      question: { en: 'How many sections are in RTI Act?', hi: 'RTI अधिनियम में कितनी धाराएं हैं?', mr: 'RTI कायद्यात किती कलमे आहेत?' },
+      options: { en: ['21', '25', '31', '35'], hi: ['21', '25', '31', '35'], mr: ['21', '25', '31', '35'] },
+      correctIndex: 2,
+      explanation: { en: 'RTI Act 2005 has 31 sections.', hi: 'RTI अधिनियम 2005 में 31 धाराएं हैं।', mr: 'RTI कायदा 2005 मध्ये 31 कलमे आहेत.' }
+    },
+    {
+      id: 'rti15',
+      question: { en: 'RTI applies to which organizations?', hi: 'RTI किन संगठनों पर लागू है?', mr: 'RTI कोणत्या संस्थांना लागू आहे?' },
+      options: { en: ['Only central govt', 'Only state govt', 'All public authorities', 'Only courts'], hi: ['केवल केंद्र सरकार', 'केवल राज्य सरकार', 'सभी सार्वजनिक प्राधिकरण', 'केवल न्यायालय'], mr: ['फक्त केंद्र सरकार', 'फक्त राज्य सरकार', 'सर्व सार्वजनिक प्राधिकरणे', 'फक्त न्यायालये'] },
+      correctIndex: 2,
+      explanation: { en: 'RTI applies to all public authorities receiving government funding.', hi: 'RTI सरकारी फंडिंग पाने वाले सभी सार्वजनिक प्राधिकरणों पर लागू है।', mr: 'RTI सरकारी निधी मिळवणाऱ्या सर्व सार्वजनिक प्राधिकरणांना लागू आहे.' }
+    },
+    {
+      id: 'rti16',
+      question: { en: 'Second appeal is filed with?', hi: 'दूसरी अपील कहां दायर होती है?', mr: 'दुसरी अपील कुठे दाखल होते?' },
+      options: { en: ['PIO', 'First Appellate Authority', 'Information Commission', 'High Court'], hi: ['PIO', 'प्रथम अपीलीय प्राधिकरण', 'सूचना आयोग', 'उच्च न्यायालय'], mr: ['PIO', 'प्रथम अपील प्राधिकरण', 'माहिती आयोग', 'उच्च न्यायालय'] },
+      correctIndex: 2,
+      explanation: { en: 'Second appeal goes to Central/State Information Commission.', hi: 'दूसरी अपील केंद्रीय/राज्य सूचना आयोग में जाती है।', mr: 'दुसरी अपील केंद्रीय/राज्य माहिती आयोगाकडे जाते.' }
+    },
+    {
+      id: 'rti17',
+      question: { en: 'Section 4 of RTI mandates what?', hi: 'RTI की धारा 4 क्या अनिवार्य करती है?', mr: 'RTI चे कलम 4 काय अनिवार्य करते?' },
+      options: { en: ['Fee payment', 'Suo motu disclosure', 'Appeals process', 'Penalties'], hi: ['शुल्क भुगतान', 'स्वप्रेरित प्रकटीकरण', 'अपील प्रक्रिया', 'दंड'], mr: ['शुल्क भरणा', 'स्वयं प्रकटीकरण', 'अपील प्रक्रिया', 'दंड'] },
+      correctIndex: 1,
+      explanation: { en: 'Section 4 mandates proactive disclosure by public authorities.', hi: 'धारा 4 सार्वजनिक प्राधिकरणों द्वारा स्वप्रेरित प्रकटीकरण अनिवार्य करती है।', mr: 'कलम 4 सार्वजनिक प्राधिकरणांद्वारे स्वयं प्रकटीकरण अनिवार्य करते.' }
+    },
+    {
+      id: 'rti18',
+      question: { en: 'Can third party information be shared?', hi: 'क्या तीसरे पक्ष की जानकारी साझा हो सकती है?', mr: 'तृतीय पक्षाची माहिती शेअर होऊ शकते का?' },
+      options: { en: ['Always yes', 'Always no', 'With their consent', 'Only to courts'], hi: ['हमेशा हां', 'हमेशा नहीं', 'उनकी सहमति से', 'केवल न्यायालय को'], mr: ['नेहमी हो', 'नेहमी नाही', 'त्यांच्या संमतीने', 'फक्त न्यायालयाला'] },
+      correctIndex: 2,
+      explanation: { en: 'Third party info can be shared with consent or if public interest outweighs.', hi: 'तीसरे पक्ष की जानकारी सहमति से या जनहित में साझा हो सकती है।', mr: 'तृतीय पक्षाची माहिती संमतीने किंवा सार्वजनिक हित असल्यास शेअर होऊ शकते.' }
+    },
+    {
+      id: 'rti19',
+      question: { en: 'RTI Act replaced which act?', hi: 'RTI अधिनियम ने किस अधिनियम को बदला?', mr: 'RTI कायद्याने कोणता कायदा बदलला?' },
+      options: { en: ['Freedom of Information Act 2002', 'Official Secrets Act', 'Evidence Act', 'No previous act'], hi: ['सूचना स्वतंत्रता अधिनियम 2002', 'राजकीय गोपनीयता अधिनियम', 'साक्ष्य अधिनियम', 'कोई पूर्व अधिनियम नहीं'], mr: ['माहिती स्वातंत्र्य कायदा 2002', 'अधिकृत गुप्तता कायदा', 'पुरावा कायदा', 'पूर्वीचा कायदा नाही'] },
+      correctIndex: 0,
+      explanation: { en: 'RTI Act 2005 replaced Freedom of Information Act 2002.', hi: 'RTI अधिनियम 2005 ने सूचना स्वतंत्रता अधिनियम 2002 को बदला।', mr: 'RTI कायदा 2005 ने माहिती स्वातंत्र्य कायदा 2002 बदलला.' }
+    },
+    {
+      id: 'rti20',
+      question: { en: 'Which organizations are excluded from RTI?', hi: 'कौन से संगठन RTI से बाहर हैं?', mr: 'कोणत्या संस्था RTI मधून वगळल्या आहेत?' },
+      options: { en: ['Schools', 'Intelligence agencies', 'Hospitals', 'Banks'], hi: ['स्कूल', 'खुफिया एजेंसियां', 'अस्पताल', 'बैंक'], mr: ['शाळा', 'गुप्तचर संस्था', 'रुग्णालये', 'बँका'] },
+      correctIndex: 1,
+      explanation: { en: 'Intelligence and security agencies are excluded under Second Schedule.', hi: 'खुफिया और सुरक्षा एजेंसियां दूसरी अनुसूची के तहत बाहर हैं।', mr: 'गुप्तचर आणि सुरक्षा संस्था दुसऱ्या अनुसूचीनुसार वगळल्या आहेत.' }
+    },
+    {
+      id: 'rti21',
+      question: { en: 'RTI helps in promoting what?', hi: 'RTI किसे बढ़ावा देने में मदद करता है?', mr: 'RTI काय वाढवण्यास मदत करते?' },
+      options: { en: ['Secrecy', 'Transparency', 'Bureaucracy', 'Delays'], hi: ['गोपनीयता', 'पारदर्शिता', 'नौकरशाही', 'विलंब'], mr: ['गोपनीयता', 'पारदर्शकता', 'नोकरशाही', 'विलंब'] },
+      correctIndex: 1,
+      explanation: { en: 'RTI promotes transparency and accountability in governance.', hi: 'RTI शासन में पारदर्शिता और जवाबदेही को बढ़ावा देता है।', mr: 'RTI शासनात पारदर्शकता आणि उत्तरदायित्व वाढवते.' }
+    },
+    {
+      id: 'rti22',
+      question: { en: 'Can you ask for file noting through RTI?', hi: 'क्या RTI से फाइल नोटिंग मांग सकते हैं?', mr: 'RTI द्वारे फाइल नोटिंग मागता येते का?' },
+      options: { en: ['No', 'Yes', 'Only for old files', 'Only courts can'], hi: ['नहीं', 'हां', 'केवल पुरानी फाइलों के लिए', 'केवल न्यायालय कर सकते हैं'], mr: ['नाही', 'हो', 'फक्त जुन्या फाइल्ससाठी', 'फक्त न्यायालय करू शकते'] },
+      correctIndex: 1,
+      explanation: { en: 'File notings can be requested through RTI as per Section 2(j).', hi: 'धारा 2(j) के अनुसार RTI से फाइल नोटिंग मांगी जा सकती है।', mr: 'कलम 2(j) नुसार RTI द्वारे फाइल नोटिंग मागता येते.' }
+    },
+    {
+      id: 'rti23',
+      question: { en: 'What is APIO?', hi: 'APIO क्या है?', mr: 'APIO म्हणजे काय?' },
+      options: { en: ['Assistant Public Information Officer', 'Additional Public Information Officer', 'Associate Public Information Officer', 'Auxiliary Public Information Officer'], hi: ['सहायक जन सूचना अधिकारी', 'अतिरिक्त जन सूचना अधिकारी', 'सहयोगी जन सूचना अधिकारी', 'सहायक जन सूचना अधिकारी'], mr: ['सहाय्यक जन माहिती अधिकारी', 'अतिरिक्त जन माहिती अधिकारी', 'सहयोगी जन माहिती अधिकारी', 'सहाय्यक जन माहिती अधिकारी'] },
+      correctIndex: 0,
+      explanation: { en: 'APIO is Assistant Public Information Officer at sub-divisional level.', hi: 'APIO उप-विभागीय स्तर पर सहायक जन सूचना अधिकारी है।', mr: 'APIO हा उप-विभागीय स्तरावरील सहाय्यक जन माहिती अधिकारी आहे.' }
+    },
+    {
+      id: 'rti24',
+      question: { en: 'RTI information can be in which form?', hi: 'RTI जानकारी किस रूप में हो सकती है?', mr: 'RTI माहिती कोणत्या स्वरूपात असू शकते?' },
+      options: { en: ['Only printed', 'Only electronic', 'Any form held by authority', 'Only original documents'], hi: ['केवल मुद्रित', 'केवल इलेक्ट्रॉनिक', 'प्राधिकरण के पास कोई भी रूप', 'केवल मूल दस्तावेज'], mr: ['फक्त मुद्रित', 'फक्त इलेक्ट्रॉनिक', 'प्राधिकरणाकडील कोणतेही स्वरूप', 'फक्त मूळ दस्तऐवज'] },
+      correctIndex: 2,
+      explanation: { en: 'Information includes any material in any form held by public authority.', hi: 'जानकारी में सार्वजनिक प्राधिकरण के पास किसी भी रूप में सामग्री शामिल है।', mr: 'माहितीमध्ये सार्वजनिक प्राधिकरणाकडील कोणत्याही स्वरूपातील सामग्री समाविष्ट आहे.' }
+    },
+    {
+      id: 'rti25',
+      question: { en: 'Can RTI be used for personal grievance?', hi: 'क्या RTI व्यक्तिगत शिकायत के लिए उपयोग हो सकता है?', mr: 'RTI वैयक्तिक तक्रारीसाठी वापरता येतो का?' },
+      options: { en: ['No, never', 'Yes, to seek information about your case', 'Only for government employees', 'Only for senior citizens'], hi: ['नहीं, कभी नहीं', 'हां, अपने मामले की जानकारी के लिए', 'केवल सरकारी कर्मचारियों के लिए', 'केवल वरिष्ठ नागरिकों के लिए'], mr: ['नाही, कधीच नाही', 'हो, तुमच्या प्रकरणाची माहिती मिळवण्यासाठी', 'फक्त सरकारी कर्मचाऱ्यांसाठी', 'फक्त ज्येष्ठ नागरिकांसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'RTI can be used to seek information about status of your applications.', hi: 'RTI का उपयोग अपने आवेदनों की स्थिति जानने के लिए किया जा सकता है।', mr: 'RTI तुमच्या अर्जांच्या स्थितीची माहिती मिळवण्यासाठी वापरता येतो.' }
+    }
+  ],
+  cyber_rights: [
+    {
+      id: 'cyber1',
+      question: { en: 'Which act governs cyber crimes in India?', hi: 'भारत में साइबर अपराधों को कौन सा अधिनियम नियंत्रित करता है?', mr: 'भारतात सायबर गुन्हे कोणता कायदा नियंत्रित करतो?' },
+      options: { en: ['IT Act 2000', 'IPC 1860', 'CrPC 1973', 'Evidence Act'], hi: ['IT अधिनियम 2000', 'IPC 1860', 'CrPC 1973', 'साक्ष्य अधिनियम'], mr: ['IT कायदा 2000', 'IPC 1860', 'CrPC 1973', 'पुरावा कायदा'] },
+      correctIndex: 0,
+      explanation: { en: 'IT Act 2000 is the primary law for cyber crimes in India.', hi: 'IT अधिनियम 2000 भारत में साइबर अपराधों के लिए प्राथमिक कानून है।', mr: 'IT कायदा 2000 हा भारतातील सायबर गुन्ह्यांसाठी प्राथमिक कायदा आहे.' }
+    },
+    {
+      id: 'cyber2',
+      question: { en: 'What is the cyber crime helpline number?', hi: 'साइबर अपराध हेल्पलाइन नंबर क्या है?', mr: 'सायबर गुन्हा हेल्पलाइन नंबर कोणता आहे?' },
+      options: { en: ['100', '112', '1930', '181'], hi: ['100', '112', '1930', '181'], mr: ['100', '112', '1930', '181'] },
+      correctIndex: 2,
+      explanation: { en: 'National Cyber Crime Helpline is 1930.', hi: 'राष्ट्रीय साइबर अपराध हेल्पलाइन 1930 है।', mr: 'राष्ट्रीय सायबर गुन्हा हेल्पलाइन 1930 आहे.' }
+    },
+    {
+      id: 'cyber3',
+      question: { en: 'Where to report cyber crimes online?', hi: 'साइबर अपराधों की ऑनलाइन रिपोर्ट कहां करें?', mr: 'सायबर गुन्ह्यांची ऑनलाइन तक्रार कुठे करावी?' },
+      options: { en: ['cybercrime.gov.in', 'police.gov.in', 'mha.gov.in', 'ncw.gov.in'], hi: ['cybercrime.gov.in', 'police.gov.in', 'mha.gov.in', 'ncw.gov.in'], mr: ['cybercrime.gov.in', 'police.gov.in', 'mha.gov.in', 'ncw.gov.in'] },
+      correctIndex: 0,
+      explanation: { en: 'cybercrime.gov.in is the official portal for reporting cyber crimes.', hi: 'cybercrime.gov.in साइबर अपराधों की रिपोर्ट के लिए आधिकारिक पोर्टल है।', mr: 'cybercrime.gov.in हे सायबर गुन्ह्यांच्या तक्रारीसाठी अधिकृत पोर्टल आहे.' }
+    },
+    {
+      id: 'cyber4',
+      question: { en: 'What is phishing?', hi: 'फिशिंग क्या है?', mr: 'फिशिंग म्हणजे काय?' },
+      options: { en: ['Catching fish online', 'Fake emails/sites to steal data', 'A type of virus', 'Online gaming'], hi: ['ऑनलाइन मछली पकड़ना', 'डेटा चुराने के लिए नकली ईमेल/साइट', 'एक प्रकार का वायरस', 'ऑनलाइन गेमिंग'], mr: ['ऑनलाइन मासेमारी', 'डेटा चोरण्यासाठी बनावट ईमेल/साइट', 'एक प्रकारचा व्हायरस', 'ऑनलाइन गेमिंग'] },
+      correctIndex: 1,
+      explanation: { en: 'Phishing uses fake communications to steal personal information.', hi: 'फिशिंग व्यक्तिगत जानकारी चुराने के लिए नकली संचार का उपयोग करता है।', mr: 'फिशिंग वैयक्तिक माहिती चोरण्यासाठी बनावट संवाद वापरते.' }
+    },
+    {
+      id: 'cyber5',
+      question: { en: 'Within how many days should you report bank fraud?', hi: 'बैंक धोखाधड़ी की रिपोर्ट कितने दिनों में करनी चाहिए?', mr: 'बँक फसवणुकीची तक्रार किती दिवसांत करावी?' },
+      options: { en: ['1 day', '3 days', '7 days', '30 days'], hi: ['1 दिन', '3 दिन', '7 दिन', '30 दिन'], mr: ['1 दिवस', '3 दिवस', '7 दिवस', '30 दिवस'] },
+      correctIndex: 1,
+      explanation: { en: 'Report within 3 days for zero liability as per RBI guidelines.', hi: 'RBI दिशानिर्देशों के अनुसार शून्य देयता के लिए 3 दिनों में रिपोर्ट करें।', mr: 'RBI मार्गदर्शक तत्त्वांनुसार शून्य दायित्वासाठी 3 दिवसांत तक्रार करा.' }
+    },
+    {
+      id: 'cyber6',
+      question: { en: 'Section 66 of IT Act deals with?', hi: 'IT अधिनियम की धारा 66 किससे संबंधित है?', mr: 'IT कायद्याचे कलम 66 कशाशी संबंधित आहे?' },
+      options: { en: ['Hacking', 'Spam emails', 'Online shopping', 'Social media'], hi: ['हैकिंग', 'स्पैम ईमेल', 'ऑनलाइन शॉपिंग', 'सोशल मीडिया'], mr: ['हॅकिंग', 'स्पॅम ईमेल', 'ऑनलाइन खरेदी', 'सोशल मीडिया'] },
+      correctIndex: 0,
+      explanation: { en: 'Section 66 deals with computer related offences including hacking.', hi: 'धारा 66 हैकिंग सहित कंप्यूटर संबंधित अपराधों से संबंधित है।', mr: 'कलम 66 हॅकिंगसह संगणक संबंधित गुन्ह्यांशी संबंधित आहे.' }
+    },
+    {
+      id: 'cyber7',
+      question: { en: 'What is identity theft?', hi: 'पहचान की चोरी क्या है?', mr: 'ओळख चोरी म्हणजे काय?' },
+      options: { en: ['Stealing passwords only', 'Using someone else identity fraudulently', 'Changing your name', 'Creating fake ID cards'], hi: ['केवल पासवर्ड चुराना', 'किसी और की पहचान का धोखाधड़ी से उपयोग', 'अपना नाम बदलना', 'नकली ID कार्ड बनाना'], mr: ['फक्त पासवर्ड चोरणे', 'दुसऱ्याची ओळख फसवणुकीने वापरणे', 'तुमचे नाव बदलणे', 'बनावट ID कार्ड बनवणे'] },
+      correctIndex: 1,
+      explanation: { en: 'Identity theft is using someone personal information without permission.', hi: 'पहचान की चोरी बिना अनुमति किसी की व्यक्तिगत जानकारी का उपयोग है।', mr: 'ओळख चोरी म्हणजे परवानगीशिवाय कोणाची वैयक्तिक माहिती वापरणे.' }
+    },
+    {
+      id: 'cyber8',
+      question: { en: 'What is OTP?', hi: 'OTP क्या है?', mr: 'OTP म्हणजे काय?' },
+      options: { en: ['One Time Password', 'Online Transaction Portal', 'Official Transfer Protocol', 'Open Text Platform'], hi: ['वन टाइम पासवर्ड', 'ऑनलाइन ट्रांजेक्शन पोर्टल', 'ऑफिशियल ट्रांसफर प्रोटोकॉल', 'ओपन टेक्स्ट प्लेटफॉर्म'], mr: ['वन टाइम पासवर्ड', 'ऑनलाइन ट्रान्झॅक्शन पोर्टल', 'ऑफिशियल ट्रान्सफर प्रोटोकॉल', 'ओपन टेक्स्ट प्लॅटफॉर्म'] },
+      correctIndex: 0,
+      explanation: { en: 'OTP is One Time Password for secure transactions.', hi: 'OTP सुरक्षित लेनदेन के लिए वन टाइम पासवर्ड है।', mr: 'OTP हा सुरक्षित व्यवहारांसाठी वन टाइम पासवर्ड आहे.' }
+    },
+    {
+      id: 'cyber9',
+      question: { en: 'Should you share OTP with anyone?', hi: 'क्या OTP किसी के साथ साझा करना चाहिए?', mr: 'OTP कोणाशीही शेअर करावा का?' },
+      options: { en: ['Yes, with bank officials', 'Yes, with police', 'Never share with anyone', 'Only with family'], hi: ['हां, बैंक अधिकारियों के साथ', 'हां, पुलिस के साथ', 'कभी किसी के साथ साझा न करें', 'केवल परिवार के साथ'], mr: ['हो, बँक अधिकाऱ्यांसोबत', 'हो, पोलिसांसोबत', 'कधीही कोणाशीही शेअर करू नका', 'फक्त कुटुंबासोबत'] },
+      correctIndex: 2,
+      explanation: { en: 'Never share OTP with anyone, not even bank officials.', hi: 'OTP कभी किसी के साथ साझा न करें, बैंक अधिकारियों के साथ भी नहीं।', mr: 'OTP कधीही कोणाशीही शेअर करू नका, बँक अधिकाऱ्यांसोबतही नाही.' }
+    },
+    {
+      id: 'cyber10',
+      question: { en: 'What is cyber stalking?', hi: 'साइबर स्टॉकिंग क्या है?', mr: 'सायबर स्टॉकिंग म्हणजे काय?' },
+      options: { en: ['Walking online', 'Repeatedly harassing someone online', 'Shopping online', 'Reading news online'], hi: ['ऑनलाइन चलना', 'किसी को बार-बार ऑनलाइन परेशान करना', 'ऑनलाइन खरीदारी', 'ऑनलाइन समाचार पढ़ना'], mr: ['ऑनलाइन चालणे', 'कोणाला वारंवार ऑनलाइन त्रास देणे', 'ऑनलाइन खरेदी', 'ऑनलाइन बातम्या वाचणे'] },
+      correctIndex: 1,
+      explanation: { en: 'Cyber stalking is repeatedly harassing or threatening someone online.', hi: 'साइबर स्टॉकिंग किसी को बार-बार ऑनलाइन परेशान या धमकाना है।', mr: 'सायबर स्टॉकिंग म्हणजे कोणाला वारंवार ऑनलाइन त्रास देणे किंवा धमकावणे.' }
+    },
+    {
+      id: 'cyber11',
+      question: { en: 'Section 66A of IT Act was struck down for?', hi: 'IT अधिनियम की धारा 66A किस कारण रद्द हुई?', mr: 'IT कायद्याचे कलम 66A कोणत्या कारणासाठी रद्द झाले?' },
+      options: { en: ['Being too lenient', 'Violating free speech', 'Being outdated', 'Technical errors'], hi: ['बहुत उदार होने के लिए', 'अभिव्यक्ति की स्वतंत्रता का उल्लंघन', 'पुराना होने के लिए', 'तकनीकी त्रुटियां'], mr: ['खूप सौम्य असल्यामुळे', 'अभिव्यक्ती स्वातंत्र्याचे उल्लंघन', 'जुने असल्यामुळे', 'तांत्रिक त्रुटी'] },
+      correctIndex: 1,
+      explanation: { en: 'Section 66A was struck down by Supreme Court for violating free speech.', hi: 'धारा 66A को अभिव्यक्ति की स्वतंत्रता के उल्लंघन के लिए सुप्रीम कोर्ट ने रद्द किया।', mr: 'कलम 66A अभिव्यक्ती स्वातंत्र्याचे उल्लंघन केल्यामुळे सर्वोच्च न्यायालयाने रद्द केले.' }
+    },
+    {
+      id: 'cyber12',
+      question: { en: 'What should you do if hacked?', hi: 'हैक होने पर क्या करना चाहिए?', mr: 'हॅक झाल्यास काय करावे?' },
+      options: { en: ['Ignore it', 'Change passwords and report', 'Delete the account', 'Pay the hacker'], hi: ['इसे अनदेखा करें', 'पासवर्ड बदलें और रिपोर्ट करें', 'अकाउंट डिलीट करें', 'हैकर को पैसे दें'], mr: ['दुर्लक्ष करा', 'पासवर्ड बदला आणि तक्रार करा', 'खाते हटवा', 'हॅकरला पैसे द्या'] },
+      correctIndex: 1,
+      explanation: { en: 'Change passwords immediately and report to cybercrime portal.', hi: 'तुरंत पासवर्ड बदलें और साइबर अपराध पोर्टल पर रिपोर्ट करें।', mr: 'तात्काळ पासवर्ड बदला आणि सायबर गुन्हे पोर्टलवर तक्रार करा.' }
+    },
+    {
+      id: 'cyber13',
+      question: { en: 'What is ransomware?', hi: 'रैंसमवेयर क्या है?', mr: 'रॅन्समवेअर म्हणजे काय?' },
+      options: { en: ['Antivirus software', 'Malware demanding payment', 'A type of browser', 'Email service'], hi: ['एंटीवायरस सॉफ्टवेयर', 'भुगतान मांगने वाला मैलवेयर', 'एक प्रकार का ब्राउज़र', 'ईमेल सेवा'], mr: ['अँटीव्हायरस सॉफ्टवेअर', 'पैसे मागणारे मालवेअर', 'एक प्रकारचा ब्राउझर', 'ईमेल सेवा'] },
+      correctIndex: 1,
+      explanation: { en: 'Ransomware locks your data and demands payment for release.', hi: 'रैंसमवेयर आपका डेटा लॉक करता है और रिलीज के लिए भुगतान मांगता है।', mr: 'रॅन्समवेअर तुमचा डेटा लॉक करते आणि रिलीजसाठी पैसे मागते.' }
+    },
+    {
+      id: 'cyber14',
+      question: { en: 'Is sharing fake news a cyber crime?', hi: 'क्या फेक न्यूज शेयर करना साइबर अपराध है?', mr: 'फेक न्यूज शेअर करणे सायबर गुन्हा आहे का?' },
+      options: { en: ['No', 'Yes, it can be punishable', 'Only for journalists', 'Only on WhatsApp'], hi: ['नहीं', 'हां, दंडनीय हो सकता है', 'केवल पत्रकारों के लिए', 'केवल WhatsApp पर'], mr: ['नाही', 'हो, शिक्षापात्र असू शकते', 'फक्त पत्रकारांसाठी', 'फक्त WhatsApp वर'] },
+      correctIndex: 1,
+      explanation: { en: 'Sharing fake news can lead to legal action under various laws.', hi: 'फेक न्यूज शेयर करने पर विभिन्न कानूनों के तहत कानूनी कार्रवाई हो सकती है।', mr: 'फेक न्यूज शेअर केल्यास विविध कायद्यांतर्गत कायदेशीर कारवाई होऊ शकते.' }
+    },
+    {
+      id: 'cyber15',
+      question: { en: 'What is two-factor authentication?', hi: 'टू-फैक्टर ऑथेंटिकेशन क्या है?', mr: 'टू-फॅक्टर ऑथेंटिकेशन म्हणजे काय?' },
+      options: { en: ['Two passwords', 'Password plus another verification', 'Two email IDs', 'Two phone numbers'], hi: ['दो पासवर्ड', 'पासवर्ड और एक अन्य सत्यापन', 'दो ईमेल आईडी', 'दो फोन नंबर'], mr: ['दोन पासवर्ड', 'पासवर्ड आणि दुसरे सत्यापन', 'दोन ईमेल आयडी', 'दोन फोन नंबर'] },
+      correctIndex: 1,
+      explanation: { en: 'Two-factor authentication adds extra security with OTP or biometric.', hi: 'टू-फैक्टर ऑथेंटिकेशन OTP या बायोमेट्रिक से अतिरिक्त सुरक्षा जोड़ता है।', mr: 'टू-फॅक्टर ऑथेंटिकेशन OTP किंवा बायोमेट्रिकसह अतिरिक्त सुरक्षा जोडते.' }
+    },
+    {
+      id: 'cyber16',
+      question: { en: 'What is a strong password?', hi: 'मजबूत पासवर्ड क्या है?', mr: 'मजबूत पासवर्ड म्हणजे काय?' },
+      options: { en: ['Your name', '123456', 'Mix of letters, numbers, symbols', 'Your birthdate'], hi: ['आपका नाम', '123456', 'अक्षरों, संख्याओं, प्रतीकों का मिश्रण', 'आपकी जन्मतिथि'], mr: ['तुमचे नाव', '123456', 'अक्षरे, संख्या, चिन्हांचे मिश्रण', 'तुमची जन्मतारीख'] },
+      correctIndex: 2,
+      explanation: { en: 'Strong passwords have mix of uppercase, lowercase, numbers, and symbols.', hi: 'मजबूत पासवर्ड में अपरकेस, लोअरकेस, संख्याएं और प्रतीक होते हैं।', mr: 'मजबूत पासवर्डमध्ये अपरकेस, लोअरकेस, संख्या आणि चिन्हे असतात.' }
+    },
+    {
+      id: 'cyber17',
+      question: { en: 'Can you file cyber crime FIR at any police station?', hi: 'क्या साइबर अपराध की FIR किसी भी थाने में दर्ज हो सकती है?', mr: 'सायबर गुन्ह्याची FIR कोणत्याही पोलीस स्टेशनवर दाखल होऊ शकते का?' },
+      options: { en: ['No, only cyber cell', 'Yes, Zero FIR possible', 'Only in metros', 'Only online'], hi: ['नहीं, केवल साइबर सेल', 'हां, जीरो FIR संभव', 'केवल महानगरों में', 'केवल ऑनलाइन'], mr: ['नाही, फक्त सायबर सेल', 'हो, झिरो FIR शक्य', 'फक्त महानगरांमध्ये', 'फक्त ऑनलाइन'] },
+      correctIndex: 1,
+      explanation: { en: 'You can file Zero FIR at any police station for cyber crimes.', hi: 'साइबर अपराधों के लिए किसी भी थाने में जीरो FIR दर्ज हो सकती है।', mr: 'सायबर गुन्ह्यांसाठी कोणत्याही पोलीस स्टेशनवर झिरो FIR दाखल होऊ शकते.' }
+    },
+    {
+      id: 'cyber18',
+      question: { en: 'What is malware?', hi: 'मैलवेयर क्या है?', mr: 'मालवेअर म्हणजे काय?' },
+      options: { en: ['Good software', 'Malicious software', 'Hardware', 'Mobile app'], hi: ['अच्छा सॉफ्टवेयर', 'दुर्भावनापूर्ण सॉफ्टवेयर', 'हार्डवेयर', 'मोबाइल ऐप'], mr: ['चांगले सॉफ्टवेअर', 'दुर्भावनापूर्ण सॉफ्टवेअर', 'हार्डवेअर', 'मोबाइल ॲप'] },
+      correctIndex: 1,
+      explanation: { en: 'Malware is malicious software designed to harm your device.', hi: 'मैलवेयर आपके डिवाइस को नुकसान पहुंचाने के लिए बनाया गया दुर्भावनापूर्ण सॉफ्टवेयर है।', mr: 'मालवेअर हे तुमच्या डिव्हाइसला हानी पोहोचवण्यासाठी बनवलेले दुर्भावनापूर्ण सॉफ्टवेअर आहे.' }
+    },
+    {
+      id: 'cyber19',
+      question: { en: 'Section 67 of IT Act deals with?', hi: 'IT अधिनियम की धारा 67 किससे संबंधित है?', mr: 'IT कायद्याचे कलम 67 कशाशी संबंधित आहे?' },
+      options: { en: ['Hacking', 'Obscene content', 'Spam', 'Data theft'], hi: ['हैकिंग', 'अश्लील सामग्री', 'स्पैम', 'डेटा चोरी'], mr: ['हॅकिंग', 'अश्लील सामग्री', 'स्पॅम', 'डेटा चोरी'] },
+      correctIndex: 1,
+      explanation: { en: 'Section 67 deals with publishing obscene content electronically.', hi: 'धारा 67 इलेक्ट्रॉनिक रूप से अश्लील सामग्री प्रकाशित करने से संबंधित है।', mr: 'कलम 67 इलेक्ट्रॉनिक पद्धतीने अश्लील सामग्री प्रकाशित करण्याशी संबंधित आहे.' }
+    },
+    {
+      id: 'cyber20',
+      question: { en: 'What is CERT-In?', hi: 'CERT-In क्या है?', mr: 'CERT-In म्हणजे काय?' },
+      options: { en: ['Certificate Authority', 'Cyber Emergency Response Team', 'Computer Education Research', 'Central E-commerce Regulator'], hi: ['प्रमाणपत्र प्राधिकरण', 'साइबर आपातकालीन प्रतिक्रिया टीम', 'कंप्यूटर शिक्षा अनुसंधान', 'केंद्रीय ई-कॉमर्स नियामक'], mr: ['प्रमाणपत्र प्राधिकरण', 'सायबर आपत्कालीन प्रतिसाद पथक', 'संगणक शिक्षण संशोधन', 'केंद्रीय ई-कॉमर्स नियामक'] },
+      correctIndex: 1,
+      explanation: { en: 'CERT-In is Indian Computer Emergency Response Team.', hi: 'CERT-In भारतीय कंप्यूटर आपातकालीन प्रतिक्रिया टीम है।', mr: 'CERT-In हे भारतीय संगणक आपत्कालीन प्रतिसाद पथक आहे.' }
+    },
+    {
+      id: 'cyber21',
+      question: { en: 'What is safe to click in emails?', hi: 'ईमेल में क्या क्लिक करना सुरक्षित है?', mr: 'ईमेलमध्ये काय क्लिक करणे सुरक्षित आहे?' },
+      options: { en: ['Links from unknown senders', 'Attachments from strangers', 'Links from verified sources only', 'All links are safe'], hi: ['अज्ञात भेजने वालों के लिंक', 'अजनबियों से अटैचमेंट', 'केवल सत्यापित स्रोतों के लिंक', 'सभी लिंक सुरक्षित हैं'], mr: ['अज्ञात पाठवणाऱ्यांचे लिंक', 'अनोळखींकडून अटॅचमेंट', 'फक्त सत्यापित स्त्रोतांचे लिंक', 'सर्व लिंक सुरक्षित आहेत'] },
+      correctIndex: 2,
+      explanation: { en: 'Only click links from verified and trusted sources.', hi: 'केवल सत्यापित और विश्वसनीय स्रोतों के लिंक पर क्लिक करें।', mr: 'फक्त सत्यापित आणि विश्वसनीय स्त्रोतांचे लिंक क्लिक करा.' }
+    },
+    {
+      id: 'cyber22',
+      question: { en: 'What is digital signature?', hi: 'डिजिटल सिग्नेचर क्या है?', mr: 'डिजिटल सिग्नेचर म्हणजे काय?' },
+      options: { en: ['Scanned signature', 'Electronic authentication', 'Handwritten on tablet', 'Fingerprint'], hi: ['स्कैन किया हस्ताक्षर', 'इलेक्ट्रॉनिक प्रमाणीकरण', 'टैबलेट पर हस्तलिखित', 'फिंगरप्रिंट'], mr: ['स्कॅन केलेली सही', 'इलेक्ट्रॉनिक प्रमाणीकरण', 'टॅबलेटवर हस्तलिखित', 'फिंगरप्रिंट'] },
+      correctIndex: 1,
+      explanation: { en: 'Digital signature is electronic method to verify document authenticity.', hi: 'डिजिटल सिग्नेचर दस्तावेज़ की प्रामाणिकता सत्यापित करने का इलेक्ट्रॉनिक तरीका है।', mr: 'डिजिटल सिग्नेचर हे दस्तऐवजाची सत्यता पडताळण्याची इलेक्ट्रॉनिक पद्धत आहे.' }
+    },
+    {
+      id: 'cyber23',
+      question: { en: 'What is social engineering attack?', hi: 'सोशल इंजीनियरिंग अटैक क्या है?', mr: 'सोशल इंजिनिअरिंग अटॅक म्हणजे काय?' },
+      options: { en: ['Building social networks', 'Tricking people to reveal info', 'Engineering course', 'Social media marketing'], hi: ['सोशल नेटवर्क बनाना', 'लोगों को जानकारी देने के लिए धोखा देना', 'इंजीनियरिंग कोर्स', 'सोशल मीडिया मार्केटिंग'], mr: ['सोशल नेटवर्क बनवणे', 'लोकांना माहिती देण्यासाठी फसवणे', 'इंजिनिअरिंग कोर्स', 'सोशल मीडिया मार्केटिंग'] },
+      correctIndex: 1,
+      explanation: { en: 'Social engineering manipulates people to reveal confidential information.', hi: 'सोशल इंजीनियरिंग लोगों को गोपनीय जानकारी देने के लिए हेरफेर करता है।', mr: 'सोशल इंजिनिअरिंग लोकांना गोपनीय माहिती देण्यासाठी फसवते.' }
+    },
+    {
+      id: 'cyber24',
+      question: { en: 'Is using public WiFi safe for banking?', hi: 'क्या बैंकिंग के लिए पब्लिक WiFi सुरक्षित है?', mr: 'बँकिंगसाठी पब्लिक WiFi सुरक्षित आहे का?' },
+      options: { en: ['Yes, always', 'No, avoid for sensitive transactions', 'Only in malls', 'Only at airports'], hi: ['हां, हमेशा', 'नहीं, संवेदनशील लेनदेन से बचें', 'केवल मॉल में', 'केवल हवाई अड्डों पर'], mr: ['हो, नेहमी', 'नाही, संवेदनशील व्यवहार टाळा', 'फक्त मॉलमध्ये', 'फक्त विमानतळांवर'] },
+      correctIndex: 1,
+      explanation: { en: 'Avoid banking on public WiFi as it can be intercepted.', hi: 'पब्लिक WiFi पर बैंकिंग से बचें क्योंकि इसे इंटरसेप्ट किया जा सकता है।', mr: 'पब्लिक WiFi वर बँकिंग टाळा कारण ते इंटरसेप्ट होऊ शकते.' }
+    },
+    {
+      id: 'cyber25',
+      question: { en: 'Punishment for hacking under IT Act?', hi: 'IT अधिनियम के तहत हैकिंग की सजा?', mr: 'IT कायद्यानुसार हॅकिंगची शिक्षा?' },
+      options: { en: ['Warning only', 'Up to 3 years jail', 'Life imprisonment', 'No punishment'], hi: ['केवल चेतावनी', '3 साल तक जेल', 'आजीवन कारावास', 'कोई सजा नहीं'], mr: ['फक्त इशारा', '3 वर्षांपर्यंत तुरुंगवास', 'जन्मठेप', 'शिक्षा नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Hacking can lead to up to 3 years imprisonment and fine.', hi: 'हैकिंग के लिए 3 साल तक की जेल और जुर्माना हो सकता है।', mr: 'हॅकिंगसाठी 3 वर्षांपर्यंत तुरुंगवास आणि दंड होऊ शकतो.' }
+    }
+  ],
+  tenant_rights: [
+    {
+      id: 'tenant1',
+      question: { en: 'Is written rent agreement mandatory?', hi: 'क्या लिखित किराया समझौता अनिवार्य है?', mr: 'लिखित भाडे करार अनिवार्य आहे का?' },
+      options: { en: ['No, verbal is enough', 'Yes, always recommended', 'Only for commercial', 'Only in cities'], hi: ['नहीं, मौखिक पर्याप्त है', 'हां, हमेशा अनुशंसित', 'केवल व्यावसायिक के लिए', 'केवल शहरों में'], mr: ['नाही, तोंडी पुरेसे', 'हो, नेहमी शिफारस केलेले', 'फक्त व्यावसायिकसाठी', 'फक्त शहरांमध्ये'] },
+      correctIndex: 1,
+      explanation: { en: 'Written agreement protects both tenant and landlord legally.', hi: 'लिखित समझौता किरायेदार और मकान मालिक दोनों की कानूनी सुरक्षा करता है।', mr: 'लिखित करार भाडेकरू आणि मालक दोघांचे कायदेशीर संरक्षण करतो.' }
+    },
+    {
+      id: 'tenant2',
+      question: { en: 'When should rent agreement be registered?', hi: 'किराया समझौता कब रजिस्टर होना चाहिए?', mr: 'भाडे करार कधी नोंदणी करावा?' },
+      options: { en: ['For all durations', 'Above 11 months', 'Above 2 years', 'Never needed'], hi: ['सभी अवधियों के लिए', '11 महीने से अधिक', '2 साल से अधिक', 'कभी जरूरत नहीं'], mr: ['सर्व कालावधीसाठी', '11 महिन्यांपेक्षा जास्त', '2 वर्षांपेक्षा जास्त', 'कधीच आवश्यक नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Agreements above 11 months must be registered.', hi: '11 महीने से अधिक के समझौते रजिस्टर होने चाहिए।', mr: '11 महिन्यांपेक्षा जास्त कालावधीचे करार नोंदणी करावे.' }
+    },
+    {
+      id: 'tenant3',
+      question: { en: 'Can landlord increase rent anytime?', hi: 'क्या मकान मालिक कभी भी किराया बढ़ा सकता है?', mr: 'मालक कधीही भाडे वाढवू शकतो का?' },
+      options: { en: ['Yes, anytime', 'No, as per agreement terms', 'Only after 6 months', 'Only with court order'], hi: ['हां, कभी भी', 'नहीं, समझौते की शर्तों के अनुसार', 'केवल 6 महीने बाद', 'केवल अदालत के आदेश से'], mr: ['हो, कधीही', 'नाही, कराराच्या अटींनुसार', 'फक्त 6 महिन्यांनंतर', 'फक्त न्यायालयाच्या आदेशाने'] },
+      correctIndex: 1,
+      explanation: { en: 'Rent increase must follow terms mentioned in the agreement.', hi: 'किराया वृद्धि समझौते में उल्लिखित शर्तों के अनुसार होनी चाहिए।', mr: 'भाडे वाढ कराराच्या अटींनुसार असणे आवश्यक आहे.' }
+    },
+    {
+      id: 'tenant4',
+      question: { en: 'What is typical security deposit?', hi: 'सामान्य सुरक्षा जमा क्या है?', mr: 'सामान्य सुरक्षा ठेव किती आहे?' },
+      options: { en: ['1 month rent', '2-3 months rent varies by city', '6 months rent', '1 year rent'], hi: ['1 महीने का किराया', '2-3 महीने का किराया शहर के अनुसार', '6 महीने का किराया', '1 साल का किराया'], mr: ['1 महिन्याचे भाडे', '2-3 महिन्यांचे भाडे शहरानुसार', '6 महिन्यांचे भाडे', '1 वर्षाचे भाडे'] },
+      correctIndex: 1,
+      explanation: { en: 'Security deposit varies from 2-3 months depending on city norms.', hi: 'सुरक्षा जमा शहर के मानदंडों के अनुसार 2-3 महीने भिन्न होता है।', mr: 'सुरक्षा ठेव शहराच्या नियमांनुसार 2-3 महिने बदलते.' }
+    },
+    {
+      id: 'tenant5',
+      question: { en: 'Who pays for major repairs?', hi: 'बड़ी मरम्मत का भुगतान कौन करता है?', mr: 'मोठ्या दुरुस्त्यांचा खर्च कोण करतो?' },
+      options: { en: ['Always tenant', 'Landlord', 'Shared equally', 'Government'], hi: ['हमेशा किरायेदार', 'मकान मालिक', 'समान रूप से साझा', 'सरकार'], mr: ['नेहमी भाडेकरू', 'मालक', 'समान वाटणी', 'सरकार'] },
+      correctIndex: 1,
+      explanation: { en: 'Major structural repairs are landlord responsibility.', hi: 'बड़ी संरचनात्मक मरम्मत मकान मालिक की जिम्मेदारी है।', mr: 'मोठ्या संरचनात्मक दुरुस्त्या मालकाची जबाबदारी आहे.' }
+    },
+    {
+      id: 'tenant6',
+      question: { en: 'How much notice period for eviction?', hi: 'बेदखली के लिए कितने दिन की नोटिस?', mr: 'बेदखलीसाठी किती दिवसांची नोटीस?' },
+      options: { en: ['No notice needed', 'As per agreement usually 1-3 months', '1 week', '6 months'], hi: ['कोई नोटिस नहीं', 'समझौते के अनुसार आमतौर पर 1-3 महीने', '1 सप्ताह', '6 महीने'], mr: ['नोटीस आवश्यक नाही', 'कराराप्रमाणे सामान्यतः 1-3 महिने', '1 आठवडा', '6 महिने'] },
+      correctIndex: 1,
+      explanation: { en: 'Notice period is usually 1-3 months as per agreement.', hi: 'नोटिस अवधि आमतौर पर समझौते के अनुसार 1-3 महीने होती है।', mr: 'नोटीस कालावधी सामान्यतः कराराप्रमाणे 1-3 महिने असतो.' }
+    },
+    {
+      id: 'tenant7',
+      question: { en: 'Can landlord enter without permission?', hi: 'क्या मकान मालिक बिना अनुमति के प्रवेश कर सकता है?', mr: 'मालक परवानगीशिवाय प्रवेश करू शकतो का?' },
+      options: { en: ['Yes, its their property', 'No, must give prior notice', 'Only during day', 'Only on weekends'], hi: ['हां, उनकी संपत्ति है', 'नहीं, पूर्व सूचना देनी होगी', 'केवल दिन में', 'केवल सप्ताहांत में'], mr: ['हो, त्यांची मालमत्ता आहे', 'नाही, आधी नोटीस द्यावी लागते', 'फक्त दिवसा', 'फक्त आठवड्याच्या शेवटी'] },
+      correctIndex: 1,
+      explanation: { en: 'Landlord must give reasonable notice before entering the property.', hi: 'मकान मालिक को संपत्ति में प्रवेश करने से पहले उचित सूचना देनी होगी।', mr: 'मालकाने मालमत्तेत प्रवेश करण्यापूर्वी वाजवी नोटीस द्यावी लागते.' }
+    },
+    {
+      id: 'tenant8',
+      question: { en: 'When should security deposit be returned?', hi: 'सुरक्षा जमा कब वापस होनी चाहिए?', mr: 'सुरक्षा ठेव कधी परत करावी?' },
+      options: { en: ['Never', 'At time of vacating after inspection', 'After 1 year', 'Only if asked'], hi: ['कभी नहीं', 'निरीक्षण के बाद खाली करते समय', '1 साल बाद', 'केवल मांगने पर'], mr: ['कधीच नाही', 'तपासणीनंतर खाली करताना', '1 वर्षानंतर', 'फक्त विचारल्यास'] },
+      correctIndex: 1,
+      explanation: { en: 'Deposit should be returned on vacating after property inspection.', hi: 'संपत्ति निरीक्षण के बाद खाली करने पर जमा वापस होनी चाहिए।', mr: 'मालमत्ता तपासणीनंतर खाली करताना ठेव परत करावी.' }
+    },
+    {
+      id: 'tenant9',
+      question: { en: 'Can landlord cut electricity/water to evict?', hi: 'क्या मकान मालिक बेदखली के लिए बिजली/पानी काट सकता है?', mr: 'मालक बेदखलीसाठी वीज/पाणी कापू शकतो का?' },
+      options: { en: ['Yes', 'No, it is illegal', 'Only after notice', 'Only in summer'], hi: ['हां', 'नहीं, यह गैरकानूनी है', 'केवल नोटिस के बाद', 'केवल गर्मियों में'], mr: ['हो', 'नाही, ते बेकायदेशीर आहे', 'फक्त नोटिसनंतर', 'फक्त उन्हाळ्यात'] },
+      correctIndex: 1,
+      explanation: { en: 'Cutting essential services for eviction is illegal.', hi: 'बेदखली के लिए आवश्यक सेवाएं काटना गैरकानूनी है।', mr: 'बेदखलीसाठी आवश्यक सेवा कापणे बेकायदेशीर आहे.' }
+    },
+    {
+      id: 'tenant10',
+      question: { en: 'Where to file rent disputes?', hi: 'किराया विवाद कहां दर्ज करें?', mr: 'भाडे वाद कुठे दाखल करावा?' },
+      options: { en: ['Police station', 'Rent Controller/Civil Court', 'Municipality', 'Consumer Forum'], hi: ['पुलिस स्टेशन', 'किराया नियंत्रक/दीवानी अदालत', 'नगरपालिका', 'उपभोक्ता फोरम'], mr: ['पोलीस स्टेशन', 'भाडे नियंत्रक/दिवाणी न्यायालय', 'नगरपालिका', 'ग्राहक मंच'] },
+      correctIndex: 1,
+      explanation: { en: 'Rent disputes go to Rent Controller or Civil Court.', hi: 'किराया विवाद किराया नियंत्रक या दीवानी अदालत में जाते हैं।', mr: 'भाडे वाद भाडे नियंत्रक किंवा दिवाणी न्यायालयात जातात.' }
+    },
+    {
+      id: 'tenant11',
+      question: { en: 'Can tenant sublet the property?', hi: 'क्या किरायेदार संपत्ति उपकिराए पर दे सकता है?', mr: 'भाडेकरू मालमत्ता उपभाड्याने देऊ शकतो का?' },
+      options: { en: ['Yes, always', 'Only with landlord written permission', 'Never allowed', 'Only for family'], hi: ['हां, हमेशा', 'केवल मकान मालिक की लिखित अनुमति से', 'कभी अनुमति नहीं', 'केवल परिवार के लिए'], mr: ['हो, नेहमी', 'फक्त मालकाच्या लिखित परवानगीने', 'कधीच परवानगी नाही', 'फक्त कुटुंबासाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'Subletting usually requires landlord written consent.', hi: 'उपकिराए के लिए आमतौर पर मकान मालिक की लिखित सहमति आवश्यक है।', mr: 'उपभाड्यासाठी सामान्यतः मालकाची लिखित संमती आवश्यक असते.' }
+    },
+    {
+      id: 'tenant12',
+      question: { en: 'What is fair wear and tear?', hi: 'सामान्य टूट-फूट क्या है?', mr: 'सामान्य झीज म्हणजे काय?' },
+      options: { en: ['Intentional damage', 'Normal deterioration from regular use', 'Accidental damage', 'No damage'], hi: ['जानबूझकर नुकसान', 'नियमित उपयोग से सामान्य गिरावट', 'आकस्मिक नुकसान', 'कोई नुकसान नहीं'], mr: ['जाणूनबुजून नुकसान', 'नियमित वापरातून सामान्य घसारा', 'अपघाती नुकसान', 'नुकसान नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Fair wear and tear is normal deterioration from everyday use.', hi: 'सामान्य टूट-फूट रोजमर्रा के उपयोग से होने वाली सामान्य गिरावट है।', mr: 'सामान्य झीज म्हणजे दैनंदिन वापरातून होणारा सामान्य घसारा.' }
+    },
+    {
+      id: 'tenant13',
+      question: { en: 'Is rent receipt important?', hi: 'क्या किराया रसीद महत्वपूर्ण है?', mr: 'भाडे पावती महत्त्वाची आहे का?' },
+      options: { en: ['No', 'Yes, for proof and tax benefits', 'Only for large amounts', 'Only for commercial'], hi: ['नहीं', 'हां, प्रमाण और कर लाभ के लिए', 'केवल बड़ी राशि के लिए', 'केवल व्यावसायिक के लिए'], mr: ['नाही', 'हो, पुरावा आणि कर लाभासाठी', 'फक्त मोठ्या रकमेसाठी', 'फक्त व्यावसायिकसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'Rent receipts are proof of payment and needed for HRA claims.', hi: 'किराया रसीद भुगतान का प्रमाण है और HRA दावों के लिए आवश्यक है।', mr: 'भाडे पावत्या पेमेंटचा पुरावा आहेत आणि HRA दाव्यांसाठी आवश्यक आहेत.' }
+    },
+    {
+      id: 'tenant14',
+      question: { en: 'Who pays property tax?', hi: 'संपत्ति कर कौन देता है?', mr: 'मालमत्ता कर कोण भरतो?' },
+      options: { en: ['Tenant', 'Landlord', 'Shared equally', 'Government'], hi: ['किरायेदार', 'मकान मालिक', 'समान रूप से साझा', 'सरकार'], mr: ['भाडेकरू', 'मालक', 'समान वाटणी', 'सरकार'] },
+      correctIndex: 1,
+      explanation: { en: 'Property tax is the responsibility of the property owner.', hi: 'संपत्ति कर संपत्ति मालिक की जिम्मेदारी है।', mr: 'मालमत्ता कर मालमत्ता मालकाची जबाबदारी आहे.' }
+    },
+    {
+      id: 'tenant15',
+      question: { en: 'Can landlord refuse to return deposit without reason?', hi: 'क्या मकान मालिक बिना कारण जमा वापस करने से मना कर सकता है?', mr: 'मालक कारणाशिवाय ठेव परत करण्यास नकार देऊ शकतो का?' },
+      options: { en: ['Yes', 'No, tenant can take legal action', 'Depends on mood', 'Only if rent is pending'], hi: ['हां', 'नहीं, किरायेदार कानूनी कार्रवाई कर सकता है', 'मूड पर निर्भर', 'केवल अगर किराया बाकी है'], mr: ['हो', 'नाही, भाडेकरू कायदेशीर कारवाई करू शकतो', 'मूडवर अवलंबून', 'फक्त भाडे बाकी असल्यास'] },
+      correctIndex: 1,
+      explanation: { en: 'Landlord cannot withhold deposit without valid reason; legal action is possible.', hi: 'मकान मालिक बिना वैध कारण जमा नहीं रख सकता; कानूनी कार्रवाई संभव है।', mr: 'मालक वैध कारणाशिवाय ठेव ठेवू शकत नाही; कायदेशीर कारवाई शक्य आहे.' }
+    },
+    {
+      id: 'tenant16',
+      question: { en: 'What is lock-in period?', hi: 'लॉक-इन अवधि क्या है?', mr: 'लॉक-इन कालावधी म्हणजे काय?' },
+      options: { en: ['Time when doors are locked', 'Minimum period tenant must stay', 'Maximum rent period', 'Security deposit period'], hi: ['दरवाजे बंद होने का समय', 'किरायेदार को न्यूनतम अवधि रहना होगा', 'अधिकतम किराया अवधि', 'सुरक्षा जमा अवधि'], mr: ['दरवाजे बंद असण्याची वेळ', 'भाडेकरूला किमान राहावे लागणारा कालावधी', 'कमाल भाडे कालावधी', 'सुरक्षा ठेव कालावधी'] },
+      correctIndex: 1,
+      explanation: { en: 'Lock-in period is minimum time tenant must stay before vacating.', hi: 'लॉक-इन अवधि वह न्यूनतम समय है जब किरायेदार को खाली करने से पहले रहना होगा।', mr: 'लॉक-इन कालावधी म्हणजे खाली करण्यापूर्वी भाडेकरूला राहावा लागणारा किमान कालावधी.' }
+    },
+    {
+      id: 'tenant17',
+      question: { en: 'Can tenant make modifications to property?', hi: 'क्या किरायेदार संपत्ति में बदलाव कर सकता है?', mr: 'भाडेकरू मालमत्तेत बदल करू शकतो का?' },
+      options: { en: ['Yes, always', 'Only with landlord permission', 'Never allowed', 'Only painting'], hi: ['हां, हमेशा', 'केवल मकान मालिक की अनुमति से', 'कभी अनुमति नहीं', 'केवल पेंटिंग'], mr: ['हो, नेहमी', 'फक्त मालकाच्या परवानगीने', 'कधीच परवानगी नाही', 'फक्त रंगकाम'] },
+      correctIndex: 1,
+      explanation: { en: 'Structural modifications need landlord written permission.', hi: 'संरचनात्मक बदलाव के लिए मकान मालिक की लिखित अनुमति आवश्यक है।', mr: 'संरचनात्मक बदलांसाठी मालकाची लिखित परवानगी आवश्यक आहे.' }
+    },
+    {
+      id: 'tenant18',
+      question: { en: 'What if landlord sells the property?', hi: 'अगर मकान मालिक संपत्ति बेचे तो क्या?', mr: 'मालकाने मालमत्ता विकली तर काय?' },
+      options: { en: ['Tenant must vacate immediately', 'Existing agreement continues with new owner', 'Agreement becomes void', 'Tenant owns property'], hi: ['किरायेदार को तुरंत खाली करना होगा', 'मौजूदा समझौता नए मालिक के साथ जारी रहता है', 'समझौता रद्द हो जाता है', 'किरायेदार संपत्ति का मालिक बनता है'], mr: ['भाडेकरूला तात्काळ खाली करावे लागेल', 'विद्यमान करार नवीन मालकासोबत सुरू राहतो', 'करार रद्द होतो', 'भाडेकरू मालमत्तेचा मालक होतो'] },
+      correctIndex: 1,
+      explanation: { en: 'Registered agreement continues even if property is sold.', hi: 'रजिस्टर्ड समझौता संपत्ति बेचने पर भी जारी रहता है।', mr: 'नोंदणीकृत करार मालमत्ता विकल्यावरही सुरू राहतो.' }
+    },
+    {
+      id: 'tenant19',
+      question: { en: 'Who should pay society maintenance?', hi: 'सोसाइटी मेंटेनेंस कौन देता है?', mr: 'सोसायटी मेंटेनन्स कोण भरतो?' },
+      options: { en: ['Always landlord', 'As per agreement usually tenant', 'Always tenant', 'Government'], hi: ['हमेशा मकान मालिक', 'समझौते के अनुसार आमतौर पर किरायेदार', 'हमेशा किरायेदार', 'सरकार'], mr: ['नेहमी मालक', 'कराराप्रमाणे सामान्यतः भाडेकरू', 'नेहमी भाडेकरू', 'सरकार'] },
+      correctIndex: 1,
+      explanation: { en: 'Society maintenance is usually paid by tenant as per agreement.', hi: 'सोसाइटी मेंटेनेंस आमतौर पर समझौते के अनुसार किरायेदार देता है।', mr: 'सोसायटी मेंटेनन्स सामान्यतः कराराप्रमाणे भाडेकरू भरतो.' }
+    },
+    {
+      id: 'tenant20',
+      question: { en: 'Is police verification of tenant mandatory?', hi: 'क्या किरायेदार का पुलिस सत्यापन अनिवार्य है?', mr: 'भाडेकरूचे पोलीस सत्यापन अनिवार्य आहे का?' },
+      options: { en: ['No', 'Yes, in most states', 'Only for foreigners', 'Only in Delhi'], hi: ['नहीं', 'हां, अधिकांश राज्यों में', 'केवल विदेशियों के लिए', 'केवल दिल्ली में'], mr: ['नाही', 'हो, बहुतेक राज्यांमध्ये', 'फक्त विदेशींसाठी', 'फक्त दिल्लीत'] },
+      correctIndex: 1,
+      explanation: { en: 'Police verification is mandatory in most Indian states.', hi: 'अधिकांश भारतीय राज्यों में पुलिस सत्यापन अनिवार्य है।', mr: 'बहुतेक भारतीय राज्यांमध्ये पोलीस सत्यापन अनिवार्य आहे.' }
+    },
+    {
+      id: 'tenant21',
+      question: { en: 'Can tenant deny entry for inspection?', hi: 'क्या किरायेदार निरीक्षण के लिए प्रवेश से मना कर सकता है?', mr: 'भाडेकरू तपासणीसाठी प्रवेश नाकारू शकतो का?' },
+      options: { en: ['Yes, always', 'No, with proper notice tenant should allow', 'Depends on time', 'Only on weekends'], hi: ['हां, हमेशा', 'नहीं, उचित सूचना के साथ किरायेदार को अनुमति देनी चाहिए', 'समय पर निर्भर', 'केवल सप्ताहांत में'], mr: ['हो, नेहमी', 'नाही, योग्य नोटिसने भाडेकरूने परवानगी द्यावी', 'वेळेवर अवलंबून', 'फक्त आठवड्याच्या शेवटी'] },
+      correctIndex: 1,
+      explanation: { en: 'Tenant should allow inspection with reasonable prior notice.', hi: 'उचित पूर्व सूचना के साथ किरायेदार को निरीक्षण की अनुमति देनी चाहिए।', mr: 'वाजवी आगाऊ नोटिसने भाडेकरूने तपासणीची परवानगी द्यावी.' }
+    },
+    {
+      id: 'tenant22',
+      question: { en: 'Stamp duty on rent agreement is paid by?', hi: 'किराया समझौते पर स्टांप ड्यूटी कौन देता है?', mr: 'भाडे करारावरील मुद्रांक शुल्क कोण भरतो?' },
+      options: { en: ['Only tenant', 'Only landlord', 'Usually shared or as agreed', 'Government'], hi: ['केवल किरायेदार', 'केवल मकान मालिक', 'आमतौर पर साझा या सहमति के अनुसार', 'सरकार'], mr: ['फक्त भाडेकरू', 'फक्त मालक', 'सामान्यतः वाटून किंवा सहमतीने', 'सरकार'] },
+      correctIndex: 2,
+      explanation: { en: 'Stamp duty is usually shared or as mutually agreed.', hi: 'स्टांप ड्यूटी आमतौर पर साझा या आपसी सहमति से होती है।', mr: 'मुद्रांक शुल्क सामान्यतः वाटून किंवा परस्पर सहमतीने भरले जाते.' }
+    },
+    {
+      id: 'tenant23',
+      question: { en: 'What if landlord refuses repairs?', hi: 'अगर मकान मालिक मरम्मत से मना करे तो?', mr: 'मालकाने दुरुस्ती नाकारली तर काय?' },
+      options: { en: ['Tenant must do all repairs', 'Tenant can deduct from rent with notice', 'Stop paying rent', 'Nothing can be done'], hi: ['किरायेदार को सभी मरम्मत करनी होगी', 'किरायेदार नोटिस के साथ किराये से काट सकता है', 'किराया देना बंद करें', 'कुछ नहीं किया जा सकता'], mr: ['भाडेकरूने सर्व दुरुस्त्या कराव्यात', 'भाडेकरू नोटिसने भाड्यातून वजा करू शकतो', 'भाडे देणे थांबवा', 'काहीही करता येत नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Tenant can do repairs and deduct cost from rent with proper documentation.', hi: 'किरायेदार मरम्मत करके उचित दस्तावेज के साथ किराये से लागत काट सकता है।', mr: 'भाडेकरू दुरुस्ती करून योग्य दस्तऐवजीकरणासह भाड्यातून खर्च वजा करू शकतो.' }
+    },
+    {
+      id: 'tenant24',
+      question: { en: 'Model Tenancy Act was passed in which year?', hi: 'मॉडल किरायेदारी अधिनियम किस वर्ष पारित हुआ?', mr: 'मॉडेल भाडेकरू कायदा कोणत्या वर्षी मंजूर झाला?' },
+      options: { en: ['2019', '2021', '2023', 'Not yet passed'], hi: ['2019', '2021', '2023', 'अभी तक पारित नहीं'], mr: ['2019', '2021', '2023', 'अजून मंजूर झाला नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Model Tenancy Act was approved by Union Cabinet in 2021.', hi: 'मॉडल किरायेदारी अधिनियम 2021 में केंद्रीय मंत्रिमंडल द्वारा अनुमोदित किया गया।', mr: 'मॉडेल भाडेकरू कायदा 2021 मध्ये केंद्रीय मंत्रिमंडळाने मंजूर केला.' }
+    },
+    {
+      id: 'tenant25',
+      question: { en: 'E-stamping for rent agreement is available?', hi: 'किराया समझौते के लिए ई-स्टांपिंग उपलब्ध है?', mr: 'भाडे करारासाठी ई-स्टँपिंग उपलब्ध आहे?' },
+      options: { en: ['No', 'Yes, in most states', 'Only for commercial', 'Only above Rs 1 lakh'], hi: ['नहीं', 'हां, अधिकांश राज्यों में', 'केवल व्यावसायिक के लिए', 'केवल Rs 1 लाख से ऊपर'], mr: ['नाही', 'हो, बहुतेक राज्यांमध्ये', 'फक्त व्यावसायिकसाठी', 'फक्त Rs 1 लाखाच्या वर'] },
+      correctIndex: 1,
+      explanation: { en: 'E-stamping is available in most states for convenience.', hi: 'सुविधा के लिए अधिकांश राज्यों में ई-स्टांपिंग उपलब्ध है।', mr: 'सोयीसाठी बहुतेक राज्यांमध्ये ई-स्टँपिंग उपलब्ध आहे.' }
+    }
+  ],
+  senior_citizen_rights: [
+    {
+      id: 'sc1',
+      question: { en: 'At what age is someone considered a senior citizen?', hi: 'किस उम्र में कोई वरिष्ठ नागरिक माना जाता है?', mr: 'कोणत्या वयात कोणाला ज्येष्ठ नागरिक मानले जाते?' },
+      options: { en: ['50 years', '55 years', '60 years', '65 years'], hi: ['50 वर्ष', '55 वर्ष', '60 वर्ष', '65 वर्ष'], mr: ['50 वर्षे', '55 वर्षे', '60 वर्षे', '65 वर्षे'] },
+      correctIndex: 2,
+      explanation: { en: 'In India, 60 years is the age for senior citizen status.', hi: 'भारत में, 60 वर्ष वरिष्ठ नागरिक की उम्र है।', mr: 'भारतात, 60 वर्षे ज्येष्ठ नागरिक दर्जाचे वय आहे.' }
+    },
+    {
+      id: 'sc2',
+      question: { en: 'Which act protects senior citizens in India?', hi: 'कौन सा अधिनियम भारत में वरिष्ठ नागरिकों की रक्षा करता है?', mr: 'भारतात ज्येष्ठ नागरिकांचे संरक्षण कोणता कायदा करतो?' },
+      options: { en: ['Senior Citizens Act 2007', 'Maintenance Act 2007', 'Protection Act 2010', 'Welfare Act 2005'], hi: ['वरिष्ठ नागरिक अधिनियम 2007', 'भरण-पोषण अधिनियम 2007', 'संरक्षण अधिनियम 2010', 'कल्याण अधिनियम 2005'], mr: ['ज्येष्ठ नागरिक कायदा 2007', 'पोषण कायदा 2007', 'संरक्षण कायदा 2010', 'कल्याण कायदा 2005'] },
+      correctIndex: 1,
+      explanation: { en: 'Maintenance and Welfare of Parents and Senior Citizens Act 2007.', hi: 'माता-पिता और वरिष्ठ नागरिकों का भरण-पोषण और कल्याण अधिनियम 2007।', mr: 'पालक आणि ज्येष्ठ नागरिकांचे पोषण आणि कल्याण कायदा 2007.' }
+    },
+    {
+      id: 'sc3',
+      question: { en: 'Can children be legally required to support parents?', hi: 'क्या बच्चों को कानूनी रूप से माता-पिता की मदद करनी होगी?', mr: 'मुलांना कायदेशीररित्या पालकांना मदत करणे आवश्यक आहे का?' },
+      options: { en: ['No', 'Yes, by law', 'Only sons', 'Only daughters'], hi: ['नहीं', 'हां, कानून द्वारा', 'केवल बेटे', 'केवल बेटियां'], mr: ['नाही', 'हो, कायद्याने', 'फक्त मुलगे', 'फक्त मुली'] },
+      correctIndex: 1,
+      explanation: { en: 'Children including daughters are legally bound to maintain parents.', hi: 'बेटियों सहित बच्चे कानूनी रूप से माता-पिता का भरण-पोषण करने के लिए बाध्य हैं।', mr: 'मुलींसह मुले कायदेशीररित्या पालकांचे पोषण करण्यास बांधील आहेत.' }
+    },
+    {
+      id: 'sc4',
+      question: { en: 'Maximum maintenance amount per month under the Act?', hi: 'अधिनियम के तहत प्रति माह अधिकतम भरण-पोषण राशि?', mr: 'कायद्यानुसार दरमहा कमाल पोषण रक्कम?' },
+      options: { en: ['Rs 5,000', 'Rs 10,000', 'Rs 15,000', 'No upper limit'], hi: ['Rs 5,000', 'Rs 10,000', 'Rs 15,000', 'कोई ऊपरी सीमा नहीं'], mr: ['Rs 5,000', 'Rs 10,000', 'Rs 15,000', 'कमाल मर्यादा नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Tribunal can order up to Rs 10,000 per month as maintenance.', hi: 'न्यायाधिकरण भरण-पोषण के रूप में Rs 10,000 प्रति माह तक का आदेश दे सकता है।', mr: 'न्यायाधिकरण पोषण म्हणून दरमहा Rs 10,000 पर्यंत आदेश देऊ शकते.' }
+    },
+    {
+      id: 'sc5',
+      question: { en: 'Can property given to children be taken back?', hi: 'क्या बच्चों को दी गई संपत्ति वापस ली जा सकती है?', mr: 'मुलांना दिलेली मालमत्ता परत घेता येते का?' },
+      options: { en: ['Never', 'Yes, if they neglect parents', 'Only partially', 'Only after death'], hi: ['कभी नहीं', 'हां, अगर वे माता-पिता की उपेक्षा करें', 'केवल आंशिक रूप से', 'केवल मृत्यु के बाद'], mr: ['कधीच नाही', 'हो, जर त्यांनी पालकांची उपेक्षा केली', 'फक्त अंशतः', 'फक्त मृत्यूनंतर'] },
+      correctIndex: 1,
+      explanation: { en: 'Transfer can be cancelled if children fail to provide maintenance.', hi: 'अगर बच्चे भरण-पोषण न करें तो हस्तांतरण रद्द हो सकता है।', mr: 'मुलांनी पोषण न केल्यास हस्तांतरण रद्द होऊ शकते.' }
+    },
+    {
+      id: 'sc6',
+      question: { en: 'Where to file complaint for maintenance?', hi: 'भरण-पोषण की शिकायत कहां दर्ज करें?', mr: 'पोषणासाठी तक्रार कुठे दाखल करावी?' },
+      options: { en: ['Police station', 'Maintenance Tribunal', 'Consumer Court', 'NGO'], hi: ['पुलिस स्टेशन', 'भरण-पोषण न्यायाधिकरण', 'उपभोक्ता अदालत', 'NGO'], mr: ['पोलीस स्टेशन', 'पोषण न्यायाधिकरण', 'ग्राहक न्यायालय', 'NGO'] },
+      correctIndex: 1,
+      explanation: { en: 'Maintenance Tribunal at district level handles such cases.', hi: 'जिला स्तर पर भरण-पोषण न्यायाधिकरण ऐसे मामलों को संभालता है।', mr: 'जिल्हा स्तरावरील पोषण न्यायाधिकरण अशा प्रकरणांची हाताळणी करते.' }
+    },
+    {
+      id: 'sc7',
+      question: { en: 'Within how many days should tribunal decide?', hi: 'न्यायाधिकरण को कितने दिनों में फैसला करना चाहिए?', mr: 'न्यायाधिकरणाने किती दिवसांत निर्णय द्यावा?' },
+      options: { en: ['30 days', '60 days', '90 days', '180 days'], hi: ['30 दिन', '60 दिन', '90 दिन', '180 दिन'], mr: ['30 दिवस', '60 दिवस', '90 दिवस', '180 दिवस'] },
+      correctIndex: 2,
+      explanation: { en: 'Tribunal should decide within 90 days of receiving application.', hi: 'न्यायाधिकरण को आवेदन मिलने के 90 दिनों के भीतर फैसला करना चाहिए।', mr: 'न्यायाधिकरणाने अर्ज मिळाल्यापासून 90 दिवसांच्या आत निर्णय द्यावा.' }
+    },
+    {
+      id: 'sc8',
+      question: { en: 'Elder abuse helpline number?', hi: 'वृद्ध दुर्व्यवहार हेल्पलाइन नंबर?', mr: 'ज्येष्ठ दुर्व्यवहार हेल्पलाइन नंबर?' },
+      options: { en: ['100', '181', '14567', '112'], hi: ['100', '181', '14567', '112'], mr: ['100', '181', '14567', '112'] },
+      correctIndex: 2,
+      explanation: { en: 'Elder helpline is 14567 (Elderline).', hi: 'वृद्ध हेल्पलाइन 14567 (एल्डरलाइन) है।', mr: 'ज्येष्ठ हेल्पलाइन 14567 (एल्डरलाइन) आहे.' }
+    },
+    {
+      id: 'sc9',
+      question: { en: 'Tax benefit limit for senior citizens?', hi: 'वरिष्ठ नागरिकों के लिए कर लाभ सीमा?', mr: 'ज्येष्ठ नागरिकांसाठी कर लाभ मर्यादा?' },
+      options: { en: ['Rs 2.5 lakh', 'Rs 3 lakh', 'Rs 5 lakh', 'Rs 10 lakh'], hi: ['Rs 2.5 लाख', 'Rs 3 लाख', 'Rs 5 लाख', 'Rs 10 लाख'], mr: ['Rs 2.5 लाख', 'Rs 3 लाख', 'Rs 5 लाख', 'Rs 10 लाख'] },
+      correctIndex: 1,
+      explanation: { en: 'Senior citizens have basic exemption limit of Rs 3 lakh.', hi: 'वरिष्ठ नागरिकों की मूल छूट सीमा Rs 3 लाख है।', mr: 'ज्येष्ठ नागरिकांची मूळ सूट मर्यादा Rs 3 लाख आहे.' }
+    },
+    {
+      id: 'sc10',
+      question: { en: 'Super senior citizen age for extra tax benefits?', hi: 'अतिरिक्त कर लाभ के लिए अति वरिष्ठ नागरिक की आयु?', mr: 'अतिरिक्त कर लाभासाठी अति ज्येष्ठ नागरिकाचे वय?' },
+      options: { en: ['70 years', '75 years', '80 years', '85 years'], hi: ['70 वर्ष', '75 वर्ष', '80 वर्ष', '85 वर्ष'], mr: ['70 वर्षे', '75 वर्षे', '80 वर्षे', '85 वर्षे'] },
+      correctIndex: 2,
+      explanation: { en: '80 years and above are super senior citizens with Rs 5 lakh exemption.', hi: '80 वर्ष और उससे अधिक अति वरिष्ठ नागरिक हैं जिनकी Rs 5 लाख छूट है।', mr: '80 वर्षे आणि त्यावरील अति ज्येष्ठ नागरिक आहेत ज्यांना Rs 5 लाख सूट आहे.' }
+    },
+    {
+      id: 'sc11',
+      question: { en: 'Do senior citizens get priority in hospitals?', hi: 'क्या वरिष्ठ नागरिकों को अस्पतालों में प्राथमिकता मिलती है?', mr: 'ज्येष्ठ नागरिकांना रुग्णालयांमध्ये प्राधान्य मिळते का?' },
+      options: { en: ['No', 'Yes, in government hospitals', 'Only in emergencies', 'Only for surgeries'], hi: ['नहीं', 'हां, सरकारी अस्पतालों में', 'केवल आपातकाल में', 'केवल सर्जरी के लिए'], mr: ['नाही', 'हो, सरकारी रुग्णालयांमध्ये', 'फक्त आपत्कालीन परिस्थितीत', 'फक्त शस्त्रक्रियेसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'Senior citizens get priority services in government hospitals.', hi: 'वरिष्ठ नागरिकों को सरकारी अस्पतालों में प्राथमिकता सेवाएं मिलती हैं।', mr: 'ज्येष्ठ नागरिकांना सरकारी रुग्णालयांमध्ये प्राधान्य सेवा मिळतात.' }
+    },
+    {
+      id: 'sc12',
+      question: { en: 'Who can claim maintenance from children?', hi: 'कौन बच्चों से भरण-पोषण का दावा कर सकता है?', mr: 'मुलांकडून पोषणाचा दावा कोण करू शकतो?' },
+      options: { en: ['Only father', 'Only mother', 'Both parents and grandparents', 'Only grandparents'], hi: ['केवल पिता', 'केवल माता', 'माता-पिता और दादा-दादी दोनों', 'केवल दादा-दादी'], mr: ['फक्त वडील', 'फक्त आई', 'पालक आणि आजी-आजोबा दोन्ही', 'फक्त आजी-आजोबा'] },
+      correctIndex: 2,
+      explanation: { en: 'Parents and grandparents both can claim maintenance.', hi: 'माता-पिता और दादा-दादी दोनों भरण-पोषण का दावा कर सकते हैं।', mr: 'पालक आणि आजी-आजोबा दोन्ही पोषणाचा दावा करू शकतात.' }
+    },
+    {
+      id: 'sc13',
+      question: { en: 'Railway concession for senior citizens is how much?', hi: 'वरिष्ठ नागरिकों के लिए रेलवे रियायत कितनी है?', mr: 'ज्येष्ठ नागरिकांसाठी रेल्वे सवलत किती आहे?' },
+      options: { en: ['10%', '25%', '40% for men 50% for women', '50% for all'], hi: ['10%', '25%', 'पुरुषों के लिए 40% महिलाओं के लिए 50%', 'सभी के लिए 50%'], mr: ['10%', '25%', 'पुरुषांसाठी 40% महिलांसाठी 50%', 'सर्वांसाठी 50%'] },
+      correctIndex: 2,
+      explanation: { en: 'Railway gives 40% concession to men and 50% to women seniors.', hi: 'रेलवे वरिष्ठ पुरुषों को 40% और महिलाओं को 50% रियायत देता है।', mr: 'रेल्वे ज्येष्ठ पुरुषांना 40% आणि महिलांना 50% सवलत देते.' }
+    },
+    {
+      id: 'sc14',
+      question: { en: 'IGNOAPS pension scheme is for whom?', hi: 'IGNOAPS पेंशन योजना किसके लिए है?', mr: 'IGNOAPS पेंशन योजना कोणासाठी आहे?' },
+      options: { en: ['All senior citizens', 'BPL senior citizens', 'Government employees', 'Widows only'], hi: ['सभी वरिष्ठ नागरिक', 'BPL वरिष्ठ नागरिक', 'सरकारी कर्मचारी', 'केवल विधवाएं'], mr: ['सर्व ज्येष्ठ नागरिक', 'BPL ज्येष्ठ नागरिक', 'सरकारी कर्मचारी', 'फक्त विधवा'] },
+      correctIndex: 1,
+      explanation: { en: 'IGNOAPS is for BPL senior citizens above 60 years.', hi: 'IGNOAPS 60 वर्ष से अधिक BPL वरिष्ठ नागरिकों के लिए है।', mr: 'IGNOAPS 60 वर्षांवरील BPL ज्येष्ठ नागरिकांसाठी आहे.' }
+    },
+    {
+      id: 'sc15',
+      question: { en: 'Can senior citizen be evicted from their house by children?', hi: 'क्या बच्चे वरिष्ठ नागरिक को उनके घर से बेदखल कर सकते हैं?', mr: 'मुले ज्येष्ठ नागरिकांना त्यांच्या घरातून बेदखल करू शकतात का?' },
+      options: { en: ['Yes', 'No, it is illegal', 'After court order', 'With 1 month notice'], hi: ['हां', 'नहीं, यह गैरकानूनी है', 'अदालत के आदेश के बाद', '1 महीने की नोटिस के साथ'], mr: ['हो', 'नाही, ते बेकायदेशीर आहे', 'न्यायालयाच्या आदेशानंतर', '1 महिन्याच्या नोटिसने'] },
+      correctIndex: 1,
+      explanation: { en: 'Evicting senior citizens from their own property is illegal.', hi: 'वरिष्ठ नागरिकों को उनकी अपनी संपत्ति से बेदखल करना गैरकानूनी है।', mr: 'ज्येष्ठ नागरिकांना त्यांच्या स्वतःच्या मालमत्तेतून बेदखल करणे बेकायदेशीर आहे.' }
+    },
+    {
+      id: 'sc16',
+      question: { en: 'Punishment for abandoning senior citizen?', hi: 'वरिष्ठ नागरिक को छोड़ने की सजा?', mr: 'ज्येष्ठ नागरिकांना सोडून देण्याची शिक्षा?' },
+      options: { en: ['Warning', 'Up to 3 months jail', 'Fine only', 'No punishment'], hi: ['चेतावनी', '3 महीने तक जेल', 'केवल जुर्माना', 'कोई सजा नहीं'], mr: ['इशारा', '3 महिन्यांपर्यंत तुरुंगवास', 'फक्त दंड', 'शिक्षा नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Abandoning parents can lead to 3 months imprisonment or fine.', hi: 'माता-पिता को छोड़ने पर 3 महीने की जेल या जुर्माना हो सकता है।', mr: 'पालकांना सोडून दिल्यास 3 महिने तुरुंगवास किंवा दंड होऊ शकतो.' }
+    },
+    {
+      id: 'sc17',
+      question: { en: 'Is free legal aid available for senior citizens?', hi: 'क्या वरिष्ठ नागरिकों के लिए मुफ्त कानूनी सहायता उपलब्ध है?', mr: 'ज्येष्ठ नागरिकांसाठी मोफत कायदेशीर मदत उपलब्ध आहे का?' },
+      options: { en: ['No', 'Yes, under Legal Services Authority Act', 'Only for poor', 'Only for women'], hi: ['नहीं', 'हां, विधिक सेवा प्राधिकरण अधिनियम के तहत', 'केवल गरीबों के लिए', 'केवल महिलाओं के लिए'], mr: ['नाही', 'हो, कायदेशीर सेवा प्राधिकरण कायद्यानुसार', 'फक्त गरिबांसाठी', 'फक्त महिलांसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'Free legal aid is available to all senior citizens.', hi: 'सभी वरिष्ठ नागरिकों के लिए मुफ्त कानूनी सहायता उपलब्ध है।', mr: 'सर्व ज्येष्ठ नागरिकांसाठी मोफत कायदेशीर मदत उपलब्ध आहे.' }
+    },
+    {
+      id: 'sc18',
+      question: { en: 'Can senior citizen will property to anyone?', hi: 'क्या वरिष्ठ नागरिक किसी को भी संपत्ति वसीयत कर सकता है?', mr: 'ज्येष्ठ नागरिक कोणालाही मालमत्ता मृत्युपत्राने देऊ शकतो का?' },
+      options: { en: ['No, only to children', 'Yes, to anyone', 'Only to relatives', 'Only to spouse'], hi: ['नहीं, केवल बच्चों को', 'हां, किसी को भी', 'केवल रिश्तेदारों को', 'केवल जीवनसाथी को'], mr: ['नाही, फक्त मुलांना', 'हो, कोणालाही', 'फक्त नातेवाईकांना', 'फक्त जोडीदाराला'] },
+      correctIndex: 1,
+      explanation: { en: 'Senior citizens can bequeath property to anyone through will.', hi: 'वरिष्ठ नागरिक वसीयत के माध्यम से किसी को भी संपत्ति दे सकते हैं।', mr: 'ज्येष्ठ नागरिक मृत्युपत्राद्वारे कोणालाही मालमत्ता देऊ शकतात.' }
+    },
+    {
+      id: 'sc19',
+      question: { en: 'What is reverse mortgage for senior citizens?', hi: 'वरिष्ठ नागरिकों के लिए रिवर्स मॉर्टगेज क्या है?', mr: 'ज्येष्ठ नागरिकांसाठी रिव्हर्स मॉर्टगेज म्हणजे काय?' },
+      options: { en: ['Selling property', 'Loan against property while living in it', 'Renting property', 'Donating property'], hi: ['संपत्ति बेचना', 'उसमें रहते हुए संपत्ति पर ऋण', 'संपत्ति किराये पर देना', 'संपत्ति दान करना'], mr: ['मालमत्ता विकणे', 'त्यात राहत असताना मालमत्तेवर कर्ज', 'मालमत्ता भाड्याने देणे', 'मालमत्ता दान करणे'] },
+      correctIndex: 1,
+      explanation: { en: 'Reverse mortgage allows seniors to get income while staying in home.', hi: 'रिवर्स मॉर्टगेज वरिष्ठ नागरिकों को घर में रहते हुए आय प्राप्त करने की अनुमति देता है।', mr: 'रिव्हर्स मॉर्टगेज ज्येष्ठांना घरात राहून उत्पन्न मिळवण्याची परवानगी देते.' }
+    },
+    {
+      id: 'sc20',
+      question: { en: 'Interest rate on senior citizen FD is usually?', hi: 'वरिष्ठ नागरिक FD पर ब्याज दर आमतौर पर?', mr: 'ज्येष्ठ नागरिक FD वर व्याजदर सामान्यतः?' },
+      options: { en: ['Same as regular', '0.25-0.5% higher than regular', '1% lower', 'No fixed rate'], hi: ['सामान्य के समान', 'सामान्य से 0.25-0.5% अधिक', '1% कम', 'कोई निश्चित दर नहीं'], mr: ['सामान्य सारखाच', 'सामान्यपेक्षा 0.25-0.5% जास्त', '1% कमी', 'निश्चित दर नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'Banks offer 0.25-0.5% higher interest on senior citizen FDs.', hi: 'बैंक वरिष्ठ नागरिक FD पर 0.25-0.5% अधिक ब्याज देते हैं।', mr: 'बँका ज्येष्ठ नागरिक FD वर 0.25-0.5% जास्त व्याज देतात.' }
+    },
+    {
+      id: 'sc21',
+      question: { en: 'Pradhan Mantri Vaya Vandana Yojana is?', hi: 'प्रधानमंत्री वय वंदना योजना क्या है?', mr: 'प्रधानमंत्री वय वंदना योजना म्हणजे काय?' },
+      options: { en: ['Health insurance', 'Pension scheme', 'Housing scheme', 'Travel scheme'], hi: ['स्वास्थ्य बीमा', 'पेंशन योजना', 'आवास योजना', 'यात्रा योजना'], mr: ['आरोग्य विमा', 'पेंशन योजना', 'गृहनिर्माण योजना', 'प्रवास योजना'] },
+      correctIndex: 1,
+      explanation: { en: 'PMVVY is a pension scheme for senior citizens by LIC.', hi: 'PMVVY LIC द्वारा वरिष्ठ नागरिकों के लिए पेंशन योजना है।', mr: 'PMVVY हे LIC द्वारे ज्येष्ठ नागरिकांसाठी पेंशन योजना आहे.' }
+    },
+    {
+      id: 'sc22',
+      question: { en: 'Who is responsible for old age homes?', hi: 'वृद्धाश्रमों की जिम्मेदारी किसकी है?', mr: 'वृद्धाश्रमांची जबाबदारी कोणाची आहे?' },
+      options: { en: ['Central government only', 'State government', 'Private sector only', 'NGOs only'], hi: ['केवल केंद्र सरकार', 'राज्य सरकार', 'केवल निजी क्षेत्र', 'केवल NGOs'], mr: ['फक्त केंद्र सरकार', 'राज्य सरकार', 'फक्त खाजगी क्षेत्र', 'फक्त NGOs'] },
+      correctIndex: 1,
+      explanation: { en: 'State governments are primarily responsible for old age homes.', hi: 'वृद्धाश्रमों के लिए मुख्य रूप से राज्य सरकारें जिम्मेदार हैं।', mr: 'वृद्धाश्रमांसाठी प्रामुख्याने राज्य सरकार जबाबदार आहे.' }
+    },
+    {
+      id: 'sc23',
+      question: { en: 'Senior Citizens Savings Scheme max deposit limit?', hi: 'वरिष्ठ नागरिक बचत योजना अधिकतम जमा सीमा?', mr: 'ज्येष्ठ नागरिक बचत योजना कमाल ठेव मर्यादा?' },
+      options: { en: ['Rs 15 lakh', 'Rs 30 lakh', 'Rs 50 lakh', 'No limit'], hi: ['Rs 15 लाख', 'Rs 30 लाख', 'Rs 50 लाख', 'कोई सीमा नहीं'], mr: ['Rs 15 लाख', 'Rs 30 लाख', 'Rs 50 लाख', 'मर्यादा नाही'] },
+      correctIndex: 1,
+      explanation: { en: 'SCSS has a maximum deposit limit of Rs 30 lakh.', hi: 'SCSS की अधिकतम जमा सीमा Rs 30 लाख है।', mr: 'SCSS ची कमाल ठेव मर्यादा Rs 30 लाख आहे.' }
+    },
+    {
+      id: 'sc24',
+      question: { en: 'Can maintenance order be appealed?', hi: 'क्या भरण-पोषण आदेश की अपील हो सकती है?', mr: 'पोषण आदेशाची अपील होऊ शकते का?' },
+      options: { en: ['No', 'Yes, to Appellate Tribunal', 'Only to High Court', 'Only to Supreme Court'], hi: ['नहीं', 'हां, अपीलीय न्यायाधिकरण में', 'केवल उच्च न्यायालय में', 'केवल सुप्रीम कोर्ट में'], mr: ['नाही', 'हो, अपील न्यायाधिकरणात', 'फक्त उच्च न्यायालयात', 'फक्त सर्वोच्च न्यायालयात'] },
+      correctIndex: 1,
+      explanation: { en: 'Appeal against tribunal order goes to Appellate Tribunal within 60 days.', hi: 'न्यायाधिकरण के आदेश के खिलाफ अपील 60 दिनों के भीतर अपीलीय न्यायाधिकरण में जाती है।', mr: 'न्यायाधिकरणाच्या आदेशाविरुद्ध अपील 60 दिवसांच्या आत अपील न्यायाधिकरणात जाते.' }
+    },
+    {
+      id: 'sc25',
+      question: { en: 'What is the role of District Magistrate in senior citizen protection?', hi: 'वरिष्ठ नागरिक संरक्षण में जिला मजिस्ट्रेट की भूमिका क्या है?', mr: 'ज्येष्ठ नागरिक संरक्षणात जिल्हा दंडाधिकाऱ्याची भूमिका काय आहे?' },
+      options: { en: ['No role', 'Heads the Maintenance Tribunal', 'Only advisory role', 'Only for emergencies'], hi: ['कोई भूमिका नहीं', 'भरण-पोषण न्यायाधिकरण का प्रमुख', 'केवल सलाहकार भूमिका', 'केवल आपातकाल के लिए'], mr: ['भूमिका नाही', 'पोषण न्यायाधिकरणाचा प्रमुख', 'फक्त सल्लागार भूमिका', 'फक्त आपत्कालीन परिस्थितीसाठी'] },
+      correctIndex: 1,
+      explanation: { en: 'District Magistrate or SDM heads the Maintenance Tribunal.', hi: 'जिला मजिस्ट्रेट या SDM भरण-पोषण न्यायाधिकरण का प्रमुख होता है।', mr: 'जिल्हा दंडाधिकारी किंवा SDM पोषण न्यायाधिकरणाचे प्रमुख असतात.' }
+    }
   ]
 };
