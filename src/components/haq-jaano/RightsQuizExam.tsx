@@ -7,7 +7,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { quizQuestions, QuizQuestion } from '@/data/quizQuestions';
 
 interface RightsQuizExamProps {
-  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
+  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights' | 'rti_rights' | 'cyber_rights' | 'tenant_rights' | 'senior_citizen_rights';
   onComplete: (score: number, total: number, passed: boolean) => void;
   onBack: () => void;
 }
@@ -99,11 +99,15 @@ export const RightsQuizExam: React.FC<RightsQuizExamProps> = ({
   };
 
   const getTopicTitle = () => {
-    const titles = {
+    const titles: Record<string, { en: string; hi: string; mr: string }> = {
       fundamental_rights: { en: 'Fundamental Rights Exam', hi: 'मौलिक अधिकार परीक्षा', mr: 'मूलभूत अधिकार परीक्षा' },
       consumer_rights: { en: 'Consumer Rights Exam', hi: 'उपभोक्ता अधिकार परीक्षा', mr: 'ग्राहक अधिकार परीक्षा' },
       women_rights: { en: 'Women Rights Exam', hi: 'महिला अधिकार परीक्षा', mr: 'महिला अधिकार परीक्षा' },
-      police_rights: { en: 'Police Rights Exam', hi: 'पुलिस अधिकार परीक्षा', mr: 'पोलिस अधिकार परीक्षा' }
+      police_rights: { en: 'Police Rights Exam', hi: 'पुलिस अधिकार परीक्षा', mr: 'पोलिस अधिकार परीक्षा' },
+      rti_rights: { en: 'RTI Rights Exam', hi: 'RTI अधिकार परीक्षा', mr: 'RTI अधिकार परीक्षा' },
+      cyber_rights: { en: 'Cyber Rights Exam', hi: 'साइबर अधिकार परीक्षा', mr: 'सायबर अधिकार परीक्षा' },
+      tenant_rights: { en: 'Tenant Rights Exam', hi: 'किरायेदार अधिकार परीक्षा', mr: 'भाडेकरू अधिकार परीक्षा' },
+      senior_citizen_rights: { en: 'Senior Citizen Rights Exam', hi: 'वरिष्ठ नागरिक परीक्षा', mr: 'ज्येष्ठ नागरिक परीक्षा' }
     };
     return getLocalizedText(titles[topic] || titles.fundamental_rights);
   };

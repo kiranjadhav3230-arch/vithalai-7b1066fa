@@ -11,7 +11,7 @@ import { LeaderboardSubmitModal } from './LeaderboardSubmitModal';
 
 interface RightsCertificateProps {
   userName: string;
-  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
+  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights' | 'rti_rights' | 'cyber_rights' | 'tenant_rights' | 'senior_citizen_rights';
   score: number;
   totalQuestions: number;
   onBack: () => void;
@@ -95,13 +95,17 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
   const isMr = language === 'mr';
 
   const getTopicName = () => {
-    const topics = {
+    const topics: Record<string, { en: string; hi: string; mr: string }> = {
       fundamental_rights: { en: 'Fundamental Rights of India', hi: 'भारत के मौलिक अधिकार', mr: 'भारताचे मूलभूत अधिकार' },
       consumer_rights: { en: 'Consumer Rights', hi: 'उपभोक्ता अधिकार', mr: 'ग्राहक अधिकार' },
       women_rights: { en: 'Women Rights & Safety', hi: 'महिला अधिकार और सुरक्षा', mr: 'महिला अधिकार आणि सुरक्षा' },
-      police_rights: { en: 'Rights with Police', hi: 'पुलिस के साथ अधिकार', mr: 'पोलिसांसोबत अधिकार' }
+      police_rights: { en: 'Rights with Police', hi: 'पुलिस के साथ अधिकार', mr: 'पोलिसांसोबत अधिकार' },
+      rti_rights: { en: 'Right to Information', hi: 'सूचना का अधिकार', mr: 'माहितीचा अधिकार' },
+      cyber_rights: { en: 'Cyber Rights & Safety', hi: 'साइबर अधिकार और सुरक्षा', mr: 'सायबर अधिकार आणि सुरक्षा' },
+      tenant_rights: { en: 'Tenant Rights', hi: 'किरायेदार अधिकार', mr: 'भाडेकरू अधिकार' },
+      senior_citizen_rights: { en: 'Senior Citizen Rights', hi: 'वरिष्ठ नागरिक अधिकार', mr: 'ज्येष्ठ नागरिक अधिकार' }
     };
-    return topics[topic]?.[language as keyof typeof topics.fundamental_rights] || topics[topic]?.en;
+    return topics[topic]?.[language as keyof typeof topics.fundamental_rights] || topics[topic]?.en || topics.fundamental_rights.en;
   };
 
   const getCertificateTitle = () => {
