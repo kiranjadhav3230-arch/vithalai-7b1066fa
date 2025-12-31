@@ -10,7 +10,7 @@ import { RightsCertificate } from './RightsCertificate';
 import { RightsLeaderboard } from './RightsLeaderboard';
 import { WeeklyChallenge } from './WeeklyChallenge';
 
-type TopicType = 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
+type TopicType = 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights' | 'rti_rights' | 'cyber_rights' | 'tenant_rights' | 'senior_citizen_rights';
 type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate' | 'leaderboard';
 
 interface RightsLearningHubProps {
@@ -60,6 +60,50 @@ const topics = [
       en: 'Know your rights during arrest', 
       hi: 'गिरफ्तारी के दौरान अपने अधिकार जानें',
       mr: 'अटकेदरम्यान तुमचे अधिकार जाणून घ्या'
+    }
+  },
+  {
+    id: 'rti_rights' as TopicType,
+    icon: BookOpen,
+    color: 'bg-purple-500',
+    title: { en: 'RTI Rights', hi: 'RTI अधिकार', mr: 'RTI अधिकार' },
+    description: { 
+      en: 'Right to Information Act knowledge', 
+      hi: 'सूचना का अधिकार अधिनियम ज्ञान',
+      mr: 'माहितीचा अधिकार कायद्याचे ज्ञान'
+    }
+  },
+  {
+    id: 'cyber_rights' as TopicType,
+    icon: Shield,
+    color: 'bg-cyan-500',
+    title: { en: 'Cyber Rights', hi: 'साइबर अधिकार', mr: 'सायबर अधिकार' },
+    description: { 
+      en: 'Online safety & digital rights', 
+      hi: 'ऑनलाइन सुरक्षा और डिजिटल अधिकार',
+      mr: 'ऑनलाइन सुरक्षा आणि डिजिटल अधिकार'
+    }
+  },
+  {
+    id: 'tenant_rights' as TopicType,
+    icon: Scale,
+    color: 'bg-amber-500',
+    title: { en: 'Tenant Rights', hi: 'किरायेदार अधिकार', mr: 'भाडेकरू अधिकार' },
+    description: { 
+      en: 'Rental & housing rights', 
+      hi: 'किराया और आवास अधिकार',
+      mr: 'भाडे आणि घरगुती अधिकार'
+    }
+  },
+  {
+    id: 'senior_citizen_rights' as TopicType,
+    icon: Users,
+    color: 'bg-rose-500',
+    title: { en: 'Senior Citizen Rights', hi: 'वरिष्ठ नागरिक अधिकार', mr: 'ज्येष्ठ नागरिक अधिकार' },
+    description: { 
+      en: 'Rights for elderly persons', 
+      hi: 'वृद्ध व्यक्तियों के अधिकार',
+      mr: 'ज्येष्ठ व्यक्तींचे अधिकार'
     }
   }
 ];

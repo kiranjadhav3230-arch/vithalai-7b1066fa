@@ -14,7 +14,7 @@ interface LearningCard {
 }
 
 interface RightsLearningGameProps {
-  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights';
+  topic: 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights' | 'rti_rights' | 'cyber_rights' | 'tenant_rights' | 'senior_citizen_rights';
   onComplete: (learnedCards: LearningCard[]) => void;
   onBack: () => void;
 }
@@ -331,6 +331,242 @@ const learningContent: Record<string, LearningCard[]> = {
         mr: 'जर कोठडीत छळ झाला, तर तात्काळ वैद्यकीय अहवाल घ्या आणि NHRC (nhrc.nic.in) मध्ये तक्रार दाखल करा.'
       }
     }
+  ],
+  rti_rights: [
+    {
+      id: 'rti1',
+      title: { en: 'What is RTI?', hi: 'RTI क्या है?', mr: 'RTI म्हणजे काय?' },
+      content: { 
+        en: 'Right to Information Act 2005 allows citizens to request information from government departments within 30 days.',
+        hi: 'सूचना का अधिकार अधिनियम 2005 नागरिकों को 30 दिनों में सरकारी विभागों से जानकारी मांगने की अनुमति देता है।',
+        mr: 'माहितीचा अधिकार कायदा 2005 नागरिकांना 30 दिवसांच्या आत सरकारी विभागांकडून माहिती मागण्याची परवानगी देतो.'
+      },
+      keyPoints: {
+        en: ['Any citizen can apply', 'Rs 10 application fee', '30 days response time', 'Appeals available'],
+        hi: ['कोई भी नागरिक आवेदन कर सकता है', 'Rs 10 आवेदन शुल्क', '30 दिन में जवाब', 'अपील उपलब्ध'],
+        mr: ['कोणताही नागरिक अर्ज करू शकतो', 'Rs 10 अर्ज शुल्क', '30 दिवसांत उत्तर', 'अपील उपलब्ध']
+      },
+      example: {
+        en: 'You can file RTI to know the status of your passport application or any government scheme.',
+        hi: 'आप अपने पासपोर्ट आवेदन या किसी सरकारी योजना की स्थिति जानने के लिए RTI दर्ज कर सकते हैं।',
+        mr: 'तुमच्या पासपोर्ट अर्जाची किंवा कोणत्याही सरकारी योजनेची स्थिती जाणून घेण्यासाठी तुम्ही RTI दाखल करू शकता.'
+      }
+    },
+    {
+      id: 'rti2',
+      title: { en: 'How to File RTI', hi: 'RTI कैसे दाखिल करें', mr: 'RTI कसा दाखल करावा' },
+      content: { 
+        en: 'Write application to PIO (Public Information Officer) of concerned department. Can file online at rtionline.gov.in.',
+        hi: 'संबंधित विभाग के PIO (जन सूचना अधिकारी) को आवेदन लिखें। rtionline.gov.in पर ऑनलाइन दर्ज कर सकते हैं।',
+        mr: 'संबंधित विभागाच्या PIO (जन माहिती अधिकारी) ला अर्ज लिहा. rtionline.gov.in वर ऑनलाइन दाखल करू शकता.'
+      },
+      keyPoints: {
+        en: ['Online or offline filing', 'Mention specific questions', 'Keep receipt safe', 'BPL card holders exempt from fee'],
+        hi: ['ऑनलाइन या ऑफलाइन दाखिल करें', 'विशिष्ट प्रश्न उल्लेख करें', 'रसीद सुरक्षित रखें', 'BPL कार्ड धारक शुल्क से मुक्त'],
+        mr: ['ऑनलाइन किंवा ऑफलाइन दाखल करा', 'विशिष्ट प्रश्न नमूद करा', 'पावती सुरक्षित ठेवा', 'BPL कार्डधारक शुल्कातून मुक्त']
+      },
+      example: {
+        en: 'Visit rtionline.gov.in, select department, fill details, pay Rs 10, and submit your questions.',
+        hi: 'rtionline.gov.in पर जाएं, विभाग चुनें, विवरण भरें, Rs 10 भुगतान करें, और अपने प्रश्न जमा करें।',
+        mr: 'rtionline.gov.in वर जा, विभाग निवडा, तपशील भरा, Rs 10 भरा आणि तुमचे प्रश्न सबमिट करा.'
+      }
+    },
+    {
+      id: 'rti3',
+      title: { en: 'RTI Appeals', hi: 'RTI अपील', mr: 'RTI अपील' },
+      content: { 
+        en: 'If not satisfied with response, file first appeal within 30 days, then second appeal to Information Commission.',
+        hi: 'अगर जवाब से संतुष्ट नहीं हैं, तो 30 दिनों के भीतर पहली अपील दायर करें, फिर सूचना आयोग में दूसरी अपील करें।',
+        mr: 'उत्तराने समाधान नसल्यास, 30 दिवसांच्या आत पहिली अपील दाखल करा, नंतर माहिती आयोगात दुसरी अपील करा.'
+      },
+      keyPoints: {
+        en: ['First appeal to senior officer', 'Second appeal to CIC/SIC', 'Penalty on defaulting officers', 'Compensation possible'],
+        hi: ['पहली अपील वरिष्ठ अधिकारी को', 'दूसरी अपील CIC/SIC को', 'चूककर्ता अधिकारियों पर जुर्माना', 'मुआवजा संभव'],
+        mr: ['पहिली अपील वरिष्ठ अधिकाऱ्याला', 'दुसरी अपील CIC/SIC ला', 'चुकीच्या अधिकाऱ्यांवर दंड', 'नुकसान भरपाई शक्य']
+      },
+      example: {
+        en: 'If PIO does not respond in 30 days, file appeal with First Appellate Authority mentioned in the office.',
+        hi: 'अगर PIO 30 दिनों में जवाब नहीं देता, तो कार्यालय में उल्लिखित प्रथम अपीलीय प्राधिकरण में अपील दायर करें।',
+        mr: 'जर PIO 30 दिवसांत उत्तर देत नसेल, तर कार्यालयात नमूद प्रथम अपील प्राधिकरणाकडे अपील दाखल करा.'
+      }
+    }
+  ],
+  cyber_rights: [
+    {
+      id: 'cyber1',
+      title: { en: 'Protection from Cyber Crime', hi: 'साइबर अपराध से सुरक्षा', mr: 'सायबर गुन्ह्यापासून संरक्षण' },
+      content: { 
+        en: 'IT Act 2000 protects against hacking, identity theft, online fraud, and cyber stalking.',
+        hi: 'IT अधिनियम 2000 हैकिंग, पहचान की चोरी, ऑनलाइन धोखाधड़ी और साइबर स्टॉकिंग से सुरक्षा प्रदान करता है।',
+        mr: 'IT कायदा 2000 हॅकिंग, ओळख चोरी, ऑनलाइन फसवणूक आणि सायबर स्टॉकिंगपासून संरक्षण देतो.'
+      },
+      keyPoints: {
+        en: ['Report at cybercrime.gov.in', 'Helpline 1930', 'Screenshot everything', 'Do not delete messages'],
+        hi: ['cybercrime.gov.in पर रिपोर्ट करें', 'हेल्पलाइन 1930', 'सब कुछ स्क्रीनशॉट लें', 'संदेश न हटाएं'],
+        mr: ['cybercrime.gov.in वर तक्रार करा', 'हेल्पलाइन 1930', 'सर्व स्क्रीनशॉट घ्या', 'संदेश हटवू नका']
+      },
+      example: {
+        en: 'If someone hacks your social media, report at cybercrime.gov.in and file FIR with screenshots.',
+        hi: 'अगर कोई आपका सोशल मीडिया हैक करे, तो cybercrime.gov.in पर रिपोर्ट करें और स्क्रीनशॉट के साथ FIR दर्ज करें।',
+        mr: 'जर कोणी तुमचे सोशल मीडिया हॅक केले, तर cybercrime.gov.in वर तक्रार करा आणि स्क्रीनशॉटसह FIR दाखल करा.'
+      }
+    },
+    {
+      id: 'cyber2',
+      title: { en: 'Online Banking Fraud Protection', hi: 'ऑनलाइन बैंकिंग धोखाधड़ी सुरक्षा', mr: 'ऑनलाइन बँकिंग फसवणूक संरक्षण' },
+      content: { 
+        en: 'Report fraud within 3 days to bank for zero liability. RBI guidelines protect your money.',
+        hi: 'शून्य देयता के लिए 3 दिनों के भीतर बैंक को धोखाधड़ी की रिपोर्ट करें। RBI दिशानिर्देश आपके पैसे की रक्षा करते हैं।',
+        mr: 'शून्य दायित्वासाठी 3 दिवसांच्या आत बँकेला फसवणुकीची तक्रार करा. RBI मार्गदर्शक तत्त्वे तुमच्या पैशांचे संरक्षण करतात.'
+      },
+      keyPoints: {
+        en: ['Report within 3 days', 'Block card immediately', 'File complaint with bank', 'Keep transaction alerts on'],
+        hi: ['3 दिनों में रिपोर्ट करें', 'कार्ड तुरंत ब्लॉक करें', 'बैंक में शिकायत दर्ज करें', 'लेन-देन अलर्ट चालू रखें'],
+        mr: ['3 दिवसांत तक्रार करा', 'कार्ड तात्काळ ब्लॉक करा', 'बँकेत तक्रार दाखल करा', 'व्यवहार सूचना चालू ठेवा']
+      },
+      example: {
+        en: 'If money debited without your knowledge, call bank helpline immediately and also call 1930.',
+        hi: 'अगर आपकी जानकारी के बिना पैसे कटें, तो तुरंत बैंक हेल्पलाइन कॉल करें और 1930 पर भी कॉल करें।',
+        mr: 'जर तुमच्या माहितीशिवाय पैसे कापले गेले, तर तात्काळ बँक हेल्पलाइनवर कॉल करा आणि 1930 वरही कॉल करा.'
+      }
+    },
+    {
+      id: 'cyber3',
+      title: { en: 'Data Privacy Rights', hi: 'डेटा गोपनीयता अधिकार', mr: 'डेटा गोपनीयता अधिकार' },
+      content: { 
+        en: 'You have the right to know how your data is used. Companies must get consent before collecting personal data.',
+        hi: 'आपको यह जानने का अधिकार है कि आपका डेटा कैसे उपयोग होता है। कंपनियों को व्यक्तिगत डेटा एकत्र करने से पहले सहमति लेनी होगी।',
+        mr: 'तुमचा डेटा कसा वापरला जातो हे जाणून घेण्याचा तुम्हाला अधिकार आहे. कंपन्यांना वैयक्तिक डेटा गोळा करण्यापूर्वी संमती घेणे आवश्यक आहे.'
+      },
+      keyPoints: {
+        en: ['Consent required for data', 'Right to data deletion', 'Report privacy violations', 'Use strong passwords'],
+        hi: ['डेटा के लिए सहमति आवश्यक', 'डेटा हटाने का अधिकार', 'गोपनीयता उल्लंघन रिपोर्ट करें', 'मजबूत पासवर्ड उपयोग करें'],
+        mr: ['डेटासाठी संमती आवश्यक', 'डेटा हटवण्याचा अधिकार', 'गोपनीयता उल्लंघनाची तक्रार करा', 'मजबूत पासवर्ड वापरा']
+      },
+      example: {
+        en: 'You can request any app to delete your personal data and they must comply within 30 days.',
+        hi: 'आप किसी भी ऐप से अपना व्यक्तिगत डेटा हटाने का अनुरोध कर सकते हैं और उन्हें 30 दिनों में पालन करना होगा।',
+        mr: 'तुम्ही कोणत्याही ॲपला तुमचा वैयक्तिक डेटा हटवण्याची विनंती करू शकता आणि त्यांना 30 दिवसांत पालन करणे आवश्यक आहे.'
+      }
+    }
+  ],
+  tenant_rights: [
+    {
+      id: 'tenant1',
+      title: { en: 'Rent Agreement Rights', hi: 'किराया समझौता अधिकार', mr: 'भाडे करार अधिकार' },
+      content: { 
+        en: 'Always get a written rent agreement. Landlord cannot evict without proper notice and legal procedure.',
+        hi: 'हमेशा लिखित किराया समझौता करें। मकान मालिक उचित नोटिस और कानूनी प्रक्रिया के बिना बेदखल नहीं कर सकता।',
+        mr: 'नेहमी लिखित भाडे करार करा. मालक योग्य नोटीस आणि कायदेशीर प्रक्रियेशिवाय बेदखल करू शकत नाही.'
+      },
+      keyPoints: {
+        en: ['Get written agreement', 'Register if over 11 months', 'Keep rent receipts', 'Notice period required'],
+        hi: ['लिखित समझौता लें', '11 महीने से अधिक हो तो रजिस्टर करें', 'किराया रसीद रखें', 'नोटिस अवधि आवश्यक'],
+        mr: ['लिखित करार घ्या', '11 महिन्यांपेक्षा जास्त असल्यास नोंदणी करा', 'भाडे पावत्या ठेवा', 'नोटीस कालावधी आवश्यक']
+      },
+      example: {
+        en: 'If landlord asks to vacate without notice, you can file complaint with rent controller.',
+        hi: 'अगर मकान मालिक बिना नोटिस के खाली करने को कहे, तो आप किराया नियंत्रक के पास शिकायत दर्ज कर सकते हैं।',
+        mr: 'जर मालकाने नोटीसशिवाय खाली करण्यास सांगितले, तर तुम्ही भाडे नियंत्रकाकडे तक्रार दाखल करू शकता.'
+      }
+    },
+    {
+      id: 'tenant2',
+      title: { en: 'Security Deposit Rights', hi: 'सुरक्षा जमा अधिकार', mr: 'सुरक्षा ठेव अधिकार' },
+      content: { 
+        en: 'Security deposit should be returned when vacating. Deductions only for actual damages, not wear and tear.',
+        hi: 'खाली करते समय सुरक्षा जमा वापस मिलनी चाहिए। कटौती केवल वास्तविक नुकसान के लिए, सामान्य टूट-फूट के लिए नहीं।',
+        mr: 'खाली करताना सुरक्षा ठेव परत मिळायला हवी. कपात फक्त वास्तविक नुकसानीसाठी, सामान्य झीजसाठी नाही.'
+      },
+      keyPoints: {
+        en: ['Deposit refund on vacating', 'Fair deduction only', 'Document condition at entry', 'Legal action for non-return'],
+        hi: ['खाली करने पर जमा वापसी', 'उचित कटौती ही', 'प्रवेश पर स्थिति दस्तावेज करें', 'वापसी न होने पर कानूनी कार्रवाई'],
+        mr: ['खाली करताना ठेव परतावा', 'योग्य कपात फक्त', 'प्रवेशावेळी स्थिती दस्तऐवजीकरण करा', 'परत न मिळाल्यास कायदेशीर कारवाई']
+      },
+      example: {
+        en: 'Take photos of flat condition while moving in and out to prove no damage was done.',
+        hi: 'जाते और आते समय फ्लैट की स्थिति के फोटो लें ताकि साबित हो कि कोई नुकसान नहीं हुआ।',
+        mr: 'प्रवेश आणि बाहेर पडताना फ्लॅटच्या स्थितीचे फोटो घ्या जेणेकरून कोणतेही नुकसान झाले नाही हे सिद्ध करता येईल.'
+      }
+    },
+    {
+      id: 'tenant3',
+      title: { en: 'Maintenance & Repairs', hi: 'रखरखाव और मरम्मत', mr: 'देखभाल आणि दुरुस्ती' },
+      content: { 
+        en: 'Major repairs are landlord responsibility. Tenant responsible for minor repairs from daily use.',
+        hi: 'बड़ी मरम्मत मकान मालिक की जिम्मेदारी है। किरायेदार दैनिक उपयोग से छोटी मरम्मत के लिए जिम्मेदार है।',
+        mr: 'मोठ्या दुरुस्त्या मालकाची जबाबदारी आहे. दैनंदिन वापरातील लहान दुरुस्त्या भाडेकरूची जबाबदारी आहे.'
+      },
+      keyPoints: {
+        en: ['Structural repairs by landlord', 'Plumbing/electrical by landlord', 'Minor wear by tenant', 'Get repairs in writing'],
+        hi: ['संरचनात्मक मरम्मत मालिक द्वारा', 'प्लंबिंग/बिजली मालिक द्वारा', 'मामूली टूट-फूट किरायेदार द्वारा', 'मरम्मत लिखित में लें'],
+        mr: ['संरचनात्मक दुरुस्ती मालकाकडून', 'प्लंबिंग/इलेक्ट्रिकल मालकाकडून', 'किरकोळ झीज भाडेकरूकडून', 'दुरुस्ती लिखित स्वरूपात घ्या']
+      },
+      example: {
+        en: 'If roof leaks, landlord must repair. If bulb fuses, tenant should replace.',
+        hi: 'अगर छत से पानी टपके, तो मकान मालिक को मरम्मत करनी होगी। अगर बल्ब फ्यूज हो, तो किरायेदार बदले।',
+        mr: 'जर छत गळत असेल, तर मालकाने दुरुस्ती करणे आवश्यक आहे. जर बल्ब फ्यूज झाला, तर भाडेकरूने बदलावा.'
+      }
+    }
+  ],
+  senior_citizen_rights: [
+    {
+      id: 'sc1',
+      title: { en: 'Maintenance by Children', hi: 'बच्चों द्वारा भरण-पोषण', mr: 'मुलांकडून पोषण' },
+      content: { 
+        en: 'Under Maintenance Act, children and relatives must provide for elderly parents. Tribunal can order maintenance.',
+        hi: 'भरण-पोषण अधिनियम के तहत बच्चों और रिश्तेदारों को बुजुर्ग माता-पिता का भरण-पोषण करना होगा। न्यायाधिकरण भरण-पोषण का आदेश दे सकता है।',
+        mr: 'पोषण कायद्यानुसार मुले आणि नातेवाईकांनी वृद्ध पालकांचे पोषण करणे आवश्यक आहे. न्यायाधिकरण पोषणाचा आदेश देऊ शकते.'
+      },
+      keyPoints: {
+        en: ['Children must maintain parents', 'Tribunal for complaints', 'Up to Rs 10,000/month', 'Free legal aid available'],
+        hi: ['बच्चों को माता-पिता का भरण-पोषण करना होगा', 'शिकायत के लिए न्यायाधिकरण', 'Rs 10,000/माह तक', 'मुफ्त कानूनी सहायता उपलब्ध'],
+        mr: ['मुलांनी पालकांचे पोषण करणे आवश्यक', 'तक्रारीसाठी न्यायाधिकरण', 'Rs 10,000/महिना पर्यंत', 'मोफत कायदेशीर मदत उपलब्ध']
+      },
+      example: {
+        en: 'If children refuse to support, approach Maintenance Tribunal at district level for monthly allowance order.',
+        hi: 'अगर बच्चे सहायता से मना करें, तो मासिक भत्ता आदेश के लिए जिला स्तर पर भरण-पोषण न्यायाधिकरण से संपर्क करें।',
+        mr: 'जर मुलांनी मदत करण्यास नकार दिला, तर मासिक भत्ता आदेशासाठी जिल्हा स्तरावरील पोषण न्यायाधिकरणाशी संपर्क साधा.'
+      }
+    },
+    {
+      id: 'sc2',
+      title: { en: 'Property Rights Protection', hi: 'संपत्ति अधिकार सुरक्षा', mr: 'मालमत्ता अधिकार संरक्षण' },
+      content: { 
+        en: 'Property transferred to children can be taken back if they fail to provide maintenance.',
+        hi: 'बच्चों को हस्तांतरित संपत्ति वापस ली जा सकती है अगर वे भरण-पोषण करने में विफल रहते हैं।',
+        mr: 'मुलांना हस्तांतरित केलेली मालमत्ता परत घेता येते जर त्यांनी पोषण करण्यात अयशस्वी झाले.'
+      },
+      keyPoints: {
+        en: ['Transfer can be cancelled', 'Will can be changed', 'Right to live in property', 'Protection from eviction'],
+        hi: ['हस्तांतरण रद्द हो सकता है', 'वसीयत बदली जा सकती है', 'संपत्ति में रहने का अधिकार', 'बेदखली से सुरक्षा'],
+        mr: ['हस्तांतरण रद्द होऊ शकते', 'मृत्युपत्र बदलता येते', 'मालमत्तेत राहण्याचा अधिकार', 'बेदखलीपासून संरक्षण']
+      },
+      example: {
+        en: 'If you transferred property to son who now neglects you, court can cancel the transfer deed.',
+        hi: 'अगर आपने संपत्ति बेटे को हस्तांतरित की जो अब आपकी उपेक्षा करता है, तो अदालत हस्तांतरण विलेख रद्द कर सकती है।',
+        mr: 'जर तुम्ही मुलाला मालमत्ता हस्तांतरित केली जो आता तुमची उपेक्षा करतो, तर न्यायालय हस्तांतरण दस्तऐवज रद्द करू शकते.'
+      }
+    },
+    {
+      id: 'sc3',
+      title: { en: 'Healthcare & Pension Benefits', hi: 'स्वास्थ्य सेवा और पेंशन लाभ', mr: 'आरोग्य सेवा आणि पेंशन लाभ' },
+      content: { 
+        en: 'Senior citizens get priority in hospitals, tax benefits, and pension schemes like IGNOAPS.',
+        hi: 'वरिष्ठ नागरिकों को अस्पतालों में प्राथमिकता, कर लाभ और IGNOAPS जैसी पेंशन योजनाएं मिलती हैं।',
+        mr: 'ज्येष्ठ नागरिकांना रुग्णालयांमध्ये प्राधान्य, कर लाभ आणि IGNOAPS सारख्या पेंशन योजना मिळतात.'
+      },
+      keyPoints: {
+        en: ['Priority in hospitals', 'Tax benefits up to Rs 50,000', 'Free health camps', 'Old age pension schemes'],
+        hi: ['अस्पतालों में प्राथमिकता', 'Rs 50,000 तक कर लाभ', 'मुफ्त स्वास्थ्य शिविर', 'वृद्धावस्था पेंशन योजनाएं'],
+        mr: ['रुग्णालयांमध्ये प्राधान्य', 'Rs 50,000 पर्यंत कर लाभ', 'मोफत आरोग्य शिबिरे', 'वृद्धापकाळ पेंशन योजना']
+      },
+      example: {
+        en: 'Show senior citizen ID at government hospitals for priority consultation and discounted medicines.',
+        hi: 'प्राथमिकता परामर्श और छूट वाली दवाओं के लिए सरकारी अस्पतालों में वरिष्ठ नागरिक ID दिखाएं।',
+        mr: 'प्राधान्य सल्लामसलत आणि सवलतीच्या औषधांसाठी सरकारी रुग्णालयांमध्ये ज्येष्ठ नागरिक ID दाखवा.'
+      }
+    }
   ]
 };
 
@@ -377,11 +613,15 @@ export const RightsLearningGame: React.FC<RightsLearningGameProps> = ({
   };
 
   const getTopicTitle = () => {
-    const titles = {
+    const titles: Record<string, { en: string; hi: string; mr: string }> = {
       fundamental_rights: { en: 'Fundamental Rights', hi: 'मौलिक अधिकार', mr: 'मूलभूत अधिकार' },
       consumer_rights: { en: 'Consumer Rights', hi: 'उपभोक्ता अधिकार', mr: 'ग्राहक अधिकार' },
       women_rights: { en: 'Women Rights', hi: 'महिला अधिकार', mr: 'महिला अधिकार' },
-      police_rights: { en: 'Rights with Police', hi: 'पुलिस के साथ अधिकार', mr: 'पोलिसांसोबत अधिकार' }
+      police_rights: { en: 'Rights with Police', hi: 'पुलिस के साथ अधिकार', mr: 'पोलिसांसोबत अधिकार' },
+      rti_rights: { en: 'RTI Rights', hi: 'RTI अधिकार', mr: 'RTI अधिकार' },
+      cyber_rights: { en: 'Cyber Rights', hi: 'साइबर अधिकार', mr: 'सायबर अधिकार' },
+      tenant_rights: { en: 'Tenant Rights', hi: 'किरायेदार अधिकार', mr: 'भाडेकरू अधिकार' },
+      senior_citizen_rights: { en: 'Senior Citizen Rights', hi: 'वरिष्ठ नागरिक अधिकार', mr: 'ज्येष्ठ नागरिक अधिकार' }
     };
     return getLocalizedText(titles[topic] || titles.fundamental_rights);
   };
