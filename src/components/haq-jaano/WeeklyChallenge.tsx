@@ -42,6 +42,38 @@ const WEEKLY_TOPICS = [
     color: 'from-orange-500 to-amber-600',
     icon: '🛡️'
   },
+  { 
+    id: 'rti_rights', 
+    en: 'RTI Rights', 
+    hi: 'RTI अधिकार', 
+    mr: 'RTI अधिकार',
+    color: 'from-cyan-500 to-teal-600',
+    icon: '📋'
+  },
+  { 
+    id: 'cyber_rights', 
+    en: 'Cyber Rights', 
+    hi: 'साइबर अधिकार', 
+    mr: 'सायबर अधिकार',
+    color: 'from-purple-500 to-violet-600',
+    icon: '💻'
+  },
+  { 
+    id: 'tenant_rights', 
+    en: 'Tenant Rights', 
+    hi: 'किरायेदार अधिकार', 
+    mr: 'भाडेकरू अधिकार',
+    color: 'from-amber-500 to-yellow-600',
+    icon: '🏠'
+  },
+  { 
+    id: 'senior_citizen_rights', 
+    en: 'Senior Citizen Rights', 
+    hi: 'वरिष्ठ नागरिक अधिकार', 
+    mr: 'ज्येष्ठ नागरिक अधिकार',
+    color: 'from-red-500 to-rose-600',
+    icon: '👴'
+  },
 ];
 
 export const WeeklyChallenge: React.FC<WeeklyChallengeProps> = ({ onStartChallenge }) => {

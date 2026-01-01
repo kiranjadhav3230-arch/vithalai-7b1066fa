@@ -408,6 +408,101 @@ export const quizQuestions: Record<string, QuizQuestion[]> = {
         hi: 'अनुच्छेद 16 सार्वजनिक रोजगार में समान अवसर देता है।',
         mr: 'कलम 16 सार्वजनिक रोजगारात समान संधी देते.'
       }
+    },
+    {
+      id: 'fr22',
+      question: { 
+        en: 'Which article guarantees Right to Constitutional Remedies?',
+        hi: 'कौन सा अनुच्छेद संवैधानिक उपचारों का अधिकार देता है?',
+        mr: 'कोणते कलम घटनात्मक उपायांचा अधिकार देते?'
+      },
+      options: {
+        en: ['Article 30', 'Article 31', 'Article 32', 'Article 33'],
+        hi: ['अनुच्छेद 30', 'अनुच्छेद 31', 'अनुच्छेद 32', 'अनुच्छेद 33'],
+        mr: ['कलम 30', 'कलम 31', 'कलम 32', 'कलम 33']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Article 32 guarantees Right to Constitutional Remedies through Supreme Court.',
+        hi: 'अनुच्छेद 32 सर्वोच्च न्यायालय के माध्यम से संवैधानिक उपचारों का अधिकार देता है।',
+        mr: 'कलम 32 सर्वोच्च न्यायालयाद्वारे घटनात्मक उपायांचा अधिकार देते.'
+      }
+    },
+    {
+      id: 'fr23',
+      question: { 
+        en: 'Which writ is issued for quashing orders of lower courts?',
+        hi: 'निचली अदालतों के आदेश रद्द करने के लिए कौन सी रिट जारी होती है?',
+        mr: 'खालच्या न्यायालयांचे आदेश रद्द करण्यासाठी कोणती रिट जारी होते?'
+      },
+      options: {
+        en: ['Mandamus', 'Habeas Corpus', 'Certiorari', 'Quo Warranto'],
+        hi: ['परमादेश', 'बंदी प्रत्यक्षीकरण', 'उत्प्रेषण', 'को वारंटो'],
+        mr: ['मँडेमस', 'हेबियस कॉर्पस', 'सर्टिओरारी', 'को वारंटो']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Certiorari is issued to quash orders of lower courts and tribunals.',
+        hi: 'उत्प्रेषण निचली अदालतों के आदेश रद्द करने के लिए जारी होती है।',
+        mr: 'सर्टिओरारी खालच्या न्यायालयांचे आदेश रद्द करण्यासाठी जारी होते.'
+      }
+    },
+    {
+      id: 'fr24',
+      question: { 
+        en: 'Which writ challenges a person holding public office?',
+        hi: 'सार्वजनिक पद धारण करने वाले व्यक्ति को चुनौती देने के लिए कौन सी रिट है?',
+        mr: 'सार्वजनिक पद धारण करणाऱ्या व्यक्तीला आव्हान देण्यासाठी कोणती रिट आहे?'
+      },
+      options: {
+        en: ['Mandamus', 'Prohibition', 'Certiorari', 'Quo Warranto'],
+        hi: ['परमादेश', 'प्रतिषेध', 'उत्प्रेषण', 'को वारंटो'],
+        mr: ['मँडेमस', 'प्रोहिबिशन', 'सर्टिओरारी', 'को वारंटो']
+      },
+      correctIndex: 3,
+      explanation: {
+        en: 'Quo Warranto asks "by what authority" a person holds public office.',
+        hi: 'को वारंटो पूछती है कि व्यक्ति किस अधिकार से पद धारण कर रहा है।',
+        mr: 'को वारंटो विचारते की व्यक्ती कोणत्या अधिकाराने पद धारण करत आहे.'
+      }
+    },
+    {
+      id: 'fr25',
+      question: { 
+        en: 'Right to Privacy is part of which article?',
+        hi: 'निजता का अधिकार किस अनुच्छेद का हिस्सा है?',
+        mr: 'गोपनीयतेचा अधिकार कोणत्या कलमाचा भाग आहे?'
+      },
+      options: {
+        en: ['Article 19', 'Article 20', 'Article 21', 'Article 22'],
+        hi: ['अनुच्छेद 19', 'अनुच्छेद 20', 'अनुच्छेद 21', 'अनुच्छेद 22'],
+        mr: ['कलम 19', 'कलम 20', 'कलम 21', 'कलम 22']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Supreme Court declared Right to Privacy as part of Article 21 in 2017.',
+        hi: '2017 में सुप्रीम कोर्ट ने निजता को अनुच्छेद 21 का हिस्सा घोषित किया।',
+        mr: '2017 मध्ये सर्वोच्च न्यायालयाने गोपनीयता कलम 21 चा भाग घोषित केला.'
+      }
+    },
+    {
+      id: 'fr26',
+      question: { 
+        en: 'Which article deals with Right against Self-Incrimination?',
+        hi: 'स्वयं दोषारोपण के विरुद्ध अधिकार किस अनुच्छेद में है?',
+        mr: 'स्वत:विरुद्ध साक्षीचा अधिकार कोणत्या कलमात आहे?'
+      },
+      options: {
+        en: ['Article 19', 'Article 20(3)', 'Article 21', 'Article 22'],
+        hi: ['अनुच्छेद 19', 'अनुच्छेद 20(3)', 'अनुच्छेद 21', 'अनुच्छेद 22'],
+        mr: ['कलम 19', 'कलम 20(3)', 'कलम 21', 'कलम 22']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Article 20(3) protects against self-incrimination - no person can be compelled to be witness against himself.',
+        hi: 'अनुच्छेद 20(3) स्वयं के विरुद्ध गवाही देने से सुरक्षा देता है।',
+        mr: 'कलम 20(3) स्वत:विरुद्ध साक्ष देण्यापासून संरक्षण देते.'
+      }
     }
   ],
   consumer_rights: [
@@ -789,6 +884,120 @@ export const quizQuestions: Record<string, QuizQuestion[]> = {
         en: 'Unfair trade practice includes false claims, misleading ads, fake offers.',
         hi: 'अनुचित व्यापार प्रथा में झूठे दावे, भ्रामक विज्ञापन शामिल हैं।',
         mr: 'अनुचित व्यापार पद्धतीत खोटे दावे, दिशाभूल करणाऱ्या जाहिराती यांचा समावेश आहे.'
+      }
+    },
+    {
+      id: 'cr21',
+      question: { 
+        en: 'What is CCPA?',
+        hi: 'CCPA क्या है?',
+        mr: 'CCPA म्हणजे काय?'
+      },
+      options: {
+        en: ['Central Consumer Protection Authority', 'Consumer Court Protection Act', 'Central Consumer Price Authority', 'Consumer Complaint Protection Authority'],
+        hi: ['केंद्रीय उपभोक्ता संरक्षण प्राधिकरण', 'उपभोक्ता न्यायालय संरक्षण अधिनियम', 'केंद्रीय उपभोक्ता मूल्य प्राधिकरण', 'उपभोक्ता शिकायत संरक्षण प्राधिकरण'],
+        mr: ['केंद्रीय ग्राहक संरक्षण प्राधिकरण', 'ग्राहक न्यायालय संरक्षण कायदा', 'केंद्रीय ग्राहक किंमत प्राधिकरण', 'ग्राहक तक्रार संरक्षण प्राधिकरण']
+      },
+      correctIndex: 0,
+      explanation: {
+        en: 'CCPA is Central Consumer Protection Authority established under 2019 Act.',
+        hi: 'CCPA केंद्रीय उपभोक्ता संरक्षण प्राधिकरण है जो 2019 अधिनियम के तहत स्थापित है।',
+        mr: 'CCPA केंद्रीय ग्राहक संरक्षण प्राधिकरण आहे जे 2019 कायद्यांतर्गत स्थापित आहे.'
+      }
+    },
+    {
+      id: 'cr22',
+      question: { 
+        en: 'What is product liability?',
+        hi: 'उत्पाद दायित्व क्या है?',
+        mr: 'उत्पादन दायित्व म्हणजे काय?'
+      },
+      options: {
+        en: ['Liability for defective products causing harm', 'Tax on products', 'Product warranty', 'Product insurance'],
+        hi: ['हानिकारक दोषपूर्ण उत्पादों के लिए दायित्व', 'उत्पादों पर कर', 'उत्पाद वारंटी', 'उत्पाद बीमा'],
+        mr: ['हानी करणाऱ्या सदोष उत्पादनांसाठी दायित्व', 'उत्पादनांवर कर', 'उत्पादन वॉरंटी', 'उत्पादन विमा']
+      },
+      correctIndex: 0,
+      explanation: {
+        en: 'Product liability makes manufacturers responsible for harm from defective products.',
+        hi: 'उत्पाद दायित्व निर्माताओं को दोषपूर्ण उत्पादों से होने वाले नुकसान के लिए जिम्मेदार बनाता है।',
+        mr: 'उत्पादन दायित्व सदोष उत्पादनांपासून होणाऱ्या हानीसाठी उत्पादकांना जबाबदार ठरवते.'
+      }
+    },
+    {
+      id: 'cr23',
+      question: { 
+        en: 'What is warranty period for electronics under Consumer Protection Act?',
+        hi: 'उपभोक्ता संरक्षण अधिनियम के तहत इलेक्ट्रॉनिक्स की वारंटी अवधि क्या है?',
+        mr: 'ग्राहक संरक्षण कायद्यांतर्गत इलेक्ट्रॉनिक्ससाठी वॉरंटी कालावधी किती आहे?'
+      },
+      options: {
+        en: ['3 months', '6 months', 'As per manufacturer', 'No warranty required'],
+        hi: ['3 महीने', '6 महीने', 'निर्माता के अनुसार', 'वारंटी आवश्यक नहीं'],
+        mr: ['3 महिने', '6 महिने', 'उत्पादकानुसार', 'वॉरंटी आवश्यक नाही']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Warranty period depends on manufacturer, but must be honored as promised.',
+        hi: 'वारंटी अवधि निर्माता पर निर्भर है, लेकिन वादे के अनुसार होनी चाहिए।',
+        mr: 'वॉरंटी कालावधी उत्पादकावर अवलंबून आहे, पण वचनानुसार मान्य करावी लागते.'
+      }
+    },
+    {
+      id: 'cr24',
+      question: { 
+        en: 'Which mark indicates food safety?',
+        hi: 'खाद्य सुरक्षा कौन सा चिह्न दर्शाता है?',
+        mr: 'अन्न सुरक्षितता कोणते चिन्ह दर्शवते?'
+      },
+      options: {
+        en: ['ISI Mark', 'AGMARK', 'FSSAI Mark', 'BIS Mark'],
+        hi: ['ISI मार्क', 'एगमार्क', 'FSSAI मार्क', 'BIS मार्क'],
+        mr: ['ISI मार्क', 'एगमार्क', 'FSSAI मार्क', 'BIS मार्क']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'FSSAI Mark indicates food safety standards are met.',
+        hi: 'FSSAI मार्क खाद्य सुरक्षा मानकों को दर्शाता है।',
+        mr: 'FSSAI मार्क अन्न सुरक्षितता मानके पूर्ण झाल्याचे दर्शवते.'
+      }
+    },
+    {
+      id: 'cr25',
+      question: { 
+        en: 'Can you get refund for services not rendered?',
+        hi: 'क्या आपको न दी गई सेवाओं के लिए रिफंड मिल सकता है?',
+        mr: 'न दिलेल्या सेवांसाठी परतावा मिळू शकतो का?'
+      },
+      options: {
+        en: ['No', 'Yes, with complaint', 'Only if contract says so', 'Only for goods'],
+        hi: ['नहीं', 'हाँ, शिकायत के साथ', 'केवल अगर अनुबंध में हो', 'केवल वस्तुओं के लिए'],
+        mr: ['नाही', 'होय, तक्रारीसह', 'फक्त करारात असल्यास', 'फक्त वस्तूंसाठी']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Yes, consumers can claim refund for services not rendered as promised.',
+        hi: 'हाँ, उपभोक्ता वादे के अनुसार न दी गई सेवाओं के लिए रिफंड का दावा कर सकते हैं।',
+        mr: 'होय, ग्राहक वचनानुसार न दिलेल्या सेवांसाठी परतावा मागू शकतात.'
+      }
+    },
+    {
+      id: 'cr26',
+      question: { 
+        en: 'What is the National Consumer Day in India?',
+        hi: 'भारत में राष्ट्रीय उपभोक्ता दिवस कब है?',
+        mr: 'भारतात राष्ट्रीय ग्राहक दिन कधी आहे?'
+      },
+      options: {
+        en: ['March 15', 'December 24', 'January 26', 'August 15'],
+        hi: ['15 मार्च', '24 दिसंबर', '26 जनवरी', '15 अगस्त'],
+        mr: ['15 मार्च', '24 डिसेंबर', '26 जानेवारी', '15 ऑगस्ट']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'December 24 is National Consumer Day, commemorating the 1986 Act.',
+        hi: '24 दिसंबर राष्ट्रीय उपभोक्ता दिवस है, 1986 अधिनियम की याद में।',
+        mr: '24 डिसेंबर राष्ट्रीय ग्राहक दिन आहे, 1986 कायद्याच्या स्मरणार्थ.'
       }
     }
   ],
@@ -1172,6 +1381,120 @@ export const quizQuestions: Record<string, QuizQuestion[]> = {
         hi: '2005 के हिंदू उत्तराधिकार अधिनियम संशोधन के बाद बेटियों को बराबर अधिकार है।',
         mr: '2005 च्या हिंदू उत्तराधिकार कायदा सुधारणेनंतर मुलींना समान अधिकार आहेत.'
       }
+    },
+    {
+      id: 'wr21',
+      question: { 
+        en: 'What is acid attack victim compensation?',
+        hi: 'एसिड अटैक पीड़ित को क्या मुआवजा मिलता है?',
+        mr: 'ऍसिड हल्ला पीडिताला किती भरपाई मिळते?'
+      },
+      options: {
+        en: ['Rs 1 lakh', 'Rs 3 lakh minimum', 'Rs 50,000', 'No compensation'],
+        hi: ['₹1 लाख', 'न्यूनतम ₹3 लाख', '₹50,000', 'कोई मुआवजा नहीं'],
+        mr: ['₹1 लाख', 'किमान ₹3 लाख', '₹50,000', 'भरपाई नाही']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Acid attack victims get minimum Rs 3 lakh compensation and free medical treatment.',
+        hi: 'एसिड अटैक पीड़ितों को न्यूनतम ₹3 लाख मुआवजा और मुफ्त इलाज मिलता है।',
+        mr: 'ऍसिड हल्ला पीडितांना किमान ₹3 लाख भरपाई आणि मोफत उपचार मिळतात.'
+      }
+    },
+    {
+      id: 'wr22',
+      question: { 
+        en: 'Can woman lodge complaint against husband for financial abuse?',
+        hi: 'क्या महिला आर्थिक शोषण के लिए पति के खिलाफ शिकायत कर सकती है?',
+        mr: 'महिला आर्थिक शोषणासाठी पतीविरुद्ध तक्रार करू शकते का?'
+      },
+      options: {
+        en: ['No', 'Yes, under DV Act', 'Only if physically hurt', 'Only in family court'],
+        hi: ['नहीं', 'हाँ, DV अधिनियम के तहत', 'केवल शारीरिक चोट होने पर', 'केवल पारिवारिक न्यायालय में'],
+        mr: ['नाही', 'होय, DV कायद्यांतर्गत', 'फक्त शारीरिक इजा झाल्यास', 'फक्त कुटुंब न्यायालयात']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'DV Act covers economic abuse like denying money, resources.',
+        hi: 'DV अधिनियम में आर्थिक शोषण जैसे पैसे न देना शामिल है।',
+        mr: 'DV कायद्यात आर्थिक शोषण जसे पैसे न देणे समाविष्ट आहे.'
+      }
+    },
+    {
+      id: 'wr23',
+      question: { 
+        en: 'What is voyeurism punishment?',
+        hi: 'वॉयरिज्म (झांकना) की सजा क्या है?',
+        mr: 'व्हॉयरिझम (डोकावणे) ची शिक्षा काय आहे?'
+      },
+      options: {
+        en: ['Fine only', '1 year imprisonment', 'Up to 3 years', 'Up to 7 years'],
+        hi: ['केवल जुर्माना', '1 वर्ष कारावास', '3 वर्ष तक', '7 वर्ष तक'],
+        mr: ['फक्त दंड', '1 वर्ष कारावास', '3 वर्षांपर्यंत', '7 वर्षांपर्यंत']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Voyeurism is punishable up to 3 years on first offence under Section 354C.',
+        hi: 'वॉयरिज्म धारा 354C के तहत पहली बार 3 वर्ष तक की सजा है।',
+        mr: 'व्हॉयरिझम कलम 354C अंतर्गत पहिल्या गुन्ह्यासाठी 3 वर्षांपर्यंत शिक्षा आहे.'
+      }
+    },
+    {
+      id: 'wr24',
+      question: { 
+        en: 'What is Nirbhaya Fund for?',
+        hi: 'निर्भया फंड किसके लिए है?',
+        mr: 'निर्भया निधी कशासाठी आहे?'
+      },
+      options: {
+        en: ['Education for girls', 'Women safety initiatives', 'Health schemes', 'Employment'],
+        hi: ['लड़कियों की शिक्षा', 'महिला सुरक्षा पहल', 'स्वास्थ्य योजनाएं', 'रोजगार'],
+        mr: ['मुलींचे शिक्षण', 'महिला सुरक्षा उपक्रम', 'आरोग्य योजना', 'रोजगार']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Nirbhaya Fund supports projects for women safety and security.',
+        hi: 'निर्भया फंड महिला सुरक्षा परियोजनाओं का समर्थन करता है।',
+        mr: 'निर्भया निधी महिला सुरक्षा प्रकल्पांना पाठिंबा देतो.'
+      }
+    },
+    {
+      id: 'wr25',
+      question: { 
+        en: 'Can woman file complaint about cyber harassment?',
+        hi: 'क्या महिला साइबर उत्पीड़न की शिकायत कर सकती है?',
+        mr: 'महिला सायबर छळाची तक्रार करू शकते का?'
+      },
+      options: {
+        en: ['No', 'Yes, IT Act + IPC', 'Only if identity known', 'Only through lawyer'],
+        hi: ['नहीं', 'हाँ, IT अधिनियम + IPC', 'केवल पहचान ज्ञात होने पर', 'केवल वकील द्वारा'],
+        mr: ['नाही', 'होय, IT कायदा + IPC', 'फक्त ओळख माहीत असल्यास', 'फक्त वकिलाद्वारे']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Cyber harassment can be reported under IT Act and relevant IPC sections.',
+        hi: 'साइबर उत्पीड़न की शिकायत IT अधिनियम और IPC धाराओं के तहत हो सकती है।',
+        mr: 'सायबर छळ IT कायदा आणि संबंधित IPC कलमांतर्गत नोंदवता येतो.'
+      }
+    },
+    {
+      id: 'wr26',
+      question: { 
+        en: 'What is the punishment for sexual harassment at workplace?',
+        hi: 'कार्यस्थल पर यौन उत्पीड़न की सजा क्या है?',
+        mr: 'कार्यस्थळावर लैंगिक छळाची शिक्षा काय आहे?'
+      },
+      options: {
+        en: ['Warning only', 'Fine only', 'Up to 3 years imprisonment', 'No punishment'],
+        hi: ['केवल चेतावनी', 'केवल जुर्माना', '3 वर्ष तक कारावास', 'कोई सजा नहीं'],
+        mr: ['फक्त इशारा', 'फक्त दंड', '3 वर्षांपर्यंत कारावास', 'शिक्षा नाही']
+      },
+      correctIndex: 2,
+      explanation: {
+        en: 'Sexual harassment at workplace is punishable up to 3 years imprisonment.',
+        hi: 'कार्यस्थल पर यौन उत्पीड़न 3 वर्ष तक कारावास से दंडनीय है।',
+        mr: 'कार्यस्थळावर लैंगिक छळ 3 वर्षांपर्यंत कारावासाने शिक्षापात्र आहे.'
+      }
     }
   ],
   police_rights: [
@@ -1553,6 +1876,120 @@ export const quizQuestions: Record<string, QuizQuestion[]> = {
         en: 'For bailable offences, bail is a matter of right.',
         hi: 'जमानती अपराधों में जमानत अधिकार का मामला है।',
         mr: 'जामीनपात्र गुन्ह्यांमध्ये जामीन अधिकाराची बाब आहे.'
+      }
+    },
+    {
+      id: 'pr21',
+      question: { 
+        en: 'What is e-FIR?',
+        hi: 'e-FIR क्या है?',
+        mr: 'e-FIR म्हणजे काय?'
+      },
+      options: {
+        en: ['Electronic First Information Report', 'Emergency FIR', 'Express FIR', 'Extended FIR'],
+        hi: ['इलेक्ट्रॉनिक प्रथम सूचना रिपोर्ट', 'आपातकालीन FIR', 'एक्सप्रेस FIR', 'विस्तारित FIR'],
+        mr: ['इलेक्ट्रॉनिक प्रथम माहिती अहवाल', 'आणीबाणी FIR', 'एक्सप्रेस FIR', 'विस्तारित FIR']
+      },
+      correctIndex: 0,
+      explanation: {
+        en: 'e-FIR allows online registration of complaints for certain offences.',
+        hi: 'e-FIR कुछ अपराधों के लिए ऑनलाइन शिकायत दर्ज करने की सुविधा है।',
+        mr: 'e-FIR काही गुन्ह्यांसाठी ऑनलाइन तक्रार नोंदणीची सुविधा आहे.'
+      }
+    },
+    {
+      id: 'pr22',
+      question: { 
+        en: 'Can police take confession?',
+        hi: 'क्या पुलिस इकबालिया बयान ले सकती है?',
+        mr: 'पोलीस कबुलीजबाब घेऊ शकतात का?'
+      },
+      options: {
+        en: ['Yes, always valid', 'No, not valid in court', 'Only with lawyer', 'Only senior officers'],
+        hi: ['हाँ, हमेशा वैध', 'नहीं, अदालत में अमान्य', 'केवल वकील के साथ', 'केवल वरिष्ठ अधिकारी'],
+        mr: ['होय, नेहमी वैध', 'नाही, न्यायालयात अवैध', 'फक्त वकिलासह', 'फक्त वरिष्ठ अधिकारी']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Confession to police is not admissible in court under Section 25 Evidence Act.',
+        hi: 'पुलिस के सामने इकबालिया बयान साक्ष्य अधिनियम धारा 25 के तहत अमान्य है।',
+        mr: 'पोलिसांसमोरील कबुलीजबाब साक्ष्य कायद्याच्या कलम 25 अंतर्गत अवैध आहे.'
+      }
+    },
+    {
+      id: 'pr23',
+      question: { 
+        en: 'What is charge sheet?',
+        hi: 'चार्जशीट क्या है?',
+        mr: 'चार्जशीट म्हणजे काय?'
+      },
+      options: {
+        en: ['Initial complaint', 'Police investigation report', 'Court judgment', 'Bail document'],
+        hi: ['प्रारंभिक शिकायत', 'पुलिस जांच रिपोर्ट', 'न्यायालय का फैसला', 'जमानत दस्तावेज'],
+        mr: ['प्रारंभिक तक्रार', 'पोलीस तपास अहवाल', 'न्यायालयाचा निर्णय', 'जामीन दस्तऐवज']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Charge sheet is police investigation report filed in court after completing investigation.',
+        hi: 'चार्जशीट जांच पूरी होने के बाद अदालत में दाखिल पुलिस रिपोर्ट है।',
+        mr: 'चार्जशीट तपास पूर्ण झाल्यावर न्यायालयात दाखल केलेला पोलीस अहवाल आहे.'
+      }
+    },
+    {
+      id: 'pr24',
+      question: { 
+        en: 'What is custody death?',
+        hi: 'हिरासत में मौत क्या है?',
+        mr: 'कोठडीतील मृत्यू म्हणजे काय?'
+      },
+      options: {
+        en: ['Natural death', 'Death while in police or judicial custody', 'Death during trial', 'Death after release'],
+        hi: ['प्राकृतिक मौत', 'पुलिस या न्यायिक हिरासत में मौत', 'ट्रायल के दौरान मौत', 'रिहाई के बाद मौत'],
+        mr: ['नैसर्गिक मृत्यू', 'पोलीस किंवा न्यायालयीन कोठडीत मृत्यू', 'खटल्यादरम्यान मृत्यू', 'सुटकेनंतर मृत्यू']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Custody death is death while in police or judicial custody, requires mandatory inquiry.',
+        hi: 'हिरासत में मौत पुलिस या न्यायिक हिरासत में होने वाली मौत है।',
+        mr: 'कोठडीतील मृत्यू पोलीस किंवा न्यायालयीन कोठडीत होणारा मृत्यू आहे.'
+      }
+    },
+    {
+      id: 'pr25',
+      question: { 
+        en: 'Can arrested person make phone call?',
+        hi: 'क्या गिरफ्तार व्यक्ति फोन कॉल कर सकता है?',
+        mr: 'अटक केलेला व्यक्ती फोन कॉल करू शकतो का?'
+      },
+      options: {
+        en: ['No', 'Yes, to inform family/friend', 'Only through lawyer', 'Only after 24 hours'],
+        hi: ['नहीं', 'हाँ, परिवार/मित्र को सूचित करने के लिए', 'केवल वकील द्वारा', 'केवल 24 घंटे बाद'],
+        mr: ['नाही', 'होय, कुटुंब/मित्राला कळवण्यासाठी', 'फक्त वकिलाद्वारे', 'फक्त 24 तासांनंतर']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Arrested person has right to inform family or friend about arrest.',
+        hi: 'गिरफ्तार व्यक्ति को परिवार या मित्र को गिरफ्तारी के बारे में बताने का अधिकार है।',
+        mr: 'अटक केलेल्या व्यक्तीला कुटुंब किंवा मित्राला अटकेबद्दल कळवण्याचा अधिकार आहे.'
+      }
+    },
+    {
+      id: 'pr26',
+      question: { 
+        en: 'What is Lok Adalat?',
+        hi: 'लोक अदालत क्या है?',
+        mr: 'लोक अदालत म्हणजे काय?'
+      },
+      options: {
+        en: ['Regular court', 'Alternative dispute resolution forum', 'Appeal court', 'Police court'],
+        hi: ['नियमित अदालत', 'वैकल्पिक विवाद समाधान मंच', 'अपील अदालत', 'पुलिस अदालत'],
+        mr: ['नियमित न्यायालय', 'पर्यायी विवाद निराकरण मंच', 'अपील न्यायालय', 'पोलीस न्यायालय']
+      },
+      correctIndex: 1,
+      explanation: {
+        en: 'Lok Adalat provides quick, free dispute resolution without appeal.',
+        hi: 'लोक अदालत जल्दी, मुफ्त विवाद समाधान प्रदान करती है।',
+        mr: 'लोक अदालत जलद, मोफत विवाद निराकरण देते.'
       }
     }
   ],
