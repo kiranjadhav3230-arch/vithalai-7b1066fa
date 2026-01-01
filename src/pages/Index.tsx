@@ -5,6 +5,7 @@ import { ModernHeader } from '@/components/modern-header';
 import { ModernHero } from '@/components/modern-hero';
 import { ModernHowItWorks } from '@/components/modern-how-it-works';
 import { ComprehensiveFeatures } from '@/components/comprehensive-features';
+import { HaqJaanoFeatureSection } from '@/components/haq-jaano-feature-section';
 import { CodeGeneratorSection } from '@/components/code-generator-section';
 import { FeatureShowcaseCarousel } from '@/components/feature-showcase-carousel';
 import { FaqSection } from '@/components/faq-section';
@@ -141,6 +142,7 @@ const Index = () => {
       <main className="relative">
         <ModernHero onGetStarted={handleGetStarted} />
         <ModernHowItWorks />
+        <HaqJaanoFeatureSection />
         <ComprehensiveFeatures />
         <FaqSection />
           
