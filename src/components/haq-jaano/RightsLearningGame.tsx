@@ -440,6 +440,101 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'अगर मोबाइल फोन वारंटी में खराब हो जाए, तो बिल और वारंटी कार्ड के साथ जिला फोरम में शिकायत करें।',
         mr: 'जर मोबाइल फोन वॉरंटीमध्ये बंद पडला, तर बिल आणि वॉरंटी कार्डसह जिल्हा मंचात तक्रार दाखल करा.'
       }
+    },
+    {
+      id: 'cr7',
+      title: { en: 'ISI Mark & BIS Hallmark', hi: 'ISI मार्क और BIS हॉलमार्क', mr: 'ISI मार्क आणि BIS हॉलमार्क' },
+      content: { 
+        en: 'ISI Mark is mandatory for electrical appliances, pressure cookers, and helmets. BIS Hallmark certifies gold purity. Both are issued by Bureau of Indian Standards.',
+        hi: 'ISI मार्क विद्युत उपकरणों, प्रेशर कुकर और हेलमेट के लिए अनिवार्य है। BIS हॉलमार्क सोने की शुद्धता प्रमाणित करता है। दोनों भारतीय मानक ब्यूरो द्वारा जारी किए जाते हैं।',
+        mr: 'ISI मार्क विद्युत उपकरणे, प्रेशर कुकर आणि हेल्मेटसाठी अनिवार्य आहे. BIS हॉलमार्क सोन्याची शुद्धता प्रमाणित करतो. दोन्ही भारतीय मानक ब्युरोद्वारे जारी केले जातात.'
+      },
+      keyPoints: {
+        en: ['ISI = Electrical safety mark', 'BIS Hallmark = Gold purity', 'Bureau of Indian Standards issues both', 'Mandatory for 150+ products'],
+        hi: ['ISI = विद्युत सुरक्षा चिह्न', 'BIS हॉलमार्क = सोने की शुद्धता', 'भारतीय मानक ब्यूरो दोनों जारी करता है', '150+ उत्पादों के लिए अनिवार्य'],
+        mr: ['ISI = विद्युत सुरक्षा चिन्ह', 'BIS हॉलमार्क = सोन्याची शुद्धता', 'भारतीय मानक ब्युरो दोन्ही जारी करतो', '150+ उत्पादनांसाठी अनिवार्य']
+      },
+      example: {
+        en: 'Before buying jewellery, always check for BIS Hallmark to verify gold purity (22K, 18K, 14K).',
+        hi: 'आभूषण खरीदने से पहले, सोने की शुद्धता (22K, 18K, 14K) सत्यापित करने के लिए हमेशा BIS हॉलमार्क जांचें।',
+        mr: 'दागिने खरेदी करण्यापूर्वी, सोन्याची शुद्धता (22K, 18K, 14K) सत्यापित करण्यासाठी नेहमी BIS हॉलमार्क तपासा.'
+      }
+    },
+    {
+      id: 'cr8',
+      title: { en: 'AGMARK, FPO & FSSAI Marks', hi: 'AGMARK, FPO और FSSAI मार्क', mr: 'AGMARK, FPO आणि FSSAI मार्क' },
+      content: { 
+        en: 'AGMARK certifies agricultural products quality. FPO mark is for fruit products. FSSAI mark ensures food safety on packaged food items.',
+        hi: 'AGMARK कृषि उत्पादों की गुणवत्ता प्रमाणित करता है। FPO मार्क फल उत्पादों के लिए है। FSSAI मार्क पैकेज्ड खाद्य पदार्थों पर खाद्य सुरक्षा सुनिश्चित करता है।',
+        mr: 'AGMARK कृषी उत्पादनांची गुणवत्ता प्रमाणित करतो. FPO मार्क फळ उत्पादनांसाठी आहे. FSSAI मार्क पॅकेज्ड खाद्यपदार्थांवर अन्न सुरक्षा सुनिश्चित करतो.'
+      },
+      keyPoints: {
+        en: ['AGMARK = Agricultural products', 'FPO = Fruit Products Order', 'FSSAI = Food Safety', '14-digit license number on products'],
+        hi: ['AGMARK = कृषि उत्पाद', 'FPO = फल उत्पाद आदेश', 'FSSAI = खाद्य सुरक्षा', 'उत्पादों पर 14 अंकों का लाइसेंस नंबर'],
+        mr: ['AGMARK = कृषी उत्पादने', 'FPO = फळ उत्पादन आदेश', 'FSSAI = अन्न सुरक्षा', 'उत्पादनांवर 14 अंकी परवाना क्रमांक']
+      },
+      example: {
+        en: 'Check FSSAI 14-digit license number on packaged food. Verify authenticity at foscos.fssai.gov.in.',
+        hi: 'पैकेज्ड भोजन पर FSSAI का 14 अंकों का लाइसेंस नंबर जांचें। foscos.fssai.gov.in पर प्रामाणिकता सत्यापित करें।',
+        mr: 'पॅकेज्ड अन्नावर FSSAI चा 14 अंकी परवाना क्रमांक तपासा. foscos.fssai.gov.in वर सत्यता सत्यापित करा.'
+      }
+    },
+    {
+      id: 'cr9',
+      title: { en: 'Consumer Forum Hierarchy', hi: 'उपभोक्ता फोरम पदानुक्रम', mr: 'ग्राहक मंच पदानुक्रम' },
+      content: { 
+        en: 'Three-tier system: District Forum (up to Rs 1 crore), State Commission (Rs 1-10 crore), National Commission (above Rs 10 crore). Appeals go to higher level.',
+        hi: 'तीन स्तरीय प्रणाली: जिला फोरम (Rs 1 करोड़ तक), राज्य आयोग (Rs 1-10 करोड़), राष्ट्रीय आयोग (Rs 10 करोड़ से अधिक)। अपील उच्च स्तर पर जाती है।',
+        mr: 'त्रिस्तरीय प्रणाली: जिल्हा मंच (Rs 1 कोटीपर्यंत), राज्य आयोग (Rs 1-10 कोटी), राष्ट्रीय आयोग (Rs 10 कोटीपेक्षा जास्त). अपील उच्च स्तरावर जाते.'
+      },
+      keyPoints: {
+        en: ['District Forum: up to Rs 1 crore', 'State Commission: Rs 1-10 crore', 'National Commission: above Rs 10 crore', 'Appeal within 30 days'],
+        hi: ['जिला फोरम: Rs 1 करोड़ तक', 'राज्य आयोग: Rs 1-10 करोड़', 'राष्ट्रीय आयोग: Rs 10 करोड़ से अधिक', '30 दिनों में अपील'],
+        mr: ['जिल्हा मंच: Rs 1 कोटीपर्यंत', 'राज्य आयोग: Rs 1-10 कोटी', 'राष्ट्रीय आयोग: Rs 10 कोटीपेक्षा जास्त', '30 दिवसांत अपील']
+      },
+      example: {
+        en: 'For a Rs 50,000 defective product case, file at District Forum. If unsatisfied, appeal to State Commission within 30 days.',
+        hi: 'Rs 50,000 के दोषपूर्ण उत्पाद मामले के लिए, जिला फोरम में दायर करें। असंतुष्ट होने पर, 30 दिनों में राज्य आयोग में अपील करें।',
+        mr: 'Rs 50,000 च्या दोषपूर्ण उत्पादन प्रकरणासाठी, जिल्हा मंचात दाखल करा. असमाधानी असल्यास, 30 दिवसांत राज्य आयोगात अपील करा.'
+      }
+    },
+    {
+      id: 'cr10',
+      title: { en: 'CCPA & Misleading Ads Penalty', hi: 'CCPA और भ्रामक विज्ञापन दंड', mr: 'CCPA आणि दिशाभूल करणाऱ्या जाहिरातींचा दंड' },
+      content: { 
+        en: 'Central Consumer Protection Authority (CCPA) regulates misleading advertisements. Penalty: Rs 10 lakh first offense, Rs 50 lakh repeat. Celebrities can also be held liable.',
+        hi: 'केंद्रीय उपभोक्ता संरक्षण प्राधिकरण (CCPA) भ्रामक विज्ञापनों को नियंत्रित करता है। दंड: पहले अपराध पर Rs 10 लाख, दोहराने पर Rs 50 लाख। सेलिब्रिटी भी जिम्मेदार हो सकते हैं।',
+        mr: 'केंद्रीय ग्राहक संरक्षण प्राधिकरण (CCPA) दिशाभूल करणाऱ्या जाहिरातींचे नियमन करते. दंड: पहिल्या गुन्ह्यासाठी Rs 10 लाख, पुन्हा Rs 50 लाख. सेलिब्रिटींनाही जबाबदार धरले जाऊ शकते.'
+      },
+      keyPoints: {
+        en: ['CCPA = Central Consumer Protection Authority', 'First offense: Rs 10 lakh penalty', 'Repeat offense: Rs 50 lakh', 'Celebrity endorsers liable'],
+        hi: ['CCPA = केंद्रीय उपभोक्ता संरक्षण प्राधिकरण', 'पहला अपराध: Rs 10 लाख दंड', 'दोहराना: Rs 50 लाख', 'सेलिब्रिटी एंडोर्सर जिम्मेदार'],
+        mr: ['CCPA = केंद्रीय ग्राहक संरक्षण प्राधिकरण', 'पहिला गुन्हा: Rs 10 लाख दंड', 'पुन्हा गुन्हा: Rs 50 लाख', 'सेलिब्रिटी एंडोर्सर जबाबदार']
+      },
+      example: {
+        en: 'If a fairness cream makes false claims, CCPA can order withdrawal, impose Rs 10-50 lakh fine on company and endorser.',
+        hi: 'अगर कोई फेयरनेस क्रीम झूठे दावे करती है, तो CCPA वापसी का आदेश दे सकता है, कंपनी और एंडोर्सर पर Rs 10-50 लाख का जुर्माना लगा सकता है।',
+        mr: 'जर फेयरनेस क्रीम खोटे दावे करत असेल, तर CCPA मागे घेण्याचा आदेश देऊ शकते, कंपनी आणि एंडोर्सरवर Rs 10-50 लाख दंड आकारू शकते.'
+      }
+    },
+    {
+      id: 'cr11',
+      title: { en: 'National Consumer Day - December 24', hi: 'राष्ट्रीय उपभोक्ता दिवस - 24 दिसंबर', mr: 'राष्ट्रीय ग्राहक दिन - 24 डिसेंबर' },
+      content: { 
+        en: 'National Consumer Day is celebrated on December 24 (Consumer Protection Act 1986 enacted). 2019 Act replaced it with stronger provisions including product liability.',
+        hi: 'राष्ट्रीय उपभोक्ता दिवस 24 दिसंबर को मनाया जाता है (उपभोक्ता संरक्षण अधिनियम 1986 अधिनियमित)। 2019 अधिनियम ने इसे उत्पाद दायित्व सहित मजबूत प्रावधानों से बदल दिया।',
+        mr: 'राष्ट्रीय ग्राहक दिन 24 डिसेंबर रोजी साजरा केला जातो (ग्राहक संरक्षण कायदा 1986 अधिनियमित). 2019 कायद्याने उत्पादन दायित्वासह मजबूत तरतुदींनी बदलले.'
+      },
+      keyPoints: {
+        en: ['December 24 = Consumer Day', '1986 Act = Original law', '2019 Act = Current law', 'Product liability added'],
+        hi: ['24 दिसंबर = उपभोक्ता दिवस', '1986 अधिनियम = मूल कानून', '2019 अधिनियम = वर्तमान कानून', 'उत्पाद दायित्व जोड़ा गया'],
+        mr: ['24 डिसेंबर = ग्राहक दिन', '1986 कायदा = मूळ कायदा', '2019 कायदा = सध्याचा कायदा', 'उत्पादन दायित्व जोडले']
+      },
+      example: {
+        en: 'Product liability means manufacturer is responsible for harm caused by defective products, even without proof of negligence.',
+        hi: 'उत्पाद दायित्व का अर्थ है कि निर्माता दोषपूर्ण उत्पादों से होने वाले नुकसान के लिए जिम्मेदार है, लापरवाही के प्रमाण के बिना भी।',
+        mr: 'उत्पादन दायित्व म्हणजे दोषपूर्ण उत्पादनांमुळे झालेल्या हानीसाठी निर्माता जबाबदार आहे, निष्काळजीपणाच्या पुराव्याशिवाय देखील.'
+      }
     }
   ],
   women_rights: [
@@ -593,6 +688,82 @@ const learningContent: Record<string, LearningCard[]> = {
         en: 'Women in distress can visit nearest Sakhi Centre for immediate help including temporary shelter and police assistance.',
         hi: 'संकट में महिलाएं अस्थायी आश्रय और पुलिस सहायता सहित तत्काल सहायता के लिए निकटतम सखी केंद्र जा सकती हैं।',
         mr: 'संकटात असलेल्या महिला तात्पुरते आश्रय आणि पोलीस सहाय्यासह तात्काळ मदतीसाठी जवळच्या सखी केंद्रात जाऊ शकतात.'
+      }
+    },
+    {
+      id: 'wr9',
+      title: { en: 'Legal Marriage Age & Child Marriage', hi: 'कानूनी विवाह आयु और बाल विवाह', mr: 'कायदेशीर विवाह वय आणि बाल विवाह' },
+      content: { 
+        en: 'Legal marriage age is 18 for women and 21 for men. Child Marriage Prohibition Act 2006 makes child marriage voidable and punishable.',
+        hi: 'कानूनी विवाह आयु महिलाओं के लिए 18 और पुरुषों के लिए 21 वर्ष है। बाल विवाह निषेध अधिनियम 2006 बाल विवाह को अमान्य और दंडनीय बनाता है।',
+        mr: 'कायदेशीर विवाह वय महिलांसाठी 18 आणि पुरुषांसाठी 21 वर्षे आहे. बाल विवाह प्रतिबंध कायदा 2006 बाल विवाह रद्दबातल आणि शिक्षापात्र बनवतो.'
+      },
+      keyPoints: {
+        en: ['Women: 18 years minimum', 'Men: 21 years minimum', 'Child marriage voidable', 'Up to 2 years imprisonment'],
+        hi: ['महिला: न्यूनतम 18 वर्ष', 'पुरुष: न्यूनतम 21 वर्ष', 'बाल विवाह अमान्य', '2 साल तक की कैद'],
+        mr: ['महिला: किमान 18 वर्षे', 'पुरुष: किमान 21 वर्षे', 'बाल विवाह रद्दबातल', '2 वर्षांपर्यंत कारावास']
+      },
+      example: {
+        en: 'If you learn about a child marriage, report to Childline 1098 or police. The marriage can be annulled.',
+        hi: 'अगर आपको बाल विवाह का पता चले, तो चाइल्डलाइन 1098 या पुलिस को सूचित करें। विवाह रद्द किया जा सकता है।',
+        mr: 'जर तुम्हाला बाल विवाहाबद्दल कळले, तर चाइल्डलाइन 1098 किंवा पोलिसांना कळवा. विवाह रद्द होऊ शकतो.'
+      }
+    },
+    {
+      id: 'wr10',
+      title: { en: 'Zero FIR & Statement at Home', hi: 'जीरो FIR और घर पर बयान', mr: 'झिरो FIR आणि घरी जबानी' },
+      content: { 
+        en: 'Women can file Zero FIR at any police station. For sexual assault cases, woman can give statement at home with female officer present.',
+        hi: 'महिलाएं किसी भी पुलिस स्टेशन पर जीरो FIR दर्ज कर सकती हैं। यौन हमले के मामलों में, महिला महिला अधिकारी की उपस्थिति में घर पर बयान दे सकती है।',
+        mr: 'महिला कोणत्याही पोलीस स्टेशनवर झिरो FIR दाखल करू शकतात. लैंगिक हल्ल्याच्या प्रकरणांमध्ये, महिला अधिकारी उपस्थित असताना महिला घरी जबानी देऊ शकते.'
+      },
+      keyPoints: {
+        en: ['Zero FIR at any station', 'Statement at home for assault', 'Female officer mandatory', 'Privacy protected'],
+        hi: ['किसी भी स्टेशन पर जीरो FIR', 'हमले के लिए घर पर बयान', 'महिला अधिकारी अनिवार्य', 'गोपनीयता सुरक्षित'],
+        mr: ['कोणत्याही स्टेशनवर झिरो FIR', 'हल्ल्यासाठी घरी जबानी', 'महिला अधिकारी अनिवार्य', 'गोपनीयता संरक्षित']
+      },
+      example: {
+        en: 'A victim of sexual assault can request that her statement be recorded at her home by a female officer, not at the police station.',
+        hi: 'यौन हमले की शिकार महिला अनुरोध कर सकती है कि उसका बयान पुलिस स्टेशन पर नहीं, बल्कि उसके घर पर महिला अधिकारी द्वारा दर्ज किया जाए।',
+        mr: 'लैंगिक हल्ल्याची बळी महिला विनंती करू शकते की तिची जबानी पोलीस स्टेशनवर नाही, तर तिच्या घरी महिला अधिकाऱ्याकडून नोंदवली जावी.'
+      }
+    },
+    {
+      id: 'wr11',
+      title: { en: 'ICC Under POSH Act', hi: 'POSH अधिनियम के तहत ICC', mr: 'POSH कायद्यानुसार ICC' },
+      content: { 
+        en: 'Internal Complaints Committee (ICC) is mandatory for companies with 10+ employees. Must be headed by a woman. External members required for objectivity.',
+        hi: 'आंतरिक शिकायत समिति (ICC) 10+ कर्मचारियों वाली कंपनियों के लिए अनिवार्य है। अध्यक्ष महिला होनी चाहिए। निष्पक्षता के लिए बाहरी सदस्य आवश्यक।',
+        mr: 'अंतर्गत तक्रार समिती (ICC) 10+ कर्मचारी असलेल्या कंपन्यांसाठी अनिवार्य आहे. अध्यक्ष महिला असणे आवश्यक. निष्पक्षतेसाठी बाह्य सदस्य आवश्यक.'
+      },
+      keyPoints: {
+        en: ['ICC mandatory for 10+ employees', 'Woman must head ICC', 'External member required', 'Resolve within 90 days'],
+        hi: ['10+ कर्मचारियों के लिए ICC अनिवार्य', 'ICC की अध्यक्ष महिला हो', 'बाहरी सदस्य आवश्यक', '90 दिनों में समाधान करें'],
+        mr: ['10+ कर्मचाऱ्यांसाठी ICC अनिवार्य', 'ICC ची अध्यक्ष महिला असावी', 'बाह्य सदस्य आवश्यक', '90 दिवसांत निराकरण करा']
+      },
+      example: {
+        en: 'If your company has 10+ employees but no ICC, report to District Officer or Women Commission.',
+        hi: 'अगर आपकी कंपनी में 10+ कर्मचारी हैं लेकिन ICC नहीं है, तो जिला अधिकारी या महिला आयोग को रिपोर्ट करें।',
+        mr: 'जर तुमच्या कंपनीत 10+ कर्मचारी असूनही ICC नसेल, तर जिल्हा अधिकारी किंवा महिला आयोगाला तक्रार करा.'
+      }
+    },
+    {
+      id: 'wr12',
+      title: { en: 'Daughter Property Rights (2005 Amendment)', hi: 'बेटी के संपत्ति अधिकार (2005 संशोधन)', mr: 'मुलीचे मालमत्ता अधिकार (2005 दुरुस्ती)' },
+      content: { 
+        en: 'Hindu Succession Act 2005 amendment gives daughters equal rights to ancestral property as sons. Applies to property of father who died after September 9, 2005.',
+        hi: 'हिंदू उत्तराधिकार अधिनियम 2005 संशोधन बेटियों को बेटों के समान पैतृक संपत्ति में समान अधिकार देता है। 9 सितंबर 2005 के बाद मृत पिता की संपत्ति पर लागू।',
+        mr: 'हिंदू उत्तराधिकार कायदा 2005 दुरुस्ती मुलींना मुलांप्रमाणे वडिलांच्या मालमत्तेत समान अधिकार देते. 9 सप्टेंबर 2005 नंतर मृत झालेल्या वडिलांच्या मालमत्तेला लागू.'
+      },
+      keyPoints: {
+        en: ['Daughters = Sons in property', 'Equal share in ancestral property', 'Applies after September 2005', 'Can manage ancestral property'],
+        hi: ['बेटियां = बेटे संपत्ति में', 'पैतृक संपत्ति में समान हिस्सा', 'सितंबर 2005 के बाद लागू', 'पैतृक संपत्ति प्रबंधित कर सकती हैं'],
+        mr: ['मुली = मुले मालमत्तेत', 'वडिलांच्या मालमत्तेत समान वाटा', 'सप्टेंबर 2005 नंतर लागू', 'वडिलांची मालमत्ता व्यवस्थापित करू शकतात']
+      },
+      example: {
+        en: 'A married daughter has equal right to father ancestral property and can claim her share anytime.',
+        hi: 'विवाहित बेटी का पिता की पैतृक संपत्ति में समान अधिकार है और वह कभी भी अपना हिस्सा मांग सकती है।',
+        mr: 'विवाहित मुलीला वडिलांच्या वडिलोपार्जित मालमत्तेत समान अधिकार आहे आणि ती कधीही आपला वाटा मागू शकते.'
       }
     }
   ],
@@ -748,6 +919,82 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'अगर पुलिस रात को किसी महिला को गिरफ्तार करने आए, तो वह मना कर सकती है और उन्हें महिला कांस्टेबल के साथ सूर्योदय के बाद आने को कह सकती है।',
         mr: 'जर पोलीस रात्री एखाद्या महिलेला अटक करण्यासाठी आले, तर ती नकार देऊ शकते आणि त्यांना महिला कॉन्स्टेबलसह सूर्योदयानंतर येण्यास सांगू शकते.'
       }
+    },
+    {
+      id: 'pr9',
+      title: { en: 'FIR Basics & Police Must Register', hi: 'FIR की मूल बातें और पुलिस को दर्ज करना होगा', mr: 'FIR मूलभूत गोष्टी आणि पोलिसांनी नोंदणी करणे आवश्यक' },
+      content: { 
+        en: 'FIR (First Information Report) is the first step to register a crime. Police cannot refuse to register FIR for cognizable offense. Complaint to SP if refused.',
+        hi: 'FIR (प्रथम सूचना रिपोर्ट) अपराध दर्ज करने का पहला कदम है। पुलिस संज्ञेय अपराध के लिए FIR दर्ज करने से मना नहीं कर सकती। इनकार पर SP को शिकायत करें।',
+        mr: 'FIR (प्रथम माहिती अहवाल) गुन्हा नोंदवण्याची पहिली पायरी आहे. पोलीस दखलपात्र गुन्ह्यासाठी FIR नोंदवण्यास नकार देऊ शकत नाहीत. नकार दिल्यास SP ला तक्रार करा.'
+      },
+      keyPoints: {
+        en: ['FIR = First Information Report', 'Cognizable = Police can arrest without warrant', 'Police cannot refuse FIR', 'Get free FIR copy'],
+        hi: ['FIR = प्रथम सूचना रिपोर्ट', 'संज्ञेय = पुलिस बिना वारंट गिरफ्तार कर सकती है', 'पुलिस FIR से मना नहीं कर सकती', 'FIR कॉपी मुफ्त पाएं'],
+        mr: ['FIR = प्रथम माहिती अहवाल', 'दखलपात्र = पोलीस वॉरंटशिवाय अटक करू शकतात', 'पोलीस FIR नाकारू शकत नाहीत', 'FIR प्रत मोफत मिळवा']
+      },
+      example: {
+        en: 'If police refuse to register FIR, send complaint by registered post to SP or file complaint on online grievance portal.',
+        hi: 'अगर पुलिस FIR दर्ज करने से मना करे, तो SP को रजिस्टर्ड पोस्ट से शिकायत भेजें या ऑनलाइन शिकायत पोर्टल पर शिकायत करें।',
+        mr: 'जर पोलिसांनी FIR नोंदवण्यास नकार दिला, तर SP ला रजिस्टर्ड पोस्टने तक्रार पाठवा किंवा ऑनलाइन तक्रार पोर्टलवर तक्रार करा.'
+      }
+    },
+    {
+      id: 'pr10',
+      title: { en: 'Bail Types - Bailable, Non-Bailable, Anticipatory', hi: 'जमानत प्रकार - जमानती, गैर-जमानती, अग्रिम', mr: 'जामीन प्रकार - जामीनपात्र, गैर-जामीनपात्र, अग्रिम' },
+      content: { 
+        en: 'Bailable offense = Bail is a right. Non-bailable = Court discretion. Anticipatory bail = Before arrest. Bail is rule, jail is exception.',
+        hi: 'जमानती अपराध = जमानत अधिकार है। गैर-जमानती = अदालत का विवेक। अग्रिम जमानत = गिरफ्तारी से पहले। जमानत नियम है, जेल अपवाद।',
+        mr: 'जामीनपात्र गुन्हा = जामीन हक्क आहे. गैर-जामीनपात्र = न्यायालयाचा विवेक. अग्रिम जामीन = अटकेपूर्वी. जामीन नियम आहे, तुरुंग अपवाद.'
+      },
+      keyPoints: {
+        en: ['Bailable = Right to bail', 'Non-bailable = Court decides', 'Anticipatory = Before arrest', 'Bail is rule, jail exception'],
+        hi: ['जमानती = जमानत का अधिकार', 'गैर-जमानती = अदालत तय करे', 'अग्रिम = गिरफ्तारी से पहले', 'जमानत नियम, जेल अपवाद'],
+        mr: ['जामीनपात्र = जामिनाचा हक्क', 'गैर-जामीनपात्र = न्यायालय ठरवते', 'अग्रिम = अटकेपूर्वी', 'जामीन नियम, तुरुंग अपवाद']
+      },
+      example: {
+        en: 'If you fear arrest in a false case, apply for anticipatory bail in Sessions Court or High Court.',
+        hi: 'अगर आपको झूठे मामले में गिरफ्तारी का डर है, तो सत्र न्यायालय या उच्च न्यायालय में अग्रिम जमानत के लिए आवेदन करें।',
+        mr: 'जर तुम्हाला खोट्या प्रकरणात अटकेची भीती असेल, तर सत्र न्यायालय किंवा उच्च न्यायालयात अग्रिम जामिनासाठी अर्ज करा.'
+      }
+    },
+    {
+      id: 'pr11',
+      title: { en: 'Police Custody Limits - 15 Days Max', hi: 'पुलिस हिरासत सीमा - अधिकतम 15 दिन', mr: 'पोलीस कोठडी मर्यादा - जास्तीत जास्त 15 दिवस' },
+      content: { 
+        en: 'Police custody cannot exceed 15 days maximum. After that, judicial custody only. Produce before magistrate every 15 days mandatory.',
+        hi: 'पुलिस हिरासत अधिकतम 15 दिनों से अधिक नहीं हो सकती। उसके बाद केवल न्यायिक हिरासत। हर 15 दिन में मजिस्ट्रेट के सामने पेश करना अनिवार्य।',
+        mr: 'पोलीस कोठडी जास्तीत जास्त 15 दिवसांपेक्षा जास्त असू शकत नाही. त्यानंतर फक्त न्यायालयीन कोठडी. प्रत्येक 15 दिवसांनी मॅजिस्ट्रेटसमोर हजर करणे अनिवार्य.'
+      },
+      keyPoints: {
+        en: ['Police custody max 15 days', 'Then judicial custody only', 'Magistrate every 15 days', 'Remand extension possible'],
+        hi: ['पुलिस हिरासत अधिकतम 15 दिन', 'फिर केवल न्यायिक हिरासत', 'हर 15 दिन में मजिस्ट्रेट', 'रिमांड विस्तार संभव'],
+        mr: ['पोलीस कोठडी जास्तीत जास्त 15 दिवस', 'नंतर फक्त न्यायालयीन कोठडी', 'प्रत्येक 15 दिवसांनी मॅजिस्ट्रेट', 'रिमांड वाढ शक्य']
+      },
+      example: {
+        en: 'If police keep you in custody beyond 15 days without producing before magistrate, it is illegal detention.',
+        hi: 'अगर पुलिस आपको मजिस्ट्रेट के सामने पेश किए बिना 15 दिनों से अधिक हिरासत में रखे, तो यह अवैध हिरासत है।',
+        mr: 'जर पोलिसांनी तुम्हाला मॅजिस्ट्रेटसमोर हजर न करता 15 दिवसांपेक्षा जास्त कोठडीत ठेवले, तर ती बेकायदेशीर अटक आहे.'
+      }
+    },
+    {
+      id: 'pr12',
+      title: { en: 'Right to Silence & Self-Incrimination', hi: 'मौन का अधिकार और आत्म-दोषारोपण', mr: 'मौनाचा अधिकार आणि स्वतःवर आरोप' },
+      content: { 
+        en: 'Article 20(3) protects against self-incrimination. You cannot be forced to testify against yourself. Right to remain silent during interrogation.',
+        hi: 'अनुच्छेद 20(3) आत्म-दोषारोपण से बचाता है। आपको अपने खिलाफ गवाही देने के लिए मजबूर नहीं किया जा सकता। पूछताछ के दौरान मौन रहने का अधिकार।',
+        mr: 'कलम 20(3) स्वतःवर आरोप करण्यापासून संरक्षण करते. तुम्हाला स्वतःविरुद्ध साक्ष देण्यास भाग पाडता येत नाही. चौकशी दरम्यान मौन राहण्याचा अधिकार.'
+      },
+      keyPoints: {
+        en: ['Article 20(3) = No self-incrimination', 'Right to remain silent', 'Cannot force confession', 'Narco/polygraph needs consent'],
+        hi: ['अनुच्छेद 20(3) = कोई आत्म-दोषारोपण नहीं', 'मौन रहने का अधिकार', 'इकबालिया बयान मजबूर नहीं कर सकते', 'नार्को/पॉलीग्राफ के लिए सहमति आवश्यक'],
+        mr: ['कलम 20(3) = स्वतःवर आरोप नाही', 'मौन राहण्याचा अधिकार', 'कबुलीजबाब भाग पाडता येत नाही', 'नार्को/पॉलीग्राफसाठी संमती आवश्यक']
+      },
+      example: {
+        en: 'If police ask questions you do not want to answer, you can remain silent. Silence cannot be used against you.',
+        hi: 'अगर पुलिस ऐसे सवाल पूछे जिनका आप जवाब नहीं देना चाहते, तो आप मौन रह सकते हैं। मौन आपके खिलाफ इस्तेमाल नहीं किया जा सकता।',
+        mr: 'जर पोलिसांनी तुम्हाला उत्तर द्यायचे नसलेले प्रश्न विचारले, तर तुम्ही मौन राहू शकता. मौन तुमच्याविरुद्ध वापरता येत नाही.'
+      }
     }
   ],
   rti_rights: [
@@ -901,6 +1148,44 @@ const learningContent: Record<string, LearningCard[]> = {
         en: 'If you seek contract details of a private company with government, the company will be given chance to object.',
         hi: 'अगर आप सरकार के साथ किसी निजी कंपनी के अनुबंध विवरण मांगते हैं, तो कंपनी को आपत्ति का मौका दिया जाएगा।',
         mr: 'जर तुम्ही सरकारसोबतच्या खाजगी कंपनीचे करार तपशील मागत असाल, तर कंपनीला आक्षेप घेण्याची संधी दिली जाईल.'
+      }
+    },
+    {
+      id: 'rti9',
+      title: { en: 'Life Threatening Info - 48 Hours', hi: 'जीवन-खतरे की जानकारी - 48 घंटे', mr: 'जीवघेणी माहिती - 48 तास' },
+      content: { 
+        en: 'If information concerns life and liberty of any person, PIO must respond within 48 hours instead of 30 days. Priority for urgent matters.',
+        hi: 'अगर जानकारी किसी व्यक्ति के जीवन और स्वतंत्रता से संबंधित है, तो PIO को 30 दिनों के बजाय 48 घंटों में जवाब देना होगा। तत्काल मामलों के लिए प्राथमिकता।',
+        mr: 'जर माहिती कोणत्याही व्यक्तीच्या जीवन आणि स्वातंत्र्याशी संबंधित असेल, तर PIO ने 30 दिवसांऐवजी 48 तासांत उत्तर देणे आवश्यक. तातडीच्या बाबींसाठी प्राधान्य.'
+      },
+      keyPoints: {
+        en: ['48 hours for life/liberty matters', 'No fee for urgent info', 'Mention urgency in application', 'PIO must prioritize'],
+        hi: ['जीवन/स्वतंत्रता मामलों के लिए 48 घंटे', 'तत्काल जानकारी के लिए कोई शुल्क नहीं', 'आवेदन में तात्कालिकता का उल्लेख करें', 'PIO को प्राथमिकता देनी होगी'],
+        mr: ['जीवन/स्वातंत्र्य बाबींसाठी 48 तास', 'तातडीच्या माहितीसाठी शुल्क नाही', 'अर्जात तातडी नमूद करा', 'PIO ने प्राधान्य देणे आवश्यक']
+      },
+      example: {
+        en: 'If you need information about a missing person in police custody, apply under life/liberty provision for 48-hour response.',
+        hi: 'अगर आपको पुलिस हिरासत में लापता व्यक्ति के बारे में जानकारी चाहिए, तो 48 घंटे की प्रतिक्रिया के लिए जीवन/स्वतंत्रता प्रावधान के तहत आवेदन करें।',
+        mr: 'जर तुम्हाला पोलीस कोठडीतील बेपत्ता व्यक्तीबद्दल माहिती हवी असेल, तर 48 तासांच्या प्रतिसादासाठी जीवन/स्वातंत्र्य तरतुदीनुसार अर्ज करा.'
+      }
+    },
+    {
+      id: 'rti10',
+      title: { en: 'APIO Role & RTI Total Sections', hi: 'APIO भूमिका और RTI कुल धाराएं', mr: 'APIO भूमिका आणि RTI एकूण कलमे' },
+      content: { 
+        en: 'APIO (Assistant PIO) receives applications and forwards to PIO. RTI Act has 31 sections total. Act replaced Freedom of Information Act 2002.',
+        hi: 'APIO (सहायक PIO) आवेदन प्राप्त करता है और PIO को अग्रेषित करता है। RTI अधिनियम में कुल 31 धाराएं हैं। अधिनियम ने सूचना की स्वतंत्रता अधिनियम 2002 को बदल दिया।',
+        mr: 'APIO (सहायक PIO) अर्ज प्राप्त करतो आणि PIO ला पाठवतो. RTI कायद्यात एकूण 31 कलमे आहेत. कायद्याने माहितीचे स्वातंत्र्य कायदा 2002 बदलला.'
+      },
+      keyPoints: {
+        en: ['APIO = Assistant PIO', 'RTI Act has 31 sections', 'Replaced 2002 Act', 'APIO adds 5 days to timeline'],
+        hi: ['APIO = सहायक PIO', 'RTI अधिनियम में 31 धाराएं', '2002 अधिनियम को बदला', 'APIO समयसीमा में 5 दिन जोड़ता है'],
+        mr: ['APIO = सहायक PIO', 'RTI कायद्यात 31 कलमे', '2002 कायदा बदलला', 'APIO वेळापत्रकात 5 दिवस जोडतो']
+      },
+      example: {
+        en: 'If you submit RTI at tehsil office to APIO, add 5 extra days as APIO must forward to PIO.',
+        hi: 'अगर आप तहसील कार्यालय में APIO को RTI जमा करते हैं, तो 5 अतिरिक्त दिन जोड़ें क्योंकि APIO को PIO को अग्रेषित करना होगा।',
+        mr: 'जर तुम्ही तहसील कार्यालयात APIO ला RTI सबमिट केला, तर 5 अतिरिक्त दिवस जोडा कारण APIO ने PIO ला पाठवणे आवश्यक आहे.'
       }
     }
   ],
@@ -1363,6 +1648,63 @@ const learningContent: Record<string, LearningCard[]> = {
         en: 'Check eligibility for Ayushman Bharat at mera.pmjay.gov.in using ration card or Aadhaar number.',
         hi: 'राशन कार्ड या आधार नंबर का उपयोग करके mera.pmjay.gov.in पर आयुष्मान भारत की पात्रता जांचें।',
         mr: 'रेशन कार्ड किंवा आधार नंबर वापरून mera.pmjay.gov.in वर आयुष्मान भारत पात्रता तपासा.'
+      }
+    },
+    {
+      id: 'sc9',
+      title: { en: 'Elder Abuse Helpline - 14567', hi: 'वरिष्ठ दुर्व्यवहार हेल्पलाइन - 14567', mr: 'ज्येष्ठ गैरवर्तन हेल्पलाइन - 14567' },
+      content: { 
+        en: 'ELDERLINE 14567 is 24/7 toll-free helpline for elder abuse, neglect, and abandonment. Available in multiple languages. Can connect to local support.',
+        hi: 'ELDERLINE 14567 वृद्ध दुर्व्यवहार, उपेक्षा और परित्याग के लिए 24/7 टोल-फ्री हेल्पलाइन है। कई भाषाओं में उपलब्ध। स्थानीय सहायता से जोड़ सकती है।',
+        mr: 'ELDERLINE 14567 ज्येष्ठ गैरवर्तन, दुर्लक्ष आणि परित्यागासाठी 24/7 टोल-फ्री हेल्पलाइन आहे. अनेक भाषांमध्ये उपलब्ध. स्थानिक सहाय्याशी जोडू शकते.'
+      },
+      keyPoints: {
+        en: ['14567 = Toll-free 24/7', 'Report abuse, neglect, abandonment', 'Multiple language support', 'Connects to local services'],
+        hi: ['14567 = टोल-फ्री 24/7', 'दुर्व्यवहार, उपेक्षा, परित्याग की रिपोर्ट करें', 'बहु-भाषा समर्थन', 'स्थानीय सेवाओं से जोड़ता है'],
+        mr: ['14567 = टोल-फ्री 24/7', 'गैरवर्तन, दुर्लक्ष, परित्याग तक्रार करा', 'बहु-भाषा समर्थन', 'स्थानिक सेवांशी जोडते']
+      },
+      example: {
+        en: 'If you see an elderly person being mistreated by family, call ELDERLINE 14567 to report and get intervention.',
+        hi: 'अगर आप किसी वृद्ध व्यक्ति के साथ परिवार द्वारा दुर्व्यवहार देखें, तो रिपोर्ट करने और हस्तक्षेप पाने के लिए ELDERLINE 14567 पर कॉल करें।',
+        mr: 'जर तुम्ही एखाद्या ज्येष्ठ व्यक्तीशी कुटुंबाकडून गैरवर्तन होताना पाहिलात, तर तक्रार करण्यासाठी आणि हस्तक्षेप मिळविण्यासाठी ELDERLINE 14567 वर कॉल करा.'
+      }
+    },
+    {
+      id: 'sc10',
+      title: { en: 'IGNOAPS - Old Age Pension for BPL', hi: 'IGNOAPS - BPL के लिए वृद्धावस्था पेंशन', mr: 'IGNOAPS - BPL साठी वृद्धावस्था निवृत्तीवेतन' },
+      content: { 
+        en: 'Indira Gandhi National Old Age Pension Scheme (IGNOAPS) provides Rs 200-500/month to BPL senior citizens (60+). States may add more.',
+        hi: 'इंदिरा गांधी राष्ट्रीय वृद्धावस्था पेंशन योजना (IGNOAPS) BPL वरिष्ठ नागरिकों (60+) को Rs 200-500/माह प्रदान करती है। राज्य अधिक जोड़ सकते हैं।',
+        mr: 'इंदिरा गांधी राष्ट्रीय वृद्धावस्था निवृत्तीवेतन योजना (IGNOAPS) BPL ज्येष्ठ नागरिकांना (60+) Rs 200-500/महिना प्रदान करते. राज्ये अधिक जोडू शकतात.'
+      },
+      keyPoints: {
+        en: ['Rs 200/month (60-79 years)', 'Rs 500/month (80+ years)', 'BPL card required', 'Apply at Block/Taluka office'],
+        hi: ['Rs 200/माह (60-79 वर्ष)', 'Rs 500/माह (80+ वर्ष)', 'BPL कार्ड आवश्यक', 'ब्लॉक/तहसील कार्यालय में आवेदन करें'],
+        mr: ['Rs 200/महिना (60-79 वर्षे)', 'Rs 500/महिना (80+ वर्षे)', 'BPL कार्ड आवश्यक', 'ब्लॉक/तालुका कार्यालयात अर्ज करा']
+      },
+      example: {
+        en: 'A 70-year-old BPL card holder can apply for IGNOAPS at Gram Panchayat or Block Development Office for Rs 200/month.',
+        hi: '70 वर्षीय BPL कार्ड धारक Rs 200/माह के लिए ग्राम पंचायत या ब्लॉक विकास कार्यालय में IGNOAPS के लिए आवेदन कर सकता है।',
+        mr: '70 वर्षीय BPL कार्डधारक Rs 200/महिना साठी ग्रामपंचायत किंवा ब्लॉक विकास कार्यालयात IGNOAPS साठी अर्ज करू शकतो.'
+      }
+    },
+    {
+      id: 'sc11',
+      title: { en: 'Abandonment is Punishable', hi: 'परित्याग दंडनीय है', mr: 'परित्याग शिक्षापात्र आहे' },
+      content: { 
+        en: 'Abandoning senior citizens is punishable with up to 3 months imprisonment or Rs 5,000 fine under Maintenance Act 2007.',
+        hi: 'वरिष्ठ नागरिकों को छोड़ना भरण-पोषण अधिनियम 2007 के तहत 3 महीने तक की कैद या Rs 5,000 जुर्माने से दंडनीय है।',
+        mr: 'ज्येष्ठ नागरिकांचा परित्याग करणे पोषण कायदा 2007 अंतर्गत 3 महिन्यांपर्यंत कारावास किंवा Rs 5,000 दंडाने शिक्षापात्र आहे.'
+      },
+      keyPoints: {
+        en: ['Up to 3 months imprisonment', 'Rs 5,000 fine', 'Both imprisonment and fine possible', 'Report to police or Tribunal'],
+        hi: ['3 महीने तक की कैद', 'Rs 5,000 जुर्माना', 'कैद और जुर्माना दोनों संभव', 'पुलिस या न्यायाधिकरण को रिपोर्ट करें'],
+        mr: ['3 महिन्यांपर्यंत कारावास', 'Rs 5,000 दंड', 'कारावास आणि दंड दोन्ही शक्य', 'पोलीस किंवा न्यायाधिकरणाला तक्रार करा']
+      },
+      example: {
+        en: 'If children leave elderly parent at old age home and stop visiting/supporting, it is abandonment and punishable.',
+        hi: 'अगर बच्चे बुजुर्ग माता-पिता को वृद्धाश्रम में छोड़ दें और मिलना/सहायता बंद कर दें, तो यह परित्याग है और दंडनीय है।',
+        mr: 'जर मुलांनी वृद्ध पालकांना वृद्धाश्रमात सोडले आणि भेटणे/मदत करणे बंद केले, तर तो परित्याग आहे आणि शिक्षापात्र आहे.'
       }
     }
   ]
