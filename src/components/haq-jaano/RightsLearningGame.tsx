@@ -229,6 +229,63 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'आपातकाल के दौरान भी, पुलिस किसी को नहीं मार सकती या बिना कानूनी प्रक्रिया के हिरासत में नहीं रख सकती।',
         mr: 'आणीबाणी दरम्यानही, पोलीस कोणालाही मारू शकत नाहीत किंवा कायदेशीर प्रक्रियेशिवाय ताब्यात ठेवू शकत नाहीत.'
       }
+    },
+    {
+      id: 'fr12',
+      title: { en: 'Six Fundamental Rights in Constitution', hi: 'संविधान में छह मौलिक अधिकार', mr: 'घटनेतील सहा मूलभूत अधिकार' },
+      content: { 
+        en: 'Indian Constitution originally had 7 Fundamental Rights. After 44th Amendment removed Right to Property, now there are 6 Fundamental Rights (Articles 14-32).',
+        hi: 'भारतीय संविधान में मूल रूप से 7 मौलिक अधिकार थे। 44वें संशोधन द्वारा संपत्ति का अधिकार हटाने के बाद, अब 6 मौलिक अधिकार हैं (अनुच्छेद 14-32)।',
+        mr: 'भारतीय घटनेत मूळतः 7 मूलभूत अधिकार होते. 44व्या दुरुस्तीने मालमत्तेचा अधिकार काढून टाकल्यानंतर, आता 6 मूलभूत अधिकार आहेत (कलम 14-32).'
+      },
+      keyPoints: {
+        en: ['Originally 7 rights, now 6', 'Right to Property removed (44th Amendment)', 'Articles 14-32 cover all 6 rights', 'Property is now legal right under Article 300A'],
+        hi: ['मूलतः 7 अधिकार, अब 6', 'संपत्ति का अधिकार हटाया (44वां संशोधन)', 'अनुच्छेद 14-32 में सभी 6 अधिकार', 'संपत्ति अब अनुच्छेद 300A के तहत कानूनी अधिकार'],
+        mr: ['मूळतः 7 अधिकार, आता 6', 'मालमत्तेचा अधिकार काढला (44वी दुरुस्ती)', 'कलम 14-32 मध्ये सर्व 6 अधिकार', 'मालमत्ता आता कलम 300A अंतर्गत कायदेशीर अधिकार']
+      },
+      example: {
+        en: 'Government can acquire your property for public purpose with compensation - it is no longer a fundamental right but a constitutional right.',
+        hi: 'सरकार सार्वजनिक उद्देश्य के लिए मुआवजे के साथ आपकी संपत्ति अधिग्रहित कर सकती है - यह अब मौलिक अधिकार नहीं बल्कि संवैधानिक अधिकार है।',
+        mr: 'सरकार सार्वजनिक हेतूसाठी भरपाईसह तुमची मालमत्ता संपादन करू शकते - हा आता मूलभूत अधिकार नाही तर घटनात्मक अधिकार आहे.'
+      }
+    },
+    {
+      id: 'fr13',
+      title: { en: 'Article 15 - Prohibition of Discrimination', hi: 'अनुच्छेद 15 - भेदभाव का निषेध', mr: 'कलम 15 - भेदभाव निषेध' },
+      content: { 
+        en: 'Article 15 prohibits discrimination on grounds of religion, race, caste, sex, or place of birth. No citizen can be denied access to public places.',
+        hi: 'अनुच्छेद 15 धर्म, नस्ल, जाति, लिंग या जन्मस्थान के आधार पर भेदभाव का निषेध करता है। किसी भी नागरिक को सार्वजनिक स्थानों तक पहुंच से वंचित नहीं किया जा सकता।',
+        mr: 'कलम 15 धर्म, वंश, जात, लिंग किंवा जन्मस्थानाच्या आधारावर भेदभाव निषिद्ध करतो. कोणत्याही नागरिकाला सार्वजनिक ठिकाणांवर प्रवेश नाकारता येत नाही.'
+      },
+      keyPoints: {
+        en: ['No discrimination by state', 'Access to public places for all', 'Special provisions for women/children allowed', 'Reservation for backward classes permitted'],
+        hi: ['राज्य द्वारा भेदभाव नहीं', 'सभी के लिए सार्वजनिक स्थानों तक पहुंच', 'महिलाओं/बच्चों के लिए विशेष प्रावधान अनुमत', 'पिछड़े वर्गों के लिए आरक्षण अनुमत'],
+        mr: ['राज्याकडून भेदभाव नाही', 'सर्वांसाठी सार्वजनिक ठिकाणी प्रवेश', 'महिला/मुलांसाठी विशेष तरतुदी अनुमत', 'मागासवर्गीयांसाठी आरक्षण अनुमत']
+      },
+      example: {
+        en: 'If a temple or public well denies entry based on caste, it violates Article 15 and you can file a complaint.',
+        hi: 'अगर कोई मंदिर या सार्वजनिक कुआं जाति के आधार पर प्रवेश से मना करे, तो यह अनुच्छेद 15 का उल्लंघन है और आप शिकायत दर्ज कर सकते हैं।',
+        mr: 'जर एखादे मंदिर किंवा सार्वजनिक विहीर जातीच्या आधारावर प्रवेश नाकारत असेल, तर ते कलम 15 चे उल्लंघन आहे आणि तुम्ही तक्रार दाखल करू शकता.'
+      }
+    },
+    {
+      id: 'fr14',
+      title: { en: 'Article 16 - Equality in Public Employment', hi: 'अनुच्छेद 16 - सार्वजनिक रोजगार में समानता', mr: 'कलम 16 - सार्वजनिक रोजगारात समानता' },
+      content: { 
+        en: 'Article 16 guarantees equal opportunity in government jobs. No discrimination based on religion, race, caste, sex, descent, place of birth, or residence.',
+        hi: 'अनुच्छेद 16 सरकारी नौकरियों में समान अवसर की गारंटी देता है। धर्म, नस्ल, जाति, लिंग, वंश, जन्मस्थान या निवास के आधार पर कोई भेदभाव नहीं।',
+        mr: 'कलम 16 सरकारी नोकऱ्यांमध्ये समान संधीची हमी देतो. धर्म, वंश, जात, लिंग, वंशज, जन्मस्थान किंवा निवासाच्या आधारावर भेदभाव नाही.'
+      },
+      keyPoints: {
+        en: ['Equal opportunity in government jobs', 'Reservation for backward classes allowed', 'Domicile requirement permitted for some posts', 'No religious discrimination in hiring'],
+        hi: ['सरकारी नौकरियों में समान अवसर', 'पिछड़े वर्गों के लिए आरक्षण अनुमत', 'कुछ पदों के लिए अधिवास आवश्यकता अनुमत', 'नियुक्ति में धार्मिक भेदभाव नहीं'],
+        mr: ['सरकारी नोकऱ्यांमध्ये समान संधी', 'मागासवर्गीयांसाठी आरक्षण अनुमत', 'काही पदांसाठी अधिवास आवश्यकता अनुमत', 'नियुक्तीत धार्मिक भेदभाव नाही']
+      },
+      example: {
+        en: 'A government office cannot reject your application just because of your religion or caste - that violates Article 16.',
+        hi: 'कोई सरकारी कार्यालय आपके धर्म या जाति के कारण आपका आवेदन अस्वीकार नहीं कर सकता - यह अनुच्छेद 16 का उल्लंघन है।',
+        mr: 'सरकारी कार्यालय तुमच्या धर्मामुळे किंवा जातीमुळे तुमचा अर्ज नाकारू शकत नाही - ते कलम 16 चे उल्लंघन आहे.'
+      }
     }
   ],
   consumer_rights: [
