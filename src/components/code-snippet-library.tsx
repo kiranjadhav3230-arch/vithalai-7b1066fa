@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import type { User } from '@supabase/supabase-js';
 import { useCodeExecution } from '@/hooks/useCodeExecution';
+import { useEditorSettings } from '@/hooks/useEditorSettings';
 import {
   ActivityBar,
   ExplorerSidebar,
@@ -17,6 +18,9 @@ import {
   CodeEditorPane,
   TerminalPanel,
   StatusBar,
+  SearchPanel,
+  TagsPanel,
+  SettingsPanel,
   type ActivityView,
 } from '@/components/code-library';
 
@@ -60,6 +64,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   
   const { toast } = useToast();
   const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
+  const { settings, updateSetting, resetSettings } = useEditorSettings();
 
   // Get current active tab data
   const activeTab = openTabs.find(t => t.id === activeTabId);
@@ -314,31 +319,72 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 
           {/* Main Content */}
           <ResizablePanelGroup direction="horizontal" className="flex-1">
-            {/* Explorer Sidebar */}
+            {/* Sidebar - Changes based on activeView */}
             {!sidebarCollapsed && (
               <>
                 <ResizablePanel defaultSize={20} minSize={15} maxSize={35}>
-                  <ExplorerSidebar
-                    snippets={filteredSnippets.map(s => ({
-                      id: s.id,
-                      title: s.title,
-                      generated_code: s.generated_code,
-                      language: s.language,
-                      tags: s.tags || [],
-                      is_favorite: s.is_favorite || false,
-                      created_at: s.created_at,
-                    }))}
-                    selectedSnippetId={selectedSnippetId}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    onSelectSnippet={(snippet) => {
-                      const fullSnippet = snippets.find(s => s.id === snippet.id);
-                      if (fullSnippet) handleSelectSnippet(fullSnippet);
-                    }}
-                    onToggleFavorite={handleToggleFavorite}
-                    onDeleteSnippet={handleDeleteSnippet}
-                    onCopyCode={handleCopyCode}
-                  />
+                  {activeView === 'files' && (
+                    <ExplorerSidebar
+                      snippets={filteredSnippets.map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        generated_code: s.generated_code,
+                        language: s.language,
+                        tags: s.tags || [],
+                        is_favorite: s.is_favorite || false,
+                        created_at: s.created_at,
+                      }))}
+                      selectedSnippetId={selectedSnippetId}
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      onSelectSnippet={(snippet) => {
+                        const fullSnippet = snippets.find(s => s.id === snippet.id);
+                        if (fullSnippet) handleSelectSnippet(fullSnippet);
+                      }}
+                      onToggleFavorite={handleToggleFavorite}
+                      onDeleteSnippet={handleDeleteSnippet}
+                      onCopyCode={handleCopyCode}
+                    />
+                  )}
+                  {activeView === 'search' && (
+                    <SearchPanel
+                      snippets={snippets.map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        generated_code: s.generated_code,
+                        language: s.language,
+                      }))}
+                      onSelectResult={(snippetId, lineNumber) => {
+                        const snippet = snippets.find(s => s.id === snippetId);
+                        if (snippet) {
+                          handleSelectSnippet(snippet);
+                        }
+                      }}
+                    />
+                  )}
+                  {activeView === 'tags' && (
+                    <TagsPanel
+                      snippets={snippets.map(s => ({
+                        id: s.id,
+                        title: s.title,
+                        language: s.language,
+                        tags: s.tags || [],
+                      }))}
+                      onSelectSnippet={(snippetId) => {
+                        const snippet = snippets.find(s => s.id === snippetId);
+                        if (snippet) {
+                          handleSelectSnippet(snippet);
+                        }
+                      }}
+                    />
+                  )}
+                  {activeView === 'settings' && (
+                    <SettingsPanel
+                      settings={settings}
+                      onUpdateSetting={updateSetting}
+                      onReset={resetSettings}
+                    />
+                  )}
                 </ResizablePanel>
                 <ResizableHandle className="w-1 bg-[#3c3c3c] hover:bg-[#007acc] transition-colors" />
               </>
@@ -398,6 +444,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
           language={currentLanguage || 'plaintext'}
           lineCount={lineCount}
           isModified={isCurrentModified}
+          code={currentCode}
         />
       </div>
     </TooltipProvider>
