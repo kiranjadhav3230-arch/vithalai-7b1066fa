@@ -125,6 +125,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
   const [examTotal, setExamTotal] = useState(0);
   const [userId, setUserId] = useState<string | null>(null);
   const [certificateId, setCertificateId] = useState<string | null>(null);
+  const [isWeeklyChallenge, setIsWeeklyChallenge] = useState(false);
 
   const { 
     examHistory, 
@@ -157,12 +158,13 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
     return item[language as keyof typeof item] || item.en;
   };
 
-  const handleTopicSelect = (topic: TopicType) => {
+  const handleTopicSelect = (topic: TopicType, fromWeeklyChallenge: boolean = false) => {
     // Check cooldown for logged-in users
     if (userId && !canTakeExam(topic)) {
       return; // Button should be disabled anyway
     }
     setSelectedTopic(topic);
+    setIsWeeklyChallenge(fromWeeklyChallenge);
     setMode('enter_name');
   };
 
@@ -208,6 +210,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
     setSelectedTopic(null);
     setUserName('');
     setCertificateId(null);
+    setIsWeeklyChallenge(false);
   };
 
   const passedTopics = getPassedTopics();
@@ -619,6 +622,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
         totalQuestions={examTotal}
         onBack={handleBackToTopics}
         onRetry={handleRetry}
+        isWeeklyChallenge={isWeeklyChallenge}
       />
     );
   }
@@ -775,7 +779,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
 
       {/* Weekly Challenge Banner */}
       <div className="max-w-lg mx-auto mb-6 px-0">
-        <WeeklyChallenge onStartChallenge={(topic) => handleTopicSelect(topic as TopicType)} />
+        <WeeklyChallenge onStartChallenge={(topic) => handleTopicSelect(topic as TopicType, true)} />
       </div>
 
       <div className="grid gap-4 max-w-lg mx-auto">
@@ -792,7 +796,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
                   ? 'opacity-60 cursor-not-allowed' 
                   : 'cursor-pointer hover:border-primary/50'
               }`}
-              onClick={() => !isOnCooldown && handleTopicSelect(topic.id)}
+              onClick={() => !isOnCooldown && handleTopicSelect(topic.id, false)}
             >
               <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-full ${topic.color} flex items-center justify-center flex-shrink-0 relative`}>

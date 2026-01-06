@@ -151,12 +151,30 @@ export const useLeaderboard = () => {
     score: number,
     totalQuestions: number,
     state: string,
-    avatarUrl?: string
-  ): Promise<{ success: boolean; rank?: number }> => {
+    avatarUrl?: string,
+    isWeeklyChallenge?: boolean
+  ): Promise<{ success: boolean; rank?: number; bonusApplied?: boolean }> => {
     try {
-      const percentage = Math.round((score / totalQuestions) * 100);
       const currentWeek = getWeekNumber();
       const currentYear = new Date().getFullYear();
+
+      // Check if this topic matches the current weekly challenge topic
+      // Weekly topics rotate based on week number (8 topics total)
+      const weeklyTopicIndex = currentWeek % 8;
+      const weeklyTopics = [
+        'fundamental_rights', 'consumer_rights', 'women_rights', 'police_rights',
+        'rti_rights', 'cyber_rights', 'tenant_rights', 'senior_citizen_rights'
+      ];
+      const currentWeeklyTopic = weeklyTopics[weeklyTopicIndex];
+      
+      // Apply 2x bonus if this is a weekly challenge submission for the correct topic
+      const bonusApplied = isWeeklyChallenge && topic === currentWeeklyTopic;
+      const bonusMultiplier = bonusApplied ? 2 : 1;
+      const baseScore = score;
+      const finalScore = score * bonusMultiplier;
+      const percentage = Math.round((score / totalQuestions) * 100);
+      // Effective percentage for ranking (with bonus applied)
+      const effectivePercentage = Math.min(percentage * bonusMultiplier, 200);
 
       const { data, error } = await supabase
         .from('quiz_leaderboard_entries')
@@ -165,12 +183,15 @@ export const useLeaderboard = () => {
           user_name: userName,
           avatar_url: avatarUrl || null,
           topic,
-          score,
+          score: finalScore,
+          base_score: baseScore,
           total_questions: totalQuestions,
-          percentage,
+          percentage: effectivePercentage,
           state,
           week_number: currentWeek,
           year: currentYear,
+          is_weekly_challenge: bonusApplied,
+          bonus_multiplier: bonusMultiplier,
         })
         .select()
         .single();
@@ -188,7 +209,7 @@ export const useLeaderboard = () => {
 
       const rank = (allEntries || []).findIndex(e => e.id === data.id) + 1;
 
-      return { success: true, rank };
+      return { success: true, rank, bonusApplied };
     } catch (error) {
       console.error('Error submitting to leaderboard:', error);
       return { success: false };

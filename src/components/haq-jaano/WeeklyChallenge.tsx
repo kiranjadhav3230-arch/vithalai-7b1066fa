@@ -9,7 +9,7 @@ interface WeeklyChallengeProps {
   onStartChallenge: (topic: string) => void;
 }
 
-const WEEKLY_TOPICS = [
+export const WEEKLY_TOPICS = [
   { 
     id: 'fundamental_rights', 
     en: 'Fundamental Rights', 

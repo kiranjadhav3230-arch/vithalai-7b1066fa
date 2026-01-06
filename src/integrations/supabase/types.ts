@@ -1041,9 +1041,12 @@ export type Database = {
       quiz_leaderboard_entries: {
         Row: {
           avatar_url: string | null
+          base_score: number | null
+          bonus_multiplier: number | null
           completed_at: string
           created_at: string
           id: string
+          is_weekly_challenge: boolean | null
           percentage: number
           quiz_session_id: string | null
           score: number
@@ -1057,9 +1060,12 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          base_score?: number | null
+          bonus_multiplier?: number | null
           completed_at?: string
           created_at?: string
           id?: string
+          is_weekly_challenge?: boolean | null
           percentage: number
           quiz_session_id?: string | null
           score: number
@@ -1073,9 +1079,12 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          base_score?: number | null
+          bonus_multiplier?: number | null
           completed_at?: string
           created_at?: string
           id?: string
+          is_weekly_challenge?: boolean | null
           percentage?: number
           quiz_session_id?: string | null
           score?: number
