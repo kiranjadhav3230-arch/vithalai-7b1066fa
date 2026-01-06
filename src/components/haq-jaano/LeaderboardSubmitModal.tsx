@@ -7,6 +7,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { useLeaderboard, INDIAN_STATES } from '@/hooks/useLeaderboard';
 import { StateSelector } from './StateSelector';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
 
 interface LeaderboardSubmitModalProps {
@@ -16,6 +17,7 @@ interface LeaderboardSubmitModalProps {
   score: number;
   totalQuestions: number;
   defaultName?: string;
+  isWeeklyChallenge?: boolean;
 }
 
 export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
@@ -24,7 +26,8 @@ export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
   topic,
   score,
   totalQuestions,
-  defaultName = ''
+  defaultName = '',
+  isWeeklyChallenge = false
 }) => {
   const { language } = useLanguage();
   const { submitToLeaderboard } = useLeaderboard();
@@ -35,6 +38,7 @@ export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [rank, setRank] = useState<number | null>(null);
+  const [bonusApplied, setBonusApplied] = useState(false);
   const [userId, setUserId] = useState<string>('');
 
   useEffect(() => {
@@ -75,20 +79,25 @@ export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
         topic,
         score,
         totalQuestions,
-        state
+        state,
+        undefined,
+        isWeeklyChallenge
       );
 
       if (result.success) {
         setSubmitted(true);
         setRank(result.rank || null);
+        setBonusApplied(result.bonusApplied || false);
         
-        // Confetti for top 10
-        if (result.rank && result.rank <= 10) {
+        // Confetti for top 10 or bonus applied
+        if ((result.rank && result.rank <= 10) || result.bonusApplied) {
           confetti({
-            particleCount: 100,
+            particleCount: result.bonusApplied ? 150 : 100,
             spread: 70,
             origin: { x: 0.5, y: 0.6 },
-            colors: ['#f97316', '#eab308', '#22c55e', '#3b82f6']
+            colors: result.bonusApplied 
+              ? ['#f97316', '#ea580c', '#fb923c', '#fed7aa'] 
+              : ['#f97316', '#eab308', '#22c55e', '#3b82f6']
           });
         }
       }
@@ -190,9 +199,14 @@ export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
             </>
           ) : (
             <div className="text-center py-4">
-              <div className="mx-auto w-20 h-20 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+              <div className={cn(
+                "mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-4",
+                bonusApplied ? "bg-orange-500/20" : "bg-green-500/20"
+              )}>
                 {rank && rank <= 3 ? (
                   <Medal className="h-10 w-10 text-yellow-500" />
+                ) : bonusApplied ? (
+                  <Trophy className="h-10 w-10 text-orange-500" />
                 ) : (
                   <Sparkles className="h-10 w-10 text-green-500" />
                 )}
@@ -203,6 +217,14 @@ export const LeaderboardSubmitModal: React.FC<LeaderboardSubmitModalProps> = ({
                  language === 'mr' ? 'सबमिट झाले!' : 
                  'Submitted!'}
               </h2>
+
+              {bonusApplied && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/20 text-orange-600 rounded-full text-sm font-bold mb-3">
+                  🔥 {language === 'hi' ? '2x बोनस लागू!' : 
+                      language === 'mr' ? '2x बोनस लागू!' : 
+                      '2x Bonus Applied!'}
+                </div>
+              )}
               
               {rank && (
                 <div className="mb-4">

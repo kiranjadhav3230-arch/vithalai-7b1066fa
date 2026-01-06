@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Award, Download, Share2, ChevronLeft, Trophy } from 'lucide-react';
+import { Award, Download, Share2, ChevronLeft, Trophy, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -16,6 +16,7 @@ interface RightsCertificateProps {
   totalQuestions: number;
   onBack: () => void;
   onRetry: () => void;
+  isWeeklyChallenge?: boolean;
 }
 
 export const RightsCertificate: React.FC<RightsCertificateProps> = ({
@@ -24,7 +25,8 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
   score,
   totalQuestions,
   onBack,
-  onRetry
+  onRetry,
+  isWeeklyChallenge = false
 }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -599,6 +601,14 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
             <h2 className={cn("text-3xl font-bold text-gray-800", isMr ? "font-cert-mr" : "font-serif")}>
               {getCertificateTitle()}
             </h2>
+            {isWeeklyChallenge && (
+              <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-sm font-bold">
+                <Flame className="h-4 w-4" />
+                {language === 'hi' ? 'साप्ताहिक चुनौती • 2x बोनस' : 
+                 language === 'mr' ? 'साप्ताहिक आव्हान • 2x बोनस' : 
+                 'Weekly Challenge • 2x Bonus'}
+              </div>
+            )}
           </div>
         </div>
 
@@ -680,6 +690,7 @@ export const RightsCertificate: React.FC<RightsCertificateProps> = ({
         score={safeScore}
         totalQuestions={safeTotalQuestions}
         defaultName={userName}
+        isWeeklyChallenge={isWeeklyChallenge}
       />
     </div>
   );

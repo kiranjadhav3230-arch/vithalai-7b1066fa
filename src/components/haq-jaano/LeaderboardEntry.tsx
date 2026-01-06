@@ -1,11 +1,11 @@
 import React from 'react';
-import { Medal, MapPin } from 'lucide-react';
+import { Medal, MapPin, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/useLanguage';
 import { LeaderboardEntry as LeaderboardEntryType, INDIAN_STATES } from '@/hooks/useLeaderboard';
 
 interface LeaderboardEntryProps {
-  entry: LeaderboardEntryType;
+  entry: LeaderboardEntryType & { is_weekly_challenge?: boolean; bonus_multiplier?: number; base_score?: number };
   rank: number;
   isCurrentUser?: boolean;
 }
@@ -36,10 +36,16 @@ export const LeaderboardEntry: React.FC<LeaderboardEntryProps> = ({
       consumer_rights: { en: 'CR', hi: 'उ.अ.', mr: 'ग्रा.अ.' },
       women_rights: { en: 'WR', hi: 'म.अ.', mr: 'म.अ.' },
       police_rights: { en: 'PR', hi: 'पु.अ.', mr: 'पो.अ.' },
+      rti_rights: { en: 'RTI', hi: 'RTI', mr: 'RTI' },
+      cyber_rights: { en: 'CYB', hi: 'साइ.', mr: 'साय.' },
+      tenant_rights: { en: 'TR', hi: 'कि.अ.', mr: 'भा.अ.' },
+      senior_citizen_rights: { en: 'SC', hi: 'व.ना.', mr: 'ज्ये.' },
     };
     const t = topics[topic];
     return t ? t[language as keyof typeof t] || t.en : topic;
   };
+
+  const hasBonus = entry.is_weekly_challenge && entry.bonus_multiplier && entry.bonus_multiplier > 1;
 
   return (
     <div
@@ -48,7 +54,8 @@ export const LeaderboardEntry: React.FC<LeaderboardEntryProps> = ({
         isCurrentUser 
           ? "bg-primary/10 border-2 border-primary" 
           : "bg-card border border-border",
-        rank <= 3 && "shadow-md"
+        rank <= 3 && "shadow-md",
+        hasBonus && "ring-1 ring-orange-400/50"
       )}
       style={{ animationDelay: `${rank * 50}ms` }}
     >
@@ -96,6 +103,12 @@ export const LeaderboardEntry: React.FC<LeaderboardEntryProps> = ({
               </span>
             )}
           </span>
+          {hasBonus && (
+            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-orange-500/20 text-orange-600 rounded-full text-[10px] font-bold">
+              <Flame className="h-3 w-3" />
+              {entry.bonus_multiplier}x
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <MapPin className="h-3 w-3" />
@@ -116,9 +129,14 @@ export const LeaderboardEntry: React.FC<LeaderboardEntryProps> = ({
           "text-muted-foreground"
         )}>
           {entry.percentage}%
+          {hasBonus && <span className="text-xs text-orange-500 ml-0.5">🔥</span>}
         </div>
         <div className="text-xs text-muted-foreground">
-          {entry.score}/{entry.total_questions}
+          {hasBonus && entry.base_score ? (
+            <span>{entry.base_score}/{entry.total_questions} <span className="text-orange-500">→ {entry.score}</span></span>
+          ) : (
+            <span>{entry.score}/{entry.total_questions}</span>
+          )}
         </div>
       </div>
     </div>
