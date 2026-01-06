@@ -118,68 +118,65 @@ export const WeeklyChallenge: React.FC<WeeklyChallengeProps> = ({ onStartChallen
   };
 
   return (
-    <Card className={`relative overflow-hidden bg-gradient-to-br ${currentTopic.color} p-4 border-0 shadow-lg`}>
-      {/* Decorative elements */}
-      <div className="absolute top-0 right-0 opacity-20">
+    <Card className={`relative overflow-hidden bg-gradient-to-br ${currentTopic.color} p-3 sm:p-4 border-0 shadow-lg`}>
+      {/* Decorative elements - hidden on very small screens */}
+      <div className="absolute top-0 right-0 opacity-20 hidden sm:block">
         <Sparkles className="h-24 w-24 text-white" />
       </div>
-      <div className="absolute bottom-0 left-0 opacity-10">
+      <div className="absolute -bottom-2 -right-2 opacity-15 sm:hidden">
+        <Star className="h-12 w-12 text-white" />
+      </div>
+      <div className="absolute bottom-0 left-0 opacity-10 hidden sm:block">
         <Star className="h-16 w-16 text-white" />
       </div>
 
       <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="flex items-center gap-1.5 bg-white/20 px-2.5 py-1 rounded-full">
-            <Flame className="h-4 w-4 text-yellow-300 animate-pulse" />
-            <span className="text-xs font-bold text-white uppercase tracking-wide">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-white/20 px-2 sm:px-2.5 py-1 rounded-full">
+            <Flame className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-300 animate-pulse" />
+            <span className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wide">
               {language === 'hi' ? 'साप्ताहिक चुनौती' : 
                language === 'mr' ? 'साप्ताहिक आव्हान' : 
                'Weekly Challenge'}
             </span>
           </div>
-          <div className="flex items-center gap-1 bg-black/20 px-2 py-1 rounded-full text-white/90 text-xs">
+          <div className="flex items-center gap-1 bg-black/20 px-2 py-1 rounded-full text-white/90 text-[10px] sm:text-xs">
             <Clock className="h-3 w-3" />
             {timeToWeekEnd}
           </div>
         </div>
 
         {/* Topic */}
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-3xl">{currentTopic.icon}</span>
-          <div>
-            <h3 className="text-lg font-bold text-white">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3">
+          <span className="text-2xl sm:text-3xl">{currentTopic.icon}</span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base sm:text-lg font-bold text-white truncate">
               {getLocalizedText(currentTopic)}
             </h3>
-            <p className="text-white/80 text-xs">
-              {language === 'hi' ? `सप्ताह ${currentWeek} • 2x बोनस पॉइंट्स` : 
-               language === 'mr' ? `आठवडा ${currentWeek} • 2x बोनस पॉइंट्स` : 
+            <p className="text-white/80 text-[10px] sm:text-xs">
+              {language === 'hi' ? `सप्ताह ${currentWeek} • 2x बोनस` : 
+               language === 'mr' ? `आठवडा ${currentWeek} • 2x बोनस` : 
                `Week ${currentWeek} • 2x Bonus Points`}
             </p>
           </div>
         </div>
 
         {/* Prizes */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="bg-white/10 rounded-lg p-2 text-center">
-            <Trophy className="h-5 w-5 text-yellow-300 mx-auto mb-1" />
-            <div className="text-[10px] text-white/70">
-              {language === 'hi' ? '1st' : language === 'mr' ? '1st' : '1st'}
-            </div>
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3">
+          <div className="bg-white/10 rounded-lg p-1.5 sm:p-2 text-center">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-300 mx-auto mb-0.5 sm:mb-1" />
+            <div className="text-[9px] sm:text-[10px] text-white/70">1st</div>
             <div className="text-xs font-bold text-white">🥇</div>
           </div>
-          <div className="bg-white/10 rounded-lg p-2 text-center">
-            <Trophy className="h-5 w-5 text-gray-300 mx-auto mb-1" />
-            <div className="text-[10px] text-white/70">
-              {language === 'hi' ? '2nd' : language === 'mr' ? '2nd' : '2nd'}
-            </div>
+          <div className="bg-white/10 rounded-lg p-1.5 sm:p-2 text-center">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300 mx-auto mb-0.5 sm:mb-1" />
+            <div className="text-[9px] sm:text-[10px] text-white/70">2nd</div>
             <div className="text-xs font-bold text-white">🥈</div>
           </div>
-          <div className="bg-white/10 rounded-lg p-2 text-center">
-            <Trophy className="h-5 w-5 text-amber-600 mx-auto mb-1" />
-            <div className="text-[10px] text-white/70">
-              {language === 'hi' ? '3rd' : language === 'mr' ? '3rd' : '3rd'}
-            </div>
+          <div className="bg-white/10 rounded-lg p-1.5 sm:p-2 text-center">
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mx-auto mb-0.5 sm:mb-1" />
+            <div className="text-[9px] sm:text-[10px] text-white/70">3rd</div>
             <div className="text-xs font-bold text-white">🥉</div>
           </div>
         </div>
@@ -187,7 +184,7 @@ export const WeeklyChallenge: React.FC<WeeklyChallengeProps> = ({ onStartChallen
         {/* CTA */}
         <Button 
           onClick={() => onStartChallenge(currentTopic.id)}
-          className="w-full bg-white text-gray-900 hover:bg-white/90 font-bold gap-2"
+          className="w-full bg-white text-gray-900 hover:bg-white/90 font-bold gap-1.5 sm:gap-2 text-sm sm:text-base py-2"
         >
           {language === 'hi' ? 'चुनौती स्वीकार करें' : 
            language === 'mr' ? 'आव्हान स्वीकारा' : 
