@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, AlertCircle, Radio } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Radio, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -9,12 +9,13 @@ interface StatusBarProps {
   isModified: boolean;
   code: string;
   lastSaved?: string;
+  onSave?: () => void;
 }
 
 const PREVIEWABLE_LANGUAGES = ['html', 'css', 'javascript', 'js'];
 const PREVIEW_STORAGE_KEY = 'code-library-preview-content';
 
-export function StatusBar({ language, lineCount, isModified, code, lastSaved }: StatusBarProps) {
+export function StatusBar({ language, lineCount, isModified, code, lastSaved, onSave }: StatusBarProps) {
   const [isLive, setIsLive] = useState(false);
   const previewWindowRef = useRef<Window | null>(null);
 
@@ -181,6 +182,20 @@ export function StatusBar({ language, lineCount, isModified, code, lastSaved }: 
             </>
           )}
         </div>
+
+        {/* Save Button - Only show when modified */}
+        {isModified && onSave && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSave}
+            className="h-5 px-2 text-xs font-medium gap-1.5 bg-white/10 hover:bg-white/20 text-white"
+            title="Save (Ctrl+S)"
+          >
+            <Save className="h-3 w-3" />
+            Save
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
