@@ -8,11 +8,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import Editor from '@monaco-editor/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink, RefreshCw } from 'lucide-react';
+import { Search, X, Copy, Trash2, Star, StarOff, Code2, Calendar, Tag, Edit, Save, Download, Undo, ExternalLink, RefreshCw, Play, Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
 import { toast as sonnerToast } from 'sonner';
+import { useCodeExecution } from '@/hooks/useCodeExecution';
+import { CodeExecutionOutput } from '@/components/code-execution-output';
 
 interface CodeSnippet {
   id: string;
@@ -46,6 +48,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const previewWindowRef = useRef<Window | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
 
   useEffect(() => {
     if (open) {
@@ -726,6 +729,23 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {isExecutable(selectedSnippet.language) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => executeCode(selectedSnippet.generated_code, selectedSnippet.language)}
+                        disabled={isExecuting}
+                        title="Run code"
+                        className="bg-green-500/10 hover:bg-green-500/20 border-green-500/30 text-green-600"
+                      >
+                        {isExecuting ? (
+                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        ) : (
+                          <Play className="h-4 w-4 mr-1" />
+                        )}
+                        {isExecuting ? 'Running...' : 'Run'}
+                      </Button>
+                    )}
                     {isPreviewable(selectedSnippet.language) && (
                       <Button
                         variant="outline"
@@ -812,6 +832,17 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       {selectedSnippet.generated_code}
                     </SyntaxHighlighter>
                   </div>
+                  
+                  {/* Code Execution Output */}
+                  {(result || isExecuting) && (
+                    <div className="mt-4">
+                      <CodeExecutionOutput
+                        result={result}
+                        isExecuting={isExecuting}
+                        onClear={clearResult}
+                      />
+                    </div>
+                  )}
                 </ScrollArea>
               </>
             ) : (
