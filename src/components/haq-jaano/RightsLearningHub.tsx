@@ -699,24 +699,30 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="flex items-center justify-between mb-6">
-        <Button variant="ghost" onClick={onBack}>
+    <div className="min-h-screen bg-background p-3 sm:p-4 overflow-x-hidden">
+      {/* Header - stacked on mobile, row on larger screens */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <Button variant="ghost" onClick={onBack} className="self-start">
           <ChevronLeft className="mr-2 h-4 w-4" />
           {language === 'hi' ? 'वापस' : language === 'mr' ? 'मागे' : 'Back'}
         </Button>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Certificates Button - only show if logged in */}
           {userId && (
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setMode('certificates')}
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3"
             >
-              <Award className="h-4 w-4 text-amber-500" />
-              {language === 'hi' ? 'प्रमाणपत्र' : language === 'mr' ? 'प्रमाणपत्रे' : 'Certificates'}
+              <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-500" />
+              <span className="hidden xs:inline">
+                {language === 'hi' ? 'प्रमाणपत्र' : language === 'mr' ? 'प्रमाणपत्रे' : 'Certificates'}
+              </span>
+              <span className="xs:hidden">
+                {language === 'hi' ? 'प्रमाण' : language === 'mr' ? 'प्रमाण' : 'Certs'}
+              </span>
             </Button>
           )}
 
@@ -726,9 +732,9 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
               variant="outline" 
               size="sm" 
               onClick={() => setMode('history')}
-              className="gap-2"
+              className="gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3"
             >
-              <History className="h-4 w-4" />
+              <History className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               {language === 'hi' ? 'इतिहास' : language === 'mr' ? 'इतिहास' : 'History'}
             </Button>
           )}
@@ -738,22 +744,27 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
             variant="outline" 
             size="sm" 
             onClick={() => setMode('leaderboard')}
-            className="gap-2"
+            className="gap-1.5 text-xs sm:text-sm px-2.5 sm:px-3"
           >
-            <Trophy className="h-4 w-4 text-yellow-500" />
-            {language === 'hi' ? 'लीडरबोर्ड' : language === 'mr' ? 'लीडरबोर्ड' : 'Leaderboard'}
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-500" />
+            <span className="hidden xs:inline">
+              {language === 'hi' ? 'लीडरबोर्ड' : language === 'mr' ? 'लीडरबोर्ड' : 'Leaderboard'}
+            </span>
+            <span className="xs:hidden">
+              {language === 'hi' ? 'रैंक' : language === 'mr' ? 'रँक' : 'Rank'}
+            </span>
           </Button>
         </div>
       </div>
 
-      <div className="text-center mb-8">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
-          <GraduationCap className="h-8 w-8 text-primary" />
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="mx-auto w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/20 flex items-center justify-center mb-3 sm:mb-4">
+          <GraduationCap className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground mb-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
           {language === 'hi' ? 'अधिकार शिक्षा केंद्र' : language === 'mr' ? 'अधिकार शिक्षण केंद्र' : 'Rights Learning Hub'}
         </h1>
-        <p className="text-muted-foreground">
+        <p className="text-sm sm:text-base text-muted-foreground">
           {language === 'hi' 
             ? 'सीखें, परीक्षा दें, प्रमाणपत्र पाएं'
             : language === 'mr'
@@ -763,7 +774,7 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
       </div>
 
       {/* Weekly Challenge Banner */}
-      <div className="max-w-lg mx-auto mb-6">
+      <div className="max-w-lg mx-auto mb-6 px-0">
         <WeeklyChallenge onStartChallenge={(topic) => handleTopicSelect(topic as TopicType)} />
       </div>
 
