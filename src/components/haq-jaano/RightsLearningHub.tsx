@@ -1,17 +1,21 @@
-import React, { useState } from 'react';
-import { ChevronLeft, BookOpen, Trophy, Award, GraduationCap, Scale, ShoppingBag, Shield, Users, Medal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, BookOpen, Trophy, Award, GraduationCap, Scale, ShoppingBag, Shield, Users, Clock, CheckCircle, Lock, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useExamHistory } from '@/hooks/useExamHistory';
 import { RightsLearningGame } from './RightsLearningGame';
 import { RightsQuizExam } from './RightsQuizExam';
 import { RightsCertificate } from './RightsCertificate';
 import { RightsLeaderboard } from './RightsLeaderboard';
 import { WeeklyChallenge } from './WeeklyChallenge';
+import { supabase } from '@/integrations/supabase/client';
 
 type TopicType = 'fundamental_rights' | 'consumer_rights' | 'women_rights' | 'police_rights' | 'rti_rights' | 'cyber_rights' | 'tenant_rights' | 'senior_citizen_rights';
-type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate' | 'leaderboard';
+type ModeType = 'select' | 'enter_name' | 'learn' | 'exam' | 'certificate' | 'leaderboard' | 'history';
 
 interface RightsLearningHubProps {
   onBack: () => void;
@@ -115,12 +119,42 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
   const [userName, setUserName] = useState('');
   const [examScore, setExamScore] = useState(0);
   const [examTotal, setExamTotal] = useState(0);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [certificateId, setCertificateId] = useState<string | null>(null);
+
+  const { 
+    examHistory, 
+    loading: historyLoading, 
+    saveExamResult, 
+    canTakeExam, 
+    getCooldownRemaining,
+    getPassedTopics 
+  } = useExamHistory(userId);
+
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const getLocalizedText = (item: { en: string; hi: string; mr: string }) => {
     return item[language as keyof typeof item] || item.en;
   };
 
   const handleTopicSelect = (topic: TopicType) => {
+    // Check cooldown for logged-in users
+    if (userId && !canTakeExam(topic)) {
+      return; // Button should be disabled anyway
+    }
     setSelectedTopic(topic);
     setMode('enter_name');
   };
@@ -135,9 +169,26 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
     setMode('exam');
   };
 
-  const handleExamComplete = (score: number, total: number, passed: boolean) => {
+  const handleExamComplete = async (score: number, total: number, passed: boolean) => {
     setExamScore(score);
     setExamTotal(total);
+    
+    // Generate certificate ID
+    const newCertId = `VIT-${Date.now().toString(36).toUpperCase()}`;
+    setCertificateId(newCertId);
+
+    // Save exam result to database if user is logged in
+    if (userId && selectedTopic) {
+      await saveExamResult(
+        selectedTopic,
+        userName,
+        score,
+        total,
+        passed,
+        passed ? newCertId : undefined
+      );
+    }
+
     setMode('certificate');
   };
 
@@ -149,7 +200,106 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
     setMode('select');
     setSelectedTopic(null);
     setUserName('');
+    setCertificateId(null);
   };
+
+  const passedTopics = getPassedTopics();
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(
+      language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN',
+      { day: 'numeric', month: 'short', year: 'numeric' }
+    );
+  };
+
+  if (mode === 'history') {
+    return (
+      <div className="min-h-screen bg-background p-4">
+        <Button variant="ghost" onClick={() => setMode('select')} className="mb-6">
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          {language === 'hi' ? 'वापस' : language === 'mr' ? 'मागे' : 'Back'}
+        </Button>
+
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+              <History className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {language === 'hi' ? 'परीक्षा इतिहास' : language === 'mr' ? 'परीक्षा इतिहास' : 'Exam History'}
+            </h1>
+            <p className="text-muted-foreground">
+              {language === 'hi' ? 'आपकी सभी परीक्षाएं और प्रमाणपत्र' : 
+               language === 'mr' ? 'तुमच्या सर्व परीक्षा आणि प्रमाणपत्रे' : 
+               'All your exams and certificates'}
+            </p>
+          </div>
+
+          {historyLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {language === 'hi' ? 'लोड हो रहा है...' : language === 'mr' ? 'लोड होत आहे...' : 'Loading...'}
+            </div>
+          ) : examHistory.length === 0 ? (
+            <Card className="p-8 text-center">
+              <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">
+                {language === 'hi' ? 'अभी तक कोई परीक्षा नहीं दी' : 
+                 language === 'mr' ? 'अद्याप कोणतीही परीक्षा दिलेली नाही' : 
+                 'No exams taken yet'}
+              </p>
+              <Button onClick={() => setMode('select')} className="mt-4">
+                {language === 'hi' ? 'परीक्षा दें' : language === 'mr' ? 'परीक्षा द्या' : 'Take an Exam'}
+              </Button>
+            </Card>
+          ) : (
+            <ScrollArea className="h-[60vh]">
+              <div className="space-y-4">
+                {examHistory.map((entry) => {
+                  const topicData = topics.find(t => t.id === entry.topic);
+                  return (
+                    <Card key={entry.id} className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-full ${topicData?.color || 'bg-primary'} flex items-center justify-center flex-shrink-0`}>
+                          {topicData && <topicData.icon className="h-6 w-6 text-white" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-foreground">
+                              {topicData ? getLocalizedText(topicData.title) : entry.topic}
+                            </h3>
+                            {entry.passed ? (
+                              <Badge className="bg-green-500 text-white text-xs">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                {language === 'hi' ? 'पास' : language === 'mr' ? 'उत्तीर्ण' : 'Passed'}
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="text-xs">
+                                {language === 'hi' ? 'फेल' : language === 'mr' ? 'अनुत्तीर्ण' : 'Failed'}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{entry.percentage}% ({entry.score}/{entry.total_questions})</span>
+                            <span>{formatDate(entry.completed_at)}</span>
+                          </div>
+                          {entry.certificate_id && (
+                            <div className="flex items-center gap-1 text-xs text-primary mt-1">
+                              <Award className="h-3 w-3" />
+                              <span>{entry.certificate_id}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (mode === 'leaderboard') {
     return (
@@ -275,16 +425,31 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
           {language === 'hi' ? 'वापस' : language === 'mr' ? 'मागे' : 'Back'}
         </Button>
         
-        {/* Leaderboard Button */}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => setMode('leaderboard')}
-          className="gap-2"
-        >
-          <Trophy className="h-4 w-4 text-yellow-500" />
-          {language === 'hi' ? 'लीडरबोर्ड' : language === 'mr' ? 'लीडरबोर्ड' : 'Leaderboard'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* History Button - only show if logged in */}
+          {userId && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setMode('history')}
+              className="gap-2"
+            >
+              <History className="h-4 w-4" />
+              {language === 'hi' ? 'इतिहास' : language === 'mr' ? 'इतिहास' : 'History'}
+            </Button>
+          )}
+          
+          {/* Leaderboard Button */}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setMode('leaderboard')}
+            className="gap-2"
+          >
+            <Trophy className="h-4 w-4 text-yellow-500" />
+            {language === 'hi' ? 'लीडरबोर्ड' : language === 'mr' ? 'लीडरबोर्ड' : 'Leaderboard'}
+          </Button>
+        </div>
       </div>
 
       <div className="text-center mb-8">
@@ -309,39 +474,86 @@ export const RightsLearningHub: React.FC<RightsLearningHubProps> = ({ onBack }) 
       </div>
 
       <div className="grid gap-4 max-w-lg mx-auto">
-        {topics.map((topic) => (
-          <Card
-            key={topic.id}
-            className="p-4 cursor-pointer hover:border-primary/50 transition-all"
-            onClick={() => handleTopicSelect(topic.id)}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-full ${topic.color} flex items-center justify-center flex-shrink-0`}>
-                <topic.icon className="h-6 w-6 text-white" />
+        {topics.map((topic) => {
+          const isOnCooldown = userId && !canTakeExam(topic.id);
+          const cooldownTime = userId ? getCooldownRemaining(topic.id) : null;
+          const hasPassed = passedTopics.includes(topic.id);
+
+          return (
+            <Card
+              key={topic.id}
+              className={`p-4 transition-all ${
+                isOnCooldown 
+                  ? 'opacity-60 cursor-not-allowed' 
+                  : 'cursor-pointer hover:border-primary/50'
+              }`}
+              onClick={() => !isOnCooldown && handleTopicSelect(topic.id)}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full ${topic.color} flex items-center justify-center flex-shrink-0 relative`}>
+                  <topic.icon className="h-6 w-6 text-white" />
+                  {hasPassed && (
+                    <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-0.5">
+                      <CheckCircle className="h-3 w-3 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">
+                      {getLocalizedText(topic.title)}
+                    </h3>
+                    {hasPassed && (
+                      <Badge variant="outline" className="text-xs border-green-500 text-green-600">
+                        <Award className="h-3 w-3 mr-1" />
+                        {language === 'hi' ? 'प्रमाणित' : language === 'mr' ? 'प्रमाणित' : 'Certified'}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {getLocalizedText(topic.description)}
+                  </p>
+                  {isOnCooldown && cooldownTime && (
+                    <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                      <Lock className="h-3 w-3" />
+                      <Clock className="h-3 w-3" />
+                      <span>
+                        {language === 'hi' ? `${cooldownTime} में उपलब्ध` : 
+                         language === 'mr' ? `${cooldownTime} मध्ये उपलब्ध` : 
+                         `Available in ${cooldownTime}`}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {isOnCooldown ? (
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronLeft className="h-5 w-5 text-muted-foreground rotate-180" />
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground">
-                  {getLocalizedText(topic.title)}
-                </h3>
-                <p className="text-sm text-muted-foreground truncate">
-                  {getLocalizedText(topic.description)}
-                </p>
-              </div>
-              <ChevronLeft className="h-5 w-5 text-muted-foreground rotate-180" />
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Info */}
-      <div className="mt-8 text-center text-sm text-muted-foreground max-w-md mx-auto">
+      <div className="mt-8 text-center text-sm text-muted-foreground max-w-md mx-auto space-y-2">
         <p>
           {language === 'hi' 
-            ? '⏱️ हर परीक्षा 10 मिनट की है | 📝 10 प्रश्न | 🎯 60% पास मार्क्स'
+            ? '⏱️ हर परीक्षा 5 मिनट की है | 📝 10 प्रश्न | 🎯 60% पास मार्क्स'
             : language === 'mr'
-            ? '⏱️ प्रत्येक परीक्षा 10 मिनिटांची | 📝 10 प्रश्न | 🎯 60% उत्तीर्ण गुण'
-            : '⏱️ Each exam is 10 minutes | 📝 10 questions | 🎯 60% to pass'}
+            ? '⏱️ प्रत्येक परीक्षा 5 मिनिटांची | 📝 10 प्रश्न | 🎯 60% उत्तीर्ण गुण'
+            : '⏱️ Each exam is 5 minutes | 📝 10 questions | 🎯 60% to pass'}
         </p>
+        {userId && (
+          <p className="text-xs">
+            {language === 'hi' 
+              ? '🔒 एक विषय में परीक्षा देने के बाद 7 दिन तक दोबारा नहीं दे सकते'
+              : language === 'mr'
+              ? '🔒 एका विषयात परीक्षा दिल्यानंतर 7 दिवस पुन्हा देता येणार नाही'
+              : '🔒 After taking an exam, you must wait 7 days to retake the same topic'}
+          </p>
+        )}
       </div>
     </div>
   );

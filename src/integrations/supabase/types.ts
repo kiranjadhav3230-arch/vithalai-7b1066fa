@@ -1585,6 +1585,48 @@ export type Database = {
           },
         ]
       }
+      user_exam_history: {
+        Row: {
+          certificate_id: string | null
+          completed_at: string
+          created_at: string
+          id: string
+          passed: boolean
+          percentage: number
+          score: number
+          topic: string
+          total_questions: number
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          certificate_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          passed?: boolean
+          percentage: number
+          score: number
+          topic: string
+          total_questions: number
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          certificate_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          passed?: boolean
+          percentage?: number
+          score?: number
+          topic?: string
+          total_questions?: number
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       user_rights_history: {
         Row: {
           ai_response: string | null
