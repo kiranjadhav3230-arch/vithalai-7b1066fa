@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Terminal, Copy, Download, Save, ExternalLink } from 'lucide-react';
+import { Terminal, Copy, Download, Save, ExternalLink, Play } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { toast } from 'sonner';
+import { useCodeExecution } from '@/hooks/useCodeExecution';
+import { CodeExecutionOutput } from '@/components/code-execution-output';
 
 interface CodeGeneratorResultProps {
   generatedCode: string;
@@ -23,9 +25,15 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
   onDownload,
   onSave,
 }) => {
+  const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
   
   // Check if the language supports preview
   const isPreviewable = ['html', 'css', 'javascript'].includes(selectedLanguage.toLowerCase());
+  const canExecute = isExecutable(selectedLanguage);
+
+  const handleRunCode = async () => {
+    await executeCode(generatedCode, selectedLanguage);
+  };
 
   const handleOpenPreview = () => {
     if (!isPreviewable) {
@@ -105,6 +113,18 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
             </Badge>
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
+            {canExecute && (
+              <Button 
+                onClick={handleRunCode} 
+                variant="outline" 
+                size="sm" 
+                className="gap-2 hover:border-emerald-500 text-emerald-600 border-emerald-500/50"
+                disabled={isExecuting}
+              >
+                <Play className="h-4 w-4" />
+                {isExecuting ? 'Running...' : 'Run Code'}
+              </Button>
+            )}
             <Button 
               onClick={handleOpenPreview} 
               variant="outline" 
@@ -153,6 +173,12 @@ export const CodeGeneratorResult: React.FC<CodeGeneratorResultProps> = ({
             {generatedCode}
           </SyntaxHighlighter>
         </ScrollArea>
+        
+        <CodeExecutionOutput 
+          result={result} 
+          isExecuting={isExecuting} 
+          onClear={clearResult} 
+        />
       </CardContent>
     </Card>
   );
