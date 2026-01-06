@@ -4,3 +4,6 @@ export { EditorTabs } from './EditorTabs';
 export { CodeEditorPane } from './CodeEditorPane';
 export { TerminalPanel } from './TerminalPanel';
 export { StatusBar } from './StatusBar';
+export { SearchPanel } from './SearchPanel';
+export { TagsPanel } from './TagsPanel';
+export { SettingsPanel } from './SettingsPanel';
