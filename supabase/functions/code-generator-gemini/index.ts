@@ -632,7 +632,7 @@ OUTPUT FORMAT:
             contents: [{ parts: contentParts }],
             generationConfig: {
               temperature: 0.1,
-              maxOutputTokens: 16000,
+              maxOutputTokens: 32000,
             }
           }),
         }
@@ -665,7 +665,7 @@ OUTPUT FORMAT:
           contents: [{ parts: contentParts }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 16000,
+            maxOutputTokens: 32000,
           }
         }),
       }
