@@ -765,6 +765,63 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'विवाहित बेटी का पिता की पैतृक संपत्ति में समान अधिकार है और वह कभी भी अपना हिस्सा मांग सकती है।',
         mr: 'विवाहित मुलीला वडिलांच्या वडिलोपार्जित मालमत्तेत समान अधिकार आहे आणि ती कधीही आपला वाटा मागू शकते.'
       }
+    },
+    {
+      id: 'wr13',
+      title: { en: 'Marital Rape Laws in India', hi: 'भारत में वैवाहिक बलात्कार कानून', mr: 'भारतातील वैवाहिक बलात्कार कायदे' },
+      content: { 
+        en: 'Marital rape is not criminalized for wives above 18 years in India (Exception 2 of Section 375 IPC). However, it is a crime if wife is under 18.',
+        hi: 'भारत में 18 वर्ष से अधिक उम्र की पत्नियों के लिए वैवाहिक बलात्कार अपराध नहीं है (IPC धारा 375 का अपवाद 2)। हालांकि, अगर पत्नी 18 से कम है तो यह अपराध है।',
+        mr: 'भारतात 18 वर्षांवरील पत्नींसाठी वैवाहिक बलात्कार गुन्हा नाही (IPC कलम 375 चा अपवाद 2). तथापि, पत्नी 18 वर्षांखालील असल्यास हा गुन्हा आहे.'
+      },
+      keyPoints: {
+        en: ['Exception for wives above 18', 'Crime if wife under 18', 'Ongoing judicial debates', 'Cruelty charges possible under 498A'],
+        hi: ['18+ पत्नी के लिए अपवाद', 'पत्नी 18 से कम हो तो अपराध', 'न्यायिक बहस जारी', '498A के तहत क्रूरता आरोप संभव'],
+        mr: ['18+ पत्नीसाठी अपवाद', 'पत्नी 18 खाली असल्यास गुन्हा', 'न्यायिक वाद सुरू', '498A अंतर्गत क्रूरता आरोप शक्य']
+      },
+      example: {
+        en: 'While marital rape itself is not criminal, a wife can file for cruelty under Section 498A or seek divorce on grounds of cruelty.',
+        hi: 'हालांकि वैवाहिक बलात्कार स्वयं अपराध नहीं है, पत्नी धारा 498A के तहत क्रूरता का मामला दर्ज कर सकती है या क्रूरता के आधार पर तलाक ले सकती है।',
+        mr: 'जरी वैवाहिक बलात्कार स्वतःच गुन्हा नसला तरी, पत्नी कलम 498A अंतर्गत क्रूरता प्रकरण दाखल करू शकते किंवा क्रूरतेच्या आधारावर घटस्फोट घेऊ शकते.'
+      }
+    },
+    {
+      id: 'wr14',
+      title: { en: 'One Stop Centre (181 Helpline)', hi: 'वन स्टॉप सेंटर (181 हेल्पलाइन)', mr: 'वन स्टॉप सेंटर (181 हेल्पलाइन)' },
+      content: { 
+        en: 'One Stop Centres (Sakhi) provide integrated support to women affected by violence. 24/7 shelter, medical, legal, counseling services under one roof.',
+        hi: 'वन स्टॉप सेंटर (सखी) हिंसा से प्रभावित महिलाओं को एकीकृत सहायता प्रदान करते हैं। 24/7 आश्रय, चिकित्सा, कानूनी, परामर्श सेवाएं एक छत के नीचे।',
+        mr: 'वन स्टॉप सेंटर (सखी) हिंसेने प्रभावित महिलांना एकात्मिक सहाय्य प्रदान करतात. 24/7 आश्रय, वैद्यकीय, कायदेशीर, समुपदेशन सेवा एकाच छताखाली.'
+      },
+      keyPoints: {
+        en: ['181 helpline number', 'Available in every district', 'Free shelter up to 5 days', 'Medical and legal help'],
+        hi: ['181 हेल्पलाइन नंबर', 'हर जिले में उपलब्ध', '5 दिन तक मुफ्त आश्रय', 'चिकित्सा और कानूनी मदद'],
+        mr: ['181 हेल्पलाइन नंबर', 'प्रत्येक जिल्ह्यात उपलब्ध', '5 दिवसांपर्यंत मोफत आश्रय', 'वैद्यकीय आणि कायदेशीर मदत']
+      },
+      example: {
+        en: 'A woman facing domestic violence can call 181 and get immediate shelter, medical care, FIR assistance, and legal counseling.',
+        hi: 'घरेलू हिंसा का सामना कर रही महिला 181 पर कॉल कर तुरंत आश्रय, चिकित्सा देखभाल, FIR सहायता और कानूनी परामर्श प्राप्त कर सकती है।',
+        mr: 'घरगुती हिंसेला तोंड देणारी महिला 181 वर कॉल करून तात्काळ आश्रय, वैद्यकीय सेवा, FIR मदत आणि कायदेशीर समुपदेशन मिळवू शकते.'
+      }
+    },
+    {
+      id: 'wr15',
+      title: { en: 'Cyber Harassment of Women', hi: 'महिलाओं का साइबर उत्पीड़न', mr: 'महिलांचे सायबर छळ' },
+      content: { 
+        en: 'Women facing online harassment can report under IT Act Section 66E (voyeurism), 67 (obscene content), 67A (sexually explicit content). Report at cybercrime.gov.in.',
+        hi: 'ऑनलाइन उत्पीड़न का सामना कर रही महिलाएं IT अधिनियम धारा 66E (वॉयरिज्म), 67 (अश्लील सामग्री), 67A (यौन स्पष्ट सामग्री) के तहत रिपोर्ट कर सकती हैं। cybercrime.gov.in पर रिपोर्ट करें।',
+        mr: 'ऑनलाइन छळाला तोंड देणाऱ्या महिला IT कायदा कलम 66E (वॉयरिझम), 67 (अश्लील सामग्री), 67A (लैंगिक स्पष्ट सामग्री) अंतर्गत तक्रार करू शकतात. cybercrime.gov.in वर तक्रार करा.'
+      },
+      keyPoints: {
+        en: ['Report at cybercrime.gov.in', 'Section 66E for voyeurism', 'Section 67A for explicit content', 'Up to 7 years imprisonment'],
+        hi: ['cybercrime.gov.in पर रिपोर्ट करें', 'वॉयरिज्म के लिए धारा 66E', 'स्पष्ट सामग्री के लिए धारा 67A', '7 साल तक की कैद'],
+        mr: ['cybercrime.gov.in वर तक्रार करा', 'वॉयरिझमसाठी कलम 66E', 'स्पष्ट सामग्रीसाठी कलम 67A', '7 वर्षांपर्यंत कारावास']
+      },
+      example: {
+        en: 'If someone shares your private photos online without consent, file complaint at cybercrime.gov.in under Section 66E.',
+        hi: 'अगर कोई आपकी निजी तस्वीरें बिना सहमति के ऑनलाइन साझा करे, तो धारा 66E के तहत cybercrime.gov.in पर शिकायत करें।',
+        mr: 'जर कोणी तुमचे खाजगी फोटो संमतीशिवाय ऑनलाइन शेअर करत असेल, तर कलम 66E अंतर्गत cybercrime.gov.in वर तक्रार दाखल करा.'
+      }
     }
   ],
   police_rights: [
@@ -995,6 +1052,63 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'अगर पुलिस ऐसे सवाल पूछे जिनका आप जवाब नहीं देना चाहते, तो आप मौन रह सकते हैं। मौन आपके खिलाफ इस्तेमाल नहीं किया जा सकता।',
         mr: 'जर पोलिसांनी तुम्हाला उत्तर द्यायचे नसलेले प्रश्न विचारले, तर तुम्ही मौन राहू शकता. मौन तुमच्याविरुद्ध वापरता येत नाही.'
       }
+    },
+    {
+      id: 'pr13',
+      title: { en: 'Charge Sheet - Police Investigation Report', hi: 'चार्जशीट - पुलिस जांच रिपोर्ट', mr: 'चार्जशीट - पोलीस तपास अहवाल' },
+      content: { 
+        en: 'Charge Sheet is the final police report filed in court after investigation. Must be filed within 60 days (normal cases) or 90 days (serious offences).',
+        hi: 'चार्जशीट जांच के बाद अदालत में दायर अंतिम पुलिस रिपोर्ट है। 60 दिनों (सामान्य मामले) या 90 दिनों (गंभीर अपराध) के भीतर दायर करनी होगी।',
+        mr: 'चार्जशीट म्हणजे तपासानंतर न्यायालयात दाखल केलेला अंतिम पोलीस अहवाल. 60 दिवसांत (सामान्य प्रकरणे) किंवा 90 दिवसांत (गंभीर गुन्हे) दाखल करणे आवश्यक.'
+      },
+      keyPoints: {
+        en: ['60 days for normal cases', '90 days for serious offences', 'Contains evidence and witnesses', 'Right to default bail if delayed'],
+        hi: ['सामान्य मामलों के लिए 60 दिन', 'गंभीर अपराधों के लिए 90 दिन', 'साक्ष्य और गवाह शामिल', 'देरी होने पर डिफॉल्ट जमानत का अधिकार'],
+        mr: ['सामान्य प्रकरणांसाठी 60 दिवस', 'गंभीर गुन्ह्यांसाठी 90 दिवस', 'पुरावे आणि साक्षीदार समाविष्ट', 'विलंब झाल्यास डिफॉल्ट जामिनाचा हक्क']
+      },
+      example: {
+        en: 'If police do not file charge sheet within 60/90 days, accused has right to default bail under Section 167 CrPC.',
+        hi: 'अगर पुलिस 60/90 दिनों के भीतर चार्जशीट दायर नहीं करती, तो आरोपी को धारा 167 CrPC के तहत डिफॉल्ट जमानत का अधिकार है।',
+        mr: 'जर पोलिसांनी 60/90 दिवसांत चार्जशीट दाखल केली नाही, तर आरोपीला कलम 167 CrPC अंतर्गत डिफॉल्ट जामिनाचा हक्क आहे.'
+      }
+    },
+    {
+      id: 'pr14',
+      title: { en: 'Custody Death Investigation', hi: 'हिरासत में मृत्यु जांच', mr: 'कोठडीतील मृत्यू तपास' },
+      content: { 
+        en: 'Any death in police/judicial custody requires mandatory magisterial inquiry. Must be reported to NHRC within 24 hours. Family entitled to compensation.',
+        hi: 'पुलिस/न्यायिक हिरासत में किसी भी मृत्यु के लिए अनिवार्य मजिस्ट्रेट जांच आवश्यक है। 24 घंटे के भीतर NHRC को सूचित करना होगा। परिवार मुआवजे का हकदार।',
+        mr: 'पोलीस/न्यायालयीन कोठडीत कोणत्याही मृत्यूसाठी अनिवार्य मॅजिस्ट्रेट चौकशी आवश्यक आहे. 24 तासांच्या आत NHRC ला कळवणे आवश्यक. कुटुंब भरपाईसाठी पात्र.'
+      },
+      keyPoints: {
+        en: ['Mandatory magisterial inquiry', 'Report to NHRC in 24 hours', 'Post-mortem mandatory', 'Compensation to family'],
+        hi: ['अनिवार्य मजिस्ट्रेट जांच', '24 घंटे में NHRC को रिपोर्ट', 'पोस्टमार्टम अनिवार्य', 'परिवार को मुआवजा'],
+        mr: ['अनिवार्य मॅजिस्ट्रेट चौकशी', '24 तासांत NHRC ला तक्रार', 'शवविच्छेदन अनिवार्य', 'कुटुंबाला भरपाई']
+      },
+      example: {
+        en: 'If someone dies in police custody, family should immediately approach NHRC and district magistrate for inquiry.',
+        hi: 'अगर कोई पुलिस हिरासत में मर जाए, तो परिवार को तुरंत जांच के लिए NHRC और जिला मजिस्ट्रेट से संपर्क करना चाहिए।',
+        mr: 'जर कोणी पोलीस कोठडीत मरण पावला, तर कुटुंबाने चौकशीसाठी तात्काळ NHRC आणि जिल्हा दंडाधिकाऱ्याशी संपर्क साधावा.'
+      }
+    },
+    {
+      id: 'pr15',
+      title: { en: 'Recording Police - Legal Rights', hi: 'पुलिस की रिकॉर्डिंग - कानूनी अधिकार', mr: 'पोलिसांची रेकॉर्डिंग - कायदेशीर अधिकार' },
+      content: { 
+        en: 'Recording police in public places is legal in India. Video evidence is admissible in court. Police cannot forcibly delete recordings from your phone.',
+        hi: 'भारत में सार्वजनिक स्थानों पर पुलिस की रिकॉर्डिंग कानूनी है। वीडियो साक्ष्य अदालत में मान्य है। पुलिस आपके फोन से जबरन रिकॉर्डिंग नहीं मिटा सकती।',
+        mr: 'भारतात सार्वजनिक ठिकाणी पोलिसांची रेकॉर्डिंग कायदेशीर आहे. व्हिडिओ पुरावा न्यायालयात ग्राह्य आहे. पोलीस तुमच्या फोनमधून जबरदस्तीने रेकॉर्डिंग हटवू शकत नाहीत.'
+      },
+      keyPoints: {
+        en: ['Legal to record in public', 'Video is valid evidence', 'Police cannot force deletion', 'Backup to cloud immediately'],
+        hi: ['सार्वजनिक स्थान पर रिकॉर्ड करना कानूनी', 'वीडियो वैध साक्ष्य है', 'पुलिस जबरन हटा नहीं सकती', 'तुरंत क्लाउड पर बैकअप करें'],
+        mr: ['सार्वजनिक ठिकाणी रेकॉर्ड करणे कायदेशीर', 'व्हिडिओ वैध पुरावा आहे', 'पोलीस जबरदस्तीने हटवू शकत नाहीत', 'तात्काळ क्लाउडवर बॅकअप करा']
+      },
+      example: {
+        en: 'If police ask you to delete a recording, politely refuse. Immediately backup to cloud. This can be evidence of misconduct.',
+        hi: 'अगर पुलिस आपसे रिकॉर्डिंग हटाने को कहे, विनम्रता से मना करें। तुरंत क्लाउड पर बैकअप करें। यह दुर्व्यवहार का साक्ष्य हो सकता है।',
+        mr: 'जर पोलिसांनी तुम्हाला रेकॉर्डिंग हटवण्यास सांगितले, तर विनम्रपणे नकार द्या. तात्काळ क्लाउडवर बॅकअप करा. हा गैरवर्तनाचा पुरावा असू शकतो.'
+      }
     }
   ],
   rti_rights: [
@@ -1187,6 +1301,44 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'अगर आप तहसील कार्यालय में APIO को RTI जमा करते हैं, तो 5 अतिरिक्त दिन जोड़ें क्योंकि APIO को PIO को अग्रेषित करना होगा।',
         mr: 'जर तुम्ही तहसील कार्यालयात APIO ला RTI सबमिट केला, तर 5 अतिरिक्त दिवस जोडा कारण APIO ने PIO ला पाठवणे आवश्यक आहे.'
       }
+    },
+    {
+      id: 'rti11',
+      title: { en: 'Section 66A - Struck Down', hi: 'धारा 66A - रद्द', mr: 'कलम 66A - रद्द' },
+      content: { 
+        en: 'Section 66A of IT Act was struck down by Supreme Court in 2015 (Shreya Singhal case) as it violated free speech. Cannot be used to arrest for online posts.',
+        hi: 'IT अधिनियम की धारा 66A को 2015 में सुप्रीम कोर्ट ने रद्द कर दिया (श्रेया सिंघल मामला) क्योंकि यह अभिव्यक्ति की स्वतंत्रता का उल्लंघन करती थी। ऑनलाइन पोस्ट के लिए गिरफ्तारी के लिए इसका उपयोग नहीं किया जा सकता।',
+        mr: 'IT कायद्याचे कलम 66A 2015 मध्ये सर्वोच्च न्यायालयाने रद्द केले (श्रेया सिंघल प्रकरण) कारण ते अभिव्यक्ती स्वातंत्र्याचे उल्लंघन करत होते. ऑनलाइन पोस्टसाठी अटकेसाठी वापरता येत नाही.'
+      },
+      keyPoints: {
+        en: ['Section 66A is dead law', 'Cannot arrest for offensive posts', 'Free speech protected', 'Other sections may still apply'],
+        hi: ['धारा 66A मृत कानून है', 'आपत्तिजनक पोस्ट के लिए गिरफ्तार नहीं कर सकते', 'अभिव्यक्ति की स्वतंत्रता संरक्षित', 'अन्य धाराएं अभी भी लागू हो सकती हैं'],
+        mr: ['कलम 66A मृत कायदा आहे', 'आक्षेपार्ह पोस्टसाठी अटक करता येत नाही', 'अभिव्यक्ती स्वातंत्र्य संरक्षित', 'इतर कलमे अजूनही लागू होऊ शकतात']
+      },
+      example: {
+        en: 'If police threaten arrest under Section 66A, inform them it was struck down in 2015 and is no longer valid.',
+        hi: 'अगर पुलिस धारा 66A के तहत गिरफ्तारी की धमकी दे, तो उन्हें बताएं कि इसे 2015 में रद्द कर दिया गया था और यह अब वैध नहीं है।',
+        mr: 'जर पोलिसांनी कलम 66A अंतर्गत अटकेची धमकी दिली, तर त्यांना सांगा की ते 2015 मध्ये रद्द करण्यात आले आणि आता वैध नाही.'
+      }
+    },
+    {
+      id: 'rti12',
+      title: { en: 'Fake News & Defamation Online', hi: 'फेक न्यूज और ऑनलाइन मानहानि', mr: 'फेक न्यूज आणि ऑनलाइन बदनामी' },
+      content: { 
+        en: 'Spreading fake news can be punishable under IPC sections. Defamation online is same as offline. Truth is a valid defense in defamation cases.',
+        hi: 'फेक न्यूज फैलाना IPC धाराओं के तहत दंडनीय हो सकता है। ऑनलाइन मानहानि ऑफलाइन जैसी ही है। मानहानि मामलों में सच्चाई एक वैध बचाव है।',
+        mr: 'फेक न्यूज पसरवणे IPC कलमांतर्गत शिक्षापात्र असू शकते. ऑनलाइन बदनामी ऑफलाइनसारखीच आहे. बदनामी प्रकरणांमध्ये सत्य हा वैध बचाव आहे.'
+      },
+      keyPoints: {
+        en: ['Fake news can be criminal', 'IPC 505 for rumors', 'Defamation - civil and criminal', 'Truth is defense'],
+        hi: ['फेक न्यूज अपराध हो सकती है', 'अफवाहों के लिए IPC 505', 'मानहानि - दीवानी और आपराधिक', 'सच्चाई बचाव है'],
+        mr: ['फेक न्यूज गुन्हा असू शकतो', 'अफवांसाठी IPC 505', 'बदनामी - दिवाणी आणि फौजदारी', 'सत्य हा बचाव आहे']
+      },
+      example: {
+        en: 'Before sharing news on WhatsApp, verify from trusted sources. Sharing fake news can lead to legal action.',
+        hi: 'WhatsApp पर समाचार साझा करने से पहले, विश्वसनीय स्रोतों से सत्यापित करें। फेक न्यूज साझा करने से कानूनी कार्रवाई हो सकती है।',
+        mr: 'WhatsApp वर बातम्या शेअर करण्यापूर्वी, विश्वासार्ह स्रोतांकडून सत्यापित करा. फेक न्यूज शेअर केल्याने कायदेशीर कारवाई होऊ शकते.'
+      }
     }
   ],
   cyber_rights: [
@@ -1341,6 +1493,44 @@ const learningContent: Record<string, LearningCard[]> = {
         hi: 'अगर कोई KYC अपडेट की जरूरत बताते हुए कॉल करे, तो कॉल काटें और सत्यापित करने के लिए बैंक के आधिकारिक नंबर पर कॉल करें।',
         mr: 'जर कोणी KYC अपडेट आवश्यक असल्याचे सांगून कॉल केला, तर कॉल डिस्कनेक्ट करा आणि सत्यापित करण्यासाठी बँकेच्या अधिकृत नंबरवर कॉल करा.'
       }
+    },
+    {
+      id: 'cyber9',
+      title: { en: 'Common Cyber Crimes & Their Sections', hi: 'आम साइबर अपराध और उनकी धाराएं', mr: 'सामान्य सायबर गुन्हे आणि त्यांची कलमे' },
+      content: { 
+        en: 'Phishing (fake websites) - Section 66D. Identity theft - Section 66C. Cyber stalking - Section 354D IPC. Know the sections to file proper complaint.',
+        hi: 'फिशिंग (नकली वेबसाइट) - धारा 66D। पहचान की चोरी - धारा 66C। साइबर स्टॉकिंग - IPC धारा 354D। सही शिकायत दर्ज करने के लिए धाराएं जानें।',
+        mr: 'फिशिंग (बनावट वेबसाइट) - कलम 66D. ओळख चोरी - कलम 66C. सायबर स्टॉकिंग - IPC कलम 354D. योग्य तक्रार दाखल करण्यासाठी कलमे जाणून घ्या.'
+      },
+      keyPoints: {
+        en: ['Phishing = 66D', 'Identity theft = 66C', 'Hacking = 66', 'Cyber stalking = 354D IPC'],
+        hi: ['फिशिंग = 66D', 'पहचान की चोरी = 66C', 'हैकिंग = 66', 'साइबर स्टॉकिंग = IPC 354D'],
+        mr: ['फिशिंग = 66D', 'ओळख चोरी = 66C', 'हॅकिंग = 66', 'सायबर स्टॉकिंग = IPC 354D']
+      },
+      example: {
+        en: 'If someone creates fake profile using your photos, file complaint under Section 66C (identity theft) and 66D.',
+        hi: 'अगर कोई आपकी फोटो का उपयोग करके नकली प्रोफाइल बनाए, तो धारा 66C (पहचान की चोरी) और 66D के तहत शिकायत करें।',
+        mr: 'जर कोणी तुमच्या फोटोंचा वापर करून बनावट प्रोफाइल तयार करत असेल, तर कलम 66C (ओळख चोरी) आणि 66D अंतर्गत तक्रार दाखल करा.'
+      }
+    },
+    {
+      id: 'cyber10',
+      title: { en: 'Ransomware & Malware Protection', hi: 'रैंसमवेयर और मैलवेयर सुरक्षा', mr: 'रॅन्समवेअर आणि मालवेअर संरक्षण' },
+      content: { 
+        en: 'Ransomware locks your data and demands payment. Never pay ransom. Report to CERT-In and police. Regular backups and updated software protect you.',
+        hi: 'रैंसमवेयर आपका डेटा लॉक करता है और भुगतान की मांग करता है। कभी फिरौती न दें। CERT-In और पुलिस को रिपोर्ट करें। नियमित बैकअप और अपडेटेड सॉफ्टवेयर आपकी रक्षा करते हैं।',
+        mr: 'रॅन्समवेअर तुमचा डेटा लॉक करतो आणि पेमेंटची मागणी करतो. कधीही खंडणी देऊ नका. CERT-In आणि पोलिसांना तक्रार करा. नियमित बॅकअप आणि अपडेटेड सॉफ्टवेअर तुमचे संरक्षण करतात.'
+      },
+      keyPoints: {
+        en: ['Never pay ransom', 'Report to CERT-In', 'Keep regular backups', 'Update software always'],
+        hi: ['कभी फिरौती न दें', 'CERT-In को रिपोर्ट करें', 'नियमित बैकअप रखें', 'सॉफ्टवेयर हमेशा अपडेट रखें'],
+        mr: ['कधीही खंडणी देऊ नका', 'CERT-In ला तक्रार करा', 'नियमित बॅकअप ठेवा', 'सॉफ्टवेअर नेहमी अपडेट करा']
+      },
+      example: {
+        en: 'If your computer shows ransom message, disconnect from internet, do not pay, and contact cyber cell immediately.',
+        hi: 'अगर आपके कंप्यूटर पर फिरौती संदेश आए, तो इंटरनेट से डिस्कनेक्ट करें, भुगतान न करें, और तुरंत साइबर सेल से संपर्क करें।',
+        mr: 'जर तुमच्या कॉम्प्युटरवर खंडणीचा संदेश आला, तर इंटरनेटवरून डिस्कनेक्ट करा, पेमेंट करू नका आणि तात्काळ सायबर सेलशी संपर्क साधा.'
+      }
     }
   ],
   tenant_rights: [
@@ -1494,6 +1684,63 @@ const learningContent: Record<string, LearningCard[]> = {
         en: 'If landlord cuts water/electricity to force eviction, file complaint with police and Rent Controller.',
         hi: 'अगर मकान मालिक जबरन बेदखली के लिए पानी/बिजली काट दे, तो पुलिस और किराया नियंत्रक के पास शिकायत करें।',
         mr: 'जर मालकाने जबरदस्ती बेदखलीसाठी पाणी/वीज बंद केली, तर पोलीस आणि भाडे नियंत्रकाकडे तक्रार दाखल करा.'
+      }
+    },
+    {
+      id: 'tenant9',
+      title: { en: 'Subletting Rules & Restrictions', hi: 'सबलेटिंग नियम और प्रतिबंध', mr: 'सबलेटिंग नियम आणि निर्बंध' },
+      content: { 
+        en: 'Subletting (renting to third party) requires written landlord permission. Unauthorized subletting is ground for eviction. Some agreements prohibit it entirely.',
+        hi: 'सबलेटिंग (तीसरे पक्ष को किराए पर देना) के लिए मकान मालिक की लिखित अनुमति आवश्यक है। अनधिकृत सबलेटिंग बेदखली का आधार है। कुछ समझौते इसे पूरी तरह प्रतिबंधित करते हैं।',
+        mr: 'सबलेटिंग (तृतीय पक्षाला भाड्याने देणे) साठी मालकाची लिखित परवानगी आवश्यक आहे. अनधिकृत सबलेटिंग हे बेदखलीचे कारण आहे. काही करार हे पूर्णपणे प्रतिबंधित करतात.'
+      },
+      keyPoints: {
+        en: ['Written permission required', 'Eviction ground if unauthorized', 'Check agreement terms', 'PG/Paying Guest different'],
+        hi: ['लिखित अनुमति आवश्यक', 'अनधिकृत होने पर बेदखली का आधार', 'समझौते की शर्तें जांचें', 'PG/पेइंग गेस्ट अलग है'],
+        mr: ['लिखित परवानगी आवश्यक', 'अनधिकृत असल्यास बेदखलीचे कारण', 'कराराच्या अटी तपासा', 'PG/पेइंग गेस्ट वेगळे आहे']
+      },
+      example: {
+        en: 'If you want to sublet one room, get written permission from landlord. Without it, landlord can legally evict you.',
+        hi: 'अगर आप एक कमरा सबलेट करना चाहते हैं, तो मकान मालिक से लिखित अनुमति लें। इसके बिना, मकान मालिक आपको कानूनी रूप से बेदखल कर सकता है।',
+        mr: 'जर तुम्हाला एक खोली सबलेट करायची असेल, तर मालकाकडून लिखित परवानगी घ्या. त्याशिवाय, मालक तुम्हाला कायदेशीररित्या बेदखल करू शकतो.'
+      }
+    },
+    {
+      id: 'tenant10',
+      title: { en: 'Society Maintenance Charges', hi: 'सोसायटी मेंटेनेंस चार्ज', mr: 'सोसायटी मेंटेनन्स चार्जेस' },
+      content: { 
+        en: 'Society maintenance is usually paid by tenant as per agreement. Landlord responsible if agreement is silent. Tenant cannot be denied basic amenities for non-payment.',
+        hi: 'सोसायटी मेंटेनेंस आमतौर पर समझौते के अनुसार किरायेदार द्वारा भुगतान किया जाता है। समझौता मौन हो तो मकान मालिक जिम्मेदार। गैर-भुगतान के लिए किरायेदार को बुनियादी सुविधाओं से वंचित नहीं किया जा सकता।',
+        mr: 'सोसायटी मेंटेनन्स सामान्यतः कराराप्रमाणे भाडेकरूकडून भरला जातो. करार मौन असल्यास मालक जबाबदार. न भरल्यास भाडेकरूला मूलभूत सुविधा नाकारता येत नाहीत.'
+      },
+      keyPoints: {
+        en: ['Check agreement for responsibility', 'Usually tenant pays', 'Cannot cut water/power', 'Dispute through society'],
+        hi: ['जिम्मेदारी के लिए समझौता देखें', 'आमतौर पर किरायेदार भुगतान करता है', 'पानी/बिजली नहीं काट सकते', 'सोसायटी के माध्यम से विवाद'],
+        mr: ['जबाबदारीसाठी करार तपासा', 'सामान्यतः भाडेकरू भरतो', 'पाणी/वीज बंद करता येत नाही', 'सोसायटीद्वारे वाद']
+      },
+      example: {
+        en: 'If society cuts your water for maintenance dispute, file complaint with Registrar of Cooperative Societies.',
+        hi: 'अगर सोसायटी मेंटेनेंस विवाद के लिए आपका पानी काट दे, तो सहकारी समिति रजिस्ट्रार के पास शिकायत करें।',
+        mr: 'जर सोसायटीने मेंटेनन्स वादासाठी तुमचे पाणी बंद केले, तर सहकारी संस्था निबंधकाकडे तक्रार दाखल करा.'
+      }
+    },
+    {
+      id: 'tenant11',
+      title: { en: 'Stamp Duty on Rent Agreement', hi: 'किराया समझौते पर स्टांप ड्यूटी', mr: 'भाडे करारावर स्टॅम्प ड्युटी' },
+      content: { 
+        en: 'Stamp duty on rent agreement varies by state. Usually shared between landlord and tenant. e-Stamping available for convenience. Unstamped agreement may be invalid.',
+        hi: 'किराया समझौते पर स्टांप ड्यूटी राज्य के अनुसार अलग-अलग होती है। आमतौर पर मकान मालिक और किरायेदार के बीच साझा। सुविधा के लिए ई-स्टांपिंग उपलब्ध। बिना स्टांप समझौता अमान्य हो सकता है।',
+        mr: 'भाडे करारावर स्टॅम्प ड्युटी राज्यानुसार वेगवेगळी असते. सामान्यतः मालक आणि भाडेकरूंमध्ये विभागली जाते. सोयीसाठी ई-स्टॅम्पिंग उपलब्ध. स्टॅम्प नसलेला करार अवैध असू शकतो.'
+      },
+      keyPoints: {
+        en: ['Varies by state', 'Usually shared 50-50', 'e-Stamping available', 'Unstamped = may be invalid'],
+        hi: ['राज्य के अनुसार अलग', 'आमतौर पर 50-50 साझा', 'ई-स्टांपिंग उपलब्ध', 'बिना स्टांप = अमान्य हो सकता है'],
+        mr: ['राज्यानुसार वेगळे', 'सामान्यतः 50-50 विभागले', 'ई-स्टॅम्पिंग उपलब्ध', 'स्टॅम्प नसलेला = अवैध असू शकतो']
+      },
+      example: {
+        en: 'In Maharashtra, rent agreement requires stamp duty of 0.25% of total rent or Rs 500, whichever is higher.',
+        hi: 'महाराष्ट्र में, किराया समझौते के लिए कुल किराये का 0.25% या Rs 500, जो भी अधिक हो, स्टांप ड्यूटी आवश्यक है।',
+        mr: 'महाराष्ट्रात, भाडे करारासाठी एकूण भाड्याच्या 0.25% किंवा Rs 500, यापैकी जे जास्त असेल ते स्टॅम्प ड्युटी आवश्यक आहे.'
       }
     }
   ],
@@ -1705,6 +1952,120 @@ const learningContent: Record<string, LearningCard[]> = {
         en: 'If children leave elderly parent at old age home and stop visiting/supporting, it is abandonment and punishable.',
         hi: 'अगर बच्चे बुजुर्ग माता-पिता को वृद्धाश्रम में छोड़ दें और मिलना/सहायता बंद कर दें, तो यह परित्याग है और दंडनीय है।',
         mr: 'जर मुलांनी वृद्ध पालकांना वृद्धाश्रमात सोडले आणि भेटणे/मदत करणे बंद केले, तर तो परित्याग आहे आणि शिक्षापात्र आहे.'
+      }
+    },
+    {
+      id: 'sc12',
+      title: { en: 'Super Senior Citizens (80+) Benefits', hi: 'सुपर सीनियर सिटीजन (80+) लाभ', mr: 'सुपर ज्येष्ठ नागरिक (80+) लाभ' },
+      content: { 
+        en: 'Super senior citizens (age 80+) get higher tax exemption of Rs 5 lakh vs Rs 3 lakh for 60+. Additional benefits in various government schemes.',
+        hi: 'सुपर सीनियर नागरिकों (80+ वर्ष) को 60+ के लिए Rs 3 लाख की तुलना में Rs 5 लाख की उच्च कर छूट मिलती है। विभिन्न सरकारी योजनाओं में अतिरिक्त लाभ।',
+        mr: 'सुपर ज्येष्ठ नागरिकांना (वय 80+) 60+ साठी Rs 3 लाखांच्या तुलनेत Rs 5 लाख उच्च कर सवलत मिळते. विविध सरकारी योजनांमध्ये अतिरिक्त लाभ.'
+      },
+      keyPoints: {
+        en: ['80+ = Super senior', 'Rs 5 lakh tax exemption', 'Higher IGNOAPS pension Rs 500', 'Priority in all schemes'],
+        hi: ['80+ = सुपर सीनियर', 'Rs 5 लाख कर छूट', 'IGNOAPS पेंशन Rs 500 अधिक', 'सभी योजनाओं में प्राथमिकता'],
+        mr: ['80+ = सुपर ज्येष्ठ', 'Rs 5 लाख कर सवलत', 'IGNOAPS पेन्शन Rs 500 जास्त', 'सर्व योजनांमध्ये प्राधान्य']
+      },
+      example: {
+        en: 'An 82-year-old pays no income tax up to Rs 5 lakh income, while a 65-year-old pays no tax only up to Rs 3 lakh.',
+        hi: '82 वर्षीय व्यक्ति Rs 5 लाख आय तक कोई आयकर नहीं देता, जबकि 65 वर्षीय केवल Rs 3 लाख तक कोई कर नहीं देता।',
+        mr: '82 वर्षीय व्यक्ती Rs 5 लाख उत्पन्नापर्यंत कोणताही आयकर भरत नाही, तर 65 वर्षीय फक्त Rs 3 लाखपर्यंत कर भरत नाही.'
+      }
+    },
+    {
+      id: 'sc13',
+      title: { en: 'Railway Concessions for Seniors', hi: 'वरिष्ठों के लिए रेलवे रियायत', mr: 'ज्येष्ठांसाठी रेल्वे सवलती' },
+      content: { 
+        en: 'Senior citizens get railway ticket concessions: 40% for men (60+) and 50% for women (58+). Apply at booking counter with age proof.',
+        hi: 'वरिष्ठ नागरिकों को रेलवे टिकट रियायत मिलती है: पुरुषों (60+) के लिए 40% और महिलाओं (58+) के लिए 50%। आयु प्रमाण के साथ बुकिंग काउंटर पर आवेदन करें।',
+        mr: 'ज्येष्ठ नागरिकांना रेल्वे तिकीट सवलत मिळते: पुरुषांसाठी (60+) 40% आणि महिलांसाठी (58+) 50%. वय पुराव्यासह बुकिंग काउंटरवर अर्ज करा.'
+      },
+      keyPoints: {
+        en: ['Men 60+ = 40% discount', 'Women 58+ = 50% discount', 'Valid on most trains', 'Show age proof at counter'],
+        hi: ['पुरुष 60+ = 40% छूट', 'महिला 58+ = 50% छूट', 'अधिकांश ट्रेनों में वैध', 'काउंटर पर आयु प्रमाण दिखाएं'],
+        mr: ['पुरुष 60+ = 40% सवलत', 'महिला 58+ = 50% सवलत', 'बहुतेक गाड्यांवर वैध', 'काउंटरवर वय पुरावा दाखवा']
+      },
+      example: {
+        en: 'A 60-year-old man can get 40% discount on train ticket by showing Aadhaar card as age proof.',
+        hi: '60 वर्षीय पुरुष आधार कार्ड आयु प्रमाण के रूप में दिखाकर ट्रेन टिकट पर 40% छूट प्राप्त कर सकता है।',
+        mr: '60 वर्षीय पुरुष आधार कार्ड वय पुरावा म्हणून दाखवून ट्रेन तिकिटावर 40% सवलत मिळवू शकतो.'
+      }
+    },
+    {
+      id: 'sc14',
+      title: { en: 'Property Will & Succession Rights', hi: 'संपत्ति वसीयत और उत्तराधिकार अधिकार', mr: 'मालमत्ता मृत्यूपत्र आणि वारसा हक्क' },
+      content: { 
+        en: 'Senior citizens can will their self-acquired property to anyone. Ancestral property follows succession laws. Will can be changed anytime before death.',
+        hi: 'वरिष्ठ नागरिक अपनी स्व-अर्जित संपत्ति किसी को भी वसीयत कर सकते हैं। पैतृक संपत्ति उत्तराधिकार कानूनों का पालन करती है। मृत्यु से पहले कभी भी वसीयत बदली जा सकती है।',
+        mr: 'ज्येष्ठ नागरिक त्यांची स्वकमाईची मालमत्ता कोणालाही मृत्यूपत्र करू शकतात. वडिलोपार्जित मालमत्ता वारसा कायद्यांचे पालन करते. मृत्यूपूर्वी कधीही मृत्यूपत्र बदलता येते.'
+      },
+      keyPoints: {
+        en: ['Self-acquired = can will to anyone', 'Ancestral = succession laws apply', 'Register will for safety', 'Can change will anytime'],
+        hi: ['स्व-अर्जित = किसी को भी वसीयत कर सकते हैं', 'पैतृक = उत्तराधिकार कानून लागू', 'सुरक्षा के लिए वसीयत पंजीकृत करें', 'कभी भी वसीयत बदल सकते हैं'],
+        mr: ['स्वकमाई = कोणालाही मृत्यूपत्र करू शकतात', 'वडिलोपार्जित = वारसा कायदे लागू', 'सुरक्षिततेसाठी मृत्यूपत्र नोंदणी करा', 'कधीही मृत्यूपत्र बदलता येते']
+      },
+      example: {
+        en: 'A senior can will their house to a charity if they bought it themselves. But ancestral property must follow Hindu/Muslim succession laws.',
+        hi: 'एक वरिष्ठ नागरिक अपना घर किसी चैरिटी को वसीयत कर सकते हैं अगर उन्होंने खुद खरीदा था। लेकिन पैतृक संपत्ति को हिंदू/मुस्लिम उत्तराधिकार कानूनों का पालन करना होगा।',
+        mr: 'एक ज्येष्ठ त्यांचे घर चॅरिटीला मृत्यूपत्र करू शकतात जर त्यांनी स्वतः विकत घेतले असेल. पण वडिलोपार्जित मालमत्तेने हिंदू/मुस्लिम वारसा कायद्यांचे पालन करणे आवश्यक आहे.'
+      }
+    },
+    {
+      id: 'sc15',
+      title: { en: 'FD Higher Interest for Seniors', hi: 'वरिष्ठों के लिए FD पर अधिक ब्याज', mr: 'ज्येष्ठांसाठी FD वर जास्त व्याज' },
+      content: { 
+        en: 'Banks offer 0.25% to 0.50% extra interest on Fixed Deposits for senior citizens. Some banks have special senior citizen FD schemes with higher rates.',
+        hi: 'बैंक वरिष्ठ नागरिकों के लिए फिक्स्ड डिपॉजिट पर 0.25% से 0.50% अतिरिक्त ब्याज प्रदान करते हैं। कुछ बैंकों में उच्च दरों के साथ विशेष वरिष्ठ नागरिक FD योजनाएं हैं।',
+        mr: 'बँका ज्येष्ठ नागरिकांसाठी फिक्स्ड डिपॉझिटवर 0.25% ते 0.50% अतिरिक्त व्याज देतात. काही बँकांमध्ये उच्च दरांसह विशेष ज्येष्ठ नागरिक FD योजना आहेत.'
+      },
+      keyPoints: {
+        en: ['0.25-0.50% extra interest', 'All major banks offer', 'Compare rates before investing', 'Tax deduction on interest'],
+        hi: ['0.25-0.50% अतिरिक्त ब्याज', 'सभी प्रमुख बैंक प्रदान करते हैं', 'निवेश से पहले दरों की तुलना करें', 'ब्याज पर कर कटौती'],
+        mr: ['0.25-0.50% अतिरिक्त व्याज', 'सर्व प्रमुख बँका देतात', 'गुंतवणुकीपूर्वी दर तुलना करा', 'व्याजावर कर कपात']
+      },
+      example: {
+        en: 'If regular FD offers 7% interest, senior citizen may get 7.5% for the same FD in the same bank.',
+        hi: 'अगर नियमित FD 7% ब्याज प्रदान करती है, तो वरिष्ठ नागरिक को उसी बैंक में उसी FD के लिए 7.5% मिल सकता है।',
+        mr: 'जर नियमित FD 7% व्याज देत असेल, तर ज्येष्ठ नागरिकाला त्याच बँकेत त्याच FD साठी 7.5% मिळू शकतो.'
+      }
+    },
+    {
+      id: 'sc16',
+      title: { en: 'SCSS - Senior Citizens Savings Scheme', hi: 'SCSS - वरिष्ठ नागरिक बचत योजना', mr: 'SCSS - ज्येष्ठ नागरिक बचत योजना' },
+      content: { 
+        en: 'Senior Citizens Savings Scheme offers 8%+ interest, max Rs 30 lakh deposit. Available at post offices and banks. 5-year tenure with quarterly interest payout.',
+        hi: 'वरिष्ठ नागरिक बचत योजना 8%+ ब्याज प्रदान करती है, अधिकतम Rs 30 लाख जमा। डाकघरों और बैंकों में उपलब्ध। त्रैमासिक ब्याज भुगतान के साथ 5 साल की अवधि।',
+        mr: 'ज्येष्ठ नागरिक बचत योजना 8%+ व्याज देते, जास्तीत जास्त Rs 30 लाख ठेव. पोस्ट ऑफिस आणि बँकांमध्ये उपलब्ध. त्रैमासिक व्याज पेमेंटसह 5 वर्षांचा कालावधी.'
+      },
+      keyPoints: {
+        en: ['Max deposit Rs 30 lakh', '8%+ interest rate', 'Quarterly payout', '5-year tenure'],
+        hi: ['अधिकतम जमा Rs 30 लाख', '8%+ ब्याज दर', 'त्रैमासिक भुगतान', '5 साल की अवधि'],
+        mr: ['जास्तीत जास्त ठेव Rs 30 लाख', '8%+ व्याज दर', 'त्रैमासिक पेमेंट', '5 वर्षांचा कालावधी']
+      },
+      example: {
+        en: 'A senior can deposit Rs 30 lakh in SCSS and get approximately Rs 60,000+ quarterly as interest income.',
+        hi: 'एक वरिष्ठ नागरिक SCSS में Rs 30 लाख जमा कर सकता है और त्रैमासिक ब्याज आय के रूप में लगभग Rs 60,000+ प्राप्त कर सकता है।',
+        mr: 'एक ज्येष्ठ SCSS मध्ये Rs 30 लाख जमा करू शकतो आणि व्याज उत्पन्न म्हणून अंदाजे Rs 60,000+ त्रैमासिक मिळवू शकतो.'
+      }
+    },
+    {
+      id: 'sc17',
+      title: { en: 'District Magistrate - Tribunal Head', hi: 'जिला मजिस्ट्रेट - न्यायाधिकरण प्रमुख', mr: 'जिल्हा दंडाधिकारी - न्यायाधिकरण प्रमुख' },
+      content: { 
+        en: 'District Magistrate (DM) or designated SDM heads the Maintenance Tribunal. Can order children to pay maintenance. Decision binding and enforceable.',
+        hi: 'जिला मजिस्ट्रेट (DM) या नामित SDM भरण-पोषण न्यायाधिकरण का प्रमुख होता है। बच्चों को भरण-पोषण देने का आदेश दे सकता है। निर्णय बाध्यकारी और लागू करने योग्य।',
+        mr: 'जिल्हा दंडाधिकारी (DM) किंवा नियुक्त SDM पोषण न्यायाधिकरणाचा प्रमुख असतो. मुलांना पोषण देण्याचा आदेश देऊ शकतो. निर्णय बंधनकारक आणि अंमलबजावणी करण्यायोग्य.'
+      },
+      keyPoints: {
+        en: ['DM heads Tribunal', 'Can order up to Rs 10,000/month', 'Decision in 90 days', 'Appeal to Appellate Tribunal'],
+        hi: ['DM न्यायाधिकरण का प्रमुख', 'Rs 10,000/माह तक का आदेश दे सकता है', '90 दिनों में निर्णय', 'अपीलीय न्यायाधिकरण में अपील'],
+        mr: ['DM न्यायाधिकरणाचा प्रमुख', 'Rs 10,000/महिना पर्यंत आदेश देऊ शकतो', '90 दिवसांत निर्णय', 'अपील न्यायाधिकरणात अपील']
+      },
+      example: {
+        en: 'Senior citizen can apply to DM office for maintenance order against children who refuse to support.',
+        hi: 'वरिष्ठ नागरिक DM कार्यालय में उन बच्चों के खिलाफ भरण-पोषण आदेश के लिए आवेदन कर सकता है जो सहायता से मना करते हैं।',
+        mr: 'ज्येष्ठ नागरिक DM कार्यालयात मदत करण्यास नकार देणाऱ्या मुलांविरुद्ध पोषण आदेशासाठी अर्ज करू शकतात.'
       }
     }
   ]
