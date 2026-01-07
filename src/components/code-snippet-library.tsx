@@ -11,6 +11,7 @@ import { toast as sonnerToast } from 'sonner';
 import type { User } from '@supabase/supabase-js';
 import { useCodeExecution } from '@/hooks/useCodeExecution';
 import { useEditorSettings } from '@/hooks/useEditorSettings';
+import { useInputDetection } from '@/hooks/useInputDetection';
 import {
   ActivityBar,
   ExplorerSidebar,
@@ -73,6 +74,9 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const currentLanguage = activeTab?.language || '';
   const currentTitle = activeTab?.title || '';
   const isCurrentModified = activeTab?.isModified || false;
+
+  // Detect input functions in current code
+  const inputDetection = useInputDetection(currentCode, currentLanguage);
 
   // Load snippets when opened
   useEffect(() => {
@@ -462,6 +466,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                         canRun={canRun}
                         stdin={stdinInput}
                         onStdinChange={setStdinInput}
+                        inputDetection={inputDetection}
                       />
                     </ResizablePanel>
                   </>
