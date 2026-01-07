@@ -61,7 +61,7 @@ export function CodeEditorPane({
     });
   };
 
-  if (!code) {
+  if (!title) {
     return (
       <div className="flex-1 bg-[#1e1e1e] flex flex-col items-center justify-center text-[#858585]">
         <FileCode className="h-16 w-16 mb-4 opacity-30" />
