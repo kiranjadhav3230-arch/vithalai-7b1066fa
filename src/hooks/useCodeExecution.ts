@@ -94,9 +94,9 @@ export const useCodeExecution = () => {
     }
   }, []);
 
-  const executeServerCode = useCallback(async (code: string, language: string): Promise<ExecutionResult> => {
+  const executeServerCode = useCallback(async (code: string, language: string, stdin: string = ''): Promise<ExecutionResult> => {
     const { data, error } = await supabase.functions.invoke('code-runner', {
-      body: { code, language },
+      body: { code, language, stdin },
     });
 
     if (error) {
@@ -106,7 +106,7 @@ export const useCodeExecution = () => {
     return data as ExecutionResult;
   }, []);
 
-  const executeCode = useCallback(async (code: string, language: string) => {
+  const executeCode = useCallback(async (code: string, language: string, stdin: string = '') => {
     setIsExecuting(true);
     setError(null);
     setResult(null);
@@ -117,11 +117,11 @@ export const useCodeExecution = () => {
       let executionResult: ExecutionResult;
 
       if (BROWSER_LANGUAGES.includes(normalizedLang)) {
-        // Execute JavaScript in browser
+        // Execute JavaScript in browser (stdin not supported)
         executionResult = executeJavaScript(code);
       } else if (SERVER_LANGUAGES.includes(normalizedLang)) {
-        // Execute via Piston API
-        executionResult = await executeServerCode(code, language);
+        // Execute via Piston API with stdin support
+        executionResult = await executeServerCode(code, language, stdin);
       } else {
         throw new Error(`Language "${language}" is not supported for execution. Supported: JavaScript, Python, Java, C++, Go, Rust, Ruby, PHP, TypeScript, Kotlin, Swift, C#, Bash`);
       }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Play, Trash2, X, ChevronUp, ChevronDown, Loader2, CheckCircle2, XCircle, Clock, Terminal } from 'lucide-react';
+import { Play, Trash2, ChevronUp, ChevronDown, Loader2, CheckCircle2, XCircle, Clock, Terminal, Keyboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 interface ExecutionResult {
@@ -20,9 +21,11 @@ interface TerminalPanelProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   canRun: boolean;
+  stdin: string;
+  onStdinChange: (value: string) => void;
 }
 
-type TabType = 'output' | 'problems';
+type TabType = 'output' | 'problems' | 'input';
 
 export function TerminalPanel({
   result,
@@ -33,8 +36,12 @@ export function TerminalPanel({
   isCollapsed,
   onToggleCollapse,
   canRun,
+  stdin,
+  onStdinChange,
 }: TerminalPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('output');
+
+  const inputLineCount = stdin.trim() ? stdin.trim().split('\n').length : 0;
 
   const hasError = result && (result.stderr || result.exitCode !== 0);
   const hasOutput = result && (result.stdout || result.stderr);
@@ -71,6 +78,22 @@ export function TerminalPanel({
             PROBLEMS
             {hasError && (
               <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('input')}
+            className={cn(
+              "px-3 py-1.5 text-xs font-medium rounded-sm transition-colors flex items-center gap-1",
+              activeTab === 'input'
+                ? "text-white bg-[#1e1e1e]"
+                : "text-[#858585] hover:text-white"
+            )}
+          >
+            INPUT
+            {inputLineCount > 0 && (
+              <span className="px-1.5 py-0.5 text-[10px] rounded bg-blue-500/20 text-blue-400">
+                {inputLineCount}
+              </span>
             )}
           </button>
         </div>
@@ -210,6 +233,24 @@ export function TerminalPanel({
                     <span>No problems detected</span>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'input' && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[#858585]">
+                  <Keyboard className="h-4 w-4" />
+                  <span>Enter input values (one per line)</span>
+                </div>
+                <Textarea
+                  value={stdin}
+                  onChange={(e) => onStdinChange(e.target.value)}
+                  placeholder="10&#10;20&#10;Hello World"
+                  className="min-h-[120px] bg-[#2d2d2d] border-[#3c3c3c] text-white font-mono text-sm placeholder:text-[#5a5a5a] focus-visible:ring-blue-500"
+                />
+                <p className="text-xs text-[#858585]">
+                  💡 These values will be used when your code reads input (e.g., Python's <code className="text-blue-400">input()</code>, C's <code className="text-blue-400">scanf</code>, Java's <code className="text-blue-400">Scanner</code>)
+                </p>
               </div>
             )}
           </div>
