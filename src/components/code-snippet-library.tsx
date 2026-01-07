@@ -291,6 +291,34 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     }
   };
 
+  const handleCreateSnippet = async (name: string, language: string) => {
+    const { data, error } = await supabase
+      .from('code_snippets')
+      .insert({
+        user_id: user.id,
+        title: name,
+        generated_code: `// ${name}\n// Write your ${language} code here\n`,
+        language: language,
+        tags: [],
+        is_favorite: false,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to create snippet", variant: "destructive" });
+      return;
+    }
+
+    // Add to snippets list
+    setSnippets(prev => [data, ...prev]);
+    
+    // Open the new snippet in a tab
+    handleSelectSnippet(data);
+    
+    sonnerToast.success('New snippet created');
+  };
+
   const handleClose = () => {
     // Check for unsaved changes
     const hasUnsaved = openTabs.some(t => t.isModified);
@@ -344,6 +372,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       onToggleFavorite={handleToggleFavorite}
                       onDeleteSnippet={handleDeleteSnippet}
                       onCopyCode={handleCopyCode}
+                      onCreateSnippet={handleCreateSnippet}
                     />
                   )}
                   {activeView === 'search' && (
