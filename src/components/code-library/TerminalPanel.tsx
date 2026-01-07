@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Play, Trash2, ChevronUp, ChevronDown, Loader2, CheckCircle2, XCircle, Clock, Terminal, Keyboard } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, Trash2, ChevronUp, ChevronDown, Loader2, CheckCircle2, XCircle, Clock, Terminal, Keyboard, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +10,12 @@ interface ExecutionResult {
   stderr: string;
   exitCode: number;
   executionTime?: number;
+}
+
+interface InputDetection {
+  hasInputFunctions: boolean;
+  detectedFunctions: string[];
+  inputCount: number;
 }
 
 interface TerminalPanelProps {
@@ -23,6 +29,7 @@ interface TerminalPanelProps {
   canRun: boolean;
   stdin: string;
   onStdinChange: (value: string) => void;
+  inputDetection?: InputDetection;
 }
 
 type TabType = 'output' | 'problems' | 'input';
@@ -38,10 +45,21 @@ export function TerminalPanel({
   canRun,
   stdin,
   onStdinChange,
+  inputDetection,
 }: TerminalPanelProps) {
   const [activeTab, setActiveTab] = useState<TabType>('output');
+  const [showInputWarning, setShowInputWarning] = useState(false);
 
   const inputLineCount = stdin.trim() ? stdin.trim().split('\n').length : 0;
+  const needsInput = inputDetection?.hasInputFunctions && inputLineCount === 0;
+
+  // Auto-switch to INPUT tab when input functions detected and no input provided
+  useEffect(() => {
+    if (inputDetection?.hasInputFunctions && inputLineCount === 0 && !result) {
+      setActiveTab('input');
+      setShowInputWarning(true);
+    }
+  }, [inputDetection?.hasInputFunctions, inputLineCount, result]);
 
   const hasError = result && (result.stderr || result.exitCode !== 0);
   const hasOutput = result && (result.stdout || result.stderr);
@@ -86,15 +104,19 @@ export function TerminalPanel({
               "px-3 py-1.5 text-xs font-medium rounded-sm transition-colors flex items-center gap-1",
               activeTab === 'input'
                 ? "text-white bg-[#1e1e1e]"
-                : "text-[#858585] hover:text-white"
+                : needsInput
+                  ? "text-amber-400 hover:text-amber-300"
+                  : "text-[#858585] hover:text-white"
             )}
           >
             INPUT
-            {inputLineCount > 0 && (
+            {needsInput ? (
+              <AlertTriangle className="h-3 w-3 text-amber-400 animate-pulse" />
+            ) : inputLineCount > 0 ? (
               <span className="px-1.5 py-0.5 text-[10px] rounded bg-blue-500/20 text-blue-400">
                 {inputLineCount}
               </span>
-            )}
+            ) : null}
           </button>
         </div>
 
@@ -238,15 +260,46 @@ export function TerminalPanel({
 
             {activeTab === 'input' && (
               <div className="space-y-3">
+                {/* Input Required Warning */}
+                {inputDetection?.hasInputFunctions && showInputWarning && inputLineCount === 0 && (
+                  <div className="flex items-start gap-2 p-3 rounded-md bg-amber-500/10 border border-amber-500/30">
+                    <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-sm text-amber-300 font-medium">Input Required</p>
+                      <p className="text-xs text-amber-400/80">
+                        Your code uses <span className="font-mono text-amber-300">{inputDetection.detectedFunctions.join(', ')}</span> which requires {inputDetection.inputCount} input value{inputDetection.inputCount > 1 ? 's' : ''}. 
+                        Please enter the values below before running.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setShowInputWarning(false)}
+                      className="text-amber-400/60 hover:text-amber-400 text-xs shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 text-[#858585]">
                   <Keyboard className="h-4 w-4" />
                   <span>Enter input values (one per line)</span>
+                  {inputDetection?.hasInputFunctions && (
+                    <span className="text-xs text-amber-400/70">
+                      ({inputDetection.inputCount} expected)
+                    </span>
+                  )}
                 </div>
                 <Textarea
                   value={stdin}
                   onChange={(e) => onStdinChange(e.target.value)}
-                  placeholder="10&#10;20&#10;Hello World"
-                  className="min-h-[120px] bg-[#2d2d2d] border-[#3c3c3c] text-white font-mono text-sm placeholder:text-[#5a5a5a] focus-visible:ring-blue-500"
+                  placeholder={inputDetection?.hasInputFunctions 
+                    ? `Enter ${inputDetection.inputCount} value${inputDetection.inputCount > 1 ? 's' : ''}, one per line...`
+                    : "10\n20\nHello World"}
+                  className={cn(
+                    "min-h-[120px] bg-[#2d2d2d] border-[#3c3c3c] text-white font-mono text-sm placeholder:text-[#5a5a5a] focus-visible:ring-blue-500",
+                    needsInput && "border-amber-500/50 focus-visible:ring-amber-500"
+                  )}
+                  autoFocus={needsInput}
                 />
                 <p className="text-xs text-[#858585]">
                   💡 These values will be used when your code reads input (e.g., Python's <code className="text-blue-400">input()</code>, C's <code className="text-blue-400">scanf</code>, Java's <code className="text-blue-400">Scanner</code>)
