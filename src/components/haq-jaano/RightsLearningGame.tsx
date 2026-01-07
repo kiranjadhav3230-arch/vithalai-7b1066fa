@@ -2093,7 +2093,8 @@ export const RightsLearningGame: React.FC<RightsLearningGameProps> = ({
     if (currentIndex < cards.length - 1) {
       setCurrentIndex(prev => prev + 1);
       setShowExample(false);
-    } else if (viewedCards.size === cards.length) {
+    } else {
+      // On last card, start the exam
       onComplete(cards);
     }
   };
@@ -2219,7 +2220,7 @@ export const RightsLearningGame: React.FC<RightsLearningGameProps> = ({
           onClick={handleNext}
           className="flex-1"
         >
-          {currentIndex === cards.length - 1 && viewedCards.size === cards.length
+          {currentIndex === cards.length - 1
             ? (language === 'hi' ? 'परीक्षा शुरू करें' : language === 'mr' ? 'परीक्षा सुरू करा' : 'Start Exam')
             : (language === 'hi' ? 'अगला' : language === 'mr' ? 'पुढील' : 'Next')}
           <ChevronRight className="ml-2 h-4 w-4" />
