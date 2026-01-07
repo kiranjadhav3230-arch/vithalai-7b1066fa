@@ -61,6 +61,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [isEditing, setIsEditing] = useState(false);
   const [terminalCollapsed, setTerminalCollapsed] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [stdinInput, setStdinInput] = useState('');
   
   const { toast } = useToast();
   const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
@@ -286,7 +287,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
 
   const handleRunCode = () => {
     if (activeTab && isExecutable(activeTab.language)) {
-      executeCode(activeTab.code, activeTab.language);
+      executeCode(activeTab.code, activeTab.language, stdinInput);
       setTerminalCollapsed(false);
     }
   };
@@ -459,6 +460,8 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                         isCollapsed={false}
                         onToggleCollapse={() => setTerminalCollapsed(true)}
                         canRun={canRun}
+                        stdin={stdinInput}
+                        onStdinChange={setStdinInput}
                       />
                     </ResizablePanel>
                   </>
