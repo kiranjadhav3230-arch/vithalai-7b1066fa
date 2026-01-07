@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, ChevronRight, ChevronDown, Star, StarOff, Trash2, FileCode, MoreVertical } from 'lucide-react';
+import { Search, ChevronRight, ChevronDown, Star, StarOff, Trash2, FileCode, MoreVertical, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface CodeSnippet {
   id: string;
@@ -23,6 +38,26 @@ interface CodeSnippet {
   created_at: string;
 }
 
+const LANGUAGES = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'typescript', label: 'TypeScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'java', label: 'Java' },
+  { value: 'html', label: 'HTML' },
+  { value: 'css', label: 'CSS' },
+  { value: 'react', label: 'React' },
+  { value: 'cpp', label: 'C++' },
+  { value: 'c', label: 'C' },
+  { value: 'go', label: 'Go' },
+  { value: 'rust', label: 'Rust' },
+  { value: 'ruby', label: 'Ruby' },
+  { value: 'php', label: 'PHP' },
+  { value: 'swift', label: 'Swift' },
+  { value: 'kotlin', label: 'Kotlin' },
+  { value: 'bash', label: 'Bash' },
+  { value: 'sql', label: 'SQL' },
+];
+
 interface ExplorerSidebarProps {
   snippets: CodeSnippet[];
   selectedSnippetId: string | null;
@@ -32,6 +67,7 @@ interface ExplorerSidebarProps {
   onToggleFavorite: (id: string, isFavorite: boolean) => void;
   onDeleteSnippet: (id: string) => void;
   onCopyCode: (code: string) => void;
+  onCreateSnippet?: (name: string, language: string) => void;
 }
 
 const languageIcons: Record<string, string> = {
@@ -63,10 +99,21 @@ export function ExplorerSidebar({
   onToggleFavorite,
   onDeleteSnippet,
   onCopyCode,
+  onCreateSnippet,
 }: ExplorerSidebarProps) {
   const [favoritesOpen, setFavoritesOpen] = useState(true);
   const [allSnippetsOpen, setAllSnippetsOpen] = useState(true);
+  const [showNewDialog, setShowNewDialog] = useState(false);
+  const [newSnippetName, setNewSnippetName] = useState('');
+  const [newSnippetLanguage, setNewSnippetLanguage] = useState('javascript');
 
+  const handleCreateSnippet = () => {
+    if (!newSnippetName.trim()) return;
+    onCreateSnippet?.(newSnippetName.trim(), newSnippetLanguage);
+    setShowNewDialog(false);
+    setNewSnippetName('');
+    setNewSnippetLanguage('javascript');
+  };
   const favorites = snippets.filter(s => s.is_favorite);
   const allSnippets = snippets;
 
@@ -158,9 +205,81 @@ export function ExplorerSidebar({
   return (
     <div className="h-full bg-[#252526] border-r border-[#3c3c3c] flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 text-xs font-semibold text-[#bbbbbb] uppercase tracking-wider border-b border-[#3c3c3c]">
-        Explorer
+      <div className="px-4 py-3 flex items-center justify-between border-b border-[#3c3c3c]">
+        <span className="text-xs font-semibold text-[#bbbbbb] uppercase tracking-wider">
+          Explorer
+        </span>
+        {onCreateSnippet && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowNewDialog(true)}
+            className="h-6 w-6 p-0 text-[#bbbbbb] hover:text-white hover:bg-[#3c3c3c]"
+            title="New Snippet"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
       </div>
+
+      {/* New Snippet Dialog */}
+      <Dialog open={showNewDialog} onOpenChange={setShowNewDialog}>
+        <DialogContent className="bg-[#252526] border-[#3c3c3c] text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Create New Snippet</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="snippet-name" className="text-[#cccccc]">Snippet Name</Label>
+              <Input
+                id="snippet-name"
+                value={newSnippetName}
+                onChange={(e) => setNewSnippetName(e.target.value)}
+                placeholder="Enter snippet name..."
+                className="bg-[#3c3c3c] border-[#3c3c3c] text-white placeholder:text-[#858585] focus-visible:ring-[#007acc]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateSnippet();
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="snippet-language" className="text-[#cccccc]">Language</Label>
+              <Select value={newSnippetLanguage} onValueChange={setNewSnippetLanguage}>
+                <SelectTrigger className="bg-[#3c3c3c] border-[#3c3c3c] text-white focus:ring-[#007acc]">
+                  <SelectValue placeholder="Select language" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#252526] border-[#3c3c3c] text-white">
+                  {LANGUAGES.map((lang) => (
+                    <SelectItem
+                      key={lang.value}
+                      value={lang.value}
+                      className="hover:bg-[#094771] focus:bg-[#094771] cursor-pointer"
+                    >
+                      {lang.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setShowNewDialog(false)}
+              className="text-[#cccccc] hover:text-white hover:bg-[#3c3c3c]"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateSnippet}
+              disabled={!newSnippetName.trim()}
+              className="bg-[#007acc] hover:bg-[#005a9e] text-white"
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Search */}
       <div className="p-2 border-b border-[#3c3c3c]">
