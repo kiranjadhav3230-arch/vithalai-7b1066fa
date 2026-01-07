@@ -21,9 +21,9 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-    if (!GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
     }
 
     // Build language-specific prompt
@@ -122,40 +122,44 @@ ${languageInstructions[language as keyof typeof languageInstructions] || languag
 As Vithal, provide practical, actionable advice that farmers can implement. Use simple language and explain technical terms. When discussing treatments, provide both organic and chemical options where applicable. Always be friendly and encouraging as their trusted agricultural friend Vithal. 💚`;
     }
 
-    // Build content parts for Gemini API
-    let historyText = '';
+    // Build messages for Lovable AI
+    const messages: any[] = [
+      { role: 'system', content: systemPrompt }
+    ];
+
+    // Add chat history
     if (!isComprehensiveReport && chatHistory && chatHistory.length > 0) {
       const recentHistory = chatHistory.slice(-10);
-      historyText = '\n\nPrevious conversation:\n';
       for (const msg of recentHistory) {
-        historyText += `${msg.role === 'user' ? 'User' : 'Vithal'}: ${msg.content}\n`;
+        messages.push({
+          role: msg.role === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        });
       }
     }
 
-    const fullPrompt = systemPrompt + historyText + '\n\nUser: ' + message;
+    // Add current message
+    messages.push({ role: 'user', content: message });
 
-    console.log('Sending request to Gemini API...');
+    console.log('Sending request to Lovable AI...');
     console.log('Is comprehensive report:', isComprehensiveReport);
 
-    // Call Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: fullPrompt }] }],
-          generationConfig: {
-            temperature: isComprehensiveReport ? 0.4 : 0.7,
-            maxOutputTokens: isComprehensiveReport ? 16000 : 8000,
-          }
-        })
-      }
-    );
+    // Call Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -163,17 +167,24 @@ As Vithal, provide practical, actionable advice that farmers can implement. Use 
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Service temporarily unavailable. Please try again later.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
-      throw new Error(`Gemini API error: ${response.status}`);
+      throw new Error(`Lovable AI error: ${response.status}`);
     }
 
     const data = await response.json();
     
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error('Invalid response from Gemini API');
+    if (!data.choices?.[0]?.message?.content) {
+      throw new Error('Invalid response from Lovable AI');
     }
 
-    const aiResponse = data.candidates[0].content.parts[0].text;
+    const aiResponse = data.choices[0].message.content;
     console.log('Response received, length:', aiResponse.length);
 
     return new Response(
