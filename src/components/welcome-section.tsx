@@ -158,6 +158,17 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
         <p className="text-xs text-foreground/40 text-center">
           Developed By <span className="text-orange-400 font-medium">Kapil Kiran Jadhav</span>
         </p>
+        <p className="text-xs text-foreground/40 text-center mt-1">
+          Sponsored By{' '}
+          <a 
+            href="https://www.instagram.com/shreealankar2112?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-orange-400 hover:text-orange-300 font-medium transition-colors duration-300 hover:underline"
+          >
+            Shree Alankar
+          </a>
+        </p>
       </div>
     </div>
   );
