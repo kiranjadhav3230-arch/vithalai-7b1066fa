@@ -210,6 +210,21 @@ const Index = () => {
               </svg>
             </button>
           </div>
+          
+          {/* Sponsor Section */}
+          <div className="pt-4 border-t border-orange-500/10 mt-4">
+            <p className="text-xs text-foreground/50">
+              Sponsored By{' '}
+              <a 
+                href="https://www.instagram.com/shreealankar2112?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-orange-400 hover:text-orange-300 font-semibold transition-colors duration-300 hover:underline"
+              >
+                Shree Alankar
+              </a>
+            </p>
+          </div>
         </div>
       </footer>
 
