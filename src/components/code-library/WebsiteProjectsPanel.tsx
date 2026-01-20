@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, Globe, Star, StarOff, Trash2, MoreVertical, FolderPlus, FileCode } from 'lucide-react';
+import { ChevronRight, ChevronDown, Globe, Star, StarOff, Trash2, MoreVertical, Download, Eye } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +89,7 @@ export function WebsiteProjectsPanel({
     const isSelected = selectedProjectId === project.id;
 
     return (
-      <div>
+      <div className="mb-1">
         <div
           className={cn(
             "group flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-sm transition-colors",
@@ -135,12 +136,14 @@ export function WebsiteProjectsPanel({
                   className="hover:bg-[#094771] cursor-pointer"
                   onClick={() => onPreviewProject(project)}
                 >
+                  <Eye className="h-4 w-4 mr-2" />
                   Preview Website
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="hover:bg-[#094771] cursor-pointer"
                   onClick={() => onDownloadProject(project)}
                 >
+                  <Download className="h-4 w-4 mr-2" />
                   Download for Netlify
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-[#3c3c3c]" />
@@ -148,6 +151,7 @@ export function WebsiteProjectsPanel({
                   className="hover:bg-[#094771] cursor-pointer text-red-400 focus:text-red-400"
                   onClick={() => onDeleteProject(project.id)}
                 >
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -155,11 +159,34 @@ export function WebsiteProjectsPanel({
           </div>
         </div>
 
-        {/* Project Files */}
-        {isExpanded && project.files && (
+        {/* Project Files and Actions */}
+        {isExpanded && (
           <div className="ml-6">
+            {/* Quick Action Buttons */}
+            <div className="flex gap-1 px-2 py-2 border-b border-[#3c3c3c] mb-1">
+              <Button
+                onClick={() => onPreviewProject(project)}
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                Preview
+              </Button>
+              <Button
+                onClick={() => onDownloadProject(project)}
+                size="sm"
+                variant="ghost"
+                className="h-7 px-2 text-xs bg-green-500/10 hover:bg-green-500/20 text-green-400"
+              >
+                <Download className="h-3 w-3 mr-1" />
+                Download ZIP
+              </Button>
+            </div>
+            
+            {/* File List */}
             {project.files
-              .sort((a, b) => a.file_order - b.file_order)
+              ?.sort((a, b) => a.file_order - b.file_order)
               .map(file => (
                 <div
                   key={file.id}
