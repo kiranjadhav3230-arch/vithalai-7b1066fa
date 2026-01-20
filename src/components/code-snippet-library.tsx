@@ -483,6 +483,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
           isModified={isCurrentModified}
           code={currentCode}
           onSave={handleSave}
+          title={currentTitle}
         />
       </div>
     </TooltipProvider>

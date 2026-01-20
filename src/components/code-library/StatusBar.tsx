@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, AlertCircle, Radio, Save } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Radio, Save, Download, FileDown, FolderDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import JSZip from 'jszip';
 
 interface StatusBarProps {
   language: string;
@@ -10,16 +17,92 @@ interface StatusBarProps {
   code: string;
   lastSaved?: string;
   onSave?: () => void;
+  title?: string;
 }
 
 const PREVIEWABLE_LANGUAGES = ['html', 'css', 'javascript', 'js'];
 const PREVIEW_STORAGE_KEY = 'code-library-preview-content';
 
-export function StatusBar({ language, lineCount, isModified, code, lastSaved, onSave }: StatusBarProps) {
+const getFileExtension = (language: string): string => {
+  const extensions: Record<string, string> = {
+    javascript: 'js',
+    typescript: 'ts',
+    python: 'py',
+    java: 'java',
+    html: 'html',
+    css: 'css',
+    react: 'jsx',
+    cpp: 'cpp',
+    c: 'c',
+    go: 'go',
+    rust: 'rs',
+    ruby: 'rb',
+    php: 'php',
+    swift: 'swift',
+    kotlin: 'kt',
+    bash: 'sh',
+    sql: 'sql',
+    json: 'json',
+    xml: 'xml',
+    markdown: 'md',
+    csharp: 'cs',
+  };
+  return extensions[language.toLowerCase()] || 'txt';
+};
+
+export function StatusBar({ language, lineCount, isModified, code, lastSaved, onSave, title }: StatusBarProps) {
   const [isLive, setIsLive] = useState(false);
   const previewWindowRef = useRef<Window | null>(null);
 
   const isPreviewable = PREVIEWABLE_LANGUAGES.includes(language.toLowerCase());
+  
+  const handleDownloadFile = () => {
+    const fileName = title ? `${title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${getFileExtension(language)}` : `code.${getFileExtension(language)}`;
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadFolder = async () => {
+    const zip = new JSZip();
+    const folderName = title ? title.replace(/[^a-zA-Z0-9_-]/g, '_') : 'project';
+    const folder = zip.folder(folderName);
+    
+    if (folder) {
+      const fileName = `main.${getFileExtension(language)}`;
+      folder.file(fileName, code);
+      
+      // Add a basic README
+      folder.file('README.md', `# ${title || 'Code Project'}
+
+## Language
+${language}
+
+## Description
+Code snippet exported from Vithal AI Code Library.
+
+## Files
+- ${fileName}: Main code file
+`);
+      
+      // Generate and download zip
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${folderName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
 
   // Update preview content when code changes (for auto-refresh)
   useEffect(() => {
@@ -199,6 +282,38 @@ export function StatusBar({ language, lineCount, isModified, code, lastSaved, on
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Download Dropdown */}
+        {code && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 px-2 text-xs font-medium gap-1.5 bg-white/10 hover:bg-white/20 text-white"
+              >
+                <Download className="h-3 w-3" />
+                Download
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-[#252526] border-[#3c3c3c] text-white">
+              <DropdownMenuItem 
+                onClick={handleDownloadFile}
+                className="text-white hover:bg-[#3c3c3c] focus:bg-[#3c3c3c] cursor-pointer"
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                Download File
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={handleDownloadFolder}
+                className="text-white hover:bg-[#3c3c3c] focus:bg-[#3c3c3c] cursor-pointer"
+              >
+                <FolderDown className="h-4 w-4 mr-2" />
+                Download Folder
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {/* Line count */}
         <span>{lineCount} lines</span>
         
