@@ -271,8 +271,9 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     
     if (isProjectFile) {
       // Extract file ID from tab ID: project-{projectId}-{fileId}
-      const parts = activeTab.id.split('-');
-      const fileId = parts.slice(2).join('-'); // Handle UUIDs with dashes
+      // Format: "project-" (8 chars) + projectId (36 chars UUID) + "-" (1 char) + fileId (36 chars UUID)
+      // Total prefix before fileId: 8 + 36 + 1 = 45 chars
+      const fileId = activeTab.id.substring(45); // Extract the last 36 chars (file UUID)
       
       const { error } = await supabase
         .from('website_project_files')
