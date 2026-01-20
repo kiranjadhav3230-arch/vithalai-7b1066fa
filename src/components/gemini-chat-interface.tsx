@@ -10,7 +10,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3 } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3, Library } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,7 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { ProfileModal } from './profile-modal';
 import { ContactSupportModal } from './contact-support-modal';
 import { CodeGeneratorChat } from './code-generator-chat';
+import { CodeSnippetLibrary } from './code-snippet-library';
 import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
@@ -80,6 +81,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     websites: true
   });
   const [websiteProjects, setWebsiteProjects] = useState<any[]>([]);
+  const [showCodeLibrary, setShowCodeLibrary] = useState(false);
 
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -1054,6 +1056,9 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 <span className="flex items-center gap-1.5">
                   <Globe className="h-3 w-3" />
                   🌐 Websites ({websiteProjects.length})
+                  <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
+                    NEW
+                  </span>
                 </span>
                 <ChevronRight className={`h-3 w-3 transition-transform ${collapsedTabs.websites ? '' : 'rotate-90'}`} />
               </SidebarGroupLabel>
@@ -1061,6 +1066,19 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               {!collapsedTabs.websites && (
                 <SidebarGroupContent>
                   <SidebarMenu>
+                    {/* Open Library Button */}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        onClick={() => setShowCodeLibrary(true)}
+                        className="w-full hover:bg-purple-500/10 hover:text-purple-400 border border-dashed border-purple-500/30 mb-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Library className="h-3.5 w-3.5 text-purple-400" />
+                          <span className="text-xs">Open Website Library</span>
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    
                     {websiteProjects.length > 0 ? websiteProjects.map(project => (
                       <SidebarMenuItem key={project.id}>
                         <div className="w-full px-2 py-1.5 group">
@@ -1765,9 +1783,44 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   </div>
                 </div>
               </button>
+
+              {/* Website Generator */}
+              <button
+                onClick={() => {
+                  setCurrentView('code');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-purple-400 transition-colors">
+                        {language === 'hi' ? 'वेबसाइट जेनरेटर' : language === 'mr' ? 'वेबसाइट जनरेटर' : 'Website Generator'}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
+                        NEW
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'AI के साथ Netlify-ready वेबसाइट बनाएं' : language === 'mr' ? 'AI सह Netlify-ready वेबसाइट तयार करा' : 'Create professional Netlify-ready websites with AI'}
+                    </p>
+                  </div>
+                </div>
+              </button>
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Code Snippet Library Modal */}
+        <CodeSnippetLibrary 
+          open={showCodeLibrary}
+          onOpenChange={setShowCodeLibrary}
+          user={user} 
+        />
       </div>
     </SidebarProvider>;
 };
