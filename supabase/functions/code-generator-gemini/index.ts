@@ -450,7 +450,12 @@ serve(async (req) => {
       targetLanguage, 
       attachments,
       chatHistory,
-      stream 
+      stream,
+      // Website generator options
+      websiteType,
+      colorScheme,
+      styleType,
+      sections
     } = await req.json();
     
     console.log('Code generation request:', { 
@@ -461,7 +466,9 @@ serve(async (req) => {
       promptLength: prompt?.length, 
       attachments: attachments?.length,
       historyLength: chatHistory?.length,
-      stream 
+      stream,
+      websiteType,
+      styleType
     });
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
@@ -577,6 +584,80 @@ INSTRUCTIONS:
 - Handle any language-specific differences gracefully
 - If a feature doesn't exist in ${targetLang}, use the closest equivalent
 - Do NOT truncate or abbreviate any part of the code`;
+
+    } else if (task === 'website') {
+      const wType = websiteType || 'landing';
+      const wStyle = styleType || 'modern';
+      const wColors = colorScheme || 'blue';
+      const wSections = sections || ['hero', 'features', 'footer'];
+      
+      systemPrompt = `You are an expert web developer creating professional, modern, production-ready websites.
+
+WEBSITE REQUIREMENTS:
+- Type: ${wType} (e.g., landing page, portfolio, business, restaurant, event)
+- Style: ${wStyle} (e.g., modern, minimal, glassmorphism, dark, gradient)
+- Color Scheme: ${wColors}
+- Sections Required: ${wSections.join(', ')}
+
+OUTPUT FORMAT - Generate THREE separate files with EXACT markers:
+
+=== FILE: index.html ===
+[Complete HTML5 with semantic structure, proper meta tags, viewport, links to styles.css and script.js]
+
+=== FILE: styles.css ===
+[Complete CSS with variables, responsive design, animations, modern styling, BEM naming]
+
+=== FILE: script.js ===
+[Complete JavaScript with smooth scroll, animations, interactivity, mobile menu toggle]
+
+STRICT REQUIREMENTS FOR EACH FILE:
+
+HTML (index.html):
+- Use <!DOCTYPE html> and lang="en"
+- Include proper <meta charset="UTF-8"> and viewport meta
+- Include <title> and <meta name="description">
+- Link to styles.css in <head>
+- Include script.js before </body>
+- Use semantic HTML5 elements: <header>, <nav>, <main>, <section>, <article>, <footer>
+- Add proper heading hierarchy (h1-h6)
+- Include accessibility attributes (aria-labels, alt text)
+- Add Font Awesome CDN for icons: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+- Add Google Fonts: Inter or similar modern font
+
+CSS (styles.css):
+- Use CSS custom properties (variables) for colors: --primary, --secondary, --accent, --bg, --text
+- Define :root with complete color palette
+- Universal box-sizing: border-box
+- Mobile-first responsive design with @media queries
+- Flexbox and/or Grid for layouts
+- Smooth transitions and hover effects
+- Professional typography with proper line-height
+- Container max-width and padding
+- Button styles with hover states
+- Card/section styles if applicable
+- Navigation styles including mobile hamburger
+- Footer styles
+- Animations using @keyframes if appropriate
+- Dark/light mode support using CSS variables
+
+JavaScript (script.js):
+- Mobile navigation toggle
+- Smooth scroll for anchor links
+- Intersection Observer for scroll animations
+- Form validation if forms exist
+- Dynamic year in footer
+- Any interactive features
+
+QUALITY REQUIREMENTS:
+- Website must be FULLY FUNCTIONAL immediately
+- All THREE files must be COMPLETE - NO placeholders
+- Must work perfectly when opened in browser
+- Must be RESPONSIVE on mobile, tablet, and desktop
+- Must be visually PROFESSIONAL and MODERN
+- Code must be clean, well-commented, and production-ready
+- Ready to deploy to Netlify by drag-and-drop
+
+USER REQUEST: ${prompt || 'Create a professional website'}`;
     }
     
     systemPrompt += `
