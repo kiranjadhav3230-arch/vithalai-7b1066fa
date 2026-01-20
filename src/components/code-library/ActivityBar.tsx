@@ -1,9 +1,9 @@
-import { Files, Search, Tags, Settings, X } from 'lucide-react';
+import { Files, Search, Tags, Settings, X, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-export type ActivityView = 'files' | 'search' | 'tags' | 'settings';
+export type ActivityView = 'files' | 'websites' | 'search' | 'tags' | 'settings';
 
 interface ActivityBarProps {
   activeView: ActivityView;
@@ -13,6 +13,7 @@ interface ActivityBarProps {
 
 const activities = [
   { id: 'files' as const, icon: Files, label: 'Explorer', shortcut: 'Ctrl+Shift+E' },
+  { id: 'websites' as const, icon: Globe, label: 'Website Projects', shortcut: 'Ctrl+Shift+W' },
   { id: 'search' as const, icon: Search, label: 'Search', shortcut: 'Ctrl+Shift+F' },
   { id: 'tags' as const, icon: Tags, label: 'Tags', shortcut: 'Ctrl+Shift+T' },
   { id: 'settings' as const, icon: Settings, label: 'Settings', shortcut: 'Ctrl+,' },

@@ -687,6 +687,76 @@ This website is fully responsive and ready for production use.
     );
   };
 
+  // Save website project to library
+  const saveWebsiteToLibrary = async (files: WebsiteFile[]) => {
+    const projectName = prompt("Enter a project name for this website:");
+    if (!projectName) return;
+    
+    const description = prompt("Enter a description (optional):");
+    
+    try {
+      // Create website project
+      const { data: project, error: projectError } = await supabase
+        .from('website_projects')
+        .insert({
+          user_id: user.id,
+          name: projectName,
+          description: description || `Generated ${websiteType} website with ${websiteStyle} style`,
+          website_type: websiteType,
+          style_type: websiteStyle,
+          color_scheme: colorScheme,
+          tags: ['website', websiteType, websiteStyle],
+        })
+        .select()
+        .single();
+      
+      if (projectError) {
+        console.error('Project creation error:', projectError);
+        toast({ 
+          title: "Error", 
+          description: "Failed to save project", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
+      // Create project files
+      const fileInserts = files.map((file, index) => ({
+        project_id: project.id,
+        file_name: file.name,
+        file_content: file.content,
+        language: file.language,
+        file_order: index,
+      }));
+      
+      const { error: filesError } = await supabase
+        .from('website_project_files')
+        .insert(fileInserts);
+      
+      if (filesError) {
+        console.error('Files creation error:', filesError);
+        toast({ 
+          title: "Error", 
+          description: "Failed to save project files", 
+          variant: "destructive" 
+        });
+        return;
+      }
+      
+      toast({
+        title: "✅ Website Saved!",
+        description: `Project "${projectName}" saved to your Code Library`
+      });
+    } catch (error) {
+      console.error('Save website error:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to save website to library", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   // Build chat history for context
   const buildChatHistory = useCallback(() => {
     return messages.filter(m => !m.isStreaming).slice(-10).map(m => ({
@@ -1178,6 +1248,15 @@ This website is fully responsive and ready for production use.
                               >
                                 <FolderDown className="h-4 w-4" />
                                 Download for Netlify
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => saveWebsiteToLibrary(generatedWebsite)}
+                                className="gap-2"
+                              >
+                                <BookOpen className="h-4 w-4" />
+                                Save to Library
                               </Button>
                               <Button
                                 variant="ghost"

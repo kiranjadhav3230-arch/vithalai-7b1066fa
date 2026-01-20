@@ -1719,6 +1719,89 @@ export type Database = {
         }
         Relationships: []
       }
+      website_project_files: {
+        Row: {
+          created_at: string | null
+          file_content: string
+          file_name: string
+          file_order: number | null
+          id: string
+          language: string
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_content: string
+          file_name: string
+          file_order?: number | null
+          id?: string
+          language: string
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_content?: string
+          file_name?: string
+          file_order?: number | null
+          id?: string
+          language?: string
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "website_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_projects: {
+        Row: {
+          color_scheme: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_favorite: boolean | null
+          name: string
+          style_type: string | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string
+          website_type: string | null
+        }
+        Insert: {
+          color_scheme?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          style_type?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          website_type?: string | null
+        }
+        Update: {
+          color_scheme?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          style_type?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          website_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
