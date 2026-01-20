@@ -87,7 +87,8 @@ const CODE_TASKS = [{
   label: 'Translate Code'
 }, {
   value: 'website',
-  label: '🌐 Website'
+  label: '🌐 Website',
+  isNew: true
 }];
 
 const WEBSITE_TYPES = [
@@ -1100,7 +1101,18 @@ This website is fully responsive and ready for production use.
               }}>
                 <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-background z-50">
-                  {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  {CODE_TASKS.map(t => (
+                    <SelectItem key={t.value} value={t.value}>
+                      <span className="flex items-center gap-1.5">
+                        {t.label}
+                        {(t as any).isNew && (
+                          <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
+                            NEW
+                          </span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {selectedTask === 'translate' ? <>
