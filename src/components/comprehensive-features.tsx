@@ -12,7 +12,8 @@ import {
   Brain,
   GraduationCap,
   Leaf,
-  Shield
+  Shield,
+  Globe
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
@@ -29,6 +30,14 @@ export const ComprehensiveFeatures: React.FC = () => {
       category: language === 'hi' ? 'कानूनी' : language === 'mr' ? 'कायदेशीर' : 'Legal',
       isNew: true,
       link: '/haq-jaano'
+    },
+    {
+      icon: Globe,
+      title: language === 'hi' ? 'वेबसाइट जेनरेटर' : language === 'mr' ? 'वेबसाइट जनरेटर' : 'Website Generator',
+      description: language === 'hi' ? 'AI के साथ पेशेवर Netlify-ready वेबसाइट बनाएं। HTML, CSS, JS शामिल' : language === 'mr' ? 'AI सह व्यावसायिक Netlify-ready वेबसाइट तयार करा। HTML, CSS, JS समाविष्ट' : 'Create professional Netlify-ready websites with AI. Includes HTML, CSS, JS files',
+      gradient: 'from-purple-500 to-pink-500',
+      category: language === 'hi' ? 'डेवलपर' : language === 'mr' ? 'डेव्हलपर' : 'Developer',
+      isNew: true
     },
     {
       icon: MessageSquare,

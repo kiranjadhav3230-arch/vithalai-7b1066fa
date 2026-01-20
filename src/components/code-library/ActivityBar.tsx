@@ -12,11 +12,11 @@ interface ActivityBarProps {
 }
 
 const activities = [
-  { id: 'files' as const, icon: Files, label: 'Explorer', shortcut: 'Ctrl+Shift+E' },
-  { id: 'websites' as const, icon: Globe, label: 'Website Projects', shortcut: 'Ctrl+Shift+W' },
-  { id: 'search' as const, icon: Search, label: 'Search', shortcut: 'Ctrl+Shift+F' },
-  { id: 'tags' as const, icon: Tags, label: 'Tags', shortcut: 'Ctrl+Shift+T' },
-  { id: 'settings' as const, icon: Settings, label: 'Settings', shortcut: 'Ctrl+,' },
+  { id: 'files' as const, icon: Files, label: 'Explorer', shortcut: 'Ctrl+Shift+E', isNew: false },
+  { id: 'websites' as const, icon: Globe, label: 'Website Projects', shortcut: 'Ctrl+Shift+W', isNew: true },
+  { id: 'search' as const, icon: Search, label: 'Search', shortcut: 'Ctrl+Shift+F', isNew: false },
+  { id: 'tags' as const, icon: Tags, label: 'Tags', shortcut: 'Ctrl+Shift+T', isNew: false },
+  { id: 'settings' as const, icon: Settings, label: 'Settings', shortcut: 'Ctrl+,', isNew: false },
 ];
 
 export function ActivityBar({ activeView, onViewChange, onClose }: ActivityBarProps) {
@@ -35,10 +35,17 @@ export function ActivityBar({ activeView, onViewChange, onClose }: ActivityBarPr
               )}
             >
               <activity.icon className="h-5 w-5" />
+              {activity.isNew && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 animate-pulse" />
+              )}
             </button>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-[#252526] border-[#3c3c3c] text-white">
-            <p>{activity.label} <span className="text-[#858585] ml-2">{activity.shortcut}</span></p>
+            <p className="flex items-center gap-2">
+              {activity.label} 
+              {activity.isNew && <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white">NEW</span>}
+              <span className="text-[#858585] ml-2">{activity.shortcut}</span>
+            </p>
           </TooltipContent>
         </Tooltip>
       ))}

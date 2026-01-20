@@ -420,6 +420,15 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       toast({ variant: "destructive", title: "Error", description: "Failed to delete project" });
     }
   };
+
+  const handleSaveWebsiteToLibrary = (project: any) => {
+    // Open the code library with the websites view
+    setShowCodeLibrary(true);
+    toast({ 
+      title: "Website Library", 
+      description: `"${project.name}" is already saved in your library. Opening website library...` 
+    });
+  };
   const loadUserProfile = async () => {
     try {
       const {
@@ -1066,19 +1075,6 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               {!collapsedTabs.websites && (
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {/* Open Library Button */}
-                    <SidebarMenuItem>
-                      <SidebarMenuButton
-                        onClick={() => setShowCodeLibrary(true)}
-                        className="w-full hover:bg-purple-500/10 hover:text-purple-400 border border-dashed border-purple-500/30 mb-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Library className="h-3.5 w-3.5 text-purple-400" />
-                          <span className="text-xs">Open Website Library</span>
-                        </div>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    
                     {websiteProjects.length > 0 ? websiteProjects.map(project => (
                       <SidebarMenuItem key={project.id}>
                         <div className="w-full px-2 py-1.5 group">
@@ -1094,6 +1090,14 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                               className="h-6 px-2 text-[10px] hover:bg-blue-500/10 hover:text-blue-400"
                             >
                               👁️ Preview
+                            </Button>
+                            <Button
+                              onClick={() => handleSaveWebsiteToLibrary(project)}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-[10px] hover:bg-purple-500/10 hover:text-purple-400"
+                            >
+                              💾 Save
                             </Button>
                             <Button
                               onClick={() => handleDownloadWebsite(project)}
@@ -1779,34 +1783,6 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                       {language === 'hi' ? 'भारत का पहला AI कानूनी अधिकार सहायक' : language === 'mr' ? 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक' : "India's first AI Legal Rights Assistant"}
-                    </p>
-                  </div>
-                </div>
-              </button>
-
-              {/* Website Generator */}
-              <button
-                onClick={() => {
-                  setCurrentView('code');
-                  setShowAllFeatures(false);
-                }}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all duration-300 text-left group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
-                    <Globe className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-foreground group-hover:text-purple-400 transition-colors">
-                        {language === 'hi' ? 'वेबसाइट जेनरेटर' : language === 'mr' ? 'वेबसाइट जनरेटर' : 'Website Generator'}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
-                        NEW
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                      {language === 'hi' ? 'AI के साथ Netlify-ready वेबसाइट बनाएं' : language === 'mr' ? 'AI सह Netlify-ready वेबसाइट तयार करा' : 'Create professional Netlify-ready websites with AI'}
                     </p>
                   </div>
                 </div>
