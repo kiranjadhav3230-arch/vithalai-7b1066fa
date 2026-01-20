@@ -266,30 +266,71 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const handleSave = async () => {
     if (!activeTab || !activeTab.isModified) return;
 
-    const { error } = await supabase
-      .from('code_snippets')
-      .update({ generated_code: activeTab.code })
-      .eq('id', activeTab.id);
+    // Check if this is a website project file (ID format: project-{projectId}-{fileId})
+    const isProjectFile = activeTab.id.startsWith('project-');
+    
+    if (isProjectFile) {
+      // Extract file ID from tab ID: project-{projectId}-{fileId}
+      const parts = activeTab.id.split('-');
+      const fileId = parts.slice(2).join('-'); // Handle UUIDs with dashes
+      
+      const { error } = await supabase
+        .from('website_project_files')
+        .update({ 
+          file_content: activeTab.code,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', fileId);
 
-    if (error) {
-      toast({ title: "Error", description: "Failed to save changes", variant: "destructive" });
-      return;
-    }
-
-    // Update tab state
-    setOpenTabs(prev => prev.map(tab => {
-      if (tab.id === activeTab.id) {
-        return { ...tab, isModified: false, originalCode: tab.code };
+      if (error) {
+        toast({ title: "Error", description: "Failed to save project file", variant: "destructive" });
+        return;
       }
-      return tab;
-    }));
 
-    // Update snippets list
-    setSnippets(prev => prev.map(s => 
-      s.id === activeTab.id ? { ...s, generated_code: activeTab.code } : s
-    ));
+      // Update tab state
+      setOpenTabs(prev => prev.map(tab => {
+        if (tab.id === activeTab.id) {
+          return { ...tab, isModified: false, originalCode: tab.code };
+        }
+        return tab;
+      }));
 
-    sonnerToast.success('Code saved successfully');
+      // Update website projects state
+      setWebsiteProjects(prev => prev.map(project => ({
+        ...project,
+        files: project.files.map(file => 
+          file.id === fileId ? { ...file, file_content: activeTab.code } : file
+        )
+      })));
+
+      sonnerToast.success('Project file saved successfully');
+    } else {
+      // Regular code snippet save
+      const { error } = await supabase
+        .from('code_snippets')
+        .update({ generated_code: activeTab.code })
+        .eq('id', activeTab.id);
+
+      if (error) {
+        toast({ title: "Error", description: "Failed to save changes", variant: "destructive" });
+        return;
+      }
+
+      // Update tab state
+      setOpenTabs(prev => prev.map(tab => {
+        if (tab.id === activeTab.id) {
+          return { ...tab, isModified: false, originalCode: tab.code };
+        }
+        return tab;
+      }));
+
+      // Update snippets list
+      setSnippets(prev => prev.map(s => 
+        s.id === activeTab.id ? { ...s, generated_code: activeTab.code } : s
+      ));
+
+      sonnerToast.success('Code saved successfully');
+    }
   };
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
