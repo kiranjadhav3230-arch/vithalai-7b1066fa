@@ -7,3 +7,4 @@ export { StatusBar } from './StatusBar';
 export { SearchPanel } from './SearchPanel';
 export { TagsPanel } from './TagsPanel';
 export { SettingsPanel } from './SettingsPanel';
+export { WebsiteProjectsPanel, type WebsiteProject, type WebsiteProjectFile } from './WebsiteProjectsPanel';

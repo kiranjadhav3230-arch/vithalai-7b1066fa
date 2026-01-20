@@ -22,8 +22,12 @@ import {
   SearchPanel,
   TagsPanel,
   SettingsPanel,
+  WebsiteProjectsPanel,
   type ActivityView,
+  type WebsiteProject,
+  type WebsiteProjectFile,
 } from '@/components/code-library';
+import JSZip from 'jszip';
 
 interface CodeSnippet {
   id: string;
@@ -64,6 +68,11 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [stdinInput, setStdinInput] = useState('');
   
+  // Website projects state
+  const [websiteProjects, setWebsiteProjects] = useState<WebsiteProject[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  
   const { toast } = useToast();
   const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
   const { settings, updateSetting, resetSettings } = useEditorSettings();
@@ -78,10 +87,11 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   // Detect input functions in current code
   const inputDetection = useInputDetection(currentCode, currentLanguage);
 
-  // Load snippets when opened
+  // Load snippets and website projects when opened
   useEffect(() => {
     if (open) {
       loadSnippets();
+      loadWebsiteProjects();
     }
   }, [open]);
 
@@ -143,6 +153,38 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     }
 
     setSnippets(data || []);
+  };
+
+  const loadWebsiteProjects = async () => {
+    // Load projects
+    const { data: projectsData, error: projectsError } = await supabase
+      .from('website_projects')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (projectsError) {
+      console.error('Error loading website projects:', projectsError);
+      return;
+    }
+
+    // Load files for each project
+    const projectsWithFiles: WebsiteProject[] = [];
+    for (const project of projectsData || []) {
+      const { data: filesData } = await supabase
+        .from('website_project_files')
+        .select('*')
+        .eq('project_id', project.id)
+        .order('file_order', { ascending: true });
+      
+      projectsWithFiles.push({
+        ...project,
+        is_favorite: project.is_favorite || false,
+        files: filesData || [],
+      });
+    }
+
+    setWebsiteProjects(projectsWithFiles);
   };
 
   const filterSnippets = () => {
@@ -324,6 +366,140 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     sonnerToast.success('New snippet created');
   };
 
+  // Website project handlers
+  const handleSelectProject = (project: WebsiteProject) => {
+    setSelectedProjectId(project.id);
+    setSelectedFileId(null);
+    setSelectedSnippetId(null);
+  };
+
+  const handleSelectProjectFile = (project: WebsiteProject, file: WebsiteProjectFile) => {
+    setSelectedProjectId(project.id);
+    setSelectedFileId(file.id);
+    setSelectedSnippetId(null);
+
+    // Check if tab already exists
+    const tabId = `project-${project.id}-${file.id}`;
+    const existingTab = openTabs.find(t => t.id === tabId);
+    if (existingTab) {
+      setActiveTabId(tabId);
+      return;
+    }
+
+    // Add new tab
+    const newTab: OpenTab = {
+      id: tabId,
+      title: `${project.name} / ${file.file_name}`,
+      language: file.language,
+      isModified: false,
+      code: file.file_content,
+      originalCode: file.file_content,
+    };
+
+    setOpenTabs(prev => [...prev, newTab]);
+    setActiveTabId(tabId);
+    setIsEditing(true);
+  };
+
+  const handleToggleProjectFavorite = async (id: string, isFavorite: boolean) => {
+    const { error } = await supabase
+      .from('website_projects')
+      .update({ is_favorite: isFavorite })
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to update favorite", variant: "destructive" });
+      return;
+    }
+
+    setWebsiteProjects(prev => prev.map(p => p.id === id ? { ...p, is_favorite: isFavorite } : p));
+    sonnerToast.success(isFavorite ? 'Added to favorites' : 'Removed from favorites');
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this website project? This will delete all files in the project.');
+    if (!confirmDelete) return;
+
+    const { error } = await supabase
+      .from('website_projects')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: "Error", description: "Failed to delete project", variant: "destructive" });
+      return;
+    }
+
+    setWebsiteProjects(prev => prev.filter(p => p.id !== id));
+    // Close any open tabs for this project
+    setOpenTabs(prev => prev.filter(t => !t.id.startsWith(`project-${id}-`)));
+    sonnerToast.success('Project deleted');
+  };
+
+  const handlePreviewProject = (project: WebsiteProject) => {
+    const html = project.files.find(f => f.file_name === 'index.html')?.file_content || '';
+    const css = project.files.find(f => f.file_name === 'styles.css')?.file_content || '';
+    const js = project.files.find(f => f.file_name === 'script.js')?.file_content || '';
+
+    let fullHtml = html;
+    if (css && !html.includes('<link rel="stylesheet" href="styles.css">')) {
+      fullHtml = fullHtml.replace('</head>', `<style>${css}</style></head>`);
+    } else if (css) {
+      fullHtml = fullHtml.replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`);
+    }
+
+    if (js && !html.includes('<script src="script.js"></script>')) {
+      fullHtml = fullHtml.replace('</body>', `<script>${js}</script></body>`);
+    } else if (js) {
+      fullHtml = fullHtml.replace('<script src="script.js"></script>', `<script>${js}</script>`);
+    }
+
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.document.write(fullHtml);
+      newWindow.document.close();
+    }
+  };
+
+  const handleDownloadProject = async (project: WebsiteProject) => {
+    const zip = new JSZip();
+
+    project.files.forEach(file => {
+      zip.file(file.file_name, file.file_content);
+    });
+
+    zip.file('README.md', `# ${project.name}
+
+## 🚀 Deploy to Netlify (3 Easy Steps)
+
+1. Go to [netlify.com](https://netlify.com)
+2. Drag and drop this folder to the deploy zone
+3. Your site will be live in seconds!
+
+## 🎨 Generated by Vithal AI Website Generator
+`);
+
+    zip.file('netlify.toml', `[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+`);
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name.toLowerCase().replace(/\s+/g, '-')}-netlify.zip`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    sonnerToast.success('Website downloaded for Netlify');
+  };
+
   const handleClose = () => {
     // Check for unsaved changes
     const hasUnsaved = openTabs.some(t => t.isModified);
@@ -378,6 +554,19 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       onDeleteSnippet={handleDeleteSnippet}
                       onCopyCode={handleCopyCode}
                       onCreateSnippet={handleCreateSnippet}
+                    />
+                  )}
+                  {activeView === 'websites' && (
+                    <WebsiteProjectsPanel
+                      projects={websiteProjects}
+                      selectedProjectId={selectedProjectId}
+                      selectedFileId={selectedFileId}
+                      onSelectProject={handleSelectProject}
+                      onSelectFile={handleSelectProjectFile}
+                      onToggleFavorite={handleToggleProjectFavorite}
+                      onDeleteProject={handleDeleteProject}
+                      onPreviewProject={handlePreviewProject}
+                      onDownloadProject={handleDownloadProject}
                     />
                   )}
                   {activeView === 'search' && (
