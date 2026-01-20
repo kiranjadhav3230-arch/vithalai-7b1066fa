@@ -8,7 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Globe, Palette } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CodeSnippetLibrary } from './code-snippet-library';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -84,7 +85,56 @@ const CODE_TASKS = [{
 }, {
   value: 'translate',
   label: 'Translate Code'
+}, {
+  value: 'website',
+  label: '🌐 Website'
 }];
+
+const WEBSITE_TYPES = [
+  { value: 'landing', label: 'Landing Page' },
+  { value: 'portfolio', label: 'Portfolio' },
+  { value: 'business', label: 'Business' },
+  { value: 'restaurant', label: 'Restaurant' },
+  { value: 'event', label: 'Event' },
+  { value: 'blog', label: 'Blog' },
+  { value: 'ecommerce', label: 'E-commerce' },
+];
+
+const WEBSITE_STYLES = [
+  { value: 'modern', label: 'Modern' },
+  { value: 'minimal', label: 'Minimal' },
+  { value: 'glassmorphism', label: 'Glassmorphism' },
+  { value: 'dark', label: 'Dark Theme' },
+  { value: 'gradient', label: 'Gradient' },
+  { value: 'colorful', label: 'Colorful' },
+];
+
+const COLOR_SCHEMES = [
+  { value: 'blue', label: '🔵 Blue' },
+  { value: 'purple', label: '🟣 Purple' },
+  { value: 'green', label: '🟢 Green' },
+  { value: 'orange', label: '🟠 Orange' },
+  { value: 'red', label: '🔴 Red' },
+  { value: 'teal', label: '🩵 Teal' },
+  { value: 'pink', label: '💗 Pink' },
+];
+
+const WEBSITE_SECTIONS = [
+  { value: 'hero', label: 'Hero' },
+  { value: 'features', label: 'Features' },
+  { value: 'about', label: 'About' },
+  { value: 'services', label: 'Services' },
+  { value: 'testimonials', label: 'Testimonials' },
+  { value: 'pricing', label: 'Pricing' },
+  { value: 'contact', label: 'Contact' },
+  { value: 'footer', label: 'Footer' },
+];
+
+interface WebsiteFile {
+  name: string;
+  content: string;
+  language: string;
+}
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -134,6 +184,12 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
   const [showPreview, setShowPreview] = useState<{
     [key: string]: boolean;
   }>({});
+  // Website generator state
+  const [websiteType, setWebsiteType] = useState('landing');
+  const [websiteStyle, setWebsiteStyle] = useState('modern');
+  const [colorScheme, setColorScheme] = useState('blue');
+  const [selectedSections, setSelectedSections] = useState<string[]>(['hero', 'features', 'footer']);
+  const [generatedWebsite, setGeneratedWebsite] = useState<WebsiteFile[] | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -178,6 +234,9 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
           break;
         case 'translate':
           smartTitle = `🔄 Translate: ${shortPrompt}`;
+          break;
+        case 'website':
+          smartTitle = `🌐 Website: ${shortPrompt}`;
           break;
         default:
           smartTitle = `💻 ${langLabel}: ${shortPrompt}`;
@@ -506,6 +565,128 @@ ${code}
     });
   };
 
+  // Parse website response into separate files
+  const parseWebsiteResponse = (response: string): WebsiteFile[] => {
+    const files: WebsiteFile[] = [];
+    
+    // Parse HTML file
+    const htmlMatch = response.match(/=== FILE: index\.html ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (htmlMatch) {
+      let htmlContent = htmlMatch[1].trim();
+      // Remove markdown code blocks if present
+      htmlContent = htmlContent.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'index.html', content: htmlContent, language: 'html' });
+    }
+    
+    // Parse CSS file
+    const cssMatch = response.match(/=== FILE: styles\.css ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (cssMatch) {
+      let cssContent = cssMatch[1].trim();
+      cssContent = cssContent.replace(/^```css?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'styles.css', content: cssContent, language: 'css' });
+    }
+    
+    // Parse JS file
+    const jsMatch = response.match(/=== FILE: script\.js ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (jsMatch) {
+      let jsContent = jsMatch[1].trim();
+      jsContent = jsContent.replace(/^```(?:javascript|js)?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'script.js', content: jsContent, language: 'javascript' });
+    }
+    
+    return files;
+  };
+
+  // Download website as Netlify-ready folder
+  const downloadWebsiteAsFolder = async (files: WebsiteFile[]) => {
+    const zip = new JSZip();
+    
+    // Add all generated files
+    files.forEach(file => {
+      zip.file(file.name, file.content);
+    });
+    
+    // Add README with deployment instructions
+    zip.file('README.md', `# My Website
+
+## 🚀 Deploy to Netlify (3 Easy Steps)
+
+1. Go to [netlify.com](https://netlify.com)
+2. Drag and drop this folder to the deploy zone
+3. Your site will be live in seconds!
+
+## 📁 Files Included
+
+- \`index.html\` - Main HTML file (entry point)
+- \`styles.css\` - All styling and responsive design
+- \`script.js\` - JavaScript functionality and interactivity
+
+## 🎨 Generated by Vithal AI Website Generator
+
+This website is fully responsive and ready for production use.
+`);
+
+    // Add netlify.toml for optimal deployment
+    zip.file('netlify.toml', `[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+`);
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-website-netlify.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "🚀 Website Downloaded!",
+      description: "Ready to deploy - just drag & drop to Netlify"
+    });
+  };
+
+  // Preview website in new tab
+  const previewWebsite = (files: WebsiteFile[]) => {
+    const html = files.find(f => f.name === 'index.html')?.content || '';
+    const css = files.find(f => f.name === 'styles.css')?.content || '';
+    const js = files.find(f => f.name === 'script.js')?.content || '';
+    
+    // Inject CSS and JS into HTML
+    let fullHtml = html;
+    if (css && !html.includes('<link rel="stylesheet" href="styles.css">')) {
+      fullHtml = fullHtml.replace('</head>', `<style>${css}</style></head>`);
+    } else if (css) {
+      fullHtml = fullHtml.replace('<link rel="stylesheet" href="styles.css">', `<style>${css}</style>`);
+    }
+    
+    if (js && !html.includes('<script src="script.js"></script>')) {
+      fullHtml = fullHtml.replace('</body>', `<script>${js}</script></body>`);
+    } else if (js) {
+      fullHtml = fullHtml.replace('<script src="script.js"></script>', `<script>${js}</script>`);
+    }
+    
+    const newWindow = window.open('about:blank', '_blank');
+    if (newWindow) {
+      newWindow.document.write(fullHtml);
+      newWindow.document.close();
+    }
+  };
+
+  // Toggle section for website generator
+  const toggleSection = (section: string) => {
+    setSelectedSections(prev => 
+      prev.includes(section) 
+        ? prev.filter(s => s !== section)
+        : [...prev, section]
+    );
+  };
+
   // Build chat history for context
   const buildChatHistory = useCallback(() => {
     return messages.filter(m => !m.isStreaming).slice(-10).map(m => ({
@@ -618,22 +799,41 @@ ${code}
     try {
       // Build chat history for context
       const chatHistory = buildChatHistory();
-      const requestBody = selectedTask === 'translate' ? {
-        prompt: currentInput,
-        task: selectedTask,
-        sourceLanguage,
-        targetLanguage,
-        attachments: currentAttachments,
-        chatHistory,
-        stream: true // Enable streaming
-      } : {
-        prompt: currentInput,
-        language: selectedLanguage,
-        task: selectedTask,
-        attachments: currentAttachments,
-        chatHistory,
-        stream: true // Enable streaming
-      };
+      let requestBody: any;
+      
+      if (selectedTask === 'translate') {
+        requestBody = {
+          prompt: currentInput,
+          task: selectedTask,
+          sourceLanguage,
+          targetLanguage,
+          attachments: currentAttachments,
+          chatHistory,
+          stream: true
+        };
+      } else if (selectedTask === 'website') {
+        requestBody = {
+          prompt: currentInput,
+          task: selectedTask,
+          language: 'html',
+          websiteType,
+          styleType: websiteStyle,
+          colorScheme,
+          sections: selectedSections,
+          attachments: currentAttachments,
+          chatHistory,
+          stream: true
+        };
+      } else {
+        requestBody = {
+          prompt: currentInput,
+          language: selectedLanguage,
+          task: selectedTask,
+          attachments: currentAttachments,
+          chatHistory,
+          stream: true
+        };
+      }
 
       // Use streaming for real-time code display
       const streamResult = await handleStreamingResponse(requestBody, userMsg.id);
@@ -643,68 +843,110 @@ ${code}
       // Parse and validate the streamed response
       const responseText = streamResult.code;
 
-      // Perform client-side validation as backup
-      const validation = streamResult.validation || {
-        score: responseText.length > 100 ? 95 : 80,
-        isValid: true,
-        issues: []
-      };
+      // Handle website task specially
+      if (selectedTask === 'website') {
+        const websiteFiles = parseWebsiteResponse(responseText);
+        if (websiteFiles.length > 0) {
+          setGeneratedWebsite(websiteFiles);
+          
+          // Replace streaming message with website result
+          setMessages(prev => {
+            const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+            return [...filtered, {
+              id: `${Date.now()}-website`,
+              role: 'assistant' as const,
+              content: `🌐 **Website Generated Successfully!**\n\nFiles created:\n- index.html\n- styles.css\n- script.js\n\nUse the buttons below to preview or download your Netlify-ready website.`,
+              isCode: false,
+              language: 'html',
+              validation: { score: 95, isValid: true, issues: [] }
+            }];
+          });
+          
+          toast({
+            title: "🌐 Website Generated!",
+            description: "Preview or download your Netlify-ready website"
+          });
+        } else {
+          // Fallback to regular parsing if website format not detected
+          const parsedParts = parseResponse(responseText);
+          setMessages(prev => {
+            const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+            const newMessages = parsedParts.map((part, index) => ({
+              id: `${Date.now()}-${index}`,
+              role: 'assistant' as const,
+              content: part.content,
+              isCode: part.type === 'code',
+              language: part.language || 'html',
+              validation: index === 0 ? { score: 90, isValid: true, issues: [] } : undefined
+            }));
+            return [...filtered, ...newMessages];
+          });
+        }
+      } else {
+        // Perform client-side validation as backup
+        const validation = streamResult.validation || {
+          score: responseText.length > 100 ? 95 : 80,
+          isValid: true,
+          issues: []
+        };
 
-      // Update the streaming message with final validation
-      const parsedParts = parseResponse(responseText);
+        // Update the streaming message with final validation
+        const parsedParts = parseResponse(responseText);
 
-      // Replace streaming message with properly parsed parts
-      setMessages(prev => {
-        const filtered = prev.filter(m => !m.id?.includes('-streaming'));
-        const newMessages = parsedParts.map((part, index) => ({
-          id: `${Date.now()}-${index}`,
-          role: 'assistant' as const,
-          content: part.content,
-          isCode: part.type === 'code',
-          language: part.language || selectedLanguage,
-          validation: index === 0 ? validation : undefined
-        }));
-        return [...filtered, ...newMessages];
-      });
+        // Replace streaming message with properly parsed parts
+        setMessages(prev => {
+          const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+          const newMessages = parsedParts.map((part, index) => ({
+            id: `${Date.now()}-${index}`,
+            role: 'assistant' as const,
+            content: part.content,
+            isCode: part.type === 'code',
+            language: part.language || selectedLanguage,
+            validation: index === 0 ? validation : undefined
+          }));
+          return [...filtered, ...newMessages];
+        });
+
+        // Show validation result
+        if (validation) {
+          if (validation.isValid && validation.score >= 90) {
+            toast({
+              title: "✓ High Quality Code",
+              description: `Quality score: ${validation.score}%`
+            });
+          } else if (validation.isValid) {
+            toast({
+              title: "Code Generated",
+              description: `Quality score: ${validation.score}%${validation.issues.length > 0 ? ' - ' + validation.issues[0] : ''}`
+            });
+          } else {
+            toast({
+              title: "Code Generated with Warnings",
+              description: validation.issues.join(', '),
+              variant: "destructive"
+            });
+          }
+        } else {
+          toast({
+            title: "Success",
+            description: "Code generated!"
+          });
+        }
+      }
+
       if (currentSessionId) {
         await supabase.from('chat_messages').insert({
           session_id: currentSessionId,
           user_id: user.id,
           message: currentInput,
           response: responseText,
-          message_type: 'code'
+          message_type: selectedTask === 'website' ? 'website' : 'code'
         });
         if (isFirstMessage) {
-          const lang = selectedTask === 'translate' ? targetLanguage : selectedLanguage;
+          const lang = selectedTask === 'translate' ? targetLanguage : (selectedTask === 'website' ? 'html' : selectedLanguage);
           await generateSmartCodeTitle(currentSessionId, currentInput, lang, selectedTask);
           setIsFirstMessage(false);
         }
-      }
-
-      // Show validation result
-      if (validation) {
-        if (validation.isValid && validation.score >= 90) {
-          toast({
-            title: "✓ High Quality Code",
-            description: `Quality score: ${validation.score}%`
-          });
-        } else if (validation.isValid) {
-          toast({
-            title: "Code Generated",
-            description: `Quality score: ${validation.score}%${validation.issues.length > 0 ? ' - ' + validation.issues[0] : ''}`
-          });
-        } else {
-          toast({
-            title: "Code Generated with Warnings",
-            description: validation.issues.join(', '),
-            variant: "destructive"
-          });
-        }
-      } else {
-        toast({
-          title: "Success",
-          description: "Code generated!"
-        });
       }
     } catch (error: any) {
       clearInterval(interval);
@@ -778,11 +1020,14 @@ ${code}
       {/* Generator Tab Content */}
       {activeTab === 'generator' && <div className="flex flex-col flex-1 overflow-hidden">
           <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
-            <Badge variant="outline" className="text-xs border-green-500/20 text-primary bg-card">
-              v2.1 Pro    
+            <Badge variant="outline" className="text-xs border-primary/20 text-primary bg-card">
+              {selectedTask === 'website' ? '🌐 Website Generator' : 'v2.1 Pro'}
             </Badge>
             <div className="flex gap-2 flex-wrap">
-              <Select value={selectedTask} onValueChange={setSelectedTask}>
+              <Select value={selectedTask} onValueChange={(v) => {
+                setSelectedTask(v);
+                if (v === 'website') setGeneratedWebsite(null);
+              }}>
                 <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-background z-50">
                   {CODE_TASKS.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -802,6 +1047,25 @@ ${code}
                       {PROGRAMMING_LANGUAGES.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
+                </> : selectedTask === 'website' ? <>
+                  <Select value={websiteType} onValueChange={setWebsiteType}>
+                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {WEBSITE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={websiteStyle} onValueChange={setWebsiteStyle}>
+                    <SelectTrigger className="w-32 h-8"><SelectValue placeholder="Style" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {WEBSITE_STYLES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={colorScheme} onValueChange={setColorScheme}>
+                    <SelectTrigger className="w-28 h-8"><SelectValue placeholder="Color" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {COLOR_SCHEMES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </> : <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                   <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-background z-50 max-h-[300px]">
@@ -811,11 +1075,40 @@ ${code}
             </div>
           </div>
 
+          {/* Website Sections Selector */}
+          {selectedTask === 'website' && (
+            <div className="border-b px-3 py-2 bg-muted/30">
+              <p className="text-xs text-muted-foreground mb-2">Select sections to include:</p>
+              <div className="flex flex-wrap gap-3">
+                {WEBSITE_SECTIONS.map(section => (
+                  <label key={section.value} className="flex items-center gap-1.5 text-xs cursor-pointer">
+                    <Checkbox
+                      checked={selectedSections.includes(section.value)}
+                      onCheckedChange={() => toggleSection(section.value)}
+                      className="h-3.5 w-3.5"
+                    />
+                    {section.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 ? <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <Code className="w-16 h-16 mb-4 opacity-20" />
-                <p className="text-sm">Start coding with AI assistance</p>
-                <p className="text-xs mt-2 opacity-60">Enhanced with language-specific best practices & code validation</p>
+                {selectedTask === 'website' ? (
+                  <>
+                    <Globe className="w-16 h-16 mb-4 opacity-20" />
+                    <p className="text-sm">Create professional websites with AI</p>
+                    <p className="text-xs mt-2 opacity-60">Describe your website and we'll generate HTML, CSS & JS ready for Netlify</p>
+                  </>
+                ) : (
+                  <>
+                    <Code className="w-16 h-16 mb-4 opacity-20" />
+                    <p className="text-sm">Start coding with AI assistance</p>
+                    <p className="text-xs mt-2 opacity-60">Enhanced with language-specific best practices & code validation</p>
+                  </>
+                )}
               </div> : <div className="space-y-3 max-w-4xl mx-auto">
                 {messages.map((msg, idx) => <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[90%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground rounded-lg p-3' : ''}`}>
@@ -864,6 +1157,44 @@ ${code}
                               <RotateCcw className="w-4 h-4 mr-2" />Retry
                             </Button>}
                           <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                          
+                          {/* Website action buttons */}
+                          {msg.id?.includes('-website') && generatedWebsite && generatedWebsite.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              <Button 
+                                variant="default" 
+                                size="sm" 
+                                onClick={() => previewWebsite(generatedWebsite)}
+                                className="gap-2"
+                              >
+                                <Monitor className="h-4 w-4" />
+                                Preview Website
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => downloadWebsiteAsFolder(generatedWebsite)}
+                                className="gap-2"
+                              >
+                                <FolderDown className="h-4 w-4" />
+                                Download for Netlify
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  const allCode = generatedWebsite.map(f => `/* ${f.name} */\n${f.content}`).join('\n\n');
+                                  navigator.clipboard.writeText(allCode);
+                                  toast({ title: "Copied!", description: "All website code copied" });
+                                }}
+                                className="gap-2"
+                              >
+                                <Copy className="h-4 w-4" />
+                                Copy All
+                              </Button>
+                            </div>
+                          )}
+                          
                           {msg.attachments && msg.attachments.length > 0 && <div className="mt-2 flex flex-wrap gap-2">
                               {msg.attachments.map((att, i) => <div key={i} className="relative">
                                   {att.type === 'image' ? <img src={att.data} alt={att.name} className="max-w-[200px] rounded border" /> : <div className="flex items-center gap-2 border rounded p-2 bg-background/50">
