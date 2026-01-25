@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, ChevronDown, Globe, Star, StarOff, Trash2, MoreVertical, Download, Eye } from 'lucide-react';
+import { ChevronRight, ChevronDown, Globe, Star, StarOff, Trash2, MoreVertical, Download, Eye, Rocket } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,7 @@ interface WebsiteProjectsPanelProps {
   onDeleteProject: (id: string) => void;
   onPreviewProject: (project: WebsiteProject) => void;
   onDownloadProject: (project: WebsiteProject) => void;
+  onPublishProject?: (project: WebsiteProject) => void;
 }
 
 const fileIcons: Record<string, string> = {
@@ -61,6 +62,7 @@ export function WebsiteProjectsPanel({
   onDeleteProject,
   onPreviewProject,
   onDownloadProject,
+  onPublishProject,
 }: WebsiteProjectsPanelProps) {
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   const [projectsSectionOpen, setProjectsSectionOpen] = useState(true);
@@ -146,6 +148,15 @@ export function WebsiteProjectsPanel({
                   <Download className="h-4 w-4 mr-2" />
                   Download for Netlify
                 </DropdownMenuItem>
+                {onPublishProject && (
+                  <DropdownMenuItem
+                    className="hover:bg-[#094771] cursor-pointer text-teal-400 focus:text-teal-400"
+                    onClick={() => onPublishProject(project)}
+                  >
+                    <Rocket className="h-4 w-4 mr-2" />
+                    Publish to Netlify
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator className="bg-[#3c3c3c]" />
                 <DropdownMenuItem
                   className="hover:bg-[#094771] cursor-pointer text-red-400 focus:text-red-400"
@@ -163,7 +174,7 @@ export function WebsiteProjectsPanel({
         {isExpanded && (
           <div className="ml-6">
             {/* Quick Action Buttons */}
-            <div className="flex gap-1 px-2 py-2 border-b border-[#3c3c3c] mb-1">
+            <div className="flex flex-wrap gap-1 px-2 py-2 border-b border-[#3c3c3c] mb-1">
               <Button
                 onClick={() => onPreviewProject(project)}
                 size="sm"
@@ -180,8 +191,19 @@ export function WebsiteProjectsPanel({
                 className="h-7 px-2 text-xs bg-green-500/10 hover:bg-green-500/20 text-green-400"
               >
                 <Download className="h-3 w-3 mr-1" />
-                Download ZIP
+                Download
               </Button>
+              {onPublishProject && (
+                <Button
+                  onClick={() => onPublishProject(project)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-xs bg-gradient-to-r from-blue-500/20 to-teal-500/20 hover:from-blue-500/30 hover:to-teal-500/30 text-teal-400"
+                >
+                  <Rocket className="h-3 w-3 mr-1" />
+                  Publish
+                </Button>
+              )}
             </div>
             
             {/* File List */}
