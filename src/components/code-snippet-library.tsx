@@ -27,6 +27,7 @@ import {
   type WebsiteProject,
   type WebsiteProjectFile,
 } from '@/components/code-library';
+import { PublishNetlifyModal } from '@/components/publish-netlify-modal';
 import JSZip from 'jszip';
 
 interface CodeSnippet {
@@ -72,6 +73,10 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
   const [websiteProjects, setWebsiteProjects] = useState<WebsiteProject[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
+  
+  // Publish modal state
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [projectToPublish, setProjectToPublish] = useState<WebsiteProject | null>(null);
   
   const { toast } = useToast();
   const { executeCode, isExecuting, result, clearResult, isExecutable } = useCodeExecution();
@@ -542,6 +547,11 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
     sonnerToast.success('Website downloaded for Netlify');
   };
 
+  const handlePublishProject = (project: WebsiteProject) => {
+    setProjectToPublish(project);
+    setPublishModalOpen(true);
+  };
+
   const handleClose = () => {
     // Check for unsaved changes
     const hasUnsaved = openTabs.some(t => t.isModified);
@@ -609,6 +619,7 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
                       onDeleteProject={handleDeleteProject}
                       onPreviewProject={handlePreviewProject}
                       onDownloadProject={handleDownloadProject}
+                      onPublishProject={handlePublishProject}
                     />
                   )}
                   {activeView === 'search' && (
@@ -715,6 +726,16 @@ export const CodeSnippetLibrary: React.FC<CodeSnippetLibraryProps> = ({ open, on
           code={currentCode}
           onSave={handleSave}
           title={currentTitle}
+        />
+
+        {/* Publish to Netlify Modal */}
+        <PublishNetlifyModal
+          open={publishModalOpen}
+          onOpenChange={setPublishModalOpen}
+          project={projectToPublish}
+          onSuccess={(url) => {
+            sonnerToast.success(`Published to ${url}`);
+          }}
         />
       </div>
     </TooltipProvider>

@@ -10,7 +10,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3, Library } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3, Library, Rocket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +27,7 @@ import { HaqJaanoIntegrated } from './haq-jaano-integrated';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { WelcomeSection } from './welcome-section';
+import { PublishNetlifyModal } from './publish-netlify-modal';
 interface ChatSession {
   id: string;
   title: string;
@@ -82,6 +83,8 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   });
   const [websiteProjects, setWebsiteProjects] = useState<any[]>([]);
   const [showCodeLibrary, setShowCodeLibrary] = useState(false);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [projectToPublish, setProjectToPublish] = useState<any>(null);
 
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -1106,7 +1109,19 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                               className="h-6 px-2 text-[10px] hover:bg-green-500/10 hover:text-green-400"
                             >
                               <Download className="h-3 w-3 mr-1" />
-                              Netlify
+                              ZIP
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setProjectToPublish(project);
+                                setPublishModalOpen(true);
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-[10px] hover:bg-teal-500/10 hover:text-teal-400"
+                            >
+                              <Rocket className="h-3 w-3 mr-1" />
+                              Publish
                             </Button>
                             <Button
                               onClick={() => handleDeleteWebsiteProject(project.id)}
@@ -1796,6 +1811,19 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
           open={showCodeLibrary}
           onOpenChange={setShowCodeLibrary}
           user={user} 
+        />
+
+        {/* Publish to Netlify Modal */}
+        <PublishNetlifyModal
+          open={publishModalOpen}
+          onOpenChange={setPublishModalOpen}
+          project={projectToPublish}
+          onSuccess={(url) => {
+            toast({
+              title: '🚀 Published!',
+              description: `Your website is live at ${url}`,
+            });
+          }}
         />
       </div>
     </SidebarProvider>;
