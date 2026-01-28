@@ -455,7 +455,12 @@ serve(async (req) => {
       websiteType,
       colorScheme,
       styleType,
-      sections
+      sections,
+      // Full-stack app options
+      appTemplate,
+      appCategory,
+      includeAuth,
+      projectName
     } = await req.json();
     
     console.log('Code generation request:', { 
@@ -468,7 +473,9 @@ serve(async (req) => {
       historyLength: chatHistory?.length,
       stream,
       websiteType,
-      styleType
+      styleType,
+      appTemplate,
+      appCategory
     });
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
@@ -584,6 +591,140 @@ INSTRUCTIONS:
 - Handle any language-specific differences gracefully
 - If a feature doesn't exist in ${targetLang}, use the closest equivalent
 - Do NOT truncate or abbreviate any part of the code`;
+
+    } else if (task === 'fullstack-app') {
+      // Full-Stack Application Generator
+      const template = appTemplate || 'contact-form';
+      const wStyle = styleType || 'modern';
+      const wColors = colorScheme || 'blue';
+      const withAuth = includeAuth || false;
+      const projName = projectName || 'my-app';
+      
+      // Template-specific configurations
+      const TEMPLATE_CONFIGS: Record<string, { tables: string; features: string; description: string }> = {
+        'contact-form': {
+          tables: 'contacts (id, name, email, message, created_at)',
+          features: 'Contact form submission, email validation, success/error feedback',
+          description: 'A contact form that saves submissions to the database'
+        },
+        'blog-cms': {
+          tables: 'posts (id, title, slug, content, excerpt, author_id, published, created_at, updated_at), categories (id, name, slug)',
+          features: 'Blog listing, single post view, category filtering, rich content display',
+          description: 'A blog with posts, categories, and admin panel'
+        },
+        'todo-app': {
+          tables: 'todos (id, user_id, title, description, completed, priority, due_date, created_at), lists (id, user_id, name, color)',
+          features: 'Create/edit/delete tasks, mark complete, filter by status, organize in lists',
+          description: 'A task management application with lists'
+        },
+        'user-dashboard': {
+          tables: 'profiles (id, user_id, display_name, avatar_url, bio), user_settings (id, user_id, theme, notifications)',
+          features: 'User profile editing, settings management, dashboard stats',
+          description: 'A user dashboard with profile and settings'
+        },
+        'ecommerce': {
+          tables: 'products (id, name, description, price, image_url, stock, category), orders (id, user_id, status, total, created_at), order_items (id, order_id, product_id, quantity, price)',
+          features: 'Product catalog, cart, checkout process, order history',
+          description: 'An e-commerce store with products and orders'
+        },
+        'booking-system': {
+          tables: 'services (id, name, description, duration, price), bookings (id, user_id, service_id, date, time, status, notes)',
+          features: 'Service listing, date/time picker, booking confirmation',
+          description: 'An appointment booking system'
+        }
+      };
+      
+      const templateConfig = TEMPLATE_CONFIGS[template] || TEMPLATE_CONFIGS['contact-form'];
+      
+      systemPrompt = `You are an expert full-stack developer creating production-ready applications with Supabase backend.
+
+APPLICATION REQUIREMENTS:
+- Template: ${template}
+- Style: ${wStyle}
+- Color Scheme: ${wColors}
+- Include Authentication: ${withAuth}
+- Project Name: ${projName}
+
+TEMPLATE DETAILS:
+${templateConfig.description}
+Database Tables: ${templateConfig.tables}
+Features: ${templateConfig.features}
+
+OUTPUT FORMAT - Generate FIVE separate files with EXACT markers:
+
+=== FILE: frontend/index.html ===
+[Complete HTML5 with:
+- Supabase JS SDK from CDN: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+- Semantic HTML structure
+- Responsive viewport meta
+- Links to styles.css and script.js
+- Font Awesome icons
+- Google Fonts (Inter)
+${withAuth ? '- Login/Register forms\n- Protected content areas' : ''}
+]
+
+=== FILE: frontend/styles.css ===
+[Complete CSS with:
+- CSS custom properties for ${wColors} color scheme
+- Mobile-first responsive design
+- ${wStyle} styling
+- Form styles
+- Button hover states
+- Loading states
+- Success/error message styles
+${withAuth ? '- Auth form styles\n- User avatar styles' : ''}
+]
+
+=== FILE: frontend/script.js ===
+[Complete JavaScript with:
+- Supabase client initialization with PLACEHOLDER comments for URL and Key
+- const SUPABASE_URL = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
+- const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your Supabase anon key
+- All CRUD operations for the application
+- Form handling and validation
+- Error handling with user feedback
+- Loading state management
+${withAuth ? '- Authentication (signUp, signIn, signOut)\n- Session management\n- Protected route handling' : ''}
+]
+
+=== FILE: database/schema.sql ===
+[Complete PostgreSQL with:
+- CREATE TABLE statements for: ${templateConfig.tables}
+- Proper column types (UUID, TEXT, TIMESTAMPTZ, etc.)
+- DEFAULT values (gen_random_uuid(), NOW())
+- NOT NULL constraints where appropriate
+- Foreign key relationships
+${withAuth ? '- user_id references with auth.users' : ''}
+]
+
+=== FILE: database/rls.sql ===
+[Row Level Security policies:
+- ALTER TABLE ... ENABLE ROW LEVEL SECURITY for each table
+- CREATE POLICY statements for SELECT, INSERT, UPDATE, DELETE
+${withAuth ? '- Policies using auth.uid() for user-specific access\n- Authenticated role requirements' : '- Public access policies for anonymous users'}
+- Proper USING and WITH CHECK clauses
+]
+
+=== FILE: README.md ===
+[Deployment guide with:
+- Project overview
+- Supabase setup instructions
+- How to run the SQL in Supabase SQL Editor
+- How to update the JavaScript with Supabase credentials
+- Netlify deployment steps
+- Features list
+]
+
+QUALITY REQUIREMENTS:
+- All files must be COMPLETE - NO placeholders except for Supabase credentials
+- Code must be production-ready and fully functional
+- Must work immediately after adding Supabase credentials
+- Include comprehensive error handling
+- Include loading states for async operations
+- All forms must have validation
+- Must be fully responsive
+
+USER REQUEST: ${prompt || `Create a ${template} application`}`;
 
     } else if (task === 'website') {
       const wType = websiteType || 'landing';

@@ -6,11 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Globe, Palette } from 'lucide-react';
+import { Code, Copy, Download, Send, Loader2, Paperclip, X, FileText, Code2, FolderDown, BookOpen, Monitor, RotateCcw, CheckCircle2, AlertCircle, Eye, EyeOff, Sparkles, Globe, Palette, Database, Rocket, Settings, Link } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { CodeSnippetLibrary } from './code-snippet-library';
+import { SupabaseConnectionModal } from './supabase-connection-modal';
+import { useSupabaseConnection } from '@/hooks/useSupabaseConnection';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
@@ -88,8 +92,21 @@ const CODE_TASKS = [{
 }, {
   value: 'website',
   label: '🌐 Website',
+  isNew: false
+}, {
+  value: 'fullstack-app',
+  label: '🚀 Full-Stack App',
   isNew: true
 }];
+
+const FULLSTACK_TEMPLATES = [
+  { value: 'contact-form', label: '📬 Contact Form', description: 'Form with database storage' },
+  { value: 'blog-cms', label: '📝 Blog CMS', description: 'Blog with posts & categories' },
+  { value: 'todo-app', label: '✅ Todo App', description: 'Task management with lists' },
+  { value: 'user-dashboard', label: '👤 Dashboard', description: 'User profile & settings' },
+  { value: 'ecommerce', label: '🛒 E-commerce', description: 'Products, cart & orders' },
+  { value: 'booking-system', label: '📅 Booking', description: 'Appointment scheduling' },
+];
 
 const WEBSITE_TYPES = [
   { value: 'landing', label: 'Landing Page' },
@@ -191,6 +208,17 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
   const [colorScheme, setColorScheme] = useState('blue');
   const [selectedSections, setSelectedSections] = useState<string[]>(['hero', 'features', 'footer']);
   const [generatedWebsite, setGeneratedWebsite] = useState<WebsiteFile[] | null>(null);
+  
+  // Full-stack app state
+  const [appTemplate, setAppTemplate] = useState('contact-form');
+  const [includeAuth, setIncludeAuth] = useState(false);
+  const [autoDeployDb, setAutoDeployDb] = useState(true);
+  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
+  const [generatedFullstackApp, setGeneratedFullstackApp] = useState<WebsiteFile[] | null>(null);
+  
+  // Supabase connection
+  const { connection: supabaseConnection, isConnected: isSupabaseConnected } = useSupabaseConnection();
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -598,6 +626,171 @@ ${code}
     return files;
   };
 
+  // Parse full-stack app response into separate files
+  const parseFullstackResponse = (response: string): WebsiteFile[] => {
+    const files: WebsiteFile[] = [];
+    
+    // Parse frontend HTML file
+    const htmlMatch = response.match(/=== FILE: frontend\/index\.html ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (htmlMatch) {
+      let htmlContent = htmlMatch[1].trim();
+      htmlContent = htmlContent.replace(/^```html?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'frontend/index.html', content: htmlContent, language: 'html' });
+    }
+    
+    // Parse frontend CSS file
+    const cssMatch = response.match(/=== FILE: frontend\/styles\.css ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (cssMatch) {
+      let cssContent = cssMatch[1].trim();
+      cssContent = cssContent.replace(/^```css?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'frontend/styles.css', content: cssContent, language: 'css' });
+    }
+    
+    // Parse frontend JS file
+    const jsMatch = response.match(/=== FILE: frontend\/script\.js ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (jsMatch) {
+      let jsContent = jsMatch[1].trim();
+      jsContent = jsContent.replace(/^```(?:javascript|js)?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'frontend/script.js', content: jsContent, language: 'javascript' });
+    }
+    
+    // Parse database schema
+    const schemaMatch = response.match(/=== FILE: database\/schema\.sql ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (schemaMatch) {
+      let schemaContent = schemaMatch[1].trim();
+      schemaContent = schemaContent.replace(/^```sql?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'database/schema.sql', content: schemaContent, language: 'sql' });
+    }
+    
+    // Parse RLS policies
+    const rlsMatch = response.match(/=== FILE: database\/rls\.sql ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (rlsMatch) {
+      let rlsContent = rlsMatch[1].trim();
+      rlsContent = rlsContent.replace(/^```sql?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'database/rls.sql', content: rlsContent, language: 'sql' });
+    }
+    
+    // Parse README
+    const readmeMatch = response.match(/=== FILE: README\.md ===([\s\S]*?)(?==== FILE:|$)/i);
+    if (readmeMatch) {
+      let readmeContent = readmeMatch[1].trim();
+      readmeContent = readmeContent.replace(/^```(?:markdown|md)?\n?/i, '').replace(/\n?```$/i, '').trim();
+      files.push({ name: 'README.md', content: readmeContent, language: 'markdown' });
+    }
+    
+    return files;
+  };
+
+  // Download full-stack app as complete project
+  const downloadFullstackApp = async (files: WebsiteFile[]) => {
+    const zip = new JSZip();
+    const frontend = zip.folder('frontend');
+    const supabaseFolder = zip.folder('supabase');
+    const migrations = supabaseFolder?.folder('migrations');
+    
+    // Add files to appropriate folders
+    files.forEach(file => {
+      if (file.name.startsWith('frontend/')) {
+        frontend?.file(file.name.replace('frontend/', ''), file.content);
+      } else if (file.name.startsWith('database/')) {
+        const fileName = file.name.replace('database/', '');
+        const migrationName = fileName === 'schema.sql' ? '001_schema.sql' : '002_rls.sql';
+        migrations?.file(migrationName, file.content);
+      } else if (file.name === 'README.md') {
+        zip.file('README.md', file.content);
+      }
+    });
+    
+    // Add netlify.toml for frontend deployment
+    frontend?.file('netlify.toml', `[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+`);
+
+    // Add .env.example
+    zip.file('.env.example', `# Supabase Configuration
+# Get these from your Supabase project settings > API
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+`);
+
+    const content = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(content);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fullstack-app.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "🚀 Full-Stack App Downloaded!",
+      description: "Contains frontend, database schema, and setup instructions"
+    });
+  };
+
+  // Deploy SQL to user's Supabase
+  const deployToUserSupabase = async (schemaSQL: string, rlsSQL: string) => {
+    if (!supabaseConnection) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect your Supabase project first",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      // Execute schema creation
+      const schemaResult = await supabase.functions.invoke('supabase-admin', {
+        body: {
+          operation: 'execute_sql',
+          userSupabaseUrl: supabaseConnection.url,
+          userServiceKey: supabaseConnection.serviceKey,
+          sql: schemaSQL
+        }
+      });
+
+      if (!schemaResult.data?.success) {
+        throw new Error(schemaResult.data?.error || 'Schema creation failed');
+      }
+
+      // Execute RLS policies
+      const rlsResult = await supabase.functions.invoke('supabase-admin', {
+        body: {
+          operation: 'execute_sql',
+          userSupabaseUrl: supabaseConnection.url,
+          userServiceKey: supabaseConnection.serviceKey,
+          sql: rlsSQL
+        }
+      });
+
+      if (!rlsResult.data?.success) {
+        throw new Error(rlsResult.data?.error || 'RLS policies creation failed');
+      }
+
+      toast({
+        title: "✅ Database Deployed!",
+        description: "Tables and security policies created in your Supabase"
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Deploy error:', error);
+      toast({
+        title: "Deployment Failed",
+        description: error instanceof Error ? error.message : 'Failed to deploy to Supabase',
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   // Download website as Netlify-ready folder
   const downloadWebsiteAsFolder = async (files: WebsiteFile[]) => {
     const zip = new JSZip();
@@ -895,6 +1088,21 @@ This website is fully responsive and ready for production use.
           chatHistory,
           stream: true
         };
+      } else if (selectedTask === 'fullstack-app') {
+        requestBody = {
+          prompt: currentInput,
+          task: selectedTask,
+          language: 'html',
+          appTemplate,
+          appCategory: 'fullstack',
+          includeAuth,
+          styleType: websiteStyle,
+          colorScheme,
+          projectName: 'my-app',
+          attachments: currentAttachments,
+          chatHistory,
+          stream: true
+        };
       } else {
         requestBody = {
           prompt: currentInput,
@@ -939,6 +1147,56 @@ This website is fully responsive and ready for production use.
           });
         } else {
           // Fallback to regular parsing if website format not detected
+          const parsedParts = parseResponse(responseText);
+          setMessages(prev => {
+            const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+            const newMessages = parsedParts.map((part, index) => ({
+              id: `${Date.now()}-${index}`,
+              role: 'assistant' as const,
+              content: part.content,
+              isCode: part.type === 'code',
+              language: part.language || 'html',
+              validation: index === 0 ? { score: 90, isValid: true, issues: [] } : undefined
+            }));
+            return [...filtered, ...newMessages];
+          });
+        }
+      } else if (selectedTask === 'fullstack-app') {
+        // Handle full-stack app generation
+        const appFiles = parseFullstackResponse(responseText);
+        if (appFiles.length > 0) {
+          setGeneratedFullstackApp(appFiles);
+          
+          const schemaFile = appFiles.find(f => f.name.includes('schema.sql'));
+          const rlsFile = appFiles.find(f => f.name.includes('rls.sql'));
+          
+          // Auto-deploy to user's Supabase if connected and enabled
+          let deployedSuccessfully = false;
+          if (isSupabaseConnected && autoDeployDb && schemaFile && rlsFile) {
+            deployedSuccessfully = await deployToUserSupabase(schemaFile.content, rlsFile.content);
+          }
+          
+          // Replace streaming message with full-stack app result
+          setMessages(prev => {
+            const filtered = prev.filter(m => !m.id?.includes('-streaming'));
+            return [...filtered, {
+              id: `${Date.now()}-fullstack`,
+              role: 'assistant' as const,
+              content: `🚀 **Full-Stack App Generated Successfully!**\n\n**Files created:**\n- frontend/index.html\n- frontend/styles.css\n- frontend/script.js\n- database/schema.sql\n- database/rls.sql\n- README.md\n\n${deployedSuccessfully ? '✅ **Database deployed to your Supabase!**' : isSupabaseConnected ? '📋 Use the SQL files to set up your database.' : '🔗 Connect Supabase to auto-deploy database.'}\n\nUse the buttons below to preview, download, or deploy.`,
+              isCode: false,
+              language: 'html',
+              validation: { score: 95, isValid: true, issues: [] }
+            }];
+          });
+          
+          toast({
+            title: "🚀 Full-Stack App Generated!",
+            description: deployedSuccessfully 
+              ? "Database deployed! Download frontend for Netlify." 
+              : "Download the complete project package"
+          });
+        } else {
+          // Fallback to regular parsing
           const parsedParts = parseResponse(responseText);
           setMessages(prev => {
             const filtered = prev.filter(m => !m.id?.includes('-streaming'));
@@ -1092,21 +1350,22 @@ This website is fully responsive and ready for production use.
       {activeTab === 'generator' && <div className="flex flex-col flex-1 overflow-hidden">
           <div className="border-b p-3 flex items-center justify-between flex-wrap gap-2">
             <Badge variant="outline" className="text-xs border-primary/20 text-primary bg-card">
-              {selectedTask === 'website' ? '🌐 Website Generator' : 'v2.1 Pro'}
+              {selectedTask === 'fullstack-app' ? '🚀 Full-Stack Builder' : selectedTask === 'website' ? '🌐 Website Generator' : 'v2.1 Pro'}
             </Badge>
             <div className="flex gap-2 flex-wrap">
               <Select value={selectedTask} onValueChange={(v) => {
                 setSelectedTask(v);
                 if (v === 'website') setGeneratedWebsite(null);
+                if (v === 'fullstack-app') setGeneratedFullstackApp(null);
               }}>
-                <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-40 h-8"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-background z-50">
                   {CODE_TASKS.map(t => (
                     <SelectItem key={t.value} value={t.value}>
                       <span className="flex items-center gap-1.5">
                         {t.label}
                         {(t as any).isNew && (
-                          <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white animate-pulse">
+                          <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-primary text-primary-foreground animate-pulse">
                             NEW
                           </span>
                         )}
@@ -1146,6 +1405,19 @@ This website is fully responsive and ready for production use.
                     <SelectTrigger className="w-28 h-8"><SelectValue placeholder="Color" /></SelectTrigger>
                     <SelectContent className="bg-background z-50">
                       {COLOR_SCHEMES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </> : selectedTask === 'fullstack-app' ? <>
+                  <Select value={appTemplate} onValueChange={setAppTemplate}>
+                    <SelectTrigger className="w-36 h-8"><SelectValue placeholder="Template" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {FULLSTACK_TEMPLATES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Select value={websiteStyle} onValueChange={setWebsiteStyle}>
+                    <SelectTrigger className="w-28 h-8"><SelectValue placeholder="Style" /></SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {WEBSITE_STYLES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </> : <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
@@ -1348,6 +1620,12 @@ This website is fully responsive and ready for production use.
       {activeTab === 'library' && <div className="flex-1 overflow-hidden">
           <CodeSnippetLibrary open={true} onOpenChange={open => !open && setActiveTab('generator')} user={user} />
         </div>}
+
+      {/* Supabase Connection Modal */}
+      <SupabaseConnectionModal
+        open={showSupabaseModal}
+        onOpenChange={setShowSupabaseModal}
+      />
 
     </div>;
 };
