@@ -24,6 +24,7 @@ import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
 import { HaqJaanoIntegrated } from './haq-jaano-integrated';
+import { FullstackAppBuilder } from './fullstack-app-builder';
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { WelcomeSection } from './welcome-section';
@@ -49,7 +50,7 @@ interface ChatMessage {
 interface GeminiChatInterfaceProps {
   user: User;
   onLogout: () => void;
-  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano';
+  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano' | 'fullstack';
 }
 export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   user,
@@ -69,7 +70,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano'>(initialView || 'chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano' | 'fullstack'>(initialView || 'chat');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [collapsedTabs, setCollapsedTabs] = useState<{
@@ -1267,13 +1268,13 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
                   {/* Flowing Liquid Bubble Background */}
                   <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : 3})`,
-                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)',
+                  width: 'calc((100% - 0.5rem) / 5)',
+                  left: `calc(0.125rem + (100% - 0.5rem) / 5 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : currentView === 'fullstack' ? 3 : 4})`,
+                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : currentView === 'fullstack' ? 'linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(126, 34, 206, 0.9) 50%, rgba(107, 33, 168, 0.8) 100%)' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)',
                   backgroundSize: '200% 200%',
                   animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
                   backdropFilter: 'blur(20px)',
-                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(29, 78, 216, 0.3)',
+                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : currentView === 'fullstack' ? '0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(126, 34, 206, 0.3), inset 0 0 20px rgba(107, 33, 168, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(29, 78, 216, 0.3)',
                   zIndex: 0,
                   opacity: showAllFeatures ? 0 : (currentView === 'code' || currentView === 'crop' ? 0 : 1)
                 }} />
@@ -1306,6 +1307,15 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'haq-jaano' ? 'text-white' : 'text-blue-400/70 hover:text-blue-400'}`}>
                     <Scale className="h-3 w-3 md:mr-1" />
                     <span className="hidden md:inline">{language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano'}</span>
+                  </Button>
+                  
+                  {/* App Builder */}
+                  <Button variant="ghost" onClick={() => {
+                  playCodeSound();
+                  setCurrentView('fullstack');
+                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'fullstack' ? 'text-white' : 'text-purple-400/70 hover:text-purple-400'}`}>
+                    <Rocket className="h-3 w-3 md:mr-1" />
+                    <span className="hidden md:inline">{language === 'hi' ? 'ऐप' : language === 'mr' ? 'ॲप' : 'App'}</span>
                   </Button>
                   
                   {/* All Features */}
@@ -1426,6 +1436,8 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               <CropHealthAnalyzer />
             </div> : currentView === 'haq-jaano' ? <div className="flex-1 overflow-auto">
               <HaqJaanoIntegrated onBackToHome={() => setCurrentView('chat')} />
+            </div> : currentView === 'fullstack' ? <div className="flex-1 overflow-hidden">
+              <FullstackAppBuilder user={user} onBack={() => setCurrentView('chat')} />
             </div> : <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 overflow-hidden">
@@ -1798,6 +1810,34 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                       {language === 'hi' ? 'भारत का पहला AI कानूनी अधिकार सहायक' : language === 'mr' ? 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक' : "India's first AI Legal Rights Assistant"}
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* App Builder */}
+              <button
+                onClick={() => {
+                  setCurrentView('fullstack');
+                  setShowAllFeatures(false);
+                }}
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all duration-300 text-left group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg">
+                    <Rocket className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-purple-400 transition-colors">
+                        {language === 'hi' ? 'ऐप बिल्डर' : language === 'mr' ? 'ॲप बिल्डर' : 'App Builder'}
+                      </h3>
+                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-purple-600 text-white animate-pulse">
+                        NEW
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {language === 'hi' ? 'अपने Supabase के साथ पूर्ण-स्टैक ऐप्स बनाएं' : language === 'mr' ? 'तुमच्या Supabase सह फुल-स्टॅक ॲप्स तयार करा' : "Build full-stack apps with your Supabase"}
                     </p>
                   </div>
                 </div>

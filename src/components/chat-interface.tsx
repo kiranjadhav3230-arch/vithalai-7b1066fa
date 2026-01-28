@@ -4,7 +4,7 @@ import { GeminiChatInterface } from './gemini-chat-interface';
 interface ChatInterfaceProps {
   onLogout: () => void;
   user: any;
-  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano';
+  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano' | 'fullstack';
 }
 
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, user, initialView }) => {

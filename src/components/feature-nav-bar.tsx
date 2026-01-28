@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Users, Scale, Grid3X3, X } from 'lucide-react';
+import { MessageSquare, Users, Scale, Grid3X3, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/hooks/useLanguage';
 import { LanguageSelector } from '@/components/ui/language-selector';
 
 interface FeatureNavBarProps {
-  onFeatureSelect?: (feature: 'chat' | 'room' | 'haq-jaano') => void;
-  currentFeature?: 'chat' | 'room' | 'haq-jaano';
+  onFeatureSelect?: (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => void;
+  currentFeature?: 'chat' | 'room' | 'haq-jaano' | 'fullstack';
   hideLanguageSelector?: boolean;
 }
 
@@ -29,12 +30,14 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
           chats: 'चैट',
           room: 'रूम',
           haqJaano: 'हक जानो',
+          appBuilder: 'ऐप बिल्डर',
           all: 'सभी',
           allFeaturesTitle: 'सभी सुविधाएं',
           features: [
             { name: 'AI चैट सहायक', description: 'Gemini द्वारा संचालित बुद्धिमान AI चैटबॉट के साथ अपने प्रश्नों के तुरंत उत्तर प्राप्त करें', icon: MessageSquare, key: 'chat' },
             { name: 'स्टडी रूम', description: 'AI सहायता, रीयल-टाइम चैट और सदस्य प्रबंधन के साथ सहयोगी अध्ययन स्थान', icon: Users, key: 'room' },
             { name: 'हक जानो', description: 'भारत का पहला AI कानूनी अधिकार सहायक। किसी भी स्थिति में अपने अधिकार जानें', icon: Scale, key: 'haq-jaano' },
+            { name: 'ऐप बिल्डर', description: 'अपने Supabase के साथ पूर्ण-स्टैक ऐप्स बनाएं। डेटाबेस और प्रमाणीकरण शामिल', icon: Rocket, key: 'fullstack', isNew: true },
           ]
         };
       case 'mr':
@@ -42,12 +45,14 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
           chats: 'चॅट',
           room: 'रूम',
           haqJaano: 'हक्क जाणा',
+          appBuilder: 'ॲप बिल्डर',
           all: 'सर्व',
           allFeaturesTitle: 'सर्व वैशिष्ट्ये',
           features: [
             { name: 'AI चॅट सहाय्यक', description: 'Gemini द्वारे समर्थित बुद्धिमान AI चॅटबॉटसह तुमच्या प्रश्नांची त्वरित उत्तरे मिळवा', icon: MessageSquare, key: 'chat' },
             { name: 'स्टडी रूम', description: 'AI सहाय्य, रिअल-टाइम चॅट आणि सदस्य व्यवस्थापनासह सहयोगी अभ्यास जागा', icon: Users, key: 'room' },
             { name: 'हक्क जाणा', description: 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक. कोणत्याही परिस्थितीत तुमचे हक्क जाणून घ्या', icon: Scale, key: 'haq-jaano' },
+            { name: 'ॲप बिल्डर', description: 'तुमच्या Supabase सह फुल-स्टॅक ॲप्स तयार करा. डेटाबेस आणि प्रमाणीकरण समाविष्ट', icon: Rocket, key: 'fullstack', isNew: true },
           ]
         };
       default:
@@ -55,12 +60,14 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
           chats: 'Chats',
           room: 'Room',
           haqJaano: 'Haq Jaano',
+          appBuilder: 'App Builder',
           all: 'All',
           allFeaturesTitle: 'All Features',
           features: [
             { name: 'AI Chat Assistant', description: 'Get instant answers to your questions with our intelligent AI chatbot powered by Gemini', icon: MessageSquare, key: 'chat' },
             { name: 'Study Rooms', description: 'Collaborative study spaces with AI assistance, real-time chat, and member management', icon: Users, key: 'room' },
             { name: 'Haq Jaano', description: 'India\'s first AI Legal Rights Assistant. Know your rights in any situation', icon: Scale, key: 'haq-jaano' },
+            { name: 'App Builder', description: 'Build full-stack apps with your own Supabase. Includes database & authentication', icon: Rocket, key: 'fullstack', isNew: true },
           ]
         };
     }
@@ -68,7 +75,7 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
   const texts = getTexts();
 
-  const handleFeatureClick = (feature: 'chat' | 'room' | 'haq-jaano') => {
+  const handleFeatureClick = (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => {
     if (onFeatureSelect) {
       onFeatureSelect(feature);
     } else {
@@ -76,13 +83,13 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
       if (feature === 'haq-jaano') {
         navigate('/haq-jaano');
       } else {
-        // For chat and room, we need to go to index and trigger the feature
+        // For chat, room, and fullstack, we need to go to index and trigger the feature
         navigate('/', { state: { openFeature: feature } });
       }
     }
   };
 
-  const isActive = (feature: 'chat' | 'room' | 'haq-jaano') => {
+  const isActive = (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => {
     if (currentFeature) return currentFeature === feature;
     if (feature === 'haq-jaano') return location.pathname === '/haq-jaano';
     return false;
@@ -140,6 +147,22 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                 <span className="text-sm font-medium">{texts.haqJaano}</span>
               </Button>
 
+              {/* App Builder */}
+              <Button
+                variant={isActive('fullstack') ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => handleFeatureClick('fullstack')}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 ${
+                  isActive('fullstack') 
+                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white' 
+                    : 'hover:bg-purple-500/10 text-purple-500'
+                }`}
+              >
+                <Rocket className="h-4 w-4" />
+                <span className="text-sm font-medium hidden sm:inline">{texts.appBuilder}</span>
+                <Badge className="text-[9px] px-1 py-0 bg-green-500 text-white">NEW</Badge>
+              </Button>
+
               {/* All Features */}
               <Button
                 variant="ghost"
@@ -180,7 +203,7 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
               <button
                 key={index}
                 onClick={() => {
-                  handleFeatureClick(feature.key as 'chat' | 'room' | 'haq-jaano');
+                  handleFeatureClick(feature.key as 'chat' | 'room' | 'haq-jaano' | 'fullstack');
                   setShowAllFeatures(false);
                 }}
                 className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-left group"
@@ -189,14 +212,21 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                   <div className={`p-3 rounded-xl ${
                     feature.key === 'haq-jaano' 
                       ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                      : feature.key === 'fullstack'
+                      ? 'bg-gradient-to-br from-purple-500 to-purple-600'
                       : 'bg-gradient-to-br from-primary to-primary/80'
                   } shadow-lg`}>
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {feature.name}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {feature.name}
+                      </h3>
+                      {(feature as any).isNew && (
+                        <Badge className="text-[9px] px-1.5 py-0 bg-green-500 text-white">NEW</Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
                       {feature.description}
                     </p>
