@@ -1,105 +1,205 @@
 
-# Plan: Full-Stack App Builder as Dedicated Feature
 
-## Problems Identified
+# Plan: Fix Full-Stack App Builder - Complete Lovable-Style Implementation
 
-Based on your screenshot and code analysis, I found these issues:
+## Critical Issues Identified
 
-| Issue | Root Cause |
-|-------|------------|
-| No Save/Preview/Download buttons | Full-stack app messages use id `-fullstack` but no button rendering code exists for this id |
-| No Connect to Database option | The Supabase connection button is hidden/not prominent enough |
-| Changes don't show options | Same issue - missing action buttons in the message rendering |
-| Not separate like Haq Jaano | Full-stack is just a dropdown option, not a dedicated view |
+### Issue #1: GEMINI_API_KEY is NOT Configured (Generation Fails)
+| Problem | Impact |
+|---------|--------|
+| `code-generator-gemini` uses `GEMINI_API_KEY` | Secret NOT in configured secrets |
+| Other working functions use `LOVABLE_API_KEY` | Full-stack generation completely fails |
+| Direct Gemini API call: `generativelanguage.googleapis.com` | Should use Lovable Gateway |
+
+**Evidence:**
+- Secrets list shows: `LOVABLE_API_KEY` (working), `ELEVENLABS_API_KEY`, etc.
+- NO `GEMINI_API_KEY` in the list
+- `gemini-chat` uses `LOVABLE_API_KEY` and works correctly
+
+### Issue #2: NO Code Editing Capability (Only Generates New)
+| Current Behavior | Lovable Behavior |
+|-----------------|------------------|
+| Each request generates completely new code | User can say "change brand color" and it edits existing code |
+| No chat history for code changes | Maintains context of previous generations |
+| No edit/refine workflow | Iterative refinement like a conversation |
+
+**Evidence from `fullstack-app-builder.tsx`:**
+- Line 82-83: `setGeneratedApp(null)` - clears previous generation
+- No mechanism to pass existing code back to AI for editing
+- No "Edit" or "Refine" button
+- No chat interface for iterative changes
+
+### Issue #3: Supabase Admin Does NOT Execute SQL
+| Current Response | Should Be |
+|-----------------|-----------|
+| `"note": "For full execution, please run this SQL in your Supabase SQL Editor"` | Actually executes SQL and returns `{ executed: true, tables_created: [...] }` |
+| Just validates and returns SQL text | Uses Supabase REST API to run queries |
+
+**Evidence from `supabase-admin/index.ts` line 252-255:**
+```javascript
+return new Response(JSON.stringify({ 
+  success: true, 
+  message: 'SQL prepared for execution',
+  note: 'SQL has been validated. For full execution, please run this SQL in your Supabase SQL Editor.'
+}));
+```
+The function validates but never actually runs the SQL!
+
+### Issue #4: No Chat Interface for App Building
+| Current | Lovable-Style |
+|---------|--------------|
+| One-shot generation with template | Chat-based iterative building |
+| No follow-up questions | "Change the header to blue" works |
+| Static form inputs | Dynamic conversation |
 
 ---
 
 ## Solution Architecture
 
 ```text
-Current:                         After Fix:
-┌─────────────────────┐         ┌─────────────────────────────────────┐
-│ Code Generator      │         │ Main Navigation Bar                  │
-│  └─ Task Dropdown   │         │  ├─ Chats                           │
-│      ├─ Generate    │   →     │  ├─ Room                            │
-│      ├─ Website     │         │  ├─ Haq Jaano                       │
-│      └─ Full-Stack  │         │  ├─ Full-Stack Builder (NEW!)       │
-│         (hidden)    │         │  └─ All Features                    │
-└─────────────────────┘         └─────────────────────────────────────┘
+BEFORE (Broken):                          AFTER (Lovable-Style):
+┌────────────────────────────────┐       ┌────────────────────────────────────────┐
+│ Template Selection             │       │ Chat-Based App Builder                 │
+│ → Single Generate Button       │  →    │ → "Build a todo app"                   │
+│ → New code each time           │       │ → "Change color to blue"               │
+│ → No editing                   │       │ → "Add dark mode"                      │
+│ → SQL not executed             │       │ → Code updates incrementally           │
+│ → GEMINI_API_KEY missing       │       │ → SQL actually runs on Supabase        │
+│                                │       │ → Uses LOVABLE_API_KEY (working)       │
+└────────────────────────────────┘       └────────────────────────────────────────┘
 ```
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Add Full-Stack App Action Buttons (FIX MISSING BUTTONS)
-**File**: `src/components/code-generator-chat.tsx`
+### Step 1: Create New Edge Function Using LOVABLE_API_KEY
+**New File:** `supabase/functions/fullstack-generator/index.ts`
 
-Add the missing button rendering block for full-stack apps (similar to website buttons):
+Replace broken `code-generator-gemini` approach with:
+- Uses `LOVABLE_API_KEY` (already available and working)
+- Lovable AI Gateway: `https://ai.gateway.lovable.dev/v1/chat/completions`
+- Supports EDITING existing code (not just generation)
+- Maintains conversation history for iterative changes
 
-```text
-Location: After line 1558 (after website buttons section)
-Add condition: msg.id?.includes('-fullstack') && generatedFullstackApp
+Key Logic:
+```typescript
+// NEW: Accept existing code for editing
+const { prompt, existingCode, chatHistory, appTemplate, ... } = await req.json();
 
-Buttons to add:
-- Preview Frontend (opens HTML in new tab)
-- Download Full-Stack ZIP 
-- Save to Library
-- Connect Supabase (if not connected)
-- Deploy Database (if connected)
-- Copy All Code
+// Build edit-aware system prompt
+let systemPrompt = existingCode 
+  ? `You are editing an existing application. Here is the current code:
+     ${existingCode}
+     
+     Make ONLY the requested changes, preserving everything else.`
+  : `You are generating a new full-stack application...`;
+
+// Use Lovable AI Gateway (working API)
+const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}` },
+  body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages })
+});
 ```
 
-### Step 2: Add Prominent Supabase Connection UI
-**File**: `src/components/code-generator-chat.tsx`
+### Step 2: Fix Supabase Admin to Actually Execute SQL
+**File:** `supabase/functions/supabase-admin/index.ts`
 
-When `fullstack-app` task is selected, show a clear connection status bar:
+Current code just validates and returns note. Fix to:
+- Use Supabase REST API with service role key
+- Execute each SQL statement via direct REST calls
+- Return actual execution results
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ 🔗 Supabase: Not Connected                    [Connect Now] │
-│    OR                                                       │
-│ ✅ Supabase: Connected (xyz.supabase.co)      [Disconnect]  │
-└─────────────────────────────────────────────────────────────┘
+Key Changes:
+```typescript
+// BEFORE (broken - line 249-260):
+return new Response(JSON.stringify({ 
+  success: true, 
+  note: 'For full execution, please run this SQL...'
+}));
+
+// AFTER (working):
+// Execute via Supabase's postgrest endpoint with RPC
+const execResponse = await fetch(
+  `${userSupabaseUrl}/rest/v1/rpc/exec_sql`, // Need to create this function
+  {
+    method: 'POST',
+    headers: {
+      'apikey': userServiceKey,
+      'Authorization': `Bearer ${userServiceKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query: sql })
+  }
+);
 ```
 
-Add this between the task selector and the sections selector.
+Note: Direct SQL execution via REST requires either:
+1. A custom `exec_sql` RPC function on the user's Supabase, OR
+2. Using Supabase Management API (more complex)
 
-### Step 3: Create Dedicated Full-Stack Builder View
-**New File**: `src/components/fullstack-app-builder.tsx`
+**Practical Solution:** Execute via Supabase's built-in SQL execution endpoint:
+```typescript
+const execUrl = `${userSupabaseUrl}/pg/query`;
+const execResponse = await fetch(execUrl, {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${userServiceKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ query: sql })
+});
+```
 
-Create a completely separate component (like StudyRooms, HaqJaanoIntegrated) with:
+### Step 3: Add Chat-Based Editing to App Builder
+**File:** `src/components/fullstack-app-builder.tsx`
 
-- Full-screen dedicated interface
-- App template selection grid
-- Supabase connection panel always visible
-- Generated projects list (sidebar)
-- Better preview with file tabs
-- Deploy status tracking
+Add:
+1. Chat messages interface (like Lovable)
+2. Input for refining existing app
+3. Pass existing code back to AI for edits
+4. Maintain conversation history
 
-### Step 4: Add Full-Stack Builder to Main Navigation
-**File**: `src/components/gemini-chat-interface.tsx`
+New State:
+```typescript
+const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+const [currentAppCode, setCurrentAppCode] = useState<WebsiteFile[] | null>(null);
+```
 
-Add new view type and navigation:
+New UI:
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│ 🚀 Full-Stack App Builder              [Supabase: Connected]   │
+├───────────────────────────────┬─────────────────────────────────┤
+│                               │                                 │
+│ Chat History:                 │  [Frontend] [CSS] [JS] [SQL]   │
+│ ─────────────────────         │  ┌─────────────────────────┐   │
+│ You: Build a todo app         │  │ <html>                  │   │
+│                               │  │   <head>...</head>      │   │
+│ Vithal: Here's your todo app! │  │   <body>...</body>      │   │
+│ [Preview of app]              │  │ </html>                 │   │
+│                               │  └─────────────────────────┘   │
+│ You: Change header to blue    │                                 │
+│                               │  [Preview] [Download] [Deploy] │
+│ Vithal: I've updated the      │                                 │
+│ header color to blue!         │                                 │
+│                               │                                 │
+│ ───────────────────────────── │                                 │
+│ ┌─────────────────────────┐   │                                 │
+│ │ Add authentication...   │   │                                 │
+│ └─────────────────────────┘   │                                 │
+│ [Send]                        │                                 │
+└───────────────────────────────┴─────────────────────────────────┘
+```
 
-| Current Views | New View |
-|---------------|----------|
-| chat | - |
-| code | - |
-| studyRooms | - |
-| crop | - |
-| haq-jaano | - |
-| - | **fullstack** (NEW) |
+### Step 4: Update Config
+**File:** `supabase/config.toml`
 
-### Step 5: Update Feature Navigation Bar
-**File**: `src/components/feature-nav-bar.tsx`
-
-Add "App Builder" button with rocket icon to main navigation bar.
-
-### Step 6: Update All Features Modal
-**Files**: `src/components/feature-nav-bar.tsx`, `src/components/gemini-chat-interface.tsx`
-
-Add Full-Stack App Builder to the features list in both modals.
+Add new function:
+```toml
+[functions.fullstack-generator]
+verify_jwt = false
+```
 
 ---
 
@@ -107,185 +207,198 @@ Add Full-Stack App Builder to the features list in both modals.
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/components/code-generator-chat.tsx` | MODIFY | Add fullstack action buttons and Supabase status bar |
-| `src/components/fullstack-app-builder.tsx` | CREATE | New dedicated full-stack builder component |
-| `src/components/gemini-chat-interface.tsx` | MODIFY | Add 'fullstack' view, update navigation |
-| `src/components/feature-nav-bar.tsx` | MODIFY | Add App Builder button to nav bar |
-| `src/pages/Index.tsx` | MODIFY | Add 'fullstack' to initialView handling |
+| `supabase/functions/fullstack-generator/index.ts` | CREATE | New function using LOVABLE_API_KEY with edit support |
+| `supabase/functions/supabase-admin/index.ts` | MODIFY | Actually execute SQL, not just validate |
+| `src/components/fullstack-app-builder.tsx` | MODIFY | Add chat interface, edit capability, conversation history |
+| `supabase/config.toml` | MODIFY | Add fullstack-generator function |
 
 ---
 
-## Detailed Changes
+## Technical Details
 
-### Fix 1: Add Missing Buttons (code-generator-chat.tsx)
-
-Add after line 1558 (inside the message rendering loop):
+### New Full-Stack Generator Edge Function
 
 ```typescript
-{/* Full-stack app action buttons */}
-{msg.id?.includes('-fullstack') && generatedFullstackApp && generatedFullstackApp.length > 0 && (
-  <div className="flex flex-wrap gap-2 mt-3 p-3 bg-muted/50 rounded-lg">
-    {/* Supabase Connection Status */}
-    <div className="w-full mb-2 flex items-center justify-between">
-      {isSupabaseConnected ? (
-        <Badge variant="default" className="gap-1">
-          <CheckCircle2 className="h-3 w-3" />
-          Connected to Supabase
-        </Badge>
-      ) : (
-        <Button variant="outline" size="sm" onClick={() => setShowSupabaseModal(true)}>
-          <Link className="h-4 w-4 mr-2" />
-          Connect Supabase for Auto-Deploy
-        </Button>
-      )}
-    </div>
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const { 
+      prompt,
+      existingCode,     // Pass existing files for editing
+      chatHistory,      // Maintain conversation
+      appTemplate,
+      styleType,
+      includeAuth,
+      isEdit            // Flag: edit mode vs generate mode
+    } = await req.json();
+
+    // Build system prompt based on mode
+    let systemPrompt;
     
-    {/* Action Buttons */}
-    <Button variant="default" size="sm" onClick={() => previewFullstackApp(generatedFullstackApp)}>
-      <Monitor className="h-4 w-4 mr-2" />
-      Preview Frontend
-    </Button>
-    <Button variant="outline" size="sm" onClick={() => downloadFullstackProject(generatedFullstackApp)}>
-      <FolderDown className="h-4 w-4 mr-2" />
-      Download Project
-    </Button>
-    <Button variant="outline" size="sm" onClick={() => saveFullstackToLibrary(generatedFullstackApp)}>
-      <BookOpen className="h-4 w-4 mr-2" />
-      Save to Library
-    </Button>
-    {isSupabaseConnected && (
-      <Button variant="secondary" size="sm" onClick={handleDeployDatabase}>
-        <Database className="h-4 w-4 mr-2" />
-        Deploy Database
-      </Button>
-    )}
-  </div>
-)}
+    if (isEdit && existingCode) {
+      // EDIT MODE - Modify existing code
+      systemPrompt = `You are an expert full-stack developer EDITING an existing application.
+
+CURRENT APPLICATION CODE:
+${existingCode.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n')}
+
+INSTRUCTIONS:
+- Make ONLY the changes requested by the user
+- Preserve ALL existing functionality unless specifically asked to change
+- Keep the same file structure
+- Output the COMPLETE updated files (not just changes)
+- Use the same === FILE: filename === format`;
+    } else {
+      // GENERATE MODE - Create new app
+      systemPrompt = `You are an expert full-stack developer creating production-ready applications...`;
+      // (existing generation prompt)
+    }
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...chatHistory.map(msg => ({ role: msg.role, content: msg.content })),
+      { role: 'user', content: prompt }
+    ];
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages,
+      }),
+    });
+
+    const data = await response.json();
+    return new Response(JSON.stringify({ 
+      code: data.choices?.[0]?.message?.content 
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('Error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+});
 ```
 
-### Fix 2: Supabase Status Bar
+### Fixed Supabase Admin SQL Execution
 
-Add after the task selector dropdown (around line 1430):
+The key issue is that Supabase doesn't expose a direct SQL execution endpoint via REST. Options:
+
+**Option A: Use Supabase Management API**
+```typescript
+// Execute via Supabase Management API (requires project ref extraction)
+const projectRef = userSupabaseUrl.match(/https:\/\/([^.]+)\.supabase/)?.[1];
+const execUrl = `https://api.supabase.com/v1/projects/${projectRef}/database/query`;
+```
+
+**Option B: Guide user to create exec_sql function**
+Add to generated SQL:
+```sql
+CREATE OR REPLACE FUNCTION exec_sql(query text)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE query;
+  RETURN json_build_object('success', true);
+END;
+$$;
+```
+
+**Option C (Recommended): Statement-by-statement via REST**
+For CREATE TABLE operations, use Supabase's table creation endpoint. For policies, use separate API calls.
+
+### Chat-Based App Builder UI
+
+Add to `fullstack-app-builder.tsx`:
 
 ```typescript
-{/* Full-Stack Supabase Connection Status */}
-{selectedTask === 'fullstack-app' && (
-  <div className="border-b px-3 py-2 bg-muted/30">
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <Database className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium">Supabase Connection:</span>
-        {isSupabaseConnected ? (
-          <Badge variant="default" className="text-xs gap-1">
-            <CheckCircle2 className="h-3 w-3" />
-            {supabaseConnection?.projectName || 'Connected'}
-          </Badge>
-        ) : (
-          <Badge variant="outline" className="text-xs text-muted-foreground">
-            Not Connected
-          </Badge>
-        )}
-      </div>
-      <Button 
-        variant={isSupabaseConnected ? "ghost" : "default"} 
-        size="sm"
-        onClick={() => setShowSupabaseModal(true)}
-      >
-        {isSupabaseConnected ? 'Manage' : 'Connect Supabase'}
-      </Button>
-    </div>
-    
-    {/* Options Row */}
-    <div className="flex items-center gap-4 mt-2 text-sm">
-      <label className="flex items-center gap-2 cursor-pointer">
-        <Checkbox 
-          checked={includeAuth} 
-          onCheckedChange={(checked) => setIncludeAuth(!!checked)} 
-        />
-        Include Authentication
-      </label>
-      {isSupabaseConnected && (
-        <label className="flex items-center gap-2 cursor-pointer">
-          <Checkbox 
-            checked={autoDeployDb} 
-            onCheckedChange={(checked) => setAutoDeployDb(!!checked)} 
-          />
-          Auto-deploy Database
-        </label>
-      )}
-    </div>
-  </div>
-)}
-```
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  generatedFiles?: WebsiteFile[];
+  timestamp: Date;
+}
 
-### Fix 3: Dedicated Full-Stack Builder Component
+const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
-Create new component with these features:
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ 🚀 Full-Stack App Builder                                      │
-├─────────────────┬───────────────────────────────────────────────┤
-│ MY PROJECTS     │                                               │
-│ ─────────────── │  Choose a Template to Start                   │
-│ • Lead Gen App  │  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ │
-│ • Contact Form  │  │ Contact│ │  Blog  │ │  Todo  │ │Dashboard│ │
-│ • Blog CMS      │  │  Form  │ │  CMS   │ │  App   │ │  App   │ │
-│                 │  └────────┘ └────────┘ └────────┘ └────────┘ │
-│                 │  ┌────────┐ ┌────────┐                       │
-│ SUPABASE        │  │E-comm  │ │Booking │                       │
-│ ─────────────── │  │  App   │ │ System │                       │
-│ 🟢 Connected    │  └────────┘ └────────┘                       │
-│ xyz.supabase.co │                                               │
-│ [Disconnect]    │  ────────────────────────────────────────     │
-│                 │                                               │
-│                 │  Describe your app:                           │
-│                 │  ┌───────────────────────────────────────┐   │
-│                 │  │ Make a lead generation app for...     │   │
-│                 │  └───────────────────────────────────────┘   │
-│                 │  [🚀 Generate Full-Stack App]                 │
-└─────────────────┴───────────────────────────────────────────────┘
-```
-
-### Fix 4: Add to Navigation
-
-Update views enum to include `'fullstack'` and add button to FeatureNavBar:
-
-```typescript
-<Button
-  variant={isActive('fullstack') ? 'default' : 'ghost'}
-  size="sm"
-  onClick={() => handleFeatureClick('fullstack')}
-  className="flex items-center gap-2 shrink-0"
->
-  <Rocket className="h-4 w-4" />
-  <span className="text-sm font-medium">App Builder</span>
-  <Badge className="text-[9px] px-1">NEW</Badge>
-</Button>
+const handleSendMessage = async () => {
+  // Add user message
+  const userMessage = { id: Date.now().toString(), role: 'user', content: input };
+  setChatMessages(prev => [...prev, userMessage]);
+  
+  // Call API with existing code (for editing)
+  const { data } = await supabase.functions.invoke('fullstack-generator', {
+    body: {
+      prompt: input,
+      existingCode: generatedApp,  // Pass current code for editing
+      chatHistory: chatMessages,    // Pass conversation history
+      isEdit: generatedApp !== null // Flag if editing
+    }
+  });
+  
+  // Parse and update app
+  const files = parseFullstackResponse(data.code);
+  setGeneratedApp(files);
+  
+  // Add AI response
+  const aiMessage = { 
+    id: (Date.now() + 1).toString(), 
+    role: 'assistant', 
+    content: 'I\'ve updated your app!',
+    generatedFiles: files 
+  };
+  setChatMessages(prev => [...prev, aiMessage]);
+};
 ```
 
 ---
 
 ## User Experience After Fix
 
-1. User sees "App Builder" button in main navigation (next to Chat, Room, Haq Jaano)
-2. Clicking opens dedicated full-stack builder view
-3. Supabase connection status always visible at top
-4. Template grid for quick selection
-5. After generation, clear action buttons appear:
-   - Preview Frontend
-   - Download Full Project ZIP
-   - Save to Library
-   - Deploy Database (if connected)
-6. Sidebar shows previously created projects
+1. User opens Full-Stack App Builder
+2. Types: "Build me a todo app with dark theme"
+3. AI generates complete app with all files
+4. User sees app in preview, can download/deploy
+5. User types: "Change the primary color to purple"
+6. AI EDITS the existing code (not regenerates from scratch)
+7. Only the color-related code changes
+8. If Supabase connected, database schema ACTUALLY runs
+9. User gets confirmation: "Tables created: todos, lists"
 
 ---
 
 ## Priority Order
 
-1. **HIGH**: Add missing fullstack action buttons (quick fix)
-2. **HIGH**: Add Supabase connection status bar  
-3. **MEDIUM**: Create dedicated Full-Stack Builder component
-4. **MEDIUM**: Add to navigation bar
-5. **LOW**: Add project history sidebar
+1. **CRITICAL**: Create `fullstack-generator` using LOVABLE_API_KEY (fixes generation)
+2. **CRITICAL**: Add edit support to pass existing code back to AI
+3. **HIGH**: Add chat interface for iterative changes
+4. **HIGH**: Fix `supabase-admin` to execute SQL (or provide better guidance)
+5. **MEDIUM**: Improve UI/UX with conversation history display
 
