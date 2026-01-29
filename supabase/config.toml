@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.supabase-admin]
 verify_jwt = false
+
+[functions.fullstack-generator]
+verify_jwt = false
