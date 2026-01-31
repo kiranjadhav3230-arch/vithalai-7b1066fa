@@ -360,6 +360,7 @@ export const FullstackAppBuilder: React.FC<FullstackAppBuilderProps> = ({ user, 
     try {
       let tablesCreated: string[] = [];
       let policiesApplied = 0;
+      let deployMethod = '';
       
       for (const file of sqlFiles) {
         const { data, error } = await supabase.functions.invoke('supabase-admin', {
@@ -367,6 +368,7 @@ export const FullstackAppBuilder: React.FC<FullstackAppBuilderProps> = ({ user, 
             operation: 'execute_sql',
             userSupabaseUrl: supabaseConnection.url,
             userServiceKey: supabaseConnection.serviceKey,
+            accessToken: supabaseConnection.accessToken, // Pass access token for Management API
             sql: file.content
           }
         });
@@ -376,22 +378,21 @@ export const FullstackAppBuilder: React.FC<FullstackAppBuilderProps> = ({ user, 
         if (data.executed) {
           tablesCreated = [...tablesCreated, ...(data.tablesCreated || [])];
           policiesApplied += data.policiesApplied || 0;
-        } else if (data.setupRequired) {
-          // Need to setup exec_sql function first
-          toast({ 
-            title: "⚠️ Setup Required", 
-            description: "Run the setup SQL in Supabase SQL Editor first. Check the response for details.",
-            variant: "destructive"
-          });
-          
-          // Add note to chat about setup
+          deployMethod = data.method || 'auto';
+        } else if (data.setupRequired || data.setupInstructions) {
+          // No access token - show guidance to user
           const setupMessage: ChatMessage = {
             id: Date.now().toString(),
             role: 'assistant',
-            content: `⚠️ **Database Setup Required**\n\nTo enable automatic deployment, you need to create the \`exec_sql\` function in your Supabase project.\n\n1. Go to your Supabase dashboard\n2. Open SQL Editor\n3. Run this SQL:\n\n\`\`\`sql\n${data.setupSql}\n\`\`\`\n\nAfter that, try deploying again!`,
+            content: `⚠️ **Manual Deployment Required**\n\nTo enable automatic deployment, you have two options:\n\n**Option 1: Add Personal Access Token (Recommended)**\n1. Go to [Supabase Account Tokens](https://supabase.com/dashboard/account/tokens)\n2. Create a new token\n3. Add it in the Supabase connection settings (click "Manage")\n\n**Option 2: Run SQL Manually**\n1. Copy the SQL below\n2. Open your [Supabase SQL Editor](${supabaseConnection.url.replace('.co', '.com').replace('https://', 'https://supabase.com/dashboard/project/')}/sql/new)\n3. Paste and run the SQL\n\n---\n\n\`\`\`sql\n${file.content}\n\`\`\``,
             timestamp: new Date()
           };
           setChatMessages(prev => [...prev, setupMessage]);
+          
+          toast({ 
+            title: "⚠️ Manual Setup Required", 
+            description: "Add Personal Access Token or run SQL manually. See chat for details.",
+          });
           return;
         }
       }
@@ -399,16 +400,25 @@ export const FullstackAppBuilder: React.FC<FullstackAppBuilderProps> = ({ user, 
       const successMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `🗄️ **Database Deployed Successfully!**\n\n${tablesCreated.length > 0 ? `• Tables created: ${tablesCreated.join(', ')}\n` : ''}${policiesApplied > 0 ? `• RLS policies applied: ${policiesApplied}` : ''}`,
+        content: `🗄️ **Database Deployed Successfully!**\n\n${tablesCreated.length > 0 ? `• Tables created: ${tablesCreated.join(', ')}\n` : ''}${policiesApplied > 0 ? `• RLS policies applied: ${policiesApplied}\n` : ''}${deployMethod === 'management_api' ? '• Method: Supabase Management API ✨' : ''}`,
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, successMessage]);
 
       toast({ 
         title: "🗄️ Database Deployed!", 
-        description: `${sqlFiles.length} SQL file(s) executed on your Supabase` 
+        description: `${tablesCreated.length} tables created on your Supabase` 
       });
     } catch (error: any) {
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `❌ **Deployment Failed**\n\n${error.message}\n\nPlease try adding a Personal Access Token in the Supabase connection settings, or run the SQL manually.`,
+        timestamp: new Date(),
+        isError: true
+      };
+      setChatMessages(prev => [...prev, errorMessage]);
+      
       toast({ 
         title: "Deploy Failed", 
         description: error.message || "Failed to deploy database schema",
