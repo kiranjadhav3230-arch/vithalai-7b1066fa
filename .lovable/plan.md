@@ -1,404 +1,274 @@
 
+# Plan: Fix Full-Stack App Builder Database & Edge Function Deployment
 
-# Plan: Fix Full-Stack App Builder - Complete Lovable-Style Implementation
+## Problems Identified
 
-## Critical Issues Identified
+### Issue #1: Database Schema Not Deploying to User's Supabase
+| Current Behavior | Expected Behavior |
+|-----------------|-------------------|
+| SQL files generated as text only | SQL should execute on user's Supabase |
+| `supabase-admin` tries to call `exec_sql` RPC | RPC doesn't exist on user's project |
+| Requires user to manually create `exec_sql` function | Should work automatically |
 
-### Issue #1: GEMINI_API_KEY is NOT Configured (Generation Fails)
-| Problem | Impact |
-|---------|--------|
-| `code-generator-gemini` uses `GEMINI_API_KEY` | Secret NOT in configured secrets |
-| Other working functions use `LOVABLE_API_KEY` | Full-stack generation completely fails |
-| Direct Gemini API call: `generativelanguage.googleapis.com` | Should use Lovable Gateway |
+**Root Cause:** Supabase REST API doesn't expose direct SQL execution. The current approach tries to call `exec_sql` RPC which doesn't exist on the user's project.
 
-**Evidence:**
-- Secrets list shows: `LOVABLE_API_KEY` (working), `ELEVENLABS_API_KEY`, etc.
-- NO `GEMINI_API_KEY` in the list
-- `gemini-chat` uses `LOVABLE_API_KEY` and works correctly
+### Issue #2: No Edge Function Deployment
+| Current | Should Be |
+|---------|-----------|
+| Generates JS code for edge functions | No way to deploy to user's Supabase |
+| Edge functions stay as text | Should deploy via Supabase Management API |
 
-### Issue #2: NO Code Editing Capability (Only Generates New)
-| Current Behavior | Lovable Behavior |
-|-----------------|------------------|
-| Each request generates completely new code | User can say "change brand color" and it edits existing code |
-| No chat history for code changes | Maintains context of previous generations |
-| No edit/refine workflow | Iterative refinement like a conversation |
+**Root Cause:** Deploying edge functions requires Supabase Management API with a Personal Access Token or Project API key - not just the service role key.
 
-**Evidence from `fullstack-app-builder.tsx`:**
-- Line 82-83: `setGeneratedApp(null)` - clears previous generation
-- No mechanism to pass existing code back to AI for editing
-- No "Edit" or "Refine" button
-- No chat interface for iterative changes
-
-### Issue #3: Supabase Admin Does NOT Execute SQL
-| Current Response | Should Be |
-|-----------------|-----------|
-| `"note": "For full execution, please run this SQL in your Supabase SQL Editor"` | Actually executes SQL and returns `{ executed: true, tables_created: [...] }` |
-| Just validates and returns SQL text | Uses Supabase REST API to run queries |
-
-**Evidence from `supabase-admin/index.ts` line 252-255:**
-```javascript
-return new Response(JSON.stringify({ 
-  success: true, 
-  message: 'SQL prepared for execution',
-  note: 'SQL has been validated. For full execution, please run this SQL in your Supabase SQL Editor.'
-}));
-```
-The function validates but never actually runs the SQL!
-
-### Issue #4: No Chat Interface for App Building
-| Current | Lovable-Style |
-|---------|--------------|
-| One-shot generation with template | Chat-based iterative building |
-| No follow-up questions | "Change the header to blue" works |
-| Static form inputs | Dynamic conversation |
+### Issue #3: Architecture Mismatch
+The Full-Stack App Builder was designed assuming we could deploy to user's Supabase, but Supabase's API has these limitations:
+- **Service Role Key**: Can read/write data, but cannot execute DDL (CREATE TABLE, etc.)
+- **Management API**: Required for schema changes and edge function deployment, needs separate API token
 
 ---
 
-## Solution Architecture
+## Solution Options
 
+### Option A: Supabase Management API Integration (Recommended)
+Require users to provide a **Supabase Personal Access Token** in addition to service role key. This enables:
+- Direct SQL execution via Management API
+- Edge function deployment via Management API
+- Full control like Lovable has
+
+### Option B: Setup Script Approach (Fallback)
+Keep current architecture but:
+- Generate a complete setup script for users
+- Provide clear one-click copy instructions
+- Show SQL in expandable panel for easy copying
+
+### Option C: Hybrid Approach (Best UX)
+- Try Management API if token provided
+- Fall back to guided manual setup if not
+- Clear status showing what was deployed vs what needs manual action
+
+---
+
+## Implementation Plan (Hybrid Approach)
+
+### Step 1: Add Supabase Personal Access Token Field
+**File:** `src/components/supabase-connection-modal.tsx`
+
+Add optional field for Supabase Personal Access Token:
 ```text
-BEFORE (Broken):                          AFTER (Lovable-Style):
-┌────────────────────────────────┐       ┌────────────────────────────────────────┐
-│ Template Selection             │       │ Chat-Based App Builder                 │
-│ → Single Generate Button       │  →    │ → "Build a todo app"                   │
-│ → New code each time           │       │ → "Change color to blue"               │
-│ → No editing                   │       │ → "Add dark mode"                      │
-│ → SQL not executed             │       │ → Code updates incrementally           │
-│ → GEMINI_API_KEY missing       │       │ → SQL actually runs on Supabase        │
-│                                │       │ → Uses LOVABLE_API_KEY (working)       │
-└────────────────────────────────┘       └────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│ Connect Your Supabase Project                                  │
+├─────────────────────────────────────────────────────────────────┤
+│ Project URL: [https://xxx.supabase.co]                        │
+│ Anon Key: [eyJ...] 👁                                         │
+│ Service Role Key: [eyJ...] 👁 ⚠️ SECRET                       │
+│                                                                 │
+│ ═══ Advanced (Optional) ═══                                    │
+│ Personal Access Token: [sbp_xxx...] 👁                        │
+│ (Enables automatic schema deployment and edge functions)       │
+│ [Link: Get your token from dashboard.supabase.com]            │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
----
+### Step 2: Update useSupabaseConnection Hook
+**File:** `src/hooks/useSupabaseConnection.ts`
 
-## Implementation Steps
-
-### Step 1: Create New Edge Function Using LOVABLE_API_KEY
-**New File:** `supabase/functions/fullstack-generator/index.ts`
-
-Replace broken `code-generator-gemini` approach with:
-- Uses `LOVABLE_API_KEY` (already available and working)
-- Lovable AI Gateway: `https://ai.gateway.lovable.dev/v1/chat/completions`
-- Supports EDITING existing code (not just generation)
-- Maintains conversation history for iterative changes
-
-Key Logic:
+Add `accessToken` field to connection interface:
 ```typescript
-// NEW: Accept existing code for editing
-const { prompt, existingCode, chatHistory, appTemplate, ... } = await req.json();
-
-// Build edit-aware system prompt
-let systemPrompt = existingCode 
-  ? `You are editing an existing application. Here is the current code:
-     ${existingCode}
-     
-     Make ONLY the requested changes, preserving everything else.`
-  : `You are generating a new full-stack application...`;
-
-// Use Lovable AI Gateway (working API)
-const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-  headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}` },
-  body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages })
-});
+interface SupabaseConnection {
+  url: string;
+  anonKey: string;
+  serviceKey: string;
+  accessToken?: string;  // NEW: Personal Access Token
+  projectRef?: string;   // Extract from URL
+  projectName?: string;
+  connectedAt: number;
+}
 ```
 
-### Step 2: Fix Supabase Admin to Actually Execute SQL
+### Step 3: Fix supabase-admin to Use Management API
 **File:** `supabase/functions/supabase-admin/index.ts`
 
-Current code just validates and returns note. Fix to:
-- Use Supabase REST API with service role key
-- Execute each SQL statement via direct REST calls
-- Return actual execution results
+Update to use Supabase Management API for SQL execution when access token is provided:
 
-Key Changes:
 ```typescript
-// BEFORE (broken - line 249-260):
-return new Response(JSON.stringify({ 
-  success: true, 
-  note: 'For full execution, please run this SQL...'
-}));
-
-// AFTER (working):
-// Execute via Supabase's postgrest endpoint with RPC
-const execResponse = await fetch(
-  `${userSupabaseUrl}/rest/v1/rpc/exec_sql`, // Need to create this function
-  {
+// If access token provided, use Management API
+if (accessToken) {
+  const execUrl = `https://api.supabase.com/v1/projects/${projectRef}/database/query`;
+  const response = await fetch(execUrl, {
     method: 'POST',
     headers: {
-      'apikey': userServiceKey,
-      'Authorization': `Bearer ${userServiceKey}`,
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ query: sql })
-  }
-);
+  });
+  // Handle response
+}
 ```
 
-Note: Direct SQL execution via REST requires either:
-1. A custom `exec_sql` RPC function on the user's Supabase, OR
-2. Using Supabase Management API (more complex)
+### Step 4: Add Edge Function Deployment via Management API
+**File:** `supabase/functions/supabase-admin/index.ts`
 
-**Practical Solution:** Execute via Supabase's built-in SQL execution endpoint:
+Add new operation `deploy_edge_function`:
+
 ```typescript
-const execUrl = `${userSupabaseUrl}/pg/query`;
-const execResponse = await fetch(execUrl, {
-  method: 'POST',
-  headers: {
-    'Authorization': `Bearer ${userServiceKey}`,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ query: sql })
-});
+if (operation === 'deploy_edge_function') {
+  if (!accessToken) {
+    return { error: 'Access token required for edge function deployment' };
+  }
+  
+  // Use Management API to create/update edge function
+  const response = await fetch(
+    `https://api.supabase.com/v1/projects/${projectRef}/functions`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        slug: functionName,
+        body: functionCode,
+        verify_jwt: verifyJwt
+      })
+    }
+  );
+}
 ```
 
-### Step 3: Add Chat-Based Editing to App Builder
+### Step 5: Update UI for Deployment Status
 **File:** `src/components/fullstack-app-builder.tsx`
 
-Add:
-1. Chat messages interface (like Lovable)
-2. Input for refining existing app
-3. Pass existing code back to AI for edits
-4. Maintain conversation history
+Show clear deployment status with what was deployed vs what needs manual action:
 
-New State:
-```typescript
-const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-const [currentAppCode, setCurrentAppCode] = useState<WebsiteFile[] | null>(null);
-```
-
-New UI:
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│ 🚀 Full-Stack App Builder              [Supabase: Connected]   │
-├───────────────────────────────┬─────────────────────────────────┤
-│                               │                                 │
-│ Chat History:                 │  [Frontend] [CSS] [JS] [SQL]   │
-│ ─────────────────────         │  ┌─────────────────────────┐   │
-│ You: Build a todo app         │  │ <html>                  │   │
-│                               │  │   <head>...</head>      │   │
-│ Vithal: Here's your todo app! │  │   <body>...</body>      │   │
-│ [Preview of app]              │  │ </html>                 │   │
-│                               │  └─────────────────────────┘   │
-│ You: Change header to blue    │                                 │
-│                               │  [Preview] [Download] [Deploy] │
-│ Vithal: I've updated the      │                                 │
-│ header color to blue!         │                                 │
-│                               │                                 │
-│ ───────────────────────────── │                                 │
-│ ┌─────────────────────────┐   │                                 │
-│ │ Add authentication...   │   │                                 │
-│ └─────────────────────────┘   │                                 │
-│ [Send]                        │                                 │
-└───────────────────────────────┴─────────────────────────────────┘
+│ 🚀 Deployment Status                                           │
+├─────────────────────────────────────────────────────────────────┤
+│ ✅ Database Schema    - Deployed (3 tables, 6 policies)       │
+│ ✅ Edge Functions     - Deployed (api-handler)                 │
+│ ────────────────────────────────────────────────────────────── │
+│ OR (if no access token):                                       │
+│ ⚠️ Database Schema    - Manual Setup Required [Copy SQL]      │
+│ ⚠️ Edge Functions     - Cannot deploy without Access Token    │
+│ [Get Access Token] for automatic deployment                    │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Step 4: Update Config
-**File:** `supabase/config.toml`
+### Step 6: Improve Fallback with Copy-Friendly SQL
+**File:** `src/components/fullstack-app-builder.tsx`
 
-Add new function:
-```toml
-[functions.fullstack-generator]
-verify_jwt = false
-```
+When Management API not available, show:
+- Expandable SQL panels with copy buttons
+- Step-by-step instructions
+- Direct link to user's SQL Editor
 
 ---
 
-## Files to Create/Modify
+## Files to Modify
 
 | File | Action | Description |
 |------|--------|-------------|
-| `supabase/functions/fullstack-generator/index.ts` | CREATE | New function using LOVABLE_API_KEY with edit support |
-| `supabase/functions/supabase-admin/index.ts` | MODIFY | Actually execute SQL, not just validate |
-| `src/components/fullstack-app-builder.tsx` | MODIFY | Add chat interface, edit capability, conversation history |
-| `supabase/config.toml` | MODIFY | Add fullstack-generator function |
+| `src/components/supabase-connection-modal.tsx` | MODIFY | Add Personal Access Token field |
+| `src/hooks/useSupabaseConnection.ts` | MODIFY | Store access token, extract project ref |
+| `supabase/functions/supabase-admin/index.ts` | MODIFY | Add Management API calls for SQL and edge functions |
+| `src/components/fullstack-app-builder.tsx` | MODIFY | Better deployment status UI, copy-friendly SQL |
 
 ---
 
 ## Technical Details
 
-### New Full-Stack Generator Edge Function
+### Supabase Management API Endpoints
 
-```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
-
-    const { 
-      prompt,
-      existingCode,     // Pass existing files for editing
-      chatHistory,      // Maintain conversation
-      appTemplate,
-      styleType,
-      includeAuth,
-      isEdit            // Flag: edit mode vs generate mode
-    } = await req.json();
-
-    // Build system prompt based on mode
-    let systemPrompt;
-    
-    if (isEdit && existingCode) {
-      // EDIT MODE - Modify existing code
-      systemPrompt = `You are an expert full-stack developer EDITING an existing application.
-
-CURRENT APPLICATION CODE:
-${existingCode.map(f => `=== ${f.name} ===\n${f.content}`).join('\n\n')}
-
-INSTRUCTIONS:
-- Make ONLY the changes requested by the user
-- Preserve ALL existing functionality unless specifically asked to change
-- Keep the same file structure
-- Output the COMPLETE updated files (not just changes)
-- Use the same === FILE: filename === format`;
-    } else {
-      // GENERATE MODE - Create new app
-      systemPrompt = `You are an expert full-stack developer creating production-ready applications...`;
-      // (existing generation prompt)
-    }
-
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...chatHistory.map(msg => ({ role: msg.role, content: msg.content })),
-      { role: 'user', content: prompt }
-    ];
-
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages,
-      }),
-    });
-
-    const data = await response.json();
-    return new Response(JSON.stringify({ 
-      code: data.choices?.[0]?.message?.content 
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-
-  } catch (error) {
-    console.error('Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
-  }
-});
+**Execute SQL:**
+```
+POST https://api.supabase.com/v1/projects/{project_ref}/database/query
+Headers: Authorization: Bearer {access_token}
+Body: { "query": "CREATE TABLE..." }
 ```
 
-### Fixed Supabase Admin SQL Execution
-
-The key issue is that Supabase doesn't expose a direct SQL execution endpoint via REST. Options:
-
-**Option A: Use Supabase Management API**
-```typescript
-// Execute via Supabase Management API (requires project ref extraction)
-const projectRef = userSupabaseUrl.match(/https:\/\/([^.]+)\.supabase/)?.[1];
-const execUrl = `https://api.supabase.com/v1/projects/${projectRef}/database/query`;
+**Deploy Edge Function:**
+```
+POST https://api.supabase.com/v1/projects/{project_ref}/functions
+Headers: Authorization: Bearer {access_token}
+Body: { "slug": "function-name", "body": "..." }
 ```
 
-**Option B: Guide user to create exec_sql function**
-Add to generated SQL:
-```sql
-CREATE OR REPLACE FUNCTION exec_sql(query text)
-RETURNS json
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  EXECUTE query;
-  RETURN json_build_object('success', true);
-END;
-$$;
+**Get Access Token:**
+Users get this from: `https://supabase.com/dashboard/account/tokens`
+
+### Updated Connection Modal UI
+
+```text
+Current Fields:
+├── Project URL (required)
+├── Anon Key (required)
+└── Service Role Key (required)
+
+New Fields:
+├── Project URL (required)
+├── Anon Key (required)
+├── Service Role Key (required)
+└── Personal Access Token (optional - for full automation)
+    └── "Without this, you'll need to manually run SQL in Supabase Dashboard"
 ```
 
-**Option C (Recommended): Statement-by-statement via REST**
-For CREATE TABLE operations, use Supabase's table creation endpoint. For policies, use separate API calls.
+### Deployment Flow
 
-### Chat-Based App Builder UI
+```text
+User clicks "Deploy Database":
 
-Add to `fullstack-app-builder.tsx`:
-
-```typescript
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  generatedFiles?: WebsiteFile[];
-  timestamp: Date;
-}
-
-const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-
-const handleSendMessage = async () => {
-  // Add user message
-  const userMessage = { id: Date.now().toString(), role: 'user', content: input };
-  setChatMessages(prev => [...prev, userMessage]);
-  
-  // Call API with existing code (for editing)
-  const { data } = await supabase.functions.invoke('fullstack-generator', {
-    body: {
-      prompt: input,
-      existingCode: generatedApp,  // Pass current code for editing
-      chatHistory: chatMessages,    // Pass conversation history
-      isEdit: generatedApp !== null // Flag if editing
-    }
-  });
-  
-  // Parse and update app
-  const files = parseFullstackResponse(data.code);
-  setGeneratedApp(files);
-  
-  // Add AI response
-  const aiMessage = { 
-    id: (Date.now() + 1).toString(), 
-    role: 'assistant', 
-    content: 'I\'ve updated your app!',
-    generatedFiles: files 
-  };
-  setChatMessages(prev => [...prev, aiMessage]);
-};
+┌──────────────────────────────┐
+│ Has Personal Access Token?   │
+└──────────────────────────────┘
+           │
+    ┌──────┴──────┐
+    │             │
+   YES           NO
+    │             │
+    ▼             ▼
+┌─────────┐  ┌─────────────────────────┐
+│ Call    │  │ Show SQL with copy      │
+│ Mgmt    │  │ button + link to        │
+│ API     │  │ user's SQL Editor       │
+└─────────┘  └─────────────────────────┘
+    │             │
+    ▼             ▼
+┌─────────┐  ┌─────────────────────────┐
+│ Success │  │ "Paste & run this SQL   │
+│ Toast   │  │ in your SQL Editor"     │
+└─────────┘  └─────────────────────────┘
 ```
 
 ---
 
 ## User Experience After Fix
 
-1. User opens Full-Stack App Builder
-2. Types: "Build me a todo app with dark theme"
-3. AI generates complete app with all files
-4. User sees app in preview, can download/deploy
-5. User types: "Change the primary color to purple"
-6. AI EDITS the existing code (not regenerates from scratch)
-7. Only the color-related code changes
-8. If Supabase connected, database schema ACTUALLY runs
-9. User gets confirmation: "Tables created: todos, lists"
+### With Access Token (Full Automation):
+1. User connects Supabase with all credentials including Access Token
+2. Generates full-stack app
+3. Clicks "Deploy Database"
+4. Tables and policies are created automatically on user's Supabase
+5. Edge functions are deployed automatically
+6. User sees success confirmation with details
+
+### Without Access Token (Guided Manual):
+1. User connects with just URL + keys (no Access Token)
+2. Generates full-stack app
+3. Clicks "Deploy Database"
+4. System shows clear message: "Access Token required for auto-deploy"
+5. Shows expandable SQL with one-click copy
+6. Direct link to user's SQL Editor opens in new tab
+7. User pastes SQL and runs
+8. Edge function code shown with instructions for Supabase CLI
 
 ---
 
 ## Priority Order
 
-1. **CRITICAL**: Create `fullstack-generator` using LOVABLE_API_KEY (fixes generation)
-2. **CRITICAL**: Add edit support to pass existing code back to AI
-3. **HIGH**: Add chat interface for iterative changes
-4. **HIGH**: Fix `supabase-admin` to execute SQL (or provide better guidance)
-5. **MEDIUM**: Improve UI/UX with conversation history display
-
+1. **HIGH**: Add Access Token field to connection modal
+2. **HIGH**: Update supabase-admin to use Management API with access token
+3. **HIGH**: Fix SQL execution with proper Management API endpoint
+4. **MEDIUM**: Add edge function deployment capability
+5. **MEDIUM**: Improve fallback UI with copy-friendly SQL panels
+6. **LOW**: Add deployment status tracking
