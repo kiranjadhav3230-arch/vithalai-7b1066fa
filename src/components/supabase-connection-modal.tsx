@@ -22,9 +22,11 @@ import {
   EyeOff,
   Unlink,
   ExternalLink,
-  Shield
+  Shield,
+  Key
 } from 'lucide-react';
 import { useSupabaseConnection } from '@/hooks/useSupabaseConnection';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface SupabaseConnectionModalProps {
   open: boolean;
@@ -50,8 +52,11 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
   const [projectUrl, setProjectUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
   const [serviceKey, setServiceKey] = useState('');
+  const [accessToken, setAccessToken] = useState('');
   const [showAnonKey, setShowAnonKey] = useState(false);
   const [showServiceKey, setShowServiceKey] = useState(false);
+  const [showAccessToken, setShowAccessToken] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -89,7 +94,7 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
     setTestResult(null);
 
     try {
-      const success = await connect(projectUrl, anonKey, serviceKey);
+      const success = await connect(projectUrl, anonKey, serviceKey, accessToken || undefined);
       if (success) {
         setTestResult({ success: true, message: 'Successfully connected!' });
         onConnectionChange?.(true);
@@ -97,6 +102,8 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
         setProjectUrl('');
         setAnonKey('');
         setServiceKey('');
+        setAccessToken('');
+        setShowAdvanced(false);
       } else {
         setTestResult({ success: false, message: connectionError || 'Connection failed' });
       }
@@ -157,6 +164,12 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Connected:</span>
                   <span>{new Date(connection.connectedAt).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Auto Deploy:</span>
+                  <span className={connection.accessToken ? 'text-green-500' : 'text-yellow-500'}>
+                    {connection.accessToken ? '✓ Enabled' : '⚠️ Manual Required'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -260,6 +273,61 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                   </AlertDescription>
                 </Alert>
               </div>
+
+              {/* Advanced Section - Personal Access Token */}
+              <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="w-full justify-between mt-2">
+                    <span className="flex items-center gap-2">
+                      <Key className="h-4 w-4" />
+                      Advanced Options
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {showAdvanced ? '▲' : '▼'}
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3 space-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="accessToken" className="flex items-center gap-2">
+                      Personal Access Token
+                      <Badge variant="secondary" className="text-[10px]">OPTIONAL</Badge>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="accessToken"
+                        type={showAccessToken ? 'text' : 'password'}
+                        placeholder="sbp_..."
+                        value={accessToken}
+                        onChange={(e) => setAccessToken(e.target.value)}
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowAccessToken(!showAccessToken)}
+                      >
+                        {showAccessToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Enables automatic database schema deployment and edge function deployment.
+                      Without this, you'll need to manually run SQL in the Supabase dashboard.
+                    </p>
+                    <a 
+                      href="https://supabase.com/dashboard/account/tokens" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Get your Personal Access Token →
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
 
             {testResult && (

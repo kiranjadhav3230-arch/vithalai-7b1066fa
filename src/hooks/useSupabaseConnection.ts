@@ -5,6 +5,8 @@ interface SupabaseConnection {
   url: string;
   anonKey: string;
   serviceKey: string;
+  accessToken?: string;  // Personal Access Token for Management API
+  projectRef?: string;   // Extracted from URL (e.g., 'abc123' from 'abc123.supabase.co')
   projectName?: string;
   connectedAt: number;
 }
@@ -14,7 +16,7 @@ interface UseSupabaseConnectionReturn {
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  connect: (url: string, anonKey: string, serviceKey: string) => Promise<boolean>;
+  connect: (url: string, anonKey: string, serviceKey: string, accessToken?: string) => Promise<boolean>;
   disconnect: () => void;
   testConnection: (url: string, anonKey: string) => Promise<{ success: boolean; projectName?: string; error?: string }>;
   getUserClient: () => SupabaseClient | null;
@@ -50,6 +52,7 @@ export const useSupabaseConnection = (): UseSupabaseConnectionReturn => {
           ...parsed,
           anonKey: decryptKey(parsed.anonKey),
           serviceKey: decryptKey(parsed.serviceKey),
+          accessToken: parsed.accessToken ? decryptKey(parsed.accessToken) : undefined,
         });
       }
     } catch (err) {
@@ -97,7 +100,8 @@ export const useSupabaseConnection = (): UseSupabaseConnectionReturn => {
   const connect = useCallback(async (
     url: string, 
     anonKey: string,
-    serviceKey: string
+    serviceKey: string,
+    accessToken?: string
   ): Promise<boolean> => {
     setError(null);
     
@@ -108,10 +112,16 @@ export const useSupabaseConnection = (): UseSupabaseConnectionReturn => {
       return false;
     }
 
+    // Extract project ref from URL
+    const projectMatch = url.match(/https:\/\/([^.]+)\.supabase/);
+    const projectRef = projectMatch ? projectMatch[1] : undefined;
+
     const newConnection: SupabaseConnection = {
       url: url.trim(),
       anonKey: anonKey.trim(),
       serviceKey: serviceKey.trim(),
+      accessToken: accessToken?.trim() || undefined,
+      projectRef,
       projectName: testResult.projectName,
       connectedAt: Date.now(),
     };
@@ -125,6 +135,7 @@ export const useSupabaseConnection = (): UseSupabaseConnectionReturn => {
         ...newConnection,
         anonKey: encryptKey(newConnection.anonKey),
         serviceKey: encryptKey(newConnection.serviceKey),
+        accessToken: newConnection.accessToken ? encryptKey(newConnection.accessToken) : undefined,
       }));
     } catch (err) {
       console.error('Failed to save connection:', err);

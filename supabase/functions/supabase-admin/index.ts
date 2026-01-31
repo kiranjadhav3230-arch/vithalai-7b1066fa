@@ -80,8 +80,12 @@ serve(async (req) => {
     const { 
       operation, 
       userSupabaseUrl, 
-      userServiceKey, 
+      userServiceKey,
+      accessToken, // NEW: Personal Access Token for Management API
       sql,
+      functionName,
+      functionCode,
+      verifyJwt = true,
       dryRun = false 
     } = body;
 
@@ -89,7 +93,9 @@ serve(async (req) => {
       operation, 
       urlProvided: !!userSupabaseUrl,
       keyProvided: !!userServiceKey,
+      accessTokenProvided: !!accessToken,
       sqlLength: sql?.length,
+      functionName,
       dryRun
     });
 
@@ -220,9 +226,10 @@ serve(async (req) => {
 
       console.log('Executing SQL on project:', projectRef);
       console.log('SQL to execute:', sql.substring(0, 500));
+      console.log('Access token provided:', !!accessToken);
 
       try {
-        // Split SQL into statements and execute each
+        // Split SQL into statements
         const statements = sql
           .split(';')
           .map((s: string) => s.trim())
@@ -232,12 +239,72 @@ serve(async (req) => {
         let tablesCreated: string[] = [];
         let policiesApplied = 0;
 
+        // If access token is provided, use Supabase Management API
+        if (accessToken) {
+          console.log('Using Management API for SQL execution');
+          
+          // Execute SQL via Management API
+          const execUrl = `https://api.supabase.com/v1/projects/${projectRef}/database/query`;
+          
+          const execResponse = await fetch(execUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ query: sql })
+          });
+
+          if (execResponse.ok) {
+            // Parse response for created tables and policies
+            const createTableMatches = sql.matchAll(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?(\w+)/gi);
+            tablesCreated = [...createTableMatches].map(m => m[1]);
+            
+            const policyMatches = sql.matchAll(/CREATE\s+POLICY/gi);
+            policiesApplied = [...policyMatches].length;
+
+            return new Response(
+              JSON.stringify({ 
+                success: true,
+                executed: true,
+                message: 'SQL executed via Management API',
+                tablesCreated,
+                policiesApplied,
+                method: 'management_api'
+              }),
+              { 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          } else {
+            const errorText = await execResponse.text();
+            console.error('Management API error:', execResponse.status, errorText);
+            
+            // If Management API fails, try to give helpful error
+            return new Response(
+              JSON.stringify({ 
+                success: false,
+                executed: false,
+                error: `Management API error: ${errorText}`,
+                sql: sql,
+                fallbackAvailable: true,
+                fallbackInstructions: 'Copy the SQL and run it manually in Supabase SQL Editor'
+              }),
+              { 
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            );
+          }
+        }
+
+        // Fallback: Try exec_sql RPC (requires user to set up function)
+        console.log('Using exec_sql RPC fallback');
+        
         for (const statement of statements) {
           console.log('Executing statement:', statement.substring(0, 100));
           
-          // Try to execute via Supabase REST API with service role
           try {
-            // Use the pg endpoint for raw SQL execution
             const execResponse = await fetch(`${userSupabaseUrl}/rest/v1/rpc/exec_sql`, {
               method: 'POST',
               headers: {
@@ -250,7 +317,6 @@ serve(async (req) => {
             });
 
             if (execResponse.ok) {
-              // Track what was created
               const createTableMatch = statement.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?(\w+)/i);
               if (createTableMatch) {
                 tablesCreated.push(createTableMatch[1]);
@@ -267,13 +333,11 @@ serve(async (req) => {
               });
             } else {
               const errorText = await execResponse.text();
-              // If exec_sql function doesn't exist, try alternative approach
               if (execResponse.status === 404 || errorText.includes('function') && errorText.includes('not found')) {
-                // Function doesn't exist - fall back to returning SQL for manual execution
                 results.push({
                   statement: statement.substring(0, 80) + '...',
                   success: false,
-                  error: 'exec_sql function not found on target database'
+                  error: 'exec_sql function not found - add Personal Access Token for auto-deploy'
                 });
               } else {
                 results.push({
@@ -303,7 +367,8 @@ serve(async (req) => {
               message: 'SQL executed successfully',
               statements: results,
               tablesCreated,
-              policiesApplied
+              policiesApplied,
+              method: 'exec_sql_rpc'
             }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -318,43 +383,32 @@ serve(async (req) => {
               message: 'Some SQL statements executed successfully',
               statements: results,
               tablesCreated,
-              policiesApplied
+              policiesApplied,
+              method: 'exec_sql_rpc'
             }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
             }
           );
         } else {
-          // No statements succeeded - check if exec_sql function exists
-          const needsSetup = results.some(r => r.error?.includes('exec_sql'));
+          const needsSetup = results.some(r => r.error?.includes('exec_sql') || r.error?.includes('Access Token'));
           
           return new Response(
             JSON.stringify({ 
               success: false,
               executed: false,
               message: needsSetup 
-                ? 'Database needs exec_sql function. Run the setup SQL first.'
+                ? 'Add a Personal Access Token in Supabase settings for automatic deployment, or copy the SQL below.'
                 : 'SQL execution failed',
               statements: results,
               sql: sql,
               setupRequired: needsSetup,
-              setupSql: needsSetup ? `-- Run this in Supabase SQL Editor first:
-CREATE OR REPLACE FUNCTION exec_sql(query text)
-RETURNS json
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  EXECUTE query;
-  RETURN json_build_object('success', true);
-EXCEPTION WHEN OTHERS THEN
-  RETURN json_build_object('success', false, 'error', SQLERRM);
-END;
-$$;
-
--- Grant execute permission
-GRANT EXECUTE ON FUNCTION exec_sql(text) TO authenticated;
-GRANT EXECUTE ON FUNCTION exec_sql(text) TO service_role;` : undefined
+              setupInstructions: needsSetup ? {
+                option1: 'Add Personal Access Token in Supabase connection settings for automatic deployment',
+                option1Link: 'https://supabase.com/dashboard/account/tokens',
+                option2: 'Copy the SQL below and run it manually in Supabase SQL Editor',
+                option2Link: `${userSupabaseUrl.replace('.co', '.com').replace('https://', 'https://supabase.com/dashboard/project/')}/sql/new`
+              } : undefined
             }),
             { 
               status: 400,
@@ -371,6 +425,117 @@ GRANT EXECUTE ON FUNCTION exec_sql(text) TO service_role;` : undefined
             executed: false,
             error: `SQL execution failed: ${execError instanceof Error ? execError.message : 'Unknown error'}`,
             sql: sql
+          }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    }
+
+    // NEW: Deploy Edge Function via Management API
+    if (operation === 'deploy_edge_function') {
+      if (!accessToken) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Personal Access Token required for edge function deployment. Add it in Supabase connection settings.',
+            setupLink: 'https://supabase.com/dashboard/account/tokens'
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      if (!functionName || !functionCode) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Function name and code are required' 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      const projectRef = userSupabaseUrl.match(/https:\/\/([^.]+)\.supabase/)?.[1];
+      if (!projectRef) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Could not extract project reference from Supabase URL' 
+          }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+
+      console.log('Deploying edge function:', functionName, 'to project:', projectRef);
+
+      try {
+        const deployUrl = `https://api.supabase.com/v1/projects/${projectRef}/functions`;
+        
+        const deployResponse = await fetch(deployUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            slug: functionName,
+            name: functionName,
+            body: functionCode,
+            verify_jwt: verifyJwt
+          })
+        });
+
+        if (deployResponse.ok) {
+          const deployData = await deployResponse.json();
+          return new Response(
+            JSON.stringify({ 
+              success: true,
+              deployed: true,
+              message: `Edge function '${functionName}' deployed successfully`,
+              functionUrl: `${userSupabaseUrl}/functions/v1/${functionName}`,
+              data: deployData
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        } else {
+          const errorText = await deployResponse.text();
+          console.error('Edge function deployment error:', deployResponse.status, errorText);
+          
+          return new Response(
+            JSON.stringify({ 
+              success: false,
+              deployed: false,
+              error: `Deployment failed: ${errorText}`,
+              functionName,
+              fallbackInstructions: 'Use Supabase CLI to deploy: supabase functions deploy ' + functionName
+            }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          );
+        }
+      } catch (deployError) {
+        console.error('Edge function deployment error:', deployError);
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            deployed: false,
+            error: `Deployment failed: ${deployError instanceof Error ? deployError.message : 'Unknown error'}`,
+            functionName
           }),
           { 
             status: 500, 
