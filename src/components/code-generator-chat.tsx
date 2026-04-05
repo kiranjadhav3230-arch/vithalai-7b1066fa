@@ -329,15 +329,22 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
     if (data) {
       setIsFirstMessage(data.length === 0);
       const msgs: Message[] = [];
-      data.forEach(m => {
+      
+      // Get encryption key if available
+      const encKey = isEncryptionEnabled(user.id) ? await getStoredKey(user.id) : null;
+      
+      for (const m of data) {
+        const decryptedMessage = await tryDecrypt(m.message, encKey) || m.message;
+        const decryptedResponse = await tryDecrypt(m.response, encKey);
+        
         msgs.push({
           id: m.id,
           role: 'user',
-          content: m.message,
+          content: decryptedMessage,
           isCode: false
         });
-        if (m.response) {
-          const parsedParts = parseResponse(m.response);
+        if (decryptedResponse) {
+          const parsedParts = parseResponse(decryptedResponse);
           parsedParts.forEach((part, partIndex) => {
             msgs.push({
               id: `${m.id}-ai-${partIndex}`,
@@ -348,7 +355,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
             });
           });
         }
-      });
+      }
       setMessages(msgs);
     } else {
       setIsFirstMessage(true);
