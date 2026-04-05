@@ -19,6 +19,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
 import JSZip from 'jszip';
+import {
+  isEncryptionEnabled,
+  getStoredKey,
+  encryptMessage as encryptText,
+  tryDecrypt,
+} from '@/lib/encryption';
 const PROGRAMMING_LANGUAGES = [{
   value: 'javascript',
   label: 'JavaScript'
