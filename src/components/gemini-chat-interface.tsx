@@ -1744,6 +1744,71 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
         <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+
+        {/* E2E Encryption Passphrase Dialog */}
+        <Dialog open={showPassphraseDialog} onOpenChange={setShowPassphraseDialog}>
+          <DialogContent className="sm:max-w-md bg-black/95 border-green-500/30">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-green-500" />
+                <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                  {passphraseMode === 'setup' ? 'Set Up Encryption' : 'Unlock Encrypted Messages'}
+                </span>
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                {passphraseMode === 'setup'
+                  ? 'Create a passphrase to encrypt your messages. Remember it — you\'ll need it to decrypt your messages on new sessions.'
+                  : 'Enter your passphrase to decrypt your stored messages.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-400">Passphrase</label>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  placeholder="Enter your secret passphrase..."
+                  className="w-full px-4 py-3 rounded-xl bg-black/60 border border-green-500/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-green-500/60"
+                  onKeyPress={(e) => { if (e.key === 'Enter' && passphraseMode === 'unlock') handlePassphraseSubmit(); }}
+                />
+              </div>
+              {passphraseMode === 'setup' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-green-400">Confirm Passphrase</label>
+                  <input
+                    type="password"
+                    value={passphraseConfirm}
+                    onChange={(e) => setPassphraseConfirm(e.target.value)}
+                    placeholder="Confirm your passphrase..."
+                    className="w-full px-4 py-3 rounded-xl bg-black/60 border border-green-500/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-green-500/60"
+                    onKeyPress={(e) => { if (e.key === 'Enter') handlePassphraseSubmit(); }}
+                  />
+                </div>
+              )}
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-green-400" />
+                  <span className="font-semibold text-green-400">How it works</span>
+                </div>
+                <ul className="space-y-1 ml-5 list-disc">
+                  <li>Messages are encrypted with AES-256-GCM before storing in database</li>
+                  <li>Encryption key is derived from your passphrase using PBKDF2 (100K iterations)</li>
+                  <li>Key never leaves your browser — stored only in session memory</li>
+                  <li>AI still reads your messages to respond, but database stores only ciphertext</li>
+                </ul>
+              </div>
+              <Button
+                onClick={handlePassphraseSubmit}
+                disabled={!passphrase || (passphraseMode === 'setup' && !passphraseConfirm)}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-6 rounded-xl"
+              >
+                <ShieldCheck className="h-5 w-5 mr-2" />
+                {passphraseMode === 'setup' ? 'Enable Encryption' : 'Unlock Messages'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         
         {/* PWA Install Dialog */}
         <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>
