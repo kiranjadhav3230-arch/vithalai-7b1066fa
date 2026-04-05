@@ -97,6 +97,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [projectToPublish, setProjectToPublish] = useState<any>(null);
 
+  // E2E Encryption state
+  const [encryptionOn, setEncryptionOn] = useState(() => isEncryptionEnabled(user.id));
+  const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
+  const [showPassphraseDialog, setShowPassphraseDialog] = useState(false);
+  const [passphrase, setPassphrase] = useState('');
+  const [passphraseConfirm, setPassphraseConfirm] = useState('');
+  const [passphraseMode, setPassphraseMode] = useState<'setup' | 'unlock'>('setup');
+
+  // Load encryption key from session on mount
+  useEffect(() => {
+    if (encryptionOn) {
+      getStoredKey(user.id).then(key => {
+        if (key) {
+          setEncryptionKey(key);
+        } else {
+          // Need passphrase to unlock
+          setPassphraseMode('unlock');
+          setShowPassphraseDialog(true);
+        }
+      });
+    }
+  }, []);
+
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
     if ('vibrate' in navigator) {
