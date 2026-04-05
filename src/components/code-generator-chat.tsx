@@ -1277,11 +1277,16 @@ This website is fully responsive and ready for production use.
       }
 
       if (currentSessionId) {
+        // Encrypt before storing if encryption is enabled
+        const encKey = isEncryptionEnabled(user.id) ? await getStoredKey(user.id) : null;
+        const storedMsg = encKey ? await encryptText(currentInput, encKey) : currentInput;
+        const storedResp = encKey ? await encryptText(responseText, encKey) : responseText;
+        
         await supabase.from('chat_messages').insert({
           session_id: currentSessionId,
           user_id: user.id,
-          message: currentInput,
-          response: responseText,
+          message: storedMsg,
+          response: storedResp,
           message_type: selectedTask === 'website' ? 'website' : 'code'
         });
         if (isFirstMessage) {
