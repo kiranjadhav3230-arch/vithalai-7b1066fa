@@ -705,11 +705,16 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       
       responseText = data.response;
 
+      // Encrypt response before storing
+      const storedResponse = encryptionOn && encryptionKey
+        ? await encryptText(responseText, encryptionKey)
+        : responseText;
+
       // Update message with response
       const {
         error: updateError
       } = await supabase.from('chat_messages').update({
-        response: responseText,
+        response: storedResponse,
         youtube_courses: null
       }).eq('id', userMessageData.id);
       if (updateError) throw updateError;
