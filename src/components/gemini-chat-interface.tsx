@@ -237,6 +237,48 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       playChatSound();
     }
   };
+  const handlePassphraseSubmit = async () => {
+    if (passphraseMode === 'setup') {
+      if (passphrase.length < 6) {
+        toast({ variant: "destructive", title: "Error", description: "Passphrase must be at least 6 characters" });
+        return;
+      }
+      if (passphrase !== passphraseConfirm) {
+        toast({ variant: "destructive", title: "Error", description: "Passphrases don't match" });
+        return;
+      }
+    }
+    try {
+      const key = await deriveEncryptionKey(user.id, passphrase);
+      await storeKeyInSession(user.id, key);
+      setEncryptionKey(key);
+      setEncryptionEnabledUtil(user.id, true);
+      setEncryptionOn(true);
+      setShowPassphraseDialog(false);
+      setPassphrase('');
+      setPassphraseConfirm('');
+      toast({ title: "🔒 Encryption Enabled", description: "Your messages are now encrypted at rest" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to set up encryption" });
+    }
+  };
+
+  const handleDisableEncryption = () => {
+    setEncryptionEnabledUtil(user.id, false);
+    setEncryptionOn(false);
+    setEncryptionKey(null);
+    toast({ title: "🔓 Encryption Disabled", description: "Messages will be stored in plaintext" });
+  };
+
+  const handleToggleEncryption = () => {
+    if (encryptionOn) {
+      handleDisableEncryption();
+    } else {
+      setPassphraseMode('setup');
+      setShowPassphraseDialog(true);
+    }
+  };
+
   const loadMessages = async (sessionId: string) => {
     try {
       const {
@@ -246,7 +288,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         ascending: true
       });
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Decrypt messages if encryption key is available
+      if (encryptionKey && data) {
+        const decryptedData = await Promise.all(
+          data.map(async (msg: any) => ({
+            ...msg,
+            message: await tryDecrypt(msg.message, encryptionKey) || msg.message,
+            response: await tryDecrypt(msg.response, encryptionKey),
+          }))
+        );
+        setMessages(decryptedData || []);
+      } else {
+        setMessages(data || []);
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
