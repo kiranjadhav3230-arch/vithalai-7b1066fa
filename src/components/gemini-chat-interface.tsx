@@ -649,6 +649,11 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
         messageContent = userMessage || 'Analyze this image';
       }
 
+      // Encrypt message content if encryption is enabled
+      const storedMessage = encryptionOn && encryptionKey 
+        ? await encryptText(messageContent, encryptionKey) 
+        : messageContent;
+
       // Save user message
       const {
         data: userMessageData,
@@ -656,7 +661,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       } = await supabase.from('chat_messages').insert([{
         session_id: currentSession.id,
         user_id: user.id,
-        message: messageContent,
+        message: storedMessage,
         message_type: messageType,
         image_data: imageToSend || null
       }]).select().single();
