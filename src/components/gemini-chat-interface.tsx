@@ -1470,6 +1470,17 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   </Button>
                 </div>
 
+                {/* Encryption Toggle */}
+                <Button
+                  onClick={handleToggleEncryption}
+                  size="sm"
+                  variant="ghost"
+                  className={`h-7 w-7 p-0 border ${encryptionOn ? 'text-green-400 border-green-500/30 hover:bg-green-500/10' : 'text-orange-400/50 border-orange-500/20 hover:bg-orange-500/10'}`}
+                  title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
+                >
+                  {encryptionOn ? <ShieldCheck className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
+                </Button>
+
                 {/* New Chat Button */}
                 <Button onClick={() => {
                 const sessionType = currentView === 'code' ? 'code' : 'chat';
