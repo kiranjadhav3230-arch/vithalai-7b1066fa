@@ -1662,6 +1662,14 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
             </ScrollArea>
           </div>
 
+          {/* Encryption Status Banner */}
+          {encryptionOn && currentView === 'chat' && (
+            <div className="flex items-center justify-center gap-2 py-1.5 bg-green-500/10 border-t border-green-500/20 text-xs text-green-400">
+              <ShieldCheck className="h-3 w-3" />
+              <span>Messages are end-to-end encrypted</span>
+            </div>
+          )}
+
           {/* Input Area - Sticker Style Bottom Bar */}
           <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
             <div className="max-w-4xl mx-auto px-3 py-3">
