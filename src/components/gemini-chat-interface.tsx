@@ -10,7 +10,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { LanguageSelector } from '@/components/ui/language-selector';
-import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3, Library, Rocket } from 'lucide-react';
+import { Send, Mic, Image as ImageIcon, Plus, MessageSquare, Trash2, Edit3, User as UserIcon, Menu, Star, Search, Settings, ChevronRight, Loader2, LogOut, Globe, Camera, Code, Copy, Check, X, MoreVertical, Download, Volume2, Square, Users, Leaf, Smartphone, Scale, Grid3X3, Library, Rocket, Lock, LockOpen, Shield, ShieldCheck, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +29,16 @@ import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { WelcomeSection } from './welcome-section';
 import { PublishNetlifyModal } from './publish-netlify-modal';
+import {
+  isEncryptionEnabled,
+  setEncryptionEnabled as setEncryptionEnabledUtil,
+  deriveEncryptionKey,
+  storeKeyInSession,
+  getStoredKey,
+  hasKeyInSession,
+  encryptMessage as encryptText,
+  tryDecrypt,
+} from '@/lib/encryption';
 interface ChatSession {
   id: string;
   title: string;
@@ -86,6 +96,29 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [showCodeLibrary, setShowCodeLibrary] = useState(false);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [projectToPublish, setProjectToPublish] = useState<any>(null);
+
+  // E2E Encryption state
+  const [encryptionOn, setEncryptionOn] = useState(() => isEncryptionEnabled(user.id));
+  const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
+  const [showPassphraseDialog, setShowPassphraseDialog] = useState(false);
+  const [passphrase, setPassphrase] = useState('');
+  const [passphraseConfirm, setPassphraseConfirm] = useState('');
+  const [passphraseMode, setPassphraseMode] = useState<'setup' | 'unlock'>('setup');
+
+  // Load encryption key from session on mount
+  useEffect(() => {
+    if (encryptionOn) {
+      getStoredKey(user.id).then(key => {
+        if (key) {
+          setEncryptionKey(key);
+        } else {
+          // Need passphrase to unlock
+          setPassphraseMode('unlock');
+          setShowPassphraseDialog(true);
+        }
+      });
+    }
+  }, []);
 
   // Haptic feedback for mobile devices
   const triggerHaptic = () => {
@@ -204,6 +237,48 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       playChatSound();
     }
   };
+  const handlePassphraseSubmit = async () => {
+    if (passphraseMode === 'setup') {
+      if (passphrase.length < 6) {
+        toast({ variant: "destructive", title: "Error", description: "Passphrase must be at least 6 characters" });
+        return;
+      }
+      if (passphrase !== passphraseConfirm) {
+        toast({ variant: "destructive", title: "Error", description: "Passphrases don't match" });
+        return;
+      }
+    }
+    try {
+      const key = await deriveEncryptionKey(user.id, passphrase);
+      await storeKeyInSession(user.id, key);
+      setEncryptionKey(key);
+      setEncryptionEnabledUtil(user.id, true);
+      setEncryptionOn(true);
+      setShowPassphraseDialog(false);
+      setPassphrase('');
+      setPassphraseConfirm('');
+      toast({ title: "🔒 Encryption Enabled", description: "Your messages are now encrypted at rest" });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Error", description: "Failed to set up encryption" });
+    }
+  };
+
+  const handleDisableEncryption = () => {
+    setEncryptionEnabledUtil(user.id, false);
+    setEncryptionOn(false);
+    setEncryptionKey(null);
+    toast({ title: "🔓 Encryption Disabled", description: "Messages will be stored in plaintext" });
+  };
+
+  const handleToggleEncryption = () => {
+    if (encryptionOn) {
+      handleDisableEncryption();
+    } else {
+      setPassphraseMode('setup');
+      setShowPassphraseDialog(true);
+    }
+  };
+
   const loadMessages = async (sessionId: string) => {
     try {
       const {
@@ -213,7 +288,20 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
         ascending: true
       });
       if (error) throw error;
-      setMessages(data || []);
+      
+      // Decrypt messages if encryption key is available
+      if (encryptionKey && data) {
+        const decryptedData = await Promise.all(
+          data.map(async (msg: any) => ({
+            ...msg,
+            message: await tryDecrypt(msg.message, encryptionKey) || msg.message,
+            response: await tryDecrypt(msg.response, encryptionKey),
+          }))
+        );
+        setMessages(decryptedData || []);
+      } else {
+        setMessages(data || []);
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
     }
@@ -561,6 +649,11 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
         messageContent = userMessage || 'Analyze this image';
       }
 
+      // Encrypt message content if encryption is enabled
+      const storedMessage = encryptionOn && encryptionKey 
+        ? await encryptText(messageContent, encryptionKey) 
+        : messageContent;
+
       // Save user message
       const {
         data: userMessageData,
@@ -568,7 +661,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       } = await supabase.from('chat_messages').insert([{
         session_id: currentSession.id,
         user_id: user.id,
-        message: messageContent,
+        message: storedMessage,
         message_type: messageType,
         image_data: imageToSend || null
       }]).select().single();
@@ -612,11 +705,16 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       
       responseText = data.response;
 
+      // Encrypt response before storing
+      const storedResponse = encryptionOn && encryptionKey
+        ? await encryptText(responseText, encryptionKey)
+        : responseText;
+
       // Update message with response
       const {
         error: updateError
       } = await supabase.from('chat_messages').update({
-        response: responseText,
+        response: storedResponse,
         youtube_courses: null
       }).eq('id', userMessageData.id);
       if (updateError) throw updateError;
@@ -1372,6 +1470,17 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   </Button>
                 </div>
 
+                {/* Encryption Toggle */}
+                <Button
+                  onClick={handleToggleEncryption}
+                  size="sm"
+                  variant="ghost"
+                  className={`h-7 w-7 p-0 border ${encryptionOn ? 'text-green-400 border-green-500/30 hover:bg-green-500/10' : 'text-orange-400/50 border-orange-500/20 hover:bg-orange-500/10'}`}
+                  title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
+                >
+                  {encryptionOn ? <ShieldCheck className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
+                </Button>
+
                 {/* New Chat Button */}
                 <Button onClick={() => {
                 const sessionType = currentView === 'code' ? 'code' : 'chat';
@@ -1553,6 +1662,14 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
             </ScrollArea>
           </div>
 
+          {/* Encryption Status Banner */}
+          {encryptionOn && currentView === 'chat' && (
+            <div className="flex items-center justify-center gap-2 py-1.5 bg-green-500/10 border-t border-green-500/20 text-xs text-green-400">
+              <ShieldCheck className="h-3 w-3" />
+              <span>Messages are end-to-end encrypted</span>
+            </div>
+          )}
+
           {/* Input Area - Sticker Style Bottom Bar */}
           <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
             <div className="max-w-4xl mx-auto px-3 py-3">
@@ -1635,6 +1752,71 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
 
         <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} user={user} />
         <ContactSupportModal isOpen={showContactModal} onClose={() => setShowContactModal(false)} />
+
+        {/* E2E Encryption Passphrase Dialog */}
+        <Dialog open={showPassphraseDialog} onOpenChange={setShowPassphraseDialog}>
+          <DialogContent className="sm:max-w-md bg-black/95 border-green-500/30">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <KeyRound className="h-5 w-5 text-green-500" />
+                <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+                  {passphraseMode === 'setup' ? 'Set Up Encryption' : 'Unlock Encrypted Messages'}
+                </span>
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground">
+                {passphraseMode === 'setup'
+                  ? 'Create a passphrase to encrypt your messages. Remember it — you\'ll need it to decrypt your messages on new sessions.'
+                  : 'Enter your passphrase to decrypt your stored messages.'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-green-400">Passphrase</label>
+                <input
+                  type="password"
+                  value={passphrase}
+                  onChange={(e) => setPassphrase(e.target.value)}
+                  placeholder="Enter your secret passphrase..."
+                  className="w-full px-4 py-3 rounded-xl bg-black/60 border border-green-500/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-green-500/60"
+                  onKeyPress={(e) => { if (e.key === 'Enter' && passphraseMode === 'unlock') handlePassphraseSubmit(); }}
+                />
+              </div>
+              {passphraseMode === 'setup' && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-green-400">Confirm Passphrase</label>
+                  <input
+                    type="password"
+                    value={passphraseConfirm}
+                    onChange={(e) => setPassphraseConfirm(e.target.value)}
+                    placeholder="Confirm your passphrase..."
+                    className="w-full px-4 py-3 rounded-xl bg-black/60 border border-green-500/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-green-500/60"
+                    onKeyPress={(e) => { if (e.key === 'Enter') handlePassphraseSubmit(); }}
+                  />
+                </div>
+              )}
+              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 mb-1">
+                  <ShieldCheck className="h-3.5 w-3.5 text-green-400" />
+                  <span className="font-semibold text-green-400">How it works</span>
+                </div>
+                <ul className="space-y-1 ml-5 list-disc">
+                  <li>Messages are encrypted with AES-256-GCM before storing in database</li>
+                  <li>Encryption key is derived from your passphrase using PBKDF2 (100K iterations)</li>
+                  <li>Key never leaves your browser — stored only in session memory</li>
+                  <li>AI still reads your messages to respond, but database stores only ciphertext</li>
+                </ul>
+              </div>
+              <Button
+                onClick={handlePassphraseSubmit}
+                disabled={!passphrase || (passphraseMode === 'setup' && !passphraseConfirm)}
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-6 rounded-xl"
+              >
+                <ShieldCheck className="h-5 w-5 mr-2" />
+                {passphraseMode === 'setup' ? 'Enable Encryption' : 'Unlock Messages'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         
         {/* PWA Install Dialog */}
         <Dialog open={showInstallDialog} onOpenChange={setShowInstallDialog}>

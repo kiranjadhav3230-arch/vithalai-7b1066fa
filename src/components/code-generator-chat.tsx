@@ -19,6 +19,12 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { User } from '@supabase/supabase-js';
 import JSZip from 'jszip';
+import {
+  isEncryptionEnabled,
+  getStoredKey,
+  encryptMessage as encryptText,
+  tryDecrypt,
+} from '@/lib/encryption';
 const PROGRAMMING_LANGUAGES = [{
   value: 'javascript',
   label: 'JavaScript'
@@ -323,15 +329,22 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
     if (data) {
       setIsFirstMessage(data.length === 0);
       const msgs: Message[] = [];
-      data.forEach(m => {
+      
+      // Get encryption key if available
+      const encKey = isEncryptionEnabled(user.id) ? await getStoredKey(user.id) : null;
+      
+      for (const m of data) {
+        const decryptedMessage = await tryDecrypt(m.message, encKey) || m.message;
+        const decryptedResponse = await tryDecrypt(m.response, encKey);
+        
         msgs.push({
           id: m.id,
           role: 'user',
-          content: m.message,
+          content: decryptedMessage,
           isCode: false
         });
-        if (m.response) {
-          const parsedParts = parseResponse(m.response);
+        if (decryptedResponse) {
+          const parsedParts = parseResponse(decryptedResponse);
           parsedParts.forEach((part, partIndex) => {
             msgs.push({
               id: `${m.id}-ai-${partIndex}`,
@@ -342,7 +355,7 @@ export const CodeGeneratorChat: React.FC<CodeGeneratorChatProps> = ({
             });
           });
         }
-      });
+      }
       setMessages(msgs);
     } else {
       setIsFirstMessage(true);
@@ -1264,11 +1277,16 @@ This website is fully responsive and ready for production use.
       }
 
       if (currentSessionId) {
+        // Encrypt before storing if encryption is enabled
+        const encKey = isEncryptionEnabled(user.id) ? await getStoredKey(user.id) : null;
+        const storedMsg = encKey ? await encryptText(currentInput, encKey) : currentInput;
+        const storedResp = encKey ? await encryptText(responseText, encKey) : responseText;
+        
         await supabase.from('chat_messages').insert({
           session_id: currentSessionId,
           user_id: user.id,
-          message: currentInput,
-          response: responseText,
+          message: storedMsg,
+          response: storedResp,
           message_type: selectedTask === 'website' ? 'website' : 'code'
         });
         if (isFirstMessage) {
