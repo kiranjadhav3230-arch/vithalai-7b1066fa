@@ -29,6 +29,16 @@ import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { WelcomeSection } from './welcome-section';
 import { PublishNetlifyModal } from './publish-netlify-modal';
+import {
+  isEncryptionEnabled,
+  setEncryptionEnabled as setEncryptionEnabledUtil,
+  deriveEncryptionKey,
+  storeKeyInSession,
+  getStoredKey,
+  hasKeyInSession,
+  encryptMessage as encryptText,
+  tryDecrypt,
+} from '@/lib/encryption';
 interface ChatSession {
   id: string;
   title: string;
