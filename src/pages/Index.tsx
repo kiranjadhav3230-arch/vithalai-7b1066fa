@@ -10,7 +10,6 @@ import { FaqSection } from '@/components/faq-section';
 import { AuthModal } from '@/components/auth-modal';
 import { ChatInterface } from '@/components/chat-interface';
 import { LoadingScreen } from '@/components/loading-screen';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Sparkles } from 'lucide-react';
