@@ -201,11 +201,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     // Always start with a new chat (default type)
     createNewSession('chat');
   }, []);
+  // Reload messages when session changes OR when encryption key becomes available
   useEffect(() => {
     if (currentSession) {
       loadMessages(currentSession.id);
     }
-  }, [currentSession]);
+  }, [currentSession, encryptionKey]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth'
