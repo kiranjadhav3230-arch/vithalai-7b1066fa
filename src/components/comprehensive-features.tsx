@@ -2,18 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  MessageSquare, 
-  Code, 
-  Target, 
-  Mic, 
-  Camera,
-  Languages,
-  Sparkles,
-  Brain,
-  GraduationCap,
-  Leaf,
-  Shield,
-  Globe
+  MessageSquare, Code, Target, Mic, Camera, Languages,
+  Sparkles, Brain, GraduationCap, Leaf, Shield, Globe
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 
@@ -26,7 +16,7 @@ export const ComprehensiveFeatures: React.FC = () => {
       icon: Shield,
       title: language === 'hi' ? 'हक जानो - अपने अधिकार जानो' : language === 'mr' ? 'हक्क जाणा - तुमचे हक्क जाणून घ्या' : 'Haq Jaano - Know Your Rights',
       description: language === 'hi' ? 'भारत का पहला AI कानूनी अधिकार सहायक। पुलिस, अस्पताल, कार्यस्थल में अपने अधिकार जानें' : language === 'mr' ? 'भारतातील पहिला AI कायदेशीर हक्क सहाय्यक। पोलीस, हॉस्पिटल, कामाच्या ठिकाणी तुमचे हक्क जाणून घ्या' : 'India\'s first AI Legal Rights Assistant. Know your rights with police, hospital, workplace & more',
-      gradient: 'from-blue-500 to-blue-600',
+      gradient: 'from-orange-500 to-amber-600',
       category: language === 'hi' ? 'कानूनी' : language === 'mr' ? 'कायदेशीर' : 'Legal',
       isNew: true,
       link: '/haq-jaano'
@@ -35,7 +25,7 @@ export const ComprehensiveFeatures: React.FC = () => {
       icon: Globe,
       title: language === 'hi' ? 'वेबसाइट जेनरेटर' : language === 'mr' ? 'वेबसाइट जनरेटर' : 'Website Generator',
       description: language === 'hi' ? 'AI के साथ पेशेवर Netlify-ready वेबसाइट बनाएं। HTML, CSS, JS शामिल' : language === 'mr' ? 'AI सह व्यावसायिक Netlify-ready वेबसाइट तयार करा। HTML, CSS, JS समाविष्ट' : 'Create professional Netlify-ready websites with AI. Includes HTML, CSS, JS files',
-      gradient: 'from-purple-500 to-pink-500',
+      gradient: 'from-orange-600 to-red-500',
       category: language === 'hi' ? 'डेवलपर' : language === 'mr' ? 'डेव्हलपर' : 'Developer',
       isNew: true
     },
@@ -108,18 +98,12 @@ export const ComprehensiveFeatures: React.FC = () => {
     <section id="features" className="relative py-16 md:py-24 px-4 overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-orange-950/5 to-black"></div>
-      
-      {/* Glowing Orbs */}
-      <div className="absolute inset-0 overflow-hidden opacity-20">
-        <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] rounded-full bg-gradient-to-br from-orange-500/30 to-transparent blur-[100px] animate-float-slow"></div>
-        <div className="absolute bottom-[10%] right-[5%] w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-orange-600/25 to-transparent blur-[120px] animate-float" style={{ animationDelay: '2s' }}></div>
-      </div>
 
       <div className="container mx-auto relative z-10">
         {/* Section Header */}
-        <div className="text-center mb-10 md:mb-14 animate-scaleIn">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full liquid-glass-intense border border-primary/30 mb-4 morph-shape">
-            <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+        <div className="text-center mb-10 md:mb-14 animate-[scaleIn_0.5s_ease-out]">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/40 backdrop-blur-sm border border-primary/20 mb-4">
+            <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-xs md:text-sm font-display font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
               {language === 'hi' ? 'सभी सुविधाएं' : language === 'mr' ? 'सर्व वैशिष्ट्ये' : 'Complete Feature Set'}
             </span>
@@ -139,24 +123,22 @@ export const ComprehensiveFeatures: React.FC = () => {
             <Card
               key={index}
               variant="glass"
-              className="group cursor-pointer hover:scale-[1.02] transition-all duration-300 border border-white/5 hover:border-orange-500/20"
+              className="group cursor-pointer border border-white/5 hover:border-primary/20 transition-all duration-300"
               onClick={() => (feature as any).link && navigate((feature as any).link)}
             >
               <CardContent className="p-5 md:p-6">
                 <div className="flex items-start gap-4">
-                  {/* Icon */}
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:shadow-orange-500/40 group-hover:scale-110 transition-all duration-300`}>
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center shadow-md shadow-orange-500/15 group-hover:shadow-orange-500/25 transition-all duration-300`}>
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   
-                  {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 font-display font-medium">
+                      <span className="text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-primary/8 border border-primary/15 text-primary font-display font-medium">
                         {feature.category}
                       </span>
                       {(feature as any).isNew && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500 text-white font-bold animate-pulse">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-green-500 text-white font-bold">
                           NEW
                         </span>
                       )}
@@ -168,11 +150,10 @@ export const ComprehensiveFeatures: React.FC = () => {
                       {feature.description}
                     </p>
                     
-                    {/* Link indicator */}
                     {(feature as any).link && (
                       <div className="mt-2 flex items-center gap-1 text-primary text-xs font-medium">
                         <span>{language === 'hi' ? 'अभी आज़माएं' : language === 'mr' ? 'आता वापरा' : 'Try Now'}</span>
-                        <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
                       </div>
                     )}
                   </div>
@@ -182,7 +163,7 @@ export const ComprehensiveFeatures: React.FC = () => {
           ))}
         </div>
 
-        {/* Stats Section */}
+        {/* Stats */}
         <div className="mt-12 md:mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           {[
             { label: '18+', value: language === 'hi' ? 'कोड भाषाएं' : language === 'mr' ? 'कोड भाषा' : 'Code Languages' },
@@ -190,32 +171,13 @@ export const ComprehensiveFeatures: React.FC = () => {
             { label: 'AI', value: language === 'hi' ? 'Gemini इंजन' : language === 'mr' ? 'Gemini इंजिन' : 'Gemini Engine' },
             { label: '24/7', value: language === 'hi' ? 'हमेशा उपलब्ध' : language === 'mr' ? 'नेहमी उपलब्ध' : 'Always Available' }
           ].map((stat, index) => (
-            <div
-              key={index}
-              className="text-center p-4 md:p-5 liquid-glass-intense rounded-xl border border-orange-500/10 hover:border-orange-500/30 hover:scale-105 transition-all duration-300"
-            >
+            <div key={index} className="text-center p-4 md:p-5 rounded-xl bg-black/40 backdrop-blur-sm border border-primary/10 hover:border-primary/25 transition-all duration-300">
               <div className="text-xl md:text-2xl font-display font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent mb-1">
                 {stat.label}
               </div>
-              <div className="text-xs md:text-sm text-muted-foreground font-sans">
-                {stat.value}
-              </div>
+              <div className="text-xs md:text-sm text-muted-foreground font-sans">{stat.value}</div>
             </div>
           ))}
-        </div>
-
-        {/* Credits */}
-        <div className="mt-10 md:mt-14 text-center">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-xs md:text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/5 border border-white/10">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span>Powered by Gemini AI</span>
-            </span>
-            <span className="hidden sm:inline text-white/20">•</span>
-            <span className="px-4 py-2 rounded-full bg-white/5 border border-white/10">
-              Developed by Kapil Kiran Jadhav
-            </span>
-          </div>
         </div>
       </div>
     </section>
