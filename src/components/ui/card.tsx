@@ -12,8 +12,8 @@ const Card = React.forwardRef<
 >(({ className, variant = "default", ...props }, ref) => {
   const variantStyles = {
     default: "rounded-lg border bg-card text-card-foreground shadow-sm",
-    glass: "liquid-glass glass-reflection",
-    liquid: "liquid-glass-intense glass-reflection morph-shape"
+    glass: "liquid-glass",
+    liquid: "liquid-glass-intense"
   }
   
   return (
@@ -21,7 +21,7 @@ const Card = React.forwardRef<
       ref={ref}
       className={cn(
         variantStyles[variant],
-        "transition-all duration-300 hover:shadow-md",
+        "transition-all duration-300",
         className
       )}
       {...props}
