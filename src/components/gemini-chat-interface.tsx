@@ -201,11 +201,12 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
     // Always start with a new chat (default type)
     createNewSession('chat');
   }, []);
+  // Reload messages when session changes OR when encryption key becomes available
   useEffect(() => {
     if (currentSession) {
       loadMessages(currentSession.id);
     }
-  }, [currentSession]);
+  }, [currentSession, encryptionKey]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth'
@@ -258,6 +259,10 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
       setPassphrase('');
       setPassphraseConfirm('');
       toast({ title: "🔒 Encryption Enabled", description: "Your messages are now encrypted at rest" });
+      // Reload current session messages with decryption
+      if (currentSession) {
+        setTimeout(() => loadMessages(currentSession.id), 100);
+      }
     } catch (error) {
       toast({ variant: "destructive", title: "Error", description: "Failed to set up encryption" });
     }
