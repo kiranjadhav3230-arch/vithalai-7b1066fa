@@ -97,7 +97,7 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
   return (
     <>
-      <div className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-xl border-b border-border/50 shadow-lg shadow-primary/5">
+      <div className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-14 gap-2">
             {/* Feature Buttons */}
@@ -137,10 +137,10 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                 variant={isActive('haq-jaano') ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFeatureClick('haq-jaano')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full ${
                   isActive('haq-jaano') 
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' 
-                    : 'hover:bg-blue-500/10 text-blue-500'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white' 
+                    : 'hover:bg-primary/10 text-foreground/80'
                 }`}
               >
                 <Scale className="h-4 w-4" />
@@ -152,10 +152,10 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                 variant={isActive('fullstack') ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => handleFeatureClick('fullstack')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full ${
                   isActive('fullstack') 
-                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white' 
-                    : 'hover:bg-purple-500/10 text-purple-500'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' 
+                    : 'hover:bg-primary/10 text-foreground/80'
                 }`}
               >
                 <Rocket className="h-4 w-4" />
@@ -211,11 +211,11 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                 <div className="flex items-start gap-4">
                   <div className={`p-3 rounded-xl ${
                     feature.key === 'haq-jaano' 
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                      ? 'bg-gradient-to-br from-orange-500 to-amber-500' 
                       : feature.key === 'fullstack'
-                      ? 'bg-gradient-to-br from-purple-500 to-purple-600'
-                      : 'bg-gradient-to-br from-primary to-primary/80'
-                  } shadow-lg`}>
+                      ? 'bg-gradient-to-br from-amber-500 to-orange-600'
+                      : 'bg-gradient-to-br from-orange-500 to-amber-500'
+                  } shadow-lg shadow-orange-500/20`}>
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
