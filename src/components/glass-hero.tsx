@@ -1,15 +1,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight, MessageSquare, Scale, Users, Code2 } from 'lucide-react';
-import { useLanguage } from '@/hooks/useLanguage';
-
 interface GlassHeroProps {
   onGetStarted: () => void;
 }
 
 export const GlassHero: React.FC<GlassHeroProps> = ({ onGetStarted }) => {
-  const { t } = useLanguage();
-
   return (
     <section className="relative min-h-[92vh] flex items-center aurora-bg overflow-hidden">
       <div className="absolute inset-0 grid-noise opacity-40 pointer-events-none" />
