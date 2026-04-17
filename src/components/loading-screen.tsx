@@ -1,29 +1,23 @@
 import React from 'react';
-import vithalLogo from '/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png';
+import { Sparkles } from 'lucide-react';
 
 export const LoadingScreen: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
-      <div className="text-center relative z-10">
-        {/* Logo */}
-        <div className="relative mb-8 animate-[scaleIn_0.6s_ease-out]">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center border border-primary/20">
-            <img 
-              src={vithalLogo} 
-              alt="Vithal AI Logo" 
-              className="h-12 w-12 object-contain"
-            />
+    <div className="min-h-screen flex items-center justify-center aurora-bg relative overflow-hidden">
+      <div className="text-center relative z-10 space-y-6">
+        <div className="relative mx-auto w-20 h-20 animate-[scaleIn_0.6s_ease-out]">
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-500 blur-xl opacity-50" />
+          <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-2xl shadow-orange-500/40">
+            <Sparkles className="h-10 w-10 text-white" />
           </div>
         </div>
-        
-        {/* App Name */}
-        <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent animate-[fadeInUp_0.8s_ease-out]">
+
+        <h1 className="text-3xl md:text-4xl font-display font-bold gradient-text-orange animate-[fadeInUp_0.8s_ease-out]">
           Vithal AI
         </h1>
-        
-        {/* Loading bar */}
-        <div className="w-48 h-0.5 bg-muted mx-auto rounded-full overflow-hidden mt-6 animate-[fadeInUp_1s_ease-out]">
-          <div className="h-full bg-gradient-to-r from-primary to-accent rounded-full animate-[loading_1.5s_ease-in-out_infinite]"></div>
+
+        <div className="w-56 h-1 bg-white/[0.06] mx-auto rounded-full overflow-hidden animate-[fadeInUp_1s_ease-out]">
+          <div className="h-full w-1/3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" />
         </div>
       </div>
     </div>

@@ -42,6 +42,10 @@ All colors MUST be HSL.
     --card-gradient: linear-gradient(135deg, hsl(0 0% 5%) 0%, hsl(0 0% 10%) 100%);
     --neon-gradient: linear-gradient(90deg, hsl(15 100% 50%), hsl(25 100% 55%), hsl(35 100% 60%));
     --glow-gradient: radial-gradient(circle, hsl(25 100% 55% / 0.4) 0%, transparent 70%);
+    --gradient-aurora: radial-gradient(ellipse 80% 60% at 20% 0%, hsl(25 100% 55% / 0.35), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 30%, hsl(35 100% 50% / 0.25), transparent 60%), radial-gradient(ellipse 70% 60% at 50% 100%, hsl(15 100% 50% / 0.2), transparent 60%);
+    --gradient-orange-amber: linear-gradient(135deg, hsl(15 100% 55%) 0%, hsl(25 100% 55%) 50%, hsl(40 100% 55%) 100%);
+    --glass-surface: hsl(0 0% 100% / 0.03);
+    --glass-border-bright: hsl(25 100% 60% / 0.25);
     
     --success: 25 95% 53%;
     --success-foreground: 0 0% 0%;
@@ -345,5 +349,105 @@ All colors MUST be HSL.
     content: '';
     @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-primary/20 rounded-full;
     animation: ripple 0.6s ease-out;
+  }
+
+  /* === Glass / Futuristic System === */
+  @keyframes aurora-shift {
+    0%, 100% { transform: translate(0%, 0%) scale(1); opacity: 0.9; }
+    33% { transform: translate(3%, -2%) scale(1.05); opacity: 1; }
+    66% { transform: translate(-2%, 2%) scale(0.97); opacity: 0.85; }
+  }
+
+  @keyframes border-rotate {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 30px hsl(25 100% 55% / 0.25), 0 0 60px hsl(25 100% 55% / 0.1); }
+    50% { box-shadow: 0 0 40px hsl(25 100% 55% / 0.4), 0 0 80px hsl(25 100% 55% / 0.2); }
+  }
+
+  .aurora-bg {
+    position: relative;
+    background-color: hsl(0 0% 3%);
+  }
+  .aurora-bg::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: var(--gradient-aurora);
+    filter: blur(60px);
+    animation: aurora-shift 18s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .aurora-bg > * { position: relative; z-index: 1; }
+
+  .glass-surface {
+    background: hsl(0 0% 100% / 0.03);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.08),
+      0 8px 32px 0 hsl(0 0% 0% / 0.4);
+  }
+
+  .glass-card {
+    position: relative;
+    border-radius: 1.25rem;
+    background: linear-gradient(135deg, hsl(0 0% 100% / 0.04), hsl(0 0% 100% / 0.01));
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.08),
+      0 10px 40px -10px hsl(0 0% 0% / 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-card:hover {
+    transform: translateY(-4px);
+    border-color: hsl(25 100% 60% / 0.3);
+    box-shadow:
+      inset 0 1px 0 0 hsl(0 0% 100% / 0.12),
+      0 20px 50px -10px hsl(0 0% 0% / 0.6),
+      0 0 40px -10px hsl(25 100% 55% / 0.4);
+  }
+
+  .gradient-border {
+    position: relative;
+    background: hsl(0 0% 5% / 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 1rem;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--gradient-orange-amber);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .gradient-text-orange {
+    background: var(--gradient-orange-amber);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glow-pulse {
+    animation: glow-pulse 4s ease-in-out infinite;
+  }
+
+  .grid-noise {
+    background-image:
+      linear-gradient(hsl(0 0% 100% / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(0 0% 100% / 0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 }
