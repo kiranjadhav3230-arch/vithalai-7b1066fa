@@ -89,7 +89,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
     <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 px-4">
       {/* Logo with staggered animation */}
       <div 
-        className={`w-20 h-20 sm:w-24 sm:h-24 mb-6 transition-all duration-700 ease-out ${
+        className={`w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full glow-pulse ring-2 ring-orange-500/30 p-1 transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'
         }`}
         style={{ transitionDelay: '0ms' }}
@@ -103,7 +103,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
       
       {/* Welcome Title with staggered animation */}
       <h2 
-        className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 bg-clip-text text-transparent text-center transition-all duration-700 ease-out ${
+        className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 gradient-text-orange text-center transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ transitionDelay: '150ms' }}
@@ -134,7 +134,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
           <button
             key={index}
             onClick={() => onSuggestionClick(suggestion.text)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/15 hover:border-orange-500/50 text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
+            className={`glass-card flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
             style={{ transitionDelay: `${500 + index * 80}ms` }}
