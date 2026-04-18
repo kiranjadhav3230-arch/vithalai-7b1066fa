@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sparkles, ArrowRight, MessageSquare, Scale, Users, Code2 } from 'lucide-react';
+import vithalLogo from '@/assets/vithal-pin-logo.png';
 interface GlassHeroProps {
   onGetStarted: () => void;
 }
@@ -12,6 +13,16 @@ export const GlassHero: React.FC<GlassHeroProps> = ({ onGetStarted }) => {
 
       <div className="container mx-auto px-4 py-20 md:py-28 relative">
         <div className="max-w-5xl mx-auto text-center space-y-8 md:space-y-10">
+          {/* Logo */}
+          <div className="flex justify-center animate-[fadeInUp_0.4s_ease-out]">
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 blur-2xl opacity-50 animate-pulse" />
+              <div className="relative h-24 w-24 md:h-32 md:w-32 rounded-full overflow-hidden ring-4 ring-orange-500/40 shadow-2xl shadow-orange-500/40 bg-gradient-to-br from-orange-500/20 to-amber-500/20">
+                <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
+              </div>
+            </div>
+          </div>
+
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-surface animate-[fadeInUp_0.6s_ease-out]">
             <span className="relative flex h-2 w-2">

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSelector } from '@/components/ui/language-selector';
 import { useLanguage } from '@/hooks/useLanguage';
+import vithalLogo from '@/assets/vithal-pin-logo.png';
 
 interface GlassHeaderProps {
   onAuthClick: () => void;
@@ -29,8 +29,8 @@ export const GlassHeader: React.FC<GlassHeaderProps> = ({ onAuthClick }) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="h-10 w-10 rounded-xl overflow-hidden ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/30 bg-gradient-to-br from-orange-500/20 to-amber-500/20">
+              <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
             </div>
             <span className="text-lg font-display font-bold text-foreground">Vithal AI</span>
           </div>
