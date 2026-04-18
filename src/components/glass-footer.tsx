@@ -1,5 +1,6 @@
 import React from 'react';
-import { Sparkles, Mail, Instagram } from 'lucide-react';
+import { Mail, Instagram } from 'lucide-react';
+import vithalLogo from '@/assets/vithal-pin-logo.png';
 
 export const GlassFooter: React.FC = () => {
   return (
@@ -10,8 +11,8 @@ export const GlassFooter: React.FC = () => {
         <div className="glass-card p-8 md:p-10 text-center space-y-6">
           {/* Logo */}
           <div className="inline-flex items-center gap-2">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="h-12 w-12 rounded-xl overflow-hidden ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/30">
+              <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
             </div>
             <span className="text-2xl font-display font-bold text-foreground">Vithal AI</span>
           </div>
