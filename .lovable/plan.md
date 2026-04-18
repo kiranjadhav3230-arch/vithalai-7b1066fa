@@ -1,91 +1,67 @@
 
+User wants full restyle of all post-login feature screens (except Code Library which stays as-is) to match the landing page glass/orange aesthetic. I'll plan this as a focused, file-by-file overhaul touching only visual layers (containers, headers, cards, buttons) — never logic, state, or data flow.
 
-# Plan: Professional UI Polish with Smooth Animations & Consistent Colors
+## Scope
 
-## What We'll Do
+Restyle these post-login screens with landing-page aesthetic (aurora bg, glass-card, gradient-text-orange, glow-pulse, vithal logo):
 
-Clean up the entire landing page and app UI to look more professional, with smoother animations, consistent orange color palette, better spacing, and reduced visual clutter.
+1. **Shell** — `gemini-chat-interface.tsx` (sidebar + top bar)
+2. **Welcome** — `welcome-section.tsx` (empty-chat hero)
+3. **Chat** — `enhanced-chat-interface.tsx` (message bubbles, input bar)
+4. **Code Generator** — `code-generator-section.tsx` + `code-generator-chat.tsx` + `code-generator-result.tsx`
+5. **Study Rooms** — `study-rooms.tsx` + `study-room-interface.tsx`
+6. **Haq Jaano** — `haq-jaano-integrated.tsx` + `HaqJaanoHome.tsx` (header gradient, category cards)
+7. **Crop Analyzer** — `crop-health-analyzer.tsx`
+8. **Fullstack Builder** — `fullstack-app-builder.tsx`
 
-## Current Issues
+**EXCLUDED (stays exactly as-is):**
+- Code Library (`code-snippet-library.tsx` + `src/components/code-library/*`) — VS Code aesthetic preserved
+- All business logic, hooks, edge functions, encryption, data fetching
 
-| Problem | Where |
-|---------|-------|
-| Too many heavy animations (3D transforms, morphing, liquid glass) causing jank | All sections |
-| Inconsistent color usage (blue for Haq Jaano section breaks the orange theme) | `haq-jaano-feature-section.tsx` |
-| Overly aggressive hover effects (scale, rotate, translateZ) feel unprofessional | Cards, buttons throughout |
-| Redundant "Powered by Gemini AI" + "Developed by" repeated in every section | Hero, Features, Footer |
-| Loading screen feels dated with wave bars | `loading-screen.tsx` |
-| Too many overlapping background orbs and blur layers hurt performance | All sections |
+## Design tokens applied (already in index.css)
 
-## Changes
+- `aurora-bg` → page backgrounds
+- `glass-card` → all card containers
+- `glass-surface` → sidebar, top bar, input bars
+- `gradient-text-orange` → headings
+- `glow-pulse` → primary CTAs and active states
+- `grid-noise` → subtle background overlay
+- Vithal logo → screen headers where an icon currently sits
 
-### 1. Simplify & Smooth Global Animations
-**File:** `src/index.css`
+## Per-screen changes (visual only)
 
-- Replace heavy 3D transforms with subtle, GPU-friendly transitions (opacity, translateY only)
-- Reduce `liquid-glass` hover from `translateY(-8px) translateZ(40px) rotateX(2deg)` to a clean `translateY(-4px)` with soft shadow
-- Remove `morph-shape` border-radius animation (distracting)
-- Make all transitions use `cubic-bezier(0.4, 0, 0.2, 1)` for consistency
-- Add a new smooth `fade-up` animation using IntersectionObserver-friendly classes
+| Screen | Change |
+|---|---|
+| Shell | Sidebar → `glass-surface` + orange accent on active item; top bar → glass with logo + `gradient-text-orange` title |
+| Welcome | Hero logo with `glow-pulse` ring; suggestion cards → `glass-card` with hover lift |
+| Chat | User bubbles orange gradient; AI bubbles `glass-card`; input → `glass-surface` rounded pill |
+| Code Generator | Prompt panel + result panel → `glass-card`; language chips → glass pills with orange active |
+| Study Rooms | Room cards → `glass-card` with member-count badge; chat panel matches Chat styling |
+| Haq Jaano | Header → aurora + gradient title; CategoryCard → `glass-card` with orange icon glow |
+| Crop Analyzer | Upload zone → dashed orange border on glass; result cards → `glass-card` |
+| Fullstack Builder | Template cards → `glass-card`; preview frame → glass-bordered |
 
-### 2. Unify Color Palette
-**File:** `src/components/haq-jaano-feature-section.tsx`
+## Safety guardrails
 
-- Change Haq Jaano section from blue (`blue-500/600`) to match the orange brand (`primary` / `orange-500/600`)
-- Use a subtle teal or amber accent instead of blue to differentiate while staying on-brand
+- Touch only JSX className strings and minor wrapper markup
+- Never modify: imports of hooks, useEffect/useState logic, event handlers, API calls, encryption, props/types
+- Keep all existing IDs, data-attrs, aria labels
+- Test after each screen by viewing live preview
 
-### 3. Clean Up Landing Page Sections
-**Files:** `modern-hero.tsx`, `modern-how-it-works.tsx`, `comprehensive-features.tsx`, `faq-section.tsx`, `Index.tsx`
+## Execution order (one screen per step)
 
-- Remove duplicate "Powered by Gemini AI" / "Developed by" from Hero and Features (keep only in Footer)
-- Reduce background orb count from 2-3 per section to 1 max
-- Replace `liquid-glass-intense` cards with cleaner `glass` variant with softer borders
-- Simplify hero badge (remove `morph-shape`)
-- Reduce feature card hover from `scale-[1.02]` to just border color change + shadow
+1. Shell + Welcome (foundation)
+2. Chat
+3. Code Generator
+4. Study Rooms
+5. Haq Jaano
+6. Crop Analyzer
+7. Fullstack Builder
 
-### 4. Professional Loading Screen
-**File:** `src/components/loading-screen.tsx`
+After each step the user can verify; if any screen breaks visually we revert just that file.
 
-- Replace wave bars with a clean spinner or minimal progress indicator
-- Use simpler fade-in for logo
-- Remove background ping dots
+## Technical notes
 
-### 5. Refine Button Styles
-**File:** `src/components/ui/button.tsx`
-
-- Remove `hover:scale-105` from default variant (buttons shouldn't jump)
-- Reduce to `hover:scale-[1.02]` on premium variant only
-- Soften shadow intensities
-
-### 6. Consistent Card Styling
-**File:** `src/components/ui/card.tsx` + `src/index.css`
-
-- Simplify `liquid-glass` to use cleaner backdrop-blur with less aggressive box-shadows
-- Remove `::before` and `::after` pseudo-elements that add heavy reflections
-- Keep a subtle top-edge highlight only
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/index.css` | Simplify glass effects, smoother animations, remove heavy 3D |
-| `src/components/modern-hero.tsx` | Remove duplicate credits, simplify badge, reduce orbs |
-| `src/components/modern-how-it-works.tsx` | Reduce orbs, simplify card hover |
-| `src/components/comprehensive-features.tsx` | Remove duplicate credits, cleaner cards |
-| `src/components/haq-jaano-feature-section.tsx` | Unify to orange color palette |
-| `src/components/loading-screen.tsx` | Clean, minimal loading animation |
-| `src/components/ui/button.tsx` | Remove aggressive scale on hover |
-| `src/components/ui/card.tsx` | Keep glass variant but simplify |
-| `src/components/faq-section.tsx` | Reduce background noise |
-| `src/pages/Index.tsx` | Clean footer, remove redundancy |
-| `tailwind.config.ts` | Add smooth `ease-out-expo` timing function |
-
-## Visual Result
-
-- Consistent orange/amber brand throughout (no random blue sections)
-- Cards with subtle glass effect, clean borders, soft hover glow
-- Smooth 300ms transitions everywhere (no jarring 3D flips)
-- Single "Powered by" credit in footer only
-- Clean loading screen with brand logo + progress bar
-- Performance improvement from fewer blur layers and CSS animations
-
+- ~10 files modified, no new files, no new dependencies
+- All changes are className swaps + small JSX wrapping (e.g. adding `<div className="aurora-bg min-h-screen">` around root)
+- Code Library files explicitly skipped — verified list: `code-snippet-library.tsx`, `code-library/ActivityBar.tsx`, `code-library/CodeEditorPane.tsx`, `code-library/EditorTabs.tsx`, `code-library/ExplorerSidebar.tsx`, `code-library/SearchPanel.tsx`, `code-library/SettingsPanel.tsx`, `code-library/StatusBar.tsx`, `code-library/TagsPanel.tsx`, `code-library/TerminalPanel.tsx`, `code-library/WebsiteProjectsPanel.tsx`
