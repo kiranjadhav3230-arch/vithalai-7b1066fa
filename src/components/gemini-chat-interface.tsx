@@ -1074,10 +1074,13 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
     setPlayingAudio(null);
   };
   const AppSidebar = () => {
-    return <Sidebar className="border-r border-orange-500/20 bg-black/95 backdrop-blur-xl">
+    return <Sidebar className="border-r border-orange-500/20 glass-surface">
         {/* Header with New Chat */}
         <div className="flex items-center justify-between p-3 md:p-4 border-b border-orange-500/20">
-          <h2 className="font-semibold text-sm md:text-lg bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">Vithal AI</h2>
+          <div className="flex items-center gap-2">
+            <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6 md:w-7 md:h-7 rounded-md" />
+            <h2 className="font-semibold text-sm md:text-lg gradient-text-orange">Vithal AI</h2>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700">
@@ -1348,18 +1351,18 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       <div className="min-h-screen flex w-full bg-black">
         <AppSidebar />
         
-        <main className="flex-1 flex flex-col h-screen overflow-hidden bg-gradient-to-b from-black via-black to-orange-950/10">
+        <main className="flex-1 flex flex-col h-screen overflow-hidden aurora-bg">
           {/* Compact Professional Header */}
-          <header className="border-b border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
+          <header className="border-b border-orange-500/20 glass-surface flex-shrink-0">
             <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-14">
               {/* Left: Sidebar Toggle + Logo + Title */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <SidebarTrigger className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded p-1 transition-all flex-shrink-0" />
-                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0">
+                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0 glow-pulse">
                   <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xs md:text-sm font-semibold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent truncate">
+                  <h1 className="text-xs md:text-sm font-semibold gradient-text-orange truncate">
                     {currentSession?.title || 'New Chat'}
                   </h1>
                 </div>
