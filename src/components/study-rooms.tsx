@@ -301,10 +301,11 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="aurora-bg min-h-full">
+      <div className="container mx-auto p-6">
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Study Rooms</h1>
+          <h1 className="text-3xl font-bold gradient-text-orange">Study Rooms</h1>
           <p className="text-muted-foreground">Join rooms with invite codes to collaborate</p>
         </div>
         <div className="flex gap-2">
@@ -432,7 +433,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
       {loading ? (
         <div className="text-center py-12">Loading rooms...</div>
       ) : rooms.length === 0 ? (
-        <Card>
+        <Card variant="glass">
           <CardContent className="py-12 text-center">
             <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No rooms joined yet</h3>
@@ -452,12 +453,12 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {rooms.map((room) => (
-            <Card key={room.id} className="hover:shadow-lg transition-shadow">
+            <Card key={room.id} variant="glass" className="group">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2">
-                      <Lock className="h-4 w-4" />
+                    <CardTitle className="flex items-center gap-2 gradient-text-orange">
+                      <Lock className="h-4 w-4 text-primary" />
                       {room.name}
                     </CardTitle>
                     {room.description && (
@@ -468,11 +469,11 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-1" />
+                  <Badge variant="outline" className="gap-1 border-primary/30 text-primary">
+                    <Users className="h-3 w-3" />
                     {room.member_count || 0} members
-                  </div>
-                  <Button onClick={() => setSelectedRoom(room)} size="sm">
+                  </Badge>
+                  <Button onClick={() => setSelectedRoom(room)} size="sm" variant="premium">
                     Enter
                   </Button>
                 </div>
@@ -481,6 +482,7 @@ export const StudyRooms: React.FC<{ user: any }> = ({ user }) => {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 };
