@@ -1358,7 +1358,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               {/* Left: Sidebar Toggle + Logo + Title */}
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <SidebarTrigger className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded p-1 transition-all flex-shrink-0" />
-                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0 glow-pulse">
+                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0 ring-1 ring-primary/30">
                   <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1368,113 +1368,43 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 </div>
               </div>
 
-              {/* Right: Mode Toggle + Actions */}
+              {/* Right: Glass Pill Nav + Actions */}
               <div className="flex items-center gap-1.5 md:gap-2">
-                {/* View Mode Toggle - Desktop */}
-                <div className="hidden sm:flex relative items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
-                  {/* Flowing Liquid Bubble Background */}
-                  <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 5)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 5 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : currentView === 'fullstack' ? 3 : 4})`,
-                  background: currentView === 'chat' || currentView === 'studyRooms' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : currentView === 'fullstack' ? 'linear-gradient(135deg, rgba(147, 51, 234, 0.8) 0%, rgba(126, 34, 206, 0.9) 50%, rgba(107, 33, 168, 0.8) 100%)' : 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(37, 99, 235, 0.9) 50%, rgba(29, 78, 216, 0.8) 100%)',
-                  backgroundSize: '200% 200%',
-                  animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : currentView === 'fullstack' ? '0 0 20px rgba(147, 51, 234, 0.4), 0 0 40px rgba(126, 34, 206, 0.3), inset 0 0 20px rgba(107, 33, 168, 0.3)' : '0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px rgba(37, 99, 235, 0.3), inset 0 0 20px rgba(29, 78, 216, 0.3)',
-                  zIndex: 0,
-                  opacity: showAllFeatures ? 0 : (currentView === 'code' || currentView === 'crop' ? 0 : 1)
-                }} />
-                  
-                  {/* Chats */}
-                  <Button variant="ghost" onClick={async () => {
-                  playChatSound();
-                  setCurrentView('chat');
-                  if (!currentSession || currentSession.session_type === 'code') {
-                    await createNewSession('chat');
-                  }
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
-                    <MessageSquare className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">{language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats'}</span>
-                  </Button>
-                  
-                  {/* Room */}
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('studyRooms');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/70 hover:text-orange-400'}`}>
-                    <Users className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">{language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room'}</span>
-                  </Button>
-                  
-                  {/* Haq Jaano */}
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('haq-jaano');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'haq-jaano' ? 'text-white' : 'text-blue-400/70 hover:text-blue-400'}`}>
-                    <Scale className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">{language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano'}</span>
-                  </Button>
-                  
-                  {/* App Builder */}
-                  <Button variant="ghost" onClick={() => {
-                  playCodeSound();
-                  setCurrentView('fullstack');
-                }} size="sm" className={`relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 ${currentView === 'fullstack' ? 'text-white' : 'text-purple-400/70 hover:text-purple-400'}`}>
-                    <Rocket className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">{language === 'hi' ? 'ऐप' : language === 'mr' ? 'ॲप' : 'App'}</span>
-                  </Button>
-                  
-                  {/* All Features */}
-                  <Button variant="ghost" onClick={() => setShowAllFeatures(true)} size="sm" className="relative h-6 px-2 text-[10px] md:text-xs transition-all z-10 text-orange-400/70 hover:text-orange-400">
-                    <Grid3X3 className="h-3 w-3 md:mr-1" />
-                    <span className="hidden md:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
-                  </Button>
-                </div>
-
-                {/* Mobile View Toggle */}
-                <div className="sm:hidden relative flex items-center gap-1 bg-black/50 p-0.5 rounded-lg border border-orange-500/20 overflow-hidden">
-                  {/* Flowing Liquid Bubble Background */}
-                  <div className="absolute inset-y-0.5 rounded-md transition-all duration-500 ease-out" style={{
-                  width: 'calc((100% - 0.5rem) / 4)',
-                  left: `calc(0.125rem + (100% - 0.5rem) / 4 * ${currentView === 'chat' ? 0 : currentView === 'studyRooms' ? 1 : currentView === 'haq-jaano' ? 2 : 3})`,
-                  background: currentView === 'chat' || currentView === 'studyRooms' || currentView === 'haq-jaano' ? 'linear-gradient(135deg, rgba(251, 146, 60, 0.8) 0%, rgba(249, 115, 22, 0.9) 50%, rgba(234, 88, 12, 0.8) 100%)' : 'transparent',
-                  backgroundSize: '200% 200%',
-                  animation: 'liquid-gradient-shift 3s ease infinite, liquid-glow-pulse 2s ease-in-out infinite, morph 4s ease-in-out infinite',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: currentView === 'chat' || currentView === 'studyRooms' || currentView === 'haq-jaano' ? '0 0 20px rgba(249, 115, 22, 0.4), 0 0 40px rgba(251, 146, 60, 0.3), inset 0 0 20px rgba(234, 88, 12, 0.3)' : 'none',
-                  zIndex: 0
-                }} />
-                  
-                  {/* Chats */}
-                  <Button variant="ghost" onClick={async () => {
-                  playChatSound();
-                  setCurrentView('chat');
-                  if (!currentSession || currentSession.session_type === 'code') {
-                    await createNewSession('chat');
-                  }
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'chat' ? 'text-white' : 'text-orange-400/50'}`}>
-                    <MessageSquare className="h-3.5 w-3.5" />
-                  </Button>
-                  
-                  {/* Room */}
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('studyRooms');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'studyRooms' ? 'text-white' : 'text-orange-400/50'}`}>
-                    <Users className="h-3.5 w-3.5" />
-                  </Button>
-                  
-                  {/* Haq Jaano */}
-                  <Button variant="ghost" onClick={() => {
-                  playChatSound();
-                  setCurrentView('haq-jaano');
-                }} size="sm" className={`relative h-7 w-7 p-0 z-10 ${currentView === 'haq-jaano' ? 'text-white' : 'text-blue-400/50'}`}>
-                    <Scale className="h-3.5 w-3.5" />
-                  </Button>
-                  
-                  {/* All */}
-                  <Button variant="ghost" onClick={() => setShowAllFeatures(true)} size="sm" className="relative h-7 w-7 p-0 z-10 text-orange-400/50">
-                    <Grid3X3 className="h-3.5 w-3.5" />
+                {/* Unified Glass Pill Navigation - all viewports */}
+                <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
+                  {[
+                    { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
+                    { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
+                    { key: 'haq-jaano', icon: Scale, label: language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano', onClick: () => { playChatSound(); setCurrentView('haq-jaano'); } },
+                    { key: 'fullstack', icon: Rocket, label: language === 'hi' ? 'ऐप' : language === 'mr' ? 'ॲप' : 'App', onClick: () => { playCodeSound(); setCurrentView('fullstack'); } },
+                  ].map(item => {
+                    const active = currentView === item.key;
+                    const Icon = item.icon;
+                    return (
+                      <Button
+                        key={item.key}
+                        variant="ghost"
+                        size="sm"
+                        onClick={item.onClick}
+                        className={`h-8 px-2.5 sm:px-3 shrink-0 rounded-full border text-xs font-medium transition-all duration-300 ${
+                          active
+                            ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_18px_hsl(25_100%_55%/0.35)]'
+                            : 'border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5 sm:mr-1.5" />
+                        <span className="hidden sm:inline">{item.label}</span>
+                      </Button>
+                    );
+                  })}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAllFeatures(true)}
+                    className="h-8 px-2.5 sm:px-3 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground text-xs font-medium transition-all duration-300"
+                  >
+                    <Grid3X3 className="h-3.5 w-3.5 sm:mr-1.5" />
+                    <span className="hidden sm:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
                   </Button>
                 </div>
 

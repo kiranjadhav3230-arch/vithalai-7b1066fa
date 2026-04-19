@@ -86,7 +86,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
   }, [language]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-full flex-1 py-10 px-4">
+    <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 px-4">
       {/* Logo with steady orange ring (no blink) */}
       <div 
         className={`relative w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full p-1 transition-all duration-700 ease-out ${
