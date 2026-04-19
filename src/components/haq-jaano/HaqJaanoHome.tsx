@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Search, Phone, GraduationCap } from 'lucide-react';
+import { Search, Phone, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/useLanguage';

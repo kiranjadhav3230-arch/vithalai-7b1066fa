@@ -632,7 +632,7 @@ Provide ALL information in ${langText}. Be specific with product names, quantiti
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4">
+    <div className="h-full flex flex-col gap-4 p-4 aurora-bg overflow-auto">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
