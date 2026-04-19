@@ -86,8 +86,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
   }, [language]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full py-8 sm:py-12 px-4">
-      {/* Logo with steady orange ring (no blink) */}
+    <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center px-4 py-6 sm:py-8">
       <div 
         className={`relative w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full p-1 transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'
@@ -102,7 +101,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
         />
       </div>
       
-      {/* Welcome Title with staggered animation */}
       <h2 
         className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 gradient-text-orange text-center transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -112,7 +110,6 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
         Welcome to Vithal AI
       </h2>
       
-      {/* Subtitle with staggered animation */}
       <p 
         className={`text-foreground/50 text-sm sm:text-base mb-6 text-center max-w-md transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
@@ -124,9 +121,8 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
          'Type your question below or pick a suggestion'}
       </p>
 
-      {/* Suggestion Chips with staggered animation */}
       <div 
-        className={`flex flex-wrap justify-center gap-2 mb-8 max-w-lg transition-all duration-700 ease-out ${
+        className={`flex flex-wrap justify-center gap-2.5 mb-8 w-full max-w-xl transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ transitionDelay: '450ms' }}
@@ -135,18 +131,17 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
           <button
             key={index}
             onClick={() => onSuggestionClick(suggestion.text)}
-            className={`glass-card flex items-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
+            className={`glass-card inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
             style={{ transitionDelay: `${500 + index * 80}ms` }}
           >
             <span>{suggestion.icon}</span>
-            <span>{suggestion.text}</span>
+            <span className="text-center">{suggestion.text}</span>
           </button>
         ))}
       </div>
       
-      {/* Credits with staggered animation */}
       <div 
         className={`flex flex-col items-center gap-1 transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
