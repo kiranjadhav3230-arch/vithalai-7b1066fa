@@ -126,7 +126,7 @@ export const HaqJaanoIntegrated: React.FC<HaqJaanoIntegratedProps> = ({ onBackTo
   };
 
   return (
-    <div className="h-full overflow-auto bg-background">
+    <div className="h-full overflow-auto aurora-bg">
       {renderContent()}
     </div>
   );
