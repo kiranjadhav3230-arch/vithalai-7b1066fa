@@ -97,20 +97,20 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
   return (
     <>
-      <div className="sticky top-0 z-50 w-full bg-black/60 backdrop-blur-xl border-b border-white/[0.06]">
+      <div className="sticky top-0 z-50 w-full glass-surface border-b border-primary/15">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-14 gap-2">
             {/* Feature Buttons */}
-            <div className="flex items-center gap-1 sm:gap-2 flex-1 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-1 overflow-x-auto no-scrollbar">
               {/* Chats */}
               <Button
-                variant={isActive('chat') ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleFeatureClick('chat')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 ${
-                  isActive('chat') 
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground' 
-                    : 'hover:bg-primary/10'
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
+                  isActive('chat')
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
+                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
                 }`}
               >
                 <MessageSquare className="h-4 w-4" />
@@ -119,13 +119,13 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
               {/* Room */}
               <Button
-                variant={isActive('room') ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleFeatureClick('room')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 ${
-                  isActive('room') 
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground' 
-                    : 'hover:bg-primary/10'
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
+                  isActive('room')
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
+                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
                 }`}
               >
                 <Users className="h-4 w-4" />
@@ -134,13 +134,13 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
               {/* Haq Jaano */}
               <Button
-                variant={isActive('haq-jaano') ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleFeatureClick('haq-jaano')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full ${
-                  isActive('haq-jaano') 
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white' 
-                    : 'hover:bg-primary/10 text-foreground/80'
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
+                  isActive('haq-jaano')
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
+                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
                 }`}
               >
                 <Scale className="h-4 w-4" />
@@ -149,18 +149,18 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
               {/* App Builder */}
               <Button
-                variant={isActive('fullstack') ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleFeatureClick('fullstack')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full ${
-                  isActive('fullstack') 
-                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' 
-                    : 'hover:bg-primary/10 text-foreground/80'
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
+                  isActive('fullstack')
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
+                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
                 }`}
               >
                 <Rocket className="h-4 w-4" />
                 <span className="text-sm font-medium hidden sm:inline">{texts.appBuilder}</span>
-                <Badge className="text-[9px] px-1 py-0 bg-green-500 text-white">NEW</Badge>
+                <Badge className="text-[9px] px-1 py-0 bg-primary text-primary-foreground border-0">NEW</Badge>
               </Button>
 
               {/* All Features */}
@@ -168,7 +168,7 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowAllFeatures(true)}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 hover:bg-primary/10"
+                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-all duration-300"
               >
                 <Grid3X3 className="h-4 w-4" />
                 <span className="text-sm font-medium">{texts.all}</span>

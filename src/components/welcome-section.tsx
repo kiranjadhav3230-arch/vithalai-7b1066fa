@@ -86,18 +86,19 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
   }, [language]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 px-4">
-      {/* Logo with staggered animation */}
+    <div className="flex flex-col items-center justify-center min-h-full flex-1 py-10 px-4">
+      {/* Logo with steady orange ring (no blink) */}
       <div 
-        className={`w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full glow-pulse ring-2 ring-orange-500/30 p-1 transition-all duration-700 ease-out ${
+        className={`relative w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full p-1 transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'
         }`}
         style={{ transitionDelay: '0ms' }}
       >
+        <div className="absolute inset-0 rounded-full ring-2 ring-primary/40 shadow-[0_0_30px_hsl(25_100%_55%/0.25)]" />
         <img 
           src="/lovable-uploads/41c38d97508445bab63b1cf32b4c255d-removebg-preview.png" 
           alt="Vithal AI" 
-          className="w-full h-full object-contain drop-shadow-2xl"
+          className="relative w-full h-full object-contain drop-shadow-2xl"
         />
       </div>
       
