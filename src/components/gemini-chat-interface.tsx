@@ -1489,10 +1489,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               <FullstackAppBuilder user={user} onBack={() => setCurrentView('chat')} />
             </div> : <>
           {/* Chat Messages - Scrollable - Mobile Optimized */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="p-3 md:p-6">
-                <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
+              <div className={`${messages.length === 0 && !loading ? 'min-h-full flex items-center px-3 md:px-6' : 'p-3 md:p-6'}`}>
+                <div className={`w-full max-w-4xl mx-auto ${messages.length === 0 && !loading ? 'py-6 md:py-10' : 'space-y-4 md:space-y-6'}`}>
                   {messages.length === 0 && !loading && <WelcomeSection language={language} onSuggestionClick={(suggestion) => {
                       setMessage(suggestion);
                       triggerHaptic();
