@@ -1352,119 +1352,121 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
         <AppSidebar />
         
         <main className="flex-1 flex flex-col h-screen overflow-hidden aurora-bg">
-          {/* Compact Professional Header */}
-          <header className="border-b border-orange-500/20 glass-surface flex-shrink-0">
-            <div className="flex items-center justify-between px-3 md:px-4 h-12 md:h-14">
-              {/* Left: Sidebar Toggle + Logo + Title */}
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <SidebarTrigger className="text-orange-400 hover:text-orange-300 hover:bg-orange-500/10 rounded p-1 transition-all flex-shrink-0" />
-                <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md shadow-orange-500/30 flex-shrink-0 ring-1 ring-primary/30">
-                  <img src={vithalLogo} alt="Vithal AI" className="w-4 h-4 md:w-5 md:h-5" />
+          {/* Glass Header */}
+          <header className="border-b border-primary/15 glass-surface flex-shrink-0">
+            <div className="px-3 md:px-4 py-3 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <SidebarTrigger className="text-primary hover:text-primary-foreground hover:bg-primary/10 rounded-xl p-1.5 transition-all flex-shrink-0" />
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md shadow-primary/30 flex-shrink-0 ring-1 ring-primary/30">
+                    <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.22em] text-foreground/45">Vithal AI</p>
+                    <h1 className="text-sm md:text-base font-semibold gradient-text-orange truncate">
+                      {currentSession?.title || 'New Chat'}
+                    </h1>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-xs md:text-sm font-semibold gradient-text-orange truncate">
-                    {currentSession?.title || 'New Chat'}
-                  </h1>
+
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                  <Button
+                    onClick={handleToggleEncryption}
+                    size="sm"
+                    variant="ghost"
+                    className={`h-8 w-8 p-0 rounded-full border ${encryptionOn ? 'text-green-400 border-green-500/30 hover:bg-green-500/10' : 'text-primary border-primary/20 hover:bg-primary/10'}`}
+                    title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
+                  >
+                    {encryptionOn ? <ShieldCheck className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      const sessionType = currentView === 'code' ? 'code' : 'chat';
+                      createNewSession(sessionType);
+                    }}
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 sm:w-auto sm:px-3 p-0 rounded-full text-primary hover:bg-primary/10 border border-primary/20"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline ml-1.5 text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
+                  </Button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 sm:w-auto sm:px-2.5 p-0 rounded-full hover:bg-primary/10 border border-primary/20">
+                        <Avatar className="h-6 w-6 border border-primary/40">
+                          <AvatarImage src={user.user_metadata?.avatar_url} />
+                          <AvatarFallback className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[10px]">
+                            {user.email?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="hidden lg:inline ml-2 text-xs text-primary max-w-[96px] truncate">
+                          {user.email?.split('@')[0]}
+                        </span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-48">
+                      <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
+                        <UserIcon className="h-3.5 w-3.5 mr-2" />
+                        Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowContactModal(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
+                        <svg className="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                        </svg>
+                        Support
+                      </DropdownMenuItem>
+                      <div className="px-2 py-1.5 border-t border-orange-500/20">
+                        <div className="text-[10px] text-orange-400/70 mb-1">Language</div>
+                        <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
+                      </div>
+                      <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:bg-red-500/10 cursor-pointer text-xs">
+                        <LogOut className="h-3.5 w-3.5 mr-2" />
+                        Sign Out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
-              {/* Right: Glass Pill Nav + Actions */}
-              <div className="flex items-center gap-1.5 md:gap-2">
-                {/* Unified Glass Pill Navigation - all viewports */}
-                <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar">
-                  {[
-                    { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
-                    { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
-                    { key: 'haq-jaano', icon: Scale, label: language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano', onClick: () => { playChatSound(); setCurrentView('haq-jaano'); } },
-                    { key: 'fullstack', icon: Rocket, label: language === 'hi' ? 'ऐप' : language === 'mr' ? 'ॲप' : 'App', onClick: () => { playCodeSound(); setCurrentView('fullstack'); } },
-                  ].map(item => {
-                    const active = currentView === item.key;
-                    const Icon = item.icon;
-                    return (
-                      <Button
-                        key={item.key}
-                        variant="ghost"
-                        size="sm"
-                        onClick={item.onClick}
-                        className={`h-8 px-2.5 sm:px-3 shrink-0 rounded-full border text-xs font-medium transition-all duration-300 ${
-                          active
-                            ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_18px_hsl(25_100%_55%/0.35)]'
-                            : 'border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                        }`}
-                      >
-                        <Icon className="h-3.5 w-3.5 sm:mr-1.5" />
-                        <span className="hidden sm:inline">{item.label}</span>
-                      </Button>
-                    );
-                  })}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAllFeatures(true)}
-                    className="h-8 px-2.5 sm:px-3 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground text-xs font-medium transition-all duration-300"
-                  >
-                    <Grid3X3 className="h-3.5 w-3.5 sm:mr-1.5" />
-                    <span className="hidden sm:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
-                  </Button>
-                </div>
-
-                {/* Encryption Toggle */}
-                <Button
-                  onClick={handleToggleEncryption}
-                  size="sm"
-                  variant="ghost"
-                  className={`h-7 w-7 p-0 border ${encryptionOn ? 'text-green-400 border-green-500/30 hover:bg-green-500/10' : 'text-orange-400/50 border-orange-500/20 hover:bg-orange-500/10'}`}
-                  title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
-                >
-                  {encryptionOn ? <ShieldCheck className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
-                </Button>
-
-                {/* New Chat Button */}
-                <Button onClick={() => {
-                const sessionType = currentView === 'code' ? 'code' : 'chat';
-                createNewSession(sessionType);
-              }} size="sm" variant="ghost" className="h-7 w-7 md:w-auto md:px-2 p-0 text-orange-400 hover:bg-orange-500/10 border border-orange-500/20">
-                  <Plus className="h-3.5 w-3.5" />
-                  <span className="hidden md:inline ml-1 text-xs">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
-                </Button>
-
-                {/* User Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 md:w-auto md:px-2 p-0 hover:bg-orange-500/10 border border-orange-500/20">
-                      <Avatar className="h-5 w-5 border border-orange-500/50">
-                        <AvatarImage src={user.user_metadata?.avatar_url} />
-                        <AvatarFallback className="bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[10px]">
-                          {user.email?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden lg:inline ml-1.5 text-xs text-orange-400 max-w-[80px] truncate">
-                        {user.email?.split('@')[0]}
-                      </span>
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {[
+                  { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
+                  { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
+                  { key: 'haq-jaano', icon: Scale, label: language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano', onClick: () => { playChatSound(); setCurrentView('haq-jaano'); } },
+                  { key: 'fullstack', icon: Rocket, label: language === 'hi' ? 'ऐप बिल्डर' : language === 'mr' ? 'ॲप बिल्डर' : 'App Builder', onClick: () => { playCodeSound(); setCurrentView('fullstack'); } },
+                ].map(item => {
+                  const active = currentView === item.key;
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.key}
+                      variant="ghost"
+                      size="sm"
+                      onClick={item.onClick}
+                      className={`h-10 px-4 shrink-0 rounded-full border text-xs sm:text-sm font-medium transition-all duration-300 ${
+                        active
+                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_22px_hsl(25_100%_55%/0.4)]'
+                          : 'border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 mr-2" />
+                      <span>{item.label}</span>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-48">
-                    <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
-                      <UserIcon className="h-3.5 w-3.5 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowContactModal(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
-                      <svg className="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                      </svg>
-                      Support
-                    </DropdownMenuItem>
-                    <div className="px-2 py-1.5 border-t border-orange-500/20">
-                      <div className="text-[10px] text-orange-400/70 mb-1">Language</div>
-                      <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
-                    </div>
-                    <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:bg-red-500/10 cursor-pointer text-xs">
-                      <LogOut className="h-3.5 w-3.5 mr-2" />
-                      Sign Out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  );
+                })}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllFeatures(true)}
+                  className="h-10 px-4 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground text-xs sm:text-sm font-medium transition-all duration-300"
+                >
+                  <Grid3X3 className="h-4 w-4 mr-2" />
+                  <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
+                </Button>
               </div>
             </div>
           </header>
