@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Shield, Search, Phone, GraduationCap } from 'lucide-react';
+import { Search, Phone, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -84,25 +84,23 @@ export const HaqJaanoHome: React.FC<HaqJaanoHomeProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen aurora-bg">
       {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/20 via-background to-background pb-8 pt-6">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.15),transparent_50%)]" />
-        
+      <div className="relative overflow-hidden pb-8 pt-6">
         <div className="container relative mx-auto px-4">
 
           {/* Logo and Title */}
           <div className="mb-6 flex items-center justify-center gap-3">
-            <img 
-              src={vithalLogo} 
-              alt="Vithal AI" 
-              className="h-12 w-12 rounded-full object-cover ring-2 ring-primary/30"
-            />
-            <div className="rounded-full bg-primary/20 p-2.5">
-              <Shield className="h-6 w-6 text-primary" />
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full glow-pulse" />
+              <img 
+                src={vithalLogo} 
+                alt="Vithal AI" 
+                className="relative h-14 w-14 rounded-full object-cover ring-2 ring-primary/40"
+              />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{getTitle()}</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold gradient-text-orange">{getTitle()}</h1>
               <p className="text-sm text-muted-foreground">{getSubtitle()}</p>
             </div>
           </div>

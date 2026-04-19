@@ -415,18 +415,18 @@ export const EnhancedChatInterface: React.FC<ChatInterfaceProps> = ({ onLogout, 
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen aurora-bg">
       {/* Header */}
-      <header className="border-b bg-card p-4">
+      <header className="border-b border-orange-500/20 glass-surface p-4">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-3">
             <img 
               src="/lovable-uploads/86deae4c-83c0-473f-9e54-1500aa44cd3c.png" 
               alt="Vithal AI Logo" 
-              className="h-10 w-10"
+              className="h-10 w-10 rounded-full ring-2 ring-primary/40"
             />
-            <h1 className="text-xl font-bold text-foreground">Vithal AI Assistant</h1>
-            <Badge variant="outline" className="text-xs">🔥 Advanced AI</Badge>
+            <h1 className="text-xl font-bold gradient-text-orange">Vithal AI Assistant</h1>
+            <Badge variant="outline" className="text-xs border-primary/30 text-primary">🔥 Advanced AI</Badge>
           </div>
           <div className="flex items-center gap-2">
             <select 
