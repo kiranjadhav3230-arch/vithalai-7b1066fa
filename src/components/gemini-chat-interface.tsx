@@ -1348,36 +1348,36 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
       </Sidebar>;
   };
   return <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-black">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         
-        <main className="flex-1 flex flex-col h-screen overflow-hidden aurora-bg">
-          {/* Glass Header */}
-          <header className="border-b border-primary/15 glass-surface flex-shrink-0">
-            <div className="px-3 md:px-4 py-3 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <SidebarTrigger className="text-primary hover:text-primary-foreground hover:bg-primary/10 rounded-xl p-1.5 transition-all flex-shrink-0" />
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-md shadow-primary/30 flex-shrink-0 ring-1 ring-primary/30">
-                    <img src={vithalLogo} alt="Vithal AI" className="w-5 h-5" />
+        <main className="app-shell-frame flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
+          <header className="flex-shrink-0 border-b border-border/50 px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
+            <div className="app-shell-band mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[28px] px-3 py-3 sm:px-4 sm:py-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3 flex-1">
+                  <SidebarTrigger className="app-shell-pill h-10 w-10 rounded-2xl p-0" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25 ring-1 ring-primary/30 flex-shrink-0">
+                    <img src={vithalLogo} alt="Vithal AI" className="h-6 w-6" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.22em] text-foreground/45">Vithal AI</p>
-                    <h1 className="text-sm md:text-base font-semibold gradient-text-orange truncate">
+                    <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">Workspace</p>
+                    <h1 className="truncate text-base font-semibold gradient-text-orange sm:text-lg">
                       {currentSession?.title || 'New Chat'}
                     </h1>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <Button
                     onClick={handleToggleEncryption}
                     size="sm"
                     variant="ghost"
-                    className={`h-8 w-8 p-0 rounded-full border ${encryptionOn ? 'text-green-400 border-green-500/30 hover:bg-green-500/10' : 'text-primary border-primary/20 hover:bg-primary/10'}`}
+                    className={`h-10 rounded-2xl px-3 ${encryptionOn ? 'app-shell-pill-active' : 'app-shell-pill'}`}
                     title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
                   >
-                    {encryptionOn ? <ShieldCheck className="h-3.5 w-3.5" /> : <Shield className="h-3.5 w-3.5" />}
+                    {encryptionOn ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                    <span className="ml-2 hidden sm:inline text-xs font-medium">{encryptionOn ? 'Secure' : 'Encrypt'}</span>
                   </Button>
 
                   <Button
@@ -1387,44 +1387,44 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                     }}
                     size="sm"
                     variant="ghost"
-                    className="h-8 w-8 sm:w-auto sm:px-3 p-0 rounded-full text-primary hover:bg-primary/10 border border-primary/20"
+                    className="app-shell-pill h-10 rounded-2xl px-3 sm:px-4"
                   >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline ml-1.5 text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
+                    <Plus className="h-4 w-4" />
+                    <span className="ml-2 text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
                   </Button>
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 sm:w-auto sm:px-2.5 p-0 rounded-full hover:bg-primary/10 border border-primary/20">
-                        <Avatar className="h-6 w-6 border border-primary/40">
+                      <Button variant="ghost" size="sm" className="app-shell-pill h-10 rounded-2xl px-2.5 sm:px-3">
+                        <Avatar className="h-6 w-6 border border-primary/35">
                           <AvatarImage src={user.user_metadata?.avatar_url} />
-                          <AvatarFallback className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground text-[10px]">
+                          <AvatarFallback className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px]">
                             {user.email?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="hidden lg:inline ml-2 text-xs text-primary max-w-[96px] truncate">
+                        <span className="ml-2 hidden lg:inline max-w-[110px] truncate text-xs text-foreground/80">
                           {user.email?.split('@')[0]}
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-black/95 backdrop-blur-xl border-orange-500/20 w-48">
-                      <DropdownMenuItem onClick={() => setShowProfile(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
-                        <UserIcon className="h-3.5 w-3.5 mr-2" />
+                    <DropdownMenuContent align="end" className="w-48 border-border/70 bg-card/95 backdrop-blur-xl">
+                      <DropdownMenuItem onClick={() => setShowProfile(true)} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                        <UserIcon className="mr-2 h-3.5 w-3.5" />
                         Profile
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setShowContactModal(true)} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer text-xs">
-                        <svg className="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <DropdownMenuItem onClick={() => setShowContactModal(true)} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                        <svg className="mr-2 h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                           <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                         </svg>
                         Support
                       </DropdownMenuItem>
-                      <div className="px-2 py-1.5 border-t border-orange-500/20">
-                        <div className="text-[10px] text-orange-400/70 mb-1">Language</div>
+                      <div className="border-t border-border/60 px-2 py-1.5">
+                        <div className="mb-1 text-[10px] text-muted-foreground">Language</div>
                         <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
                       </div>
-                      <DropdownMenuItem onClick={onLogout} className="text-red-400 hover:bg-red-500/10 cursor-pointer text-xs">
-                        <LogOut className="h-3.5 w-3.5 mr-2" />
+                      <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-destructive hover:bg-destructive/10">
+                        <LogOut className="mr-2 h-3.5 w-3.5" />
                         Sign Out
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -1432,7 +1432,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              <div className="flex flex-wrap items-center gap-2">
                 {[
                   { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
                   { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
@@ -1447,13 +1447,9 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                       variant="ghost"
                       size="sm"
                       onClick={item.onClick}
-                      className={`h-10 px-4 shrink-0 rounded-full border text-xs sm:text-sm font-medium transition-all duration-300 ${
-                        active
-                          ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_22px_hsl(25_100%_55%/0.4)]'
-                          : 'border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                      }`}
+                      className={`h-10 rounded-2xl px-4 text-xs sm:text-sm font-medium ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
                     >
-                      <Icon className="h-4 w-4 mr-2" />
+                      <Icon className="mr-2 h-4 w-4" />
                       <span>{item.label}</span>
                     </Button>
                   );
@@ -1462,16 +1458,15 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllFeatures(true)}
-                  className="h-10 px-4 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/70 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground text-xs sm:text-sm font-medium transition-all duration-300"
+                  className="app-shell-pill h-10 rounded-2xl px-4 text-xs sm:text-sm font-medium"
                 >
-                  <Grid3X3 className="h-4 w-4 mr-2" />
+                  <Grid3X3 className="mr-2 h-4 w-4" />
                   <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
                 </Button>
               </div>
             </div>
           </header>
 
-          {/* Main Content Area */}
           {currentView === 'code' ? <div className="flex-1 overflow-auto">
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} onSessionTitleUpdate={(sessionId, newTitle) => {
             setChatSessions(prev => prev.map(session => session.id === sessionId ? {
@@ -1488,40 +1483,38 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
             </div> : currentView === 'fullstack' ? <div className="flex-1 overflow-hidden">
               <FullstackAppBuilder user={user} onBack={() => setCurrentView('chat')} />
             </div> : <>
-          {/* Chat Messages - Scrollable - Mobile Optimized */}
           <div className="flex-1 min-h-0 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className={`${messages.length === 0 && !loading ? 'min-h-full flex items-center px-3 md:px-6' : 'p-3 md:p-6'}`}>
-                <div className={`w-full max-w-4xl mx-auto ${messages.length === 0 && !loading ? 'py-6 md:py-10' : 'space-y-4 md:space-y-6'}`}>
-                  {messages.length === 0 && !loading && <WelcomeSection language={language} onSuggestionClick={(suggestion) => {
+              <div className={messages.length === 0 && !loading ? 'min-h-full flex items-center justify-center px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10' : 'px-3 py-4 sm:px-4 sm:py-6 lg:px-6'}>
+                <div className={`mx-auto w-full max-w-5xl ${messages.length === 0 && !loading ? '' : 'space-y-4 sm:space-y-6'}`}>
+                  {messages.length === 0 && !loading && <WelcomeSection language={language} onSuggestionClick={suggestion => {
                       setMessage(suggestion);
                       triggerHaptic();
                     }} />}
 
-                  {messages.map(msg => <div key={msg.id} className="space-y-4">
-                      {/* User Message */}
-                      <div className="flex justify-end group">
-                        <div className="max-w-[85%]">
-                          {editingMessageId === msg.id ? <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                              <Textarea value={editedContent} onChange={e => setEditedContent(e.target.value)} className="bg-white/10 border-white/20 text-white placeholder:text-white/60 mb-2 min-h-[60px]" autoFocus />
-                              <div className="flex gap-2">
-                                <Button size="sm" onClick={() => handleEditMessage(msg.id, editedContent)} className="bg-white text-orange-600 hover:bg-white/90">
-                                  <Check className="h-3 w-3 mr-1" />
+                  {messages.map(msg => <div key={msg.id} className="space-y-4 sm:space-y-5">
+                      <div className="group flex justify-end">
+                        <div className="max-w-[min(92%,42rem)]">
+                          {editingMessageId === msg.id ? <div className="rounded-[24px] bg-gradient-to-r from-primary to-accent px-5 py-4 text-primary-foreground shadow-xl shadow-primary/20">
+                              <Textarea value={editedContent} onChange={e => setEditedContent(e.target.value)} className="mb-3 min-h-[88px] border-white/20 bg-white/10 text-primary-foreground placeholder:text-primary-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0" autoFocus />
+                              <div className="flex flex-wrap gap-2">
+                                <Button size="sm" onClick={() => handleEditMessage(msg.id, editedContent)} className="bg-background text-foreground hover:bg-background/90">
+                                  <Check className="mr-1 h-3 w-3" />
                                   Save
                                 </Button>
                                 <Button size="sm" variant="ghost" onClick={() => {
                               setEditingMessageId(null);
                               setEditedContent('');
-                            }} className="text-white hover:bg-white/10">
-                                  <X className="h-3 w-3 mr-1" />
+                            }} className="text-primary-foreground hover:bg-white/10">
+                                  <X className="mr-1 h-3 w-3" />
                                   Cancel
                                 </Button>
                               </div>
                             </div> : <div className="relative">
-                              <div className="rounded-2xl bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-3 shadow-xl shadow-orange-500/30">
-                                {msg.message_type === 'image' && (msg as any).image_data && <img src={(msg as any).image_data} alt="Uploaded" className="mb-2 rounded-lg max-w-full h-auto max-h-64 object-contain" />}
-                                <p className="text-sm leading-relaxed whitespace-pre-wrap font-chat">{msg.message}</p>
-                                <div className="text-xs opacity-70 mt-1">
+                              <div className="rounded-[24px] bg-gradient-to-r from-primary to-accent px-5 py-4 text-primary-foreground shadow-xl shadow-primary/20">
+                                {msg.message_type === 'image' && (msg as any).image_data && <img src={(msg as any).image_data} alt="Uploaded" className="mb-3 max-h-64 h-auto max-w-full rounded-2xl object-contain" />}
+                                <p className="whitespace-pre-wrap text-sm leading-relaxed sm:text-[15px]">{msg.message}</p>
+                                <div className="mt-2 text-xs text-primary-foreground/70">
                                   {new Date(msg.created_at).toLocaleTimeString([], {
                                 hour: '2-digit',
                                 minute: '2-digit'
@@ -1531,24 +1524,23 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                               <Button size="sm" variant="ghost" onClick={() => {
                             setEditingMessageId(msg.id);
                             setEditedContent(msg.message);
-                          }} className="absolute -left-10 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0 hover:bg-orange-500/10 text-orange-400">
+                          }} className="absolute -left-11 top-2 h-9 w-9 rounded-full p-0 text-primary opacity-0 transition-opacity hover:bg-primary/10 group-hover:opacity-100">
                                 <Edit3 className="h-3.5 w-3.5" />
                               </Button>
                             </div>}
                         </div>
                       </div>
 
-                      {/* AI Response */}
-                      {msg.response && <div className="flex justify-start group">
-                          <div className="flex items-start gap-3 w-full">
-                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-orange-500/30 shadow-lg shadow-orange-500/20">
-                              <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
+                      {msg.response && <div className="group flex justify-start">
+                          <div className="flex w-full items-start gap-3">
+                            <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-lg shadow-primary/10">
+                              <img src={vithalLogo} alt="Vithal AI" className="h-6 w-6" />
                             </div>
-                            <div className="flex-1 max-w-[85%]">
-                              <div className="rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg relative">
+                            <div className="max-w-[min(100%,48rem)] flex-1">
+                              <div className="rounded-[24px] border border-border/70 bg-card/65 px-5 py-4 shadow-lg backdrop-blur-md">
                                 <ChatMessageRenderer content={msg.response} />
-                                <div className="flex items-center justify-between mt-3">
-                                  <div className="text-xs text-orange-400/70">
+                                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                                  <div className="text-xs text-muted-foreground">
                                     {new Date(msg.created_at).toLocaleTimeString([], {
                                   hour: '2-digit',
                                   minute: '2-digit'
@@ -1561,17 +1553,17 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                                   } else {
                                     playTextToSpeech(msg.response || '', msg.id);
                                   }
-                                }} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400" disabled={loading}>
+                                }} className="h-8 rounded-full px-3 text-xs text-primary opacity-0 transition-opacity hover:bg-primary/10 group-hover:opacity-100" disabled={loading}>
                                       {playingAudio === msg.id ? <>
-                                          <Square className="h-3 w-3 mr-1 fill-current" />
+                                          <Square className="mr-1 h-3 w-3 fill-current" />
                                           Stop
                                         </> : <>
-                                          <Volume2 className="h-3 w-3 mr-1" />
+                                          <Volume2 className="mr-1 h-3 w-3" />
                                           Listen
                                         </>}
                                     </Button>
-                                    <Button size="sm" variant="ghost" onClick={() => regenerateResponse(msg.id)} className="opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs hover:bg-orange-500/10 text-orange-400" disabled={loading}>
-                                      <Loader2 className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                                    <Button size="sm" variant="ghost" onClick={() => regenerateResponse(msg.id)} className="h-8 rounded-full px-3 text-xs text-primary opacity-0 transition-opacity hover:bg-primary/10 group-hover:opacity-100" disabled={loading}>
+                                      <Loader2 className={`mr-1 h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
                                       Regenerate
                                     </Button>
                                   </div>
@@ -1584,102 +1576,96 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
 
                   {loading && <div className="flex justify-start">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/30 to-orange-600/10 flex items-center justify-center flex-shrink-0 mt-1 border border-orange-500/30 shadow-lg shadow-orange-500/20">
-                          <img src={vithalLogo} alt="Vithal AI" className="w-6 h-6" />
+                        <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-lg shadow-primary/10">
+                          <img src={vithalLogo} alt="Vithal AI" className="h-6 w-6" />
                         </div>
-                        <div className="max-w-[85%] rounded-2xl border border-orange-500/20 bg-black/50 backdrop-blur-sm px-6 py-4 shadow-lg">
-                          <div className="flex items-center gap-3">
-                            <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
-                            <span className="text-sm text-orange-400">AI is thinking...</span>
+                        <div className="rounded-[24px] border border-border/70 bg-card/65 px-5 py-4 shadow-lg backdrop-blur-md">
+                          <div className="flex items-center gap-3 text-primary">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span className="text-sm">AI is thinking...</span>
                           </div>
                         </div>
                       </div>
                     </div>}
-                  
+
                   <div ref={messagesEndRef} />
                 </div>
               </div>
             </ScrollArea>
           </div>
 
-          {/* Encryption Status Banner */}
-          {encryptionOn && currentView === 'chat' && (
-            <div className="flex items-center justify-center gap-2 py-1.5 bg-green-500/10 border-t border-green-500/20 text-xs text-green-400">
-              <ShieldCheck className="h-3 w-3" />
-              <span>Messages are end-to-end encrypted</span>
-            </div>
-          )}
+          {encryptionOn && currentView === 'chat' && <div className="mx-3 mb-2 sm:mx-4 lg:mx-6">
+              <div className="mx-auto flex max-w-5xl items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
+                <ShieldCheck className="h-3 w-3" />
+                <span>Messages are end-to-end encrypted</span>
+              </div>
+            </div>}
 
-          {/* Input Area - Sticker Style Bottom Bar */}
-          <div className="border-t border-orange-500/20 bg-black/95 backdrop-blur-xl flex-shrink-0">
-            <div className="max-w-4xl mx-auto px-3 py-3">
-              {/* Image Preview */}
-              {selectedImage && <div className="mb-2">
-                  <div className="relative inline-block rounded-lg overflow-hidden border border-orange-500/30">
-                    <img src={selectedImage} alt="Selected" className="max-h-24 object-contain bg-black/50" />
-                    <button onClick={removeSelectedImage} className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow-lg transition-all">
+          <div className="flex-shrink-0 px-3 pb-3 pt-2 sm:px-4 sm:pb-4 lg:px-6">
+            <div className="chat-composer-shell mx-auto max-w-5xl rounded-[28px] px-3 py-3 sm:px-4 sm:py-4">
+              {selectedImage && <div className="mb-3 inline-flex rounded-2xl border border-border/70 bg-card/50 p-2">
+                  <div className="relative overflow-hidden rounded-xl">
+                    <img src={selectedImage} alt="Selected" className="max-h-24 object-contain" />
+                    <button onClick={removeSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/85 p-1 text-destructive transition-colors hover:bg-background">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 </div>}
 
-              {/* Input Container - Simple Sticker Bar */}
-              <div className="flex items-center gap-2 rounded-full bg-black/60 border border-orange-500/30 px-3 py-1.5">
-                {/* Hidden File Inputs */}
+              <div className="flex items-end gap-2 sm:gap-3">
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
 
-                {/* Attach Button */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 flex-shrink-0" disabled={loading}>
+                    <Button variant="ghost" size="icon" className="app-shell-pill h-11 w-11 rounded-2xl flex-shrink-0" disabled={loading}>
                       <Plus className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-black/95 backdrop-blur-xl border-orange-500/20">
-                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
-                      <ImageIcon className="h-4 w-4 mr-2" />
+                  <DropdownMenuContent align="start" className="border-border/70 bg-card/95 backdrop-blur-xl">
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                      <ImageIcon className="mr-2 h-4 w-4" />
                       Upload Image
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="text-orange-400 hover:bg-orange-500/10 cursor-pointer">
-                      <Camera className="h-4 w-4 mr-2" />
+                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                      <Camera className="mr-2 h-4 w-4" />
                       Take Photo
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* Input Field */}
-                <input 
-                  type="text"
-                  value={message}
-                  onChange={e => setMessage(e.target.value)}
-                  onKeyPress={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : language === 'mr' ? 'तुमचा प्रश्न येथे टाइप करा...' : 'Type your message...'}
-                  className="flex-1 bg-transparent border-0 outline-none text-sm text-foreground placeholder:text-orange-400/40 py-2"
-                  disabled={loading}
-                />
+                <div className="flex-1 rounded-[24px] border border-border/70 bg-background/50 px-4">
+                  <Textarea
+                    ref={textareaRef}
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                      }
+                    }}
+                    rows={1}
+                    placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : language === 'mr' ? 'तुमचा प्रश्न येथे टाइप करा...' : 'Type your message...'}
+                    className="min-h-[52px] max-h-36 resize-none border-0 bg-transparent px-0 py-3 text-sm text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-base"
+                    disabled={loading}
+                  />
+                </div>
 
-                {/* Mic Button */}
-                <Button 
-                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording} 
-                  variant="ghost" 
-                  size="icon" 
-                  className={`h-8 w-8 rounded-full flex-shrink-0 ${isRecording ? 'bg-red-500/20 text-red-400 animate-pulse' : 'text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10'}`} 
+                <Button
+                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                  variant="ghost"
+                  size="icon"
+                  className={`h-11 w-11 rounded-2xl flex-shrink-0 ${isRecording ? 'border border-destructive/40 bg-destructive/10 text-destructive' : 'app-shell-pill'}`}
                   disabled={loading}
                 >
                   <Mic className="h-4 w-4" />
                 </Button>
 
-                {/* Send Button */}
-                <Button 
-                  onClick={sendMessage} 
-                  size="icon" 
-                  className="h-8 w-8 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/30 disabled:opacity-50 flex-shrink-0" 
+                <Button
+                  onClick={sendMessage}
+                  size="icon"
+                  className="h-11 w-11 rounded-2xl bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 disabled:opacity-50 flex-shrink-0"
                   disabled={loading || (!message.trim() && !selectedImage)}
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
