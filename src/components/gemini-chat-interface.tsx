@@ -1371,16 +1371,16 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   </h1>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   <Button
                     onClick={handleToggleEncryption}
                     size="sm"
                     variant="ghost"
-                    className={`h-10 rounded-2xl px-3 ${encryptionOn ? 'app-shell-pill-active' : 'app-shell-pill'}`}
+                    className={`h-9 rounded-xl px-2.5 ${encryptionOn ? 'app-shell-pill-active' : 'app-shell-pill'}`}
                     title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
                   >
                     {encryptionOn ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
-                    <span className="ml-2 hidden sm:inline text-xs font-medium">{encryptionOn ? 'Secure' : 'Encrypt'}</span>
+                    <span className="ml-1.5 hidden md:inline text-xs font-medium">{encryptionOn ? 'Secure' : 'Encrypt'}</span>
                   </Button>
 
                   <Button
@@ -1390,10 +1390,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                     }}
                     size="sm"
                     variant="ghost"
-                    className="app-shell-pill h-10 rounded-2xl px-3 sm:px-4"
+                    className="app-shell-pill h-9 rounded-xl px-2.5"
                   >
                     <Plus className="h-4 w-4" />
-                    <span className="ml-2 text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
+                    <span className="ml-1.5 hidden md:inline text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
                   </Button>
 
                   <DropdownMenu>
