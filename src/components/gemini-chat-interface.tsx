@@ -1398,14 +1398,14 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="app-shell-pill h-10 rounded-2xl px-2.5 sm:px-3">
+                      <Button variant="ghost" size="sm" className="app-shell-pill h-9 rounded-xl px-2">
                         <Avatar className="h-6 w-6 border border-primary/35">
                           <AvatarImage src={user.user_metadata?.avatar_url} />
                           <AvatarFallback className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px]">
                             {user.email?.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="ml-2 hidden lg:inline max-w-[110px] truncate text-xs text-foreground/80">
+                        <span className="ml-1.5 hidden xl:inline max-w-[100px] truncate text-xs text-foreground/80">
                           {user.email?.split('@')[0]}
                         </span>
                       </Button>
