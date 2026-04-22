@@ -1352,20 +1352,23 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
         <AppSidebar />
         
         <main className="app-shell-frame flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-          <header className="flex-shrink-0 border-b border-border/50 px-3 py-3 sm:px-4 sm:py-4 lg:px-6">
-            <div className="app-shell-band mx-auto flex w-full max-w-6xl flex-col gap-3 rounded-[28px] px-3 py-3 sm:px-4 sm:py-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3 flex-1">
-                  <SidebarTrigger className="app-shell-pill h-10 w-10 rounded-2xl p-0" />
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-accent shadow-lg shadow-primary/25 ring-1 ring-primary/30 flex-shrink-0">
-                    <img src={vithalLogo} alt="Vithal AI" className="h-6 w-6" />
+          <header className="flex-shrink-0 border-b border-border/50 px-2 py-2 sm:px-4 sm:py-3">
+            <div className="app-shell-band mx-auto flex w-full max-w-6xl flex-col gap-2 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2 flex-1">
+                  <SidebarTrigger className="app-shell-pill h-9 w-9 rounded-xl p-0 flex-shrink-0" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/25 ring-1 ring-primary/30 flex-shrink-0">
+                    <img src={vithalLogo} alt="Vithal AI" className="h-5 w-5" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">Workspace</p>
-                    <h1 className="truncate text-base font-semibold gradient-text-orange sm:text-lg">
+                  <div className="min-w-0 hidden sm:block">
+                    <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground leading-tight">Workspace</p>
+                    <h1 className="truncate text-sm font-semibold gradient-text-orange leading-tight">
                       {currentSession?.title || 'New Chat'}
                     </h1>
                   </div>
+                  <h1 className="sm:hidden truncate text-sm font-semibold gradient-text-orange">
+                    {currentSession?.title || 'New Chat'}
+                  </h1>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
