@@ -70,6 +70,11 @@ const allSuggestions = {
 
 export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSuggestionClick }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const subtitle = language === 'hi'
+    ? 'अपना सवाल नीचे टाइप करें या सुझाव चुनें'
+    : language === 'mr'
+      ? 'तुमचा प्रश्न खाली टाइप करा किंवा सूचना निवडा'
+      : 'Type your question below or pick a suggestion';
 
   useEffect(() => {
     // Trigger animations after mount
@@ -86,9 +91,10 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
   }, [language]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center px-4 py-6 sm:py-8">
+    <section className="w-full max-w-4xl mx-auto px-3 sm:px-5 py-6 sm:py-8 md:py-12">
+      <div className="app-shell-band rounded-[28px] px-4 py-6 sm:px-8 sm:py-8 md:px-10 md:py-10 text-center">
       <div 
-        className={`relative w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full p-1 transition-all duration-700 ease-out ${
+        className={`relative mx-auto w-20 h-20 sm:w-24 sm:h-24 mb-6 rounded-full p-1 transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-90'
         }`}
         style={{ transitionDelay: '0ms' }}
@@ -102,7 +108,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
       </div>
       
       <h2 
-        className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 gradient-text-orange text-center transition-all duration-700 ease-out ${
+        className={`text-[clamp(2rem,4vw,3.6rem)] leading-none font-bold mb-3 gradient-text-orange text-center transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ transitionDelay: '150ms' }}
@@ -111,18 +117,16 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
       </h2>
       
       <p 
-        className={`text-foreground/50 text-sm sm:text-base mb-6 text-center max-w-md transition-all duration-700 ease-out ${
+        className={`text-muted-foreground text-sm sm:text-base mb-7 text-center max-w-xl mx-auto transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ transitionDelay: '300ms' }}
       >
-        {language === 'hi' ? 'अपना सवाल नीचे टाइप करें या सुझाव चुनें' : 
-         language === 'mr' ? 'तुमचा प्रश्न खाली टाइप करा किंवा सूचना निवडा' : 
-         'Type your question below or pick a suggestion'}
+        {subtitle}
       </p>
 
       <div 
-        className={`flex flex-wrap justify-center gap-2.5 mb-8 w-full max-w-xl transition-all duration-700 ease-out ${
+        className={`flex flex-wrap justify-center gap-2.5 mb-8 w-full max-w-2xl mx-auto transition-all duration-700 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}
         style={{ transitionDelay: '450ms' }}
@@ -131,13 +135,13 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
           <button
             key={index}
             onClick={() => onSuggestionClick(suggestion.text)}
-            className={`glass-card inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs sm:text-sm text-foreground/80 hover:text-foreground transition-all duration-300 hover:scale-105 active:scale-95 ${
+            className={`app-shell-pill inline-flex max-w-full items-center justify-center gap-2 px-4 py-3 rounded-full text-xs sm:text-sm font-medium text-center transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
             style={{ transitionDelay: `${500 + index * 80}ms` }}
           >
-            <span>{suggestion.icon}</span>
-            <span className="text-center">{suggestion.text}</span>
+            <span className="shrink-0">{suggestion.icon}</span>
+            <span className="text-center break-words">{suggestion.text}</span>
           </button>
         ))}
       </div>
@@ -148,24 +152,25 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ language, onSugg
         }`}
         style={{ transitionDelay: '800ms' }}
       >
-        <p className="text-xs text-foreground/40 text-center">
-          Powered by <span className="text-orange-500 font-medium">Gemini AI</span>
+        <p className="text-xs text-muted-foreground text-center">
+          Powered by <span className="text-primary font-medium">Gemini AI</span>
         </p>
-        <p className="text-xs text-foreground/40 text-center">
-          Developed By <span className="text-orange-400 font-medium">Kapil Kiran Jadhav</span>
+        <p className="text-xs text-muted-foreground text-center">
+          Developed By <span className="text-primary font-medium">Kapil Kiran Jadhav</span>
         </p>
-        <p className="text-xs text-foreground/40 text-center mt-1">
+        <p className="text-xs text-muted-foreground text-center mt-1">
           Sponsored By{' '}
           <a 
             href="https://www.instagram.com/shreealankar2112?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-orange-400 hover:text-orange-300 font-medium transition-colors duration-300 hover:underline"
+            className="text-primary hover:text-accent font-medium transition-colors duration-300 hover:underline"
           >
             Shree Alankar
           </a>
         </p>
       </div>
-    </div>
+      </div>
+    </section>
   );
 };
