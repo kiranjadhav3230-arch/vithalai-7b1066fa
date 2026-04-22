@@ -1435,7 +1435,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
                 {[
                   { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
                   { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
@@ -1450,10 +1450,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                       variant="ghost"
                       size="sm"
                       onClick={item.onClick}
-                      className={`h-10 rounded-2xl px-4 text-xs sm:text-sm font-medium ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
+                      className={`h-8 shrink-0 rounded-lg px-2.5 text-xs font-medium ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
                     >
-                      <Icon className="mr-2 h-4 w-4" />
-                      <span>{item.label}</span>
+                      <Icon className="h-3.5 w-3.5 sm:mr-1.5" />
+                      <span className="hidden sm:inline">{item.label}</span>
                     </Button>
                   );
                 })}
@@ -1461,10 +1461,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllFeatures(true)}
-                  className="app-shell-pill h-10 rounded-2xl px-4 text-xs sm:text-sm font-medium"
+                  className="app-shell-pill h-8 shrink-0 rounded-lg px-2.5 text-xs font-medium"
                 >
-                  <Grid3X3 className="mr-2 h-4 w-4" />
-                  <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
+                  <Grid3X3 className="h-3.5 w-3.5 sm:mr-1.5" />
+                  <span className="hidden sm:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
                 </Button>
               </div>
             </div>
