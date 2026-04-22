@@ -1597,32 +1597,32 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
             </ScrollArea>
           </div>
 
-          {encryptionOn && currentView === 'chat' && <div className="mx-3 mb-2 sm:mx-4 lg:mx-6">
-              <div className="mx-auto flex max-w-5xl items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-2 text-xs text-primary">
+          {encryptionOn && currentView === 'chat' && <div className="mx-2 mt-1.5 sm:mx-4">
+              <div className="mx-auto flex max-w-5xl items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] text-primary">
                 <ShieldCheck className="h-3 w-3" />
                 <span>Messages are end-to-end encrypted</span>
               </div>
             </div>}
 
-          <div className="flex-shrink-0 px-3 pb-3 pt-2 sm:px-4 sm:pb-4 lg:px-6">
-            <div className="chat-composer-shell mx-auto max-w-5xl rounded-[28px] px-3 py-3 sm:px-4 sm:py-4">
-              {selectedImage && <div className="mb-3 inline-flex rounded-2xl border border-border/70 bg-card/50 p-2">
-                  <div className="relative overflow-hidden rounded-xl">
-                    <img src={selectedImage} alt="Selected" className="max-h-24 object-contain" />
+          <div className="flex-shrink-0 px-2 pb-2 pt-2 sm:px-4 sm:pb-3">
+            <div className="chat-composer-shell mx-auto max-w-5xl rounded-2xl px-2 py-2 sm:px-3 sm:py-2.5">
+              {selectedImage && <div className="mb-2 inline-flex rounded-xl border border-border/70 bg-card/50 p-1.5">
+                  <div className="relative overflow-hidden rounded-lg">
+                    <img src={selectedImage} alt="Selected" className="max-h-20 object-contain" />
                     <button onClick={removeSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/85 p-1 text-destructive transition-colors hover:bg-background">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
                 </div>}
 
-              <div className="flex items-end gap-2 sm:gap-3">
+              <div className="flex items-end gap-1.5 sm:gap-2">
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
                 <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="app-shell-pill h-11 w-11 rounded-2xl flex-shrink-0" disabled={loading}>
-                      <Plus className="h-5 w-5" />
+                    <Button variant="ghost" size="icon" className="app-shell-pill h-10 w-10 rounded-xl flex-shrink-0" disabled={loading}>
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="border-border/70 bg-card/95 backdrop-blur-xl">
@@ -1637,7 +1637,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <div className="flex-1 rounded-[24px] border border-border/70 bg-background/50 px-4">
+                <div className="flex-1 rounded-xl border border-border/70 bg-background/50 px-3">
                   <Textarea
                     ref={textareaRef}
                     value={message}
@@ -1650,7 +1650,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                     }}
                     rows={1}
                     placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : language === 'mr' ? 'तुमचा प्रश्न येथे टाइप करा...' : 'Type your message...'}
-                    className="min-h-[52px] max-h-36 resize-none border-0 bg-transparent px-0 py-3 text-sm text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 sm:text-base"
+                    className="min-h-[40px] max-h-32 resize-none border-0 bg-transparent px-0 py-2.5 text-sm text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                     disabled={loading}
                   />
                 </div>
@@ -1659,7 +1659,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
                   variant="ghost"
                   size="icon"
-                  className={`h-11 w-11 rounded-2xl flex-shrink-0 ${isRecording ? 'border border-destructive/40 bg-destructive/10 text-destructive' : 'app-shell-pill'}`}
+                  className={`h-10 w-10 rounded-xl flex-shrink-0 ${isRecording ? 'border border-destructive/40 bg-destructive/10 text-destructive' : 'app-shell-pill'}`}
                   disabled={loading}
                 >
                   <Mic className="h-4 w-4" />
@@ -1668,7 +1668,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 <Button
                   onClick={sendMessage}
                   size="icon"
-                  className="h-11 w-11 rounded-2xl bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 disabled:opacity-50 flex-shrink-0"
+                  className="h-10 w-10 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md shadow-primary/25 disabled:opacity-50 flex-shrink-0"
                   disabled={loading || (!message.trim() && !selectedImage)}
                 >
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
