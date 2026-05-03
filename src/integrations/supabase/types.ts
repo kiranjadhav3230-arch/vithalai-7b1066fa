@@ -1680,6 +1680,27 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       weak_topics: {
         Row: {
           created_at: string | null
@@ -1819,6 +1840,13 @@ export type Database = {
         Args: { _room_id: string; _user_id: string }
         Returns: number
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_public_room: { Args: { _room_id: string }; Returns: boolean }
       is_room_creator: {
         Args: { _room_id: string; _user_id: string }
@@ -1837,6 +1865,7 @@ export type Database = {
         | "generate_document"
         | "navigate"
         | "info"
+      app_role: "admin" | "moderator" | "user"
       legal_category_type:
         | "police"
         | "hospital"
@@ -1981,6 +2010,7 @@ export const Constants = {
         "navigate",
         "info",
       ],
+      app_role: ["admin", "moderator", "user"],
       legal_category_type: [
         "police",
         "hospital",

@@ -4,12 +4,25 @@ import './index.css'
 
 // Register service worker for push notifications in PWA mode
 if ('serviceWorker' in navigator) {
+  // Hard-refresh once when a new Service Worker takes control so updated
+  // header/composer styles always appear in preview and production.
+  let hasReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hasReloaded) return;
+    hasReloaded = true;
+    console.log('[SW] Controller changed - reloading for fresh UI');
+    window.location.reload();
+  });
+
   window.addEventListener('load', async () => {
     try {
       // Register the custom service worker for push notifications
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/'
       });
+
+      // Check for updates immediately so layout changes are picked up fast
+      try { await registration.update(); } catch {}
       
       console.log('[SW] Service Worker registered successfully:', registration.scope);
       
@@ -28,6 +41,11 @@ if ('serviceWorker' in navigator) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'activated') {
               console.log('[SW] New service worker activated');
+            }
+            // When a new SW is installed and an old one controls the page,
+            // tell it to skip waiting so controllerchange fires and we reload.
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch {}
             }
           });
         }
