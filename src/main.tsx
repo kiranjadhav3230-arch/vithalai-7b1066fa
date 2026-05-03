@@ -42,6 +42,11 @@ if ('serviceWorker' in navigator) {
             if (newWorker.state === 'activated') {
               console.log('[SW] New service worker activated');
             }
+            // When a new SW is installed and an old one controls the page,
+            // tell it to skip waiting so controllerchange fires and we reload.
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              try { newWorker.postMessage({ type: 'SKIP_WAITING' }); } catch {}
+            }
           });
         }
       });
