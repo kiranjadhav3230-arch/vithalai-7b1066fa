@@ -5,7 +5,6 @@ import { GlassHeader } from '@/components/glass-header';
 import { GlassHero } from '@/components/glass-hero';
 import { GlassFeatures } from '@/components/glass-features';
 import { GlassHowItWorks } from '@/components/glass-how-it-works';
-import { GlassShowcase } from '@/components/glass-showcase';
 import { GlassFaq } from '@/components/glass-faq';
 import { GlassFooter } from '@/components/glass-footer';
 import { AuthModal } from '@/components/auth-modal';
@@ -88,7 +87,6 @@ const Index = () => {
         <GlassHero onGetStarted={handleGetStarted} />
         <GlassFeatures />
         <GlassHowItWorks />
-        <GlassShowcase />
         <GlassFaq />
 
         {/* Final CTA */}
