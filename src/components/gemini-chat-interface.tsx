@@ -1435,13 +1435,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
+              <div className="flex items-center justify-center gap-1.5 overflow-x-auto no-scrollbar">
                 {[
                   { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chat', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
-                  { key: 'code', icon: Code, label: language === 'hi' ? 'कोड' : language === 'mr' ? 'कोड' : 'Code', onClick: async () => { playCodeSound(); setCurrentView('code'); } },
-                  { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Rooms', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
-                  { key: 'haq-jaano', icon: Scale, label: language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano', onClick: () => { playChatSound(); setCurrentView('haq-jaano'); } },
-                  { key: 'crop', icon: Leaf, label: language === 'hi' ? 'फसल' : language === 'mr' ? 'पीक' : 'Crop', onClick: () => { playChatSound(); setCurrentView('crop'); } },
+                  { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
                 ].map(item => {
                   const active = currentView === item.key;
                   const Icon = item.icon;
@@ -1451,10 +1448,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                       variant="ghost"
                       size="sm"
                       onClick={item.onClick}
-                      className={`h-8 shrink-0 rounded-lg px-2.5 text-xs font-medium ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
+                      className={`h-9 shrink-0 rounded-full px-4 text-xs font-medium transition-all ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
                     >
-                      <Icon className="h-3.5 w-3.5 sm:mr-1.5" />
-                      <span className="hidden sm:inline">{item.label}</span>
+                      <Icon className="h-3.5 w-3.5 mr-1.5" />
+                      <span>{item.label}</span>
                     </Button>
                   );
                 })}
@@ -1462,10 +1459,10 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAllFeatures(true)}
-                  className="app-shell-pill h-8 shrink-0 rounded-lg px-2.5 text-xs font-medium"
+                  className="app-shell-pill h-9 shrink-0 rounded-full px-4 text-xs font-medium"
                 >
-                  <Grid3X3 className="h-3.5 w-3.5 sm:mr-1.5" />
-                  <span className="hidden sm:inline">{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
+                  <Grid3X3 className="h-3.5 w-3.5 mr-1.5" />
+                  <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
                 </Button>
               </div>
             </div>
