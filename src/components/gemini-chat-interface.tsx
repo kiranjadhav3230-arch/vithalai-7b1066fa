@@ -24,7 +24,7 @@ import { ChatMessageRenderer } from './chat-message-renderer';
 import { StudyRooms } from './study-rooms';
 import { CropHealthAnalyzer } from './crop-health-analyzer';
 import { HaqJaanoIntegrated } from './haq-jaano-integrated';
-import { FullstackAppBuilder } from './fullstack-app-builder';
+// App Builder feature removed
 import type { User } from '@supabase/supabase-js';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import { WelcomeSection } from './welcome-section';
@@ -60,7 +60,7 @@ interface ChatMessage {
 interface GeminiChatInterfaceProps {
   user: User;
   onLogout: () => void;
-  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano' | 'fullstack';
+  initialView?: 'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano';
 }
 export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   user,
@@ -80,7 +80,7 @@ export const GeminiChatInterface: React.FC<GeminiChatInterfaceProps> = ({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano' | 'fullstack'>(initialView || 'chat');
+  const [currentView, setCurrentView] = useState<'chat' | 'code' | 'studyRooms' | 'crop' | 'haq-jaano'>(initialView || 'chat');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [collapsedTabs, setCollapsedTabs] = useState<{
@@ -1437,10 +1437,11 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
 
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar -mx-0.5 px-0.5">
                 {[
-                  { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chats', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
-                  { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
+                  { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chat', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
+                  { key: 'code', icon: Code, label: language === 'hi' ? 'कोड' : language === 'mr' ? 'कोड' : 'Code', onClick: async () => { playCodeSound(); setCurrentView('code'); } },
+                  { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Rooms', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
                   { key: 'haq-jaano', icon: Scale, label: language === 'hi' ? 'हक जानो' : language === 'mr' ? 'हक्क जाणा' : 'Haq Jaano', onClick: () => { playChatSound(); setCurrentView('haq-jaano'); } },
-                  { key: 'fullstack', icon: Rocket, label: language === 'hi' ? 'ऐप बिल्डर' : language === 'mr' ? 'ॲप बिल्डर' : 'App Builder', onClick: () => { playCodeSound(); setCurrentView('fullstack'); } },
+                  { key: 'crop', icon: Leaf, label: language === 'hi' ? 'फसल' : language === 'mr' ? 'पीक' : 'Crop', onClick: () => { playChatSound(); setCurrentView('crop'); } },
                 ].map(item => {
                   const active = currentView === item.key;
                   const Icon = item.icon;
@@ -1483,8 +1484,6 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               <CropHealthAnalyzer />
             </div> : currentView === 'haq-jaano' ? <div className="flex-1 overflow-auto">
               <HaqJaanoIntegrated onBackToHome={() => setCurrentView('chat')} />
-            </div> : currentView === 'fullstack' ? <div className="flex-1 overflow-hidden">
-              <FullstackAppBuilder user={user} onBack={() => setCurrentView('chat')} />
             </div> : <>
           <div className="flex-1 min-h-0 overflow-hidden">
             <ScrollArea className="h-full">
@@ -1926,33 +1925,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                 </div>
               </button>
 
-              {/* App Builder */}
-              <button
-                onClick={() => {
-                  setCurrentView('fullstack');
-                  setShowAllFeatures(false);
-                }}
-                className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-purple-500/50 hover:bg-purple-500/5 transition-all duration-300 text-left group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg">
-                    <Rocket className="h-6 w-6 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-foreground group-hover:text-purple-400 transition-colors">
-                        {language === 'hi' ? 'ऐप बिल्डर' : language === 'mr' ? 'ॲप बिल्डर' : 'App Builder'}
-                      </h3>
-                      <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-purple-500 to-purple-600 text-white animate-pulse">
-                        NEW
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                      {language === 'hi' ? 'अपने Supabase के साथ पूर्ण-स्टैक ऐप्स बनाएं' : language === 'mr' ? 'तुमच्या Supabase सह फुल-स्टॅक ॲप्स तयार करा' : "Build full-stack apps with your Supabase"}
-                    </p>
-                  </div>
-                </div>
-              </button>
+              {/* App Builder feature removed */}
             </div>
           </DialogContent>
         </Dialog>
