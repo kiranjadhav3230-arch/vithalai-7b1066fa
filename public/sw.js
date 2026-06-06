@@ -1,5 +1,5 @@
 // Service Worker for Push Notifications - Vithal AI PWA
-const CACHE_NAME = 'vithal-ai-v7-ui-polish';
+const CACHE_NAME = 'vithal-ai-v8-header-redesign';
 
 // Install event
 self.addEventListener('install', (event) => {
