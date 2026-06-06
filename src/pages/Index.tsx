@@ -87,7 +87,7 @@ const Index = () => {
         <GlassHero onGetStarted={handleGetStarted} />
         <GlassFeatures />
         <GlassHowItWorks />
-        <GlassShowcase />
+        <GlassFaq />
         <GlassFaq />
 
         {/* Final CTA */}
