@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Users, Scale, Grid3X3, Rocket } from 'lucide-react';
+import { MessageSquare, Users, Scale, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/hooks/useLanguage';
 import { LanguageSelector } from '@/components/ui/language-selector';
 
+type FeatureKey = 'chat' | 'room' | 'haq-jaano';
+
 interface FeatureNavBarProps {
-  onFeatureSelect?: (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => void;
-  currentFeature?: 'chat' | 'room' | 'haq-jaano' | 'fullstack';
+  onFeatureSelect?: (feature: FeatureKey) => void;
+  currentFeature?: FeatureKey;
   hideLanguageSelector?: boolean;
 }
 
@@ -27,47 +29,32 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
     switch (language) {
       case 'hi':
         return {
-          chats: 'चैट',
-          room: 'रूम',
-          haqJaano: 'हक जानो',
-          appBuilder: 'ऐप बिल्डर',
-          all: 'सभी',
+          chats: 'चैट', room: 'रूम', haqJaano: 'हक जानो', all: 'सभी',
           allFeaturesTitle: 'सभी सुविधाएं',
           features: [
-            { name: 'AI चैट सहायक', description: 'Gemini द्वारा संचालित बुद्धिमान AI चैटबॉट के साथ अपने प्रश्नों के तुरंत उत्तर प्राप्त करें', icon: MessageSquare, key: 'chat' },
-            { name: 'स्टडी रूम', description: 'AI सहायता, रीयल-टाइम चैट और सदस्य प्रबंधन के साथ सहयोगी अध्ययन स्थान', icon: Users, key: 'room' },
-            { name: 'हक जानो', description: 'भारत का पहला AI कानूनी अधिकार सहायक। किसी भी स्थिति में अपने अधिकार जानें', icon: Scale, key: 'haq-jaano' },
-            { name: 'ऐप बिल्डर', description: 'अपने Supabase के साथ पूर्ण-स्टैक ऐप्स बनाएं। डेटाबेस और प्रमाणीकरण शामिल', icon: Rocket, key: 'fullstack', isNew: true },
+            { name: 'AI चैट सहायक', description: 'Gemini द्वारा संचालित बुद्धिमान AI चैटबॉट', icon: MessageSquare, key: 'chat' as const },
+            { name: 'स्टडी रूम', description: 'AI सहायता के साथ सहयोगी अध्ययन स्थान', icon: Users, key: 'room' as const },
+            { name: 'हक जानो', description: 'भारत का पहला AI कानूनी अधिकार सहायक', icon: Scale, key: 'haq-jaano' as const },
           ]
         };
       case 'mr':
         return {
-          chats: 'चॅट',
-          room: 'रूम',
-          haqJaano: 'हक्क जाणा',
-          appBuilder: 'ॲप बिल्डर',
-          all: 'सर्व',
+          chats: 'चॅट', room: 'रूम', haqJaano: 'हक्क जाणा', all: 'सर्व',
           allFeaturesTitle: 'सर्व वैशिष्ट्ये',
           features: [
-            { name: 'AI चॅट सहाय्यक', description: 'Gemini द्वारे समर्थित बुद्धिमान AI चॅटबॉटसह तुमच्या प्रश्नांची त्वरित उत्तरे मिळवा', icon: MessageSquare, key: 'chat' },
-            { name: 'स्टडी रूम', description: 'AI सहाय्य, रिअल-टाइम चॅट आणि सदस्य व्यवस्थापनासह सहयोगी अभ्यास जागा', icon: Users, key: 'room' },
-            { name: 'हक्क जाणा', description: 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक. कोणत्याही परिस्थितीत तुमचे हक्क जाणून घ्या', icon: Scale, key: 'haq-jaano' },
-            { name: 'ॲप बिल्डर', description: 'तुमच्या Supabase सह फुल-स्टॅक ॲप्स तयार करा. डेटाबेस आणि प्रमाणीकरण समाविष्ट', icon: Rocket, key: 'fullstack', isNew: true },
+            { name: 'AI चॅट सहाय्यक', description: 'Gemini द्वारे समर्थित बुद्धिमान AI चॅटबॉट', icon: MessageSquare, key: 'chat' as const },
+            { name: 'स्टडी रूम', description: 'AI सहाय्यासह सहयोगी अभ्यास जागा', icon: Users, key: 'room' as const },
+            { name: 'हक्क जाणा', description: 'भारताचा पहिला AI कायदेशीर हक्क सहाय्यक', icon: Scale, key: 'haq-jaano' as const },
           ]
         };
       default:
         return {
-          chats: 'Chats',
-          room: 'Room',
-          haqJaano: 'Haq Jaano',
-          appBuilder: 'App Builder',
-          all: 'All',
+          chats: 'Chats', room: 'Room', haqJaano: 'Haq Jaano', all: 'All',
           allFeaturesTitle: 'All Features',
           features: [
-            { name: 'AI Chat Assistant', description: 'Get instant answers to your questions with our intelligent AI chatbot powered by Gemini', icon: MessageSquare, key: 'chat' },
-            { name: 'Study Rooms', description: 'Collaborative study spaces with AI assistance, real-time chat, and member management', icon: Users, key: 'room' },
-            { name: 'Haq Jaano', description: 'India\'s first AI Legal Rights Assistant. Know your rights in any situation', icon: Scale, key: 'haq-jaano' },
-            { name: 'App Builder', description: 'Build full-stack apps with your own Supabase. Includes database & authentication', icon: Rocket, key: 'fullstack', isNew: true },
+            { name: 'AI Chat Assistant', description: 'Intelligent AI chatbot powered by Gemini', icon: MessageSquare, key: 'chat' as const },
+            { name: 'Study Rooms', description: 'Collaborative study spaces with AI assistance', icon: Users, key: 'room' as const },
+            { name: 'Haq Jaano', description: "India's first AI Legal Rights Assistant", icon: Scale, key: 'haq-jaano' as const },
           ]
         };
     }
@@ -75,120 +62,61 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
 
   const texts = getTexts();
 
-  const handleFeatureClick = (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => {
+  const handleFeatureClick = (feature: FeatureKey) => {
     if (onFeatureSelect) {
       onFeatureSelect(feature);
     } else {
-      // Navigate based on current location
-      if (feature === 'haq-jaano') {
-        navigate('/haq-jaano');
-      } else {
-        // For chat, room, and fullstack, we need to go to index and trigger the feature
-        navigate('/', { state: { openFeature: feature } });
-      }
+      if (feature === 'haq-jaano') navigate('/haq-jaano');
+      else navigate('/', { state: { openFeature: feature } });
     }
   };
 
-  const isActive = (feature: 'chat' | 'room' | 'haq-jaano' | 'fullstack') => {
+  const isActive = (feature: FeatureKey) => {
     if (currentFeature) return currentFeature === feature;
     if (feature === 'haq-jaano') return location.pathname === '/haq-jaano';
     return false;
   };
+
+  const pillClass = (active: boolean) =>
+    `flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
+      active
+        ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
+        : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
+    }`;
 
   return (
     <>
       <div className="sticky top-0 z-50 w-full glass-surface border-b border-primary/15">
         <div className="container mx-auto px-2 sm:px-4">
           <div className="flex items-center justify-between h-14 gap-2">
-            {/* Feature Buttons */}
             <div className="flex items-center gap-1.5 sm:gap-2 flex-1 overflow-x-auto no-scrollbar">
-              {/* Chats */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFeatureClick('chat')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
-                  isActive('chat')
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
-                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                }`}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleFeatureClick('chat')} className={pillClass(isActive('chat'))}>
                 <MessageSquare className="h-4 w-4" />
                 <span className="text-sm font-medium">{texts.chats}</span>
               </Button>
-
-              {/* Room */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFeatureClick('room')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
-                  isActive('room')
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
-                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                }`}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleFeatureClick('room')} className={pillClass(isActive('room'))}>
                 <Users className="h-4 w-4" />
                 <span className="text-sm font-medium">{texts.room}</span>
               </Button>
-
-              {/* Haq Jaano */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFeatureClick('haq-jaano')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
-                  isActive('haq-jaano')
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
-                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                }`}
-              >
+              <Button variant="ghost" size="sm" onClick={() => handleFeatureClick('haq-jaano')} className={pillClass(isActive('haq-jaano'))}>
                 <Scale className="h-4 w-4" />
                 <span className="text-sm font-medium">{texts.haqJaano}</span>
               </Button>
-
-              {/* App Builder */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleFeatureClick('fullstack')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border transition-all duration-300 ${
-                  isActive('fullstack')
-                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-primary/40 shadow-[0_0_20px_hsl(25_100%_55%/0.3)]'
-                    : 'border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground'
-                }`}
-              >
-                <Rocket className="h-4 w-4" />
-                <span className="text-sm font-medium hidden sm:inline">{texts.appBuilder}</span>
-                <Badge className="text-[9px] px-1 py-0 bg-primary text-primary-foreground border-0">NEW</Badge>
-              </Button>
-
-              {/* All Features */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowAllFeatures(true)}
-                className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 shrink-0 rounded-full border border-primary/15 bg-background/30 text-foreground/80 hover:bg-primary/10 hover:border-primary/30 hover:text-foreground transition-all duration-300"
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowAllFeatures(true)} className={pillClass(false)}>
                 <Grid3X3 className="h-4 w-4" />
                 <span className="text-sm font-medium">{texts.all}</span>
               </Button>
             </div>
 
-            {/* Language Selector - conditionally rendered */}
             {!hideLanguageSelector && (
               <div className="shrink-0">
-                <LanguageSelector 
-                  language={language} 
-                  onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} 
-                />
+                <LanguageSelector language={language} onLanguageChange={(lang) => setLanguage(lang as 'en' | 'hi' | 'mr')} />
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* All Features Modal */}
       <Dialog open={showAllFeatures} onOpenChange={setShowAllFeatures}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -197,39 +125,21 @@ export const FeatureNavBar: React.FC<FeatureNavBarProps> = ({
               {texts.allFeaturesTitle}
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             {texts.features.map((feature, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  handleFeatureClick(feature.key as 'chat' | 'room' | 'haq-jaano' | 'fullstack');
-                  setShowAllFeatures(false);
-                }}
+                onClick={() => { handleFeatureClick(feature.key); setShowAllFeatures(false); }}
                 className="w-full p-4 rounded-xl bg-gradient-to-r from-card to-card/50 border border-border/50 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300 text-left group"
               >
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${
-                    feature.key === 'haq-jaano' 
-                      ? 'bg-gradient-to-br from-orange-500 to-amber-500' 
-                      : feature.key === 'fullstack'
-                      ? 'bg-gradient-to-br from-amber-500 to-orange-600'
-                      : 'bg-gradient-to-br from-orange-500 to-amber-500'
-                  } shadow-lg shadow-orange-500/20`}>
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 shadow-lg shadow-orange-500/20">
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                        {feature.name}
-                      </h3>
-                      {(feature as any).isNew && (
-                        <Badge className="text-[9px] px-1.5 py-0 bg-green-500 text-white">NEW</Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                      {feature.description}
-                    </p>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{feature.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">{feature.description}</p>
                   </div>
                 </div>
               </button>
