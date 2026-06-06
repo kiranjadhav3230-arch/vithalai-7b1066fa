@@ -22,20 +22,20 @@ export const GlassHeader: React.FC<GlassHeaderProps> = ({ onAuthClick }) => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-black/60 backdrop-blur-xl border-b border-white/[0.06]'
+          ? 'bg-background/85 backdrop-blur-xl border-b border-border'
           : 'bg-transparent'
       }`}
     >
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
-            <div className="h-10 w-10 rounded-xl overflow-hidden ring-2 ring-orange-500/40 shadow-lg shadow-orange-500/30 bg-gradient-to-br from-orange-500/20 to-amber-500/20">
+            <div className="h-8 w-8 rounded-lg overflow-hidden bg-card ring-1 ring-border">
               <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
             </div>
-            <span className="text-lg font-display font-bold text-foreground">Vithal AI</span>
+            <span className="text-base font-display font-semibold text-foreground">Vithal AI</span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2">
             <div className="hidden sm:block">
               <LanguageSelector
                 language={language}
@@ -45,7 +45,7 @@ export const GlassHeader: React.FC<GlassHeaderProps> = ({ onAuthClick }) => {
             <Button
               onClick={onAuthClick}
               size="sm"
-              className="rounded-full px-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white border-0 hover:opacity-90"
+              className="rounded-lg h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 font-medium"
             >
               Get Started
             </Button>
