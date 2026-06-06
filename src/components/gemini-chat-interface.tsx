@@ -1603,76 +1603,84 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
               </div>
             </div>}
 
-          <div className="flex-shrink-0 px-2 pb-2 pt-2 sm:px-4 sm:pb-3">
-            <div className="chat-composer-shell mx-auto max-w-5xl rounded-2xl px-2 py-2 sm:px-3 sm:py-2.5">
-              {selectedImage && <div className="mb-2 inline-flex rounded-xl border border-border/70 bg-card/50 p-1.5">
-                  <div className="relative overflow-hidden rounded-lg">
-                    <img src={selectedImage} alt="Selected" className="max-h-20 object-contain" />
-                    <button onClick={removeSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/85 p-1 text-destructive transition-colors hover:bg-background">
+          <div className="flex-shrink-0 px-2 pb-3 pt-2 sm:px-4">
+            <div className="mx-auto w-full max-w-3xl">
+              {selectedImage && (
+                <div className="mb-2 inline-flex rounded-2xl border border-border/70 bg-card/60 p-1.5 backdrop-blur-sm">
+                  <div className="relative overflow-hidden rounded-xl">
+                    <img src={selectedImage} alt="Selected" className="max-h-24 object-contain" />
+                    <button onClick={removeSelectedImage} className="absolute right-1 top-1 rounded-full bg-background/90 p-1 text-destructive shadow-sm hover:bg-background">
                       <X className="h-3 w-3" />
                     </button>
                   </div>
-                </div>}
-
-              <div className="flex items-end gap-1.5 sm:gap-2">
-                <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="app-shell-pill h-10 w-10 rounded-xl flex-shrink-0" disabled={loading}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="border-border/70 bg-card/95 backdrop-blur-xl">
-                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
-                      <ImageIcon className="mr-2 h-4 w-4" />
-                      Upload Image
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
-                      <Camera className="mr-2 h-4 w-4" />
-                      Take Photo
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <div className="flex-1 rounded-xl border border-border/70 bg-background/50 px-3">
-                  <Textarea
-                    ref={textareaRef}
-                    value={message}
-                    onChange={e => setMessage(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                      }
-                    }}
-                    rows={1}
-                    placeholder={language === 'hi' ? 'अपना सवाल यहाँ लिखें...' : language === 'mr' ? 'तुमचा प्रश्न येथे टाइप करा...' : 'Type your message...'}
-                    className="min-h-[40px] max-h-32 resize-none border-0 bg-transparent px-0 py-2.5 text-sm text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                    disabled={loading}
-                  />
                 </div>
+              )}
 
-                <Button
-                  onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
-                  variant="ghost"
-                  size="icon"
-                  className={`h-10 w-10 rounded-xl flex-shrink-0 ${isRecording ? 'border border-destructive/40 bg-destructive/10 text-destructive' : 'app-shell-pill'}`}
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleCameraCapture} className="hidden" />
+
+              {/* Gemini-style unified composer pill */}
+              <div className="group relative rounded-[28px] border border-border/70 bg-card/70 backdrop-blur-xl shadow-lg shadow-black/20 transition-all duration-300 focus-within:border-primary/50 focus-within:shadow-primary/10">
+                <Textarea
+                  ref={textareaRef}
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  rows={1}
+                  placeholder={language === 'hi' ? 'विठ्ठल से कुछ भी पूछें...' : language === 'mr' ? 'विठ्ठलला काहीही विचारा...' : 'Ask Vithal anything...'}
+                  className="min-h-[52px] max-h-40 resize-none border-0 bg-transparent px-5 pt-3.5 pb-1 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
                   disabled={loading}
-                >
-                  <Mic className="h-4 w-4" />
-                </Button>
+                />
 
-                <Button
-                  onClick={sendMessage}
-                  size="icon"
-                  className="h-10 w-10 rounded-xl bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-md shadow-primary/25 disabled:opacity-50 flex-shrink-0"
-                  disabled={loading || (!message.trim() && !selectedImage)}
-                >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                </Button>
+                <div className="flex items-center justify-between gap-2 px-2 pb-2">
+                  <div className="flex items-center gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary" disabled={loading}>
+                          <Plus className="h-[18px] w-[18px]" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="border-border/70 bg-card/95 backdrop-blur-xl">
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                          <ImageIcon className="mr-2 h-4 w-4" /> Upload Image
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => cameraInputRef.current?.click()} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
+                          <Camera className="mr-2 h-4 w-4" /> Take Photo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <Button
+                      onClick={isRecording ? stopVoiceRecording : startVoiceRecording}
+                      variant="ghost"
+                      size="icon"
+                      className={`h-9 w-9 rounded-full ${isRecording ? 'bg-destructive/15 text-destructive animate-pulse' : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}
+                      disabled={loading}
+                      title={isRecording ? 'Stop recording' : 'Voice input'}
+                    >
+                      <Mic className="h-[18px] w-[18px]" />
+                    </Button>
+                  </div>
+
+                  <Button
+                    onClick={sendMessage}
+                    size="icon"
+                    className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground shadow-md shadow-primary/30 transition-all hover:shadow-lg hover:shadow-primary/40 hover:scale-105 disabled:opacity-40 disabled:scale-100 disabled:shadow-none"
+                    disabled={loading || (!message.trim() && !selectedImage)}
+                  >
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-[17px] w-[17px]" />}
+                  </Button>
+                </div>
               </div>
+
+              <p className="mt-2 text-center text-[10.5px] text-muted-foreground/60">
+                {language === 'hi' ? 'विठ्ठल AI गलतियाँ कर सकता है। महत्वपूर्ण जानकारी जाँचें।' : language === 'mr' ? 'विठ्ठल AI चुका करू शकतो. महत्त्वाची माहिती तपासा.' : 'Vithal AI may make mistakes. Verify important info.'}
+              </p>
             </div>
           </div>
             </>}
