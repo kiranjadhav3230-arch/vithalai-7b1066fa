@@ -1490,7 +1490,7 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
             <ScrollArea className="h-full">
               <div className={messages.length === 0 && !loading ? 'min-h-full flex items-center justify-center px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10' : 'px-3 py-4 sm:px-4 sm:py-6 lg:px-6'}>
                 <div className={`mx-auto w-full max-w-5xl ${messages.length === 0 && !loading ? '' : 'space-y-4 sm:space-y-6'}`}>
-                  {messages.length === 0 && !loading && <WelcomeSection language={language} onSuggestionClick={suggestion => {
+                  {messages.length === 0 && !loading && <WelcomeSection language={language} userName={user.user_metadata?.full_name || user.email?.split('@')[0]} onSuggestionClick={suggestion => {
                       setMessage(suggestion);
                       triggerHaptic();
                     }} />}
