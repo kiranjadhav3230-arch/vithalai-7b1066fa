@@ -1352,90 +1352,21 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
         <AppSidebar />
         
         <main className="app-shell-frame flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-          <header className="flex-shrink-0 border-b border-border/50 px-2 py-2 sm:px-4 sm:py-3">
-            <div className="app-shell-band mx-auto flex w-full max-w-6xl flex-col gap-2 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2 flex-1">
-                  <SidebarTrigger className="app-shell-pill h-9 w-9 rounded-xl p-0 flex-shrink-0" />
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-accent shadow-md shadow-primary/25 ring-1 ring-primary/30 flex-shrink-0">
-                    <img src={vithalLogo} alt="Vithal AI" className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 hidden sm:block">
-                    <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground leading-tight">Workspace</p>
-                    <h1 className="truncate text-sm font-semibold gradient-text-orange leading-tight">
-                      {currentSession?.title || 'New Chat'}
-                    </h1>
-                  </div>
-                  <h1 className="sm:hidden truncate text-sm font-semibold gradient-text-orange">
-                    {currentSession?.title || 'New Chat'}
-                  </h1>
+          <header className="flex-shrink-0 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+            <div className="mx-auto flex w-full max-w-6xl items-center gap-2 px-3 py-2 sm:px-4">
+              {/* Left: trigger + logo + title */}
+              <div className="flex min-w-0 items-center gap-2 flex-1">
+                <SidebarTrigger className="h-8 w-8 rounded-lg p-0 flex-shrink-0 hover:bg-muted text-foreground/70" />
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted/50 flex-shrink-0">
+                  <img src={vithalLogo} alt="Vithal AI" className="h-4 w-4" />
                 </div>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <Button
-                    onClick={handleToggleEncryption}
-                    size="sm"
-                    variant="ghost"
-                    className={`h-9 rounded-xl px-2.5 ${encryptionOn ? 'app-shell-pill-active' : 'app-shell-pill'}`}
-                    title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
-                  >
-                    {encryptionOn ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
-                    <span className="ml-1.5 hidden md:inline text-xs font-medium">{encryptionOn ? 'Secure' : 'Encrypt'}</span>
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      const sessionType = currentView === 'code' ? 'code' : 'chat';
-                      createNewSession(sessionType);
-                    }}
-                    size="sm"
-                    variant="ghost"
-                    className="app-shell-pill h-9 rounded-xl px-2.5"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span className="ml-1.5 hidden md:inline text-xs font-medium">{language === 'hi' ? 'नया' : language === 'mr' ? 'नवीन' : 'New'}</span>
-                  </Button>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="app-shell-pill h-9 rounded-xl px-2">
-                        <Avatar className="h-6 w-6 border border-primary/35">
-                          <AvatarImage src={user.user_metadata?.avatar_url} />
-                          <AvatarFallback className="bg-gradient-to-r from-primary to-accent text-primary-foreground text-[10px]">
-                            {user.email?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="ml-1.5 hidden xl:inline max-w-[100px] truncate text-xs text-foreground/80">
-                          {user.email?.split('@')[0]}
-                        </span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 border-border/70 bg-card/95 backdrop-blur-xl">
-                      <DropdownMenuItem onClick={() => setShowProfile(true)} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
-                        <UserIcon className="mr-2 h-3.5 w-3.5" />
-                        Profile
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setShowContactModal(true)} className="cursor-pointer text-foreground/80 hover:bg-primary/10">
-                        <svg className="mr-2 h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                        </svg>
-                        Support
-                      </DropdownMenuItem>
-                      <div className="border-t border-border/60 px-2 py-1.5">
-                        <div className="mb-1 text-[10px] text-muted-foreground">Language</div>
-                        <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
-                      </div>
-                      <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-destructive hover:bg-destructive/10">
-                        <LogOut className="mr-2 h-3.5 w-3.5" />
-                        Sign Out
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                <h1 className="truncate text-sm font-medium text-foreground/90">
+                  {currentSession?.title || 'New chat'}
+                </h1>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 overflow-x-auto no-scrollbar">
+              {/* Center: nav tabs */}
+              <nav className="hidden md:flex items-center gap-0.5 rounded-full bg-muted/40 p-0.5">
                 {[
                   { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chat', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
                   { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
@@ -1443,30 +1374,115 @@ ${project.files?.map((f: any) => `- ${f.file_name}`).join('\n') || ''}
                   const active = currentView === item.key;
                   const Icon = item.icon;
                   return (
-                    <Button
+                    <button
                       key={item.key}
-                      variant="ghost"
-                      size="sm"
                       onClick={item.onClick}
-                      className={`h-9 shrink-0 rounded-full px-4 text-xs font-medium transition-all ${active ? 'app-shell-pill-active' : 'app-shell-pill'}`}
+                      className={`flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium transition-colors ${active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                     >
-                      <Icon className="h-3.5 w-3.5 mr-1.5" />
+                      <Icon className="h-3.5 w-3.5" />
                       <span>{item.label}</span>
-                    </Button>
+                    </button>
                   );
                 })}
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
                   onClick={() => setShowAllFeatures(true)}
-                  className="app-shell-pill h-9 shrink-0 rounded-full px-4 text-xs font-medium"
+                  className="flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <Grid3X3 className="h-3.5 w-3.5 mr-1.5" />
+                  <Grid3X3 className="h-3.5 w-3.5" />
                   <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
+                </button>
+              </nav>
+
+              {/* Right: actions */}
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  onClick={handleToggleEncryption}
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-lg ${encryptionOn ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  title={encryptionOn ? 'E2E Encryption ON' : 'Enable E2E Encryption'}
+                >
+                  {encryptionOn ? <ShieldCheck className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
                 </Button>
+
+                <Button
+                  onClick={() => {
+                    const sessionType = currentView === 'code' ? 'code' : 'chat';
+                    createNewSession(sessionType);
+                  }}
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                  title="New chat"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={user.user_metadata?.avatar_url} />
+                        <AvatarFallback className="bg-muted text-foreground text-[10px] font-medium">
+                          {user.email?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 border-border/70 bg-card/95 backdrop-blur-xl">
+                    <DropdownMenuItem onClick={() => setShowProfile(true)} className="cursor-pointer text-foreground/80 hover:bg-muted">
+                      <UserIcon className="mr-2 h-3.5 w-3.5" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowContactModal(true)} className="cursor-pointer text-foreground/80 hover:bg-muted">
+                      <svg className="mr-2 h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                      Support
+                    </DropdownMenuItem>
+                    <div className="border-t border-border/60 px-2 py-1.5">
+                      <div className="mb-1 text-[10px] text-muted-foreground">Language</div>
+                      <LanguageSelector language={language} onLanguageChange={lang => setLanguage(lang as 'en' | 'hi' | 'mr')} />
+                    </div>
+                    <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-destructive hover:bg-destructive/10">
+                      <LogOut className="mr-2 h-3.5 w-3.5" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
+
+            {/* Mobile nav tabs row */}
+            <nav className="flex md:hidden items-center justify-center gap-0.5 mx-3 mb-2 rounded-full bg-muted/40 p-0.5">
+              {[
+                { key: 'chat', icon: MessageSquare, label: language === 'hi' ? 'चैट' : language === 'mr' ? 'चॅट' : 'Chat', onClick: async () => { playChatSound(); setCurrentView('chat'); if (!currentSession || currentSession.session_type === 'code') { await createNewSession('chat'); } } },
+                { key: 'studyRooms', icon: Users, label: language === 'hi' ? 'रूम' : language === 'mr' ? 'रूम' : 'Room', onClick: () => { playChatSound(); setCurrentView('studyRooms'); } },
+              ].map(item => {
+                const active = currentView === item.key;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    onClick={item.onClick}
+                    className={`flex-1 flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium transition-colors ${active ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setShowAllFeatures(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 h-8 px-3 rounded-full text-xs font-medium text-muted-foreground"
+              >
+                <Grid3X3 className="h-3.5 w-3.5" />
+                <span>{language === 'hi' ? 'सभी' : language === 'mr' ? 'सर्व' : 'All'}</span>
+              </button>
+            </nav>
           </header>
+
 
           {currentView === 'code' ? <div className="flex-1 overflow-auto">
               <CodeGeneratorChat user={user} sessionId={currentSession?.id} onSessionTitleUpdate={(sessionId, newTitle) => {
