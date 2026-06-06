@@ -88,7 +88,6 @@ const Index = () => {
         <GlassFeatures />
         <GlassHowItWorks />
         <GlassFaq />
-        <GlassFaq />
 
         {/* Final CTA */}
         <section className="relative py-20 md:py-28 px-4 overflow-hidden">
