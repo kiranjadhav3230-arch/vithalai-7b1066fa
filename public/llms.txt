@@ -1,0 +1,24 @@
+# Vithal AI
+
+> AI-powered assistance platform for Indian youth offering career planning, code generation, secure chat, study collaboration, agricultural crop analysis, and legal rights education (Haq Jaano). Built with a trilingual-friendly interface supporting English, Hindi, and Marathi.
+
+## Pages
+
+- [Home](/): Main application hub featuring AI chat, code generator, study rooms, and crop health analyzer.
+- [Haq Jaano](/haq-jaano): Interactive legal rights education platform covering fundamental rights, constitutional knowledge, and emergency helplines for Indian citizens.
+
+## Features
+
+- AI Chat: Conversational assistant powered by Gemini for general queries, coding help, and career guidance.
+- Code Generator: Generate, execute, and download code in multiple programming languages with live preview.
+- Study Rooms: Collaborative chat rooms for students with AI-assisted learning and subject discussions.
+- Crop Health Analyzer: Upload crop images for AI diagnosis, treatment suggestions, and agricultural advice in Hindi/Marathi.
+- Haq Jaano: Legal rights quiz, exam, and learning cards covering Indian law and constitutional rights.
+- Code Library: Save, organize, and share code snippets with interactive execution and input support.
+- Text-to-Speech & Speech-to-Text: Web Speech API integration for voice interaction.
+- PWA Support: Installable web app with offline capabilities and push notifications.
+
+## Optional
+
+- /robots.txt: Crawler access rules.
+- /manifest.webmanifest: PWA manifest and app configuration.
