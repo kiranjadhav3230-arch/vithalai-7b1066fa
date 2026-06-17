@@ -18,7 +18,15 @@ export const GlassHero: React.FC<GlassHeroProps> = ({ onGetStarted }) => {
           {/* Logo */}
           <div className="flex justify-center">
             <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl overflow-hidden ring-1 ring-border bg-card">
-              <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
+              <img
+                src={vithalLogo}
+                alt="Vithal AI"
+                width={64}
+                height={64}
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             </div>
           </div>
 

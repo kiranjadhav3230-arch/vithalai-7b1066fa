@@ -30,7 +30,15 @@ export const GlassHeader: React.FC<GlassHeaderProps> = ({ onAuthClick }) => {
         <div className="flex items-center justify-between h-14">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg overflow-hidden bg-card ring-1 ring-border">
-              <img src={vithalLogo} alt="Vithal AI" className="h-full w-full object-cover" />
+              <img
+                src={vithalLogo}
+                alt="Vithal AI"
+                width={32}
+                height={32}
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             </div>
             <span className="text-base font-display font-semibold text-foreground">Vithal AI</span>
           </div>
